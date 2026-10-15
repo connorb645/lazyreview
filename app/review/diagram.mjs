@@ -16,6 +16,7 @@ const KIND_WORDS = { has: 'holds', realize: 'conforms to', inherit: 'inherits fr
 const MIN = 0.03, MAX = 2.6, NAMES_SHOWN = 0.45;
 const ZOOM_STRIP = 58;
 const STATE_WORDS = { changed: 52, removed: 54, same: 68 };
+const NODE_RADIUS = 6;
 
 export function createDiagram(ctx) {
   const { model, layout, nodes, comps, groupsById, compTotals } = ctx.data;
@@ -82,9 +83,9 @@ export function createDiagram(ctx) {
   function pullMarks(n, b) {
     if (!n.pulls || !n.pulls.length) return '';
     let out = '';
-    const w = (b.w - 2) / n.pulls.length;
+    const w = (b.w - NODE_RADIUS * 2) / n.pulls.length;
     n.pulls.forEach((p, i) => {
-      out += '<rect class="pstrip" style="--pc:' + pulls.pullColor(p) + '" x="' + (b.x + 1 + i * w) + '" y="' + (b.y + 1) + '" width="' + w + '" height="3.5"></rect>';
+      out += '<rect class="pstrip" style="--pc:' + pulls.pullColor(p) + '" x="' + (b.x + NODE_RADIUS + i * w) + '" y="' + (b.y + 1) + '" width="' + w + '" height="3.5"></rect>';
     });
     const room = b.w - (STATE_WORDS[n.state] || 0) - 6;
     const width = text => text.length * 6.4 + 10;
@@ -116,14 +117,13 @@ export function createDiagram(ctx) {
     const cx = b.x + b.w / 2;
     let out = '<g class="' + cls + '" data-id="' + esc(n.id) + '" tabindex="0" role="link" aria-label="' +
       esc(n.name + ', ' + baseName(n.file) + '. ' + (n.pulls && n.pulls.length ? 'Changed in ' + n.pulls.map(p => '#' + p).join(', ') + '. ' : '') + goWords(n)) + '">' +
-      '<rect class="box" x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="3"></rect>';
+      '<rect class="box" x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="' + NODE_RADIUS + '"></rect>';
     if (n.kind === 'artifact') {
       out += '<text class="st" x="' + cx + '" y="' + (b.y + 17) + '">«file»</text>' +
         '<text class="nm" x="' + cx + '" y="' + (b.y + 35) + '" data-fit="' + (b.w - 14) + '">' + esc(n.name) + '</text>';
     } else {
       const st = n.stereotype;
-      out += '<rect class="filebar" x="' + (b.x + 0.6) + '" y="' + (b.y + b.h - 18) + '" width="' + (b.w - 1.2) + '" height="17.4"></rect>' +
-        '<line class="rule" x1="' + b.x + '" x2="' + (b.x + b.w) + '" y1="' + (b.y + b.h - 18) + '" y2="' + (b.y + b.h - 18) + '"></line>';
+      out += '<line class="rule" x1="' + b.x + '" x2="' + (b.x + b.w) + '" y1="' + (b.y + b.h - 18) + '" y2="' + (b.y + b.h - 18) + '"></line>';
       if (st) out += '<text class="st" x="' + cx + '" y="' + (b.y + 15) + '" data-fit="' + (b.w - 12) + '">' + esc(st) + '</text>';
       out += '<text class="nm" x="' + cx + '" y="' + (b.y + (st ? 33 : 26)) + '" data-fit="' + (b.w - 14) + '">' + esc(n.name) + '</text>' +
         '<text class="fl" x="' + cx + '" y="' + (b.y + b.h - 5.5) + '" data-fit="' + (b.w - 10) + '">' + esc(baseName(n.file)) + '</text>';
@@ -556,10 +556,10 @@ export function createDiagram(ctx) {
     legendRow('<line x1="2" y1="9" x2="40" y2="9" class="edge realize" marker-end="url(#m-tri)"></line>', 'Conforms to a protocol or interface') +
     legendRow('<line x1="2" y1="9" x2="40" y2="9" class="edge inherit" marker-end="url(#m-tri)"></line>', 'Inherits from a type') +
     legendRow('<line x1="2" y1="9" x2="40" y2="9" class="edge use" marker-end="url(#m-open)"></line>', 'Uses it (named links only, until you point)') +
-    legendRow('<rect x="3" y="2" width="38" height="14" rx="2" fill="var(--surface)" stroke="var(--ink)"></rect>', 'New in this change') +
-    (states.changed ? legendRow('<rect x="3" y="2" width="38" height="14" rx="2" fill="var(--surface)" stroke="var(--changed)" stroke-width="2"></rect>', 'Existing, changed') : '') +
-    (states.same || states.context ? legendRow('<rect x="3" y="2" width="38" height="14" rx="2" fill="var(--bg)" stroke="var(--muted)" stroke-dasharray="4 3"></rect>', 'Unchanged, shown for context') : '') +
-    (states.removed ? legendRow('<rect x="3" y="2" width="38" height="14" rx="2" fill="var(--del-bg)" stroke="var(--del-ink)" stroke-dasharray="4 3"></rect>', 'Removed by this change') : '');
+    legendRow('<rect x="3" y="2" width="38" height="14" rx="4" fill="var(--surface)" stroke="var(--ink)"></rect>', 'New in this change') +
+    (states.changed ? legendRow('<rect x="3" y="2" width="38" height="14" rx="4" fill="var(--surface)" stroke="var(--changed)" stroke-width="2"></rect>', 'Existing, changed') : '') +
+    (states.same || states.context ? legendRow('<rect x="3" y="2" width="38" height="14" rx="4" fill="var(--bg)" stroke="var(--muted)" stroke-dasharray="4 3"></rect>', 'Unchanged, shown for context') : '') +
+    (states.removed ? legendRow('<rect x="3" y="2" width="38" height="14" rx="4" fill="var(--del-bg)" stroke="var(--del-ink)" stroke-dasharray="4 3"></rect>', 'Removed by this change') : '');
   legend.querySelectorAll('svg').forEach(s => s.insertAdjacentHTML('afterbegin', markerDefs()));
   if (pulls.members.length) {
     legend.insertAdjacentHTML('beforeend', '<span class="pps">' + pulls.pullPill(pulls.members[0].pull) + '</span><span>Changed in that pull request of the stack</span>');

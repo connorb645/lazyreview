@@ -47,6 +47,11 @@ test('the app\'s pages and files are served with a policy that loads nothing fro
     }
     assert.match((await call(s.address, 'GET', '/app/main.mjs')).headers['content-type'], /text\/javascript/);
     assert.equal((await call(s.address, 'GET', '/vendor/marked-12.0.2.min.js')).status, 200);
+    for (const path of ['/vendor/plus-jakarta-sans-5.3.0-latin.woff2', '/vendor/plus-jakarta-sans-5.3.0-latin-ext.woff2']) {
+      const font = await call(s.address, 'GET', path);
+      assert.equal(font.status, 200, path);
+      assert.equal(font.headers['content-type'], 'font/woff2', path);
+    }
     for (const path of ['/app/../src/cli/main.mjs', '/app/%2e%2e/package.json', '/vendor/elk-0.9.3.bundled.js', '/app/nothing.mjs', '/app/%E0%A4%A']) {
       assert.equal((await call(s.address, 'GET', path)).status, 404, path);
     }

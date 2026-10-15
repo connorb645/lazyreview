@@ -94,7 +94,7 @@ export function createQueuePanel(ctx) {
     }
     function confirmStep(action, opener) {
       actionsEl.textContent = '';
-      const yes = button('Yes, ' + LABELS[action].toLowerCase(), 'qc-button' + (action === 'comment' ? '' : ' qc-approve'));
+      const yes = button('Yes, ' + LABELS[action].toLowerCase(), 'qc-button qc-yes' + (action === 'comment' ? '' : ' qc-approve'));
       const no = button('Cancel', 'qc-quiet');
       actionsEl.appendChild(yes);
       actionsEl.appendChild(no);

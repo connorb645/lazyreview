@@ -16,7 +16,7 @@ once, draws it. An agent loading a review spends only the tokens of one command.
 - Claude Code (`claude`), signed in, for questions about a line; the rest works without it
 
 There is nothing to install: the app has no dependencies beyond the two
-libraries in `vendor/`.
+libraries and the one font in `vendor/`, and it loads nothing from the network.
 
 ## Start the app
 
@@ -156,7 +156,9 @@ takes changes only as JSON from its own pages.
   stack, and lays out the diagram with ELK (`vendor/`).
 - `src/queue` holds the queue's rules and the one way a review is posted.
 - `src/ask` asks Claude; `src/server` serves the app and its JSON.
-- `app/` is the web app, plain JavaScript modules with no build step.
+- `app/` is the web app, plain JavaScript modules with no build step. Its
+  look is one stylesheet, `app/styles.css`, with a dark and a light theme
+  that follow the system setting.
 
 Run the tests with `npm test`. They make their own throwaway repositories and
 answer for GitHub and Claude Code with stand-ins, so they reach no network.

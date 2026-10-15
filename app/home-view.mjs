@@ -10,7 +10,7 @@ import { esc, when } from './lib/text.mjs';
 export async function openHome() {
   const reviews = await getJSON('/api/reviews');
   document.title = 'Review Desk';
-  document.getElementById('page-title').textContent = 'Review Desk';
+  document.getElementById('page-title').innerHTML = 'Review <span class="accent-word">Desk</span>';
   const list = document.getElementById('home-list');
   const live = reviews.filter(r => !r.moved);
   list.innerHTML = live.length ? live.map(r => {

@@ -23,6 +23,8 @@ function problem(title, detail) {
 const reviewId = /^\/review\/(.+)$/.exec(location.pathname);
 const loading = document.getElementById('loading');
 try {
+  // The diagram fits its names to their boxes by measuring them, so it is drawn in its own font, never the fallback.
+  await document.fonts.ready;
   if (reviewId) await openReview(decodeURIComponent(reviewId[1]).replace(/\/+$/, ''));
   else await openHome();
 } catch (error) {
