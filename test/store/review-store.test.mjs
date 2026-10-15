@@ -33,6 +33,21 @@ test('a change writes every file or none', async () => {
   }
 });
 
+test('a review file that is not JSON is named in the error', () => {
+  const s = scratch();
+  try {
+    const a = new PullRef('github.com', 'octo/widgets', 1);
+    const folder = s.store.home.review(a);
+    mkdirSync(folder.path, { recursive: true });
+    writeFileSync(folder.record, '{"id":');
+    writeFileSync(folder.page, '');
+    assert.throws(() => s.store.read(a), { message: `could not read ${folder.record}: Unexpected end of JSON input` });
+    assert.throws(() => s.store.readPageData(a), { message: `could not read ${folder.page}: Unexpected end of JSON input` });
+  } finally {
+    s.done();
+  }
+});
+
 test('the store lists every review newest first, and finds the one holding a pull request', async () => {
   const s = scratch();
   try {

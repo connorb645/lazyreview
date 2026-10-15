@@ -9,13 +9,14 @@
  * and says whether one was running.
  */
 import { spawn } from 'node:child_process';
-import { openSync, readFileSync, rmSync, closeSync } from 'node:fs';
+import { openSync, rmSync, closeSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { readJSON } from '../store/whole-file.mjs';
 
 const START_WAIT = 15_000;
 
 export async function running(home) {
-  const recorded = readRecord(home);
+  const recorded = readJSON(home.serverFile);
   if (!recorded || !alive(recorded.pid)) return null;
   return (await answers(recorded.address)) ? recorded.address : null;
 }
@@ -38,7 +39,7 @@ export async function start({ home, bin, env }) {
 }
 
 export async function stop(home) {
-  const recorded = readRecord(home);
+  const recorded = readJSON(home.serverFile);
   if (!recorded || !alive(recorded.pid)) {
     rmSync(home.serverFile, { force: true });
     return false;
@@ -46,15 +47,6 @@ export async function stop(home) {
   process.kill(recorded.pid, 'SIGTERM');
   for (let i = 0; i < 50 && alive(recorded.pid); i++) await sleep(100);
   return true;
-}
-
-function readRecord(home) {
-  try {
-    return JSON.parse(readFileSync(home.serverFile, 'utf8'));
-  } catch (error) {
-    if (error.code === 'ENOENT') return null;
-    throw error;
-  }
 }
 
 function alive(pid) {

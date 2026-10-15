@@ -1,12 +1,14 @@
 /**
- * Writes a file whole, so another process reading it never finds it empty or
- * half written.
+ * Reads and writes the files Review Desk keeps, each one whole.
  *
  * writeWhole(path, text) writes `text` to a new file beside `path`, then
- * renames that over `path`: a reader finds the file as it was or as it is
- * now, nothing in between. A failure leaves `path` as it was.
+ * renames that over `path`: another process reading it finds the file as it
+ * was or as it is now, never empty or half written. A failure leaves `path`
+ * as it was. readText(path) returns a file's text and readJSON(path) its
+ * value, each null when there is no such file; a file that is not JSON
+ * throws an error naming it.
  */
-import { writeFileSync, renameSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 
 export function writeWhole(path, text) {
@@ -17,5 +19,24 @@ export function writeWhole(path, text) {
   } catch (error) {
     rmSync(partial, { force: true });
     throw error;
+  }
+}
+
+export function readText(path) {
+  try {
+    return readFileSync(path, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+export function readJSON(path) {
+  const text = readText(path);
+  if (text === null) return null;
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error(`could not read ${path}: ${error.message}`);
   }
 }

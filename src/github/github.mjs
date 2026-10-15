@@ -40,7 +40,12 @@ export class GitHub {
     const done = await this.#run(args, { input: payload === undefined ? undefined : JSON.stringify(payload), env: await this.environment() });
     if (done.timedOut) throw new Error(`GitHub did not answer ${method} ${path} in time; nothing changed`);
     if (done.code !== 0) throw new Error(`GitHub refused ${method} ${path}: ${(done.stderr || done.stdout).trim()}`);
-    return done.stdout.trim() ? JSON.parse(done.stdout) : null;
+    if (!done.stdout.trim()) return null;
+    try {
+      return JSON.parse(done.stdout);
+    } catch (error) {
+      throw new Error(`could not read GitHub's answer to ${method} ${path}: ${error.message}`);
+    }
   }
 
   async #pages(path) {

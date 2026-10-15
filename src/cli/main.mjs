@@ -11,7 +11,7 @@ import { parseArguments, USAGE } from './arguments.mjs';
 import { readSettings } from '../settings/settings.mjs';
 import { DataHome } from '../store/data-home.mjs';
 import { ReviewStore } from '../store/review-store.mjs';
-import { writeWhole } from '../store/whole-file.mjs';
+import { writeWhole, readJSON } from '../store/whole-file.mjs';
 import { Clones } from '../clone/clones.mjs';
 import { Loader } from '../loader/loader.mjs';
 import { QueueService } from '../queue/queue-service.mjs';
@@ -35,7 +35,7 @@ export async function run(argv, { env = process.env, bin }) {
       const loader = new Loader({ store, clones: new Clones(home) });
       const loaded = await loader.load({
         links: options.positional,
-        config: options.config ? JSON.parse(readFileSync(options.config, 'utf8')) : undefined,
+        config: options.config ? readConfigFile(options.config) : undefined,
         context: options.context ? true : options.noContext ? false : undefined,
         account: options.account,
       });
@@ -96,8 +96,10 @@ async function serve({ settings, home, store }) {
   writeWhole(home.serverFile, JSON.stringify({ pid: process.pid, address }) + '\n');
   const shut = async () => {
     try {
-      const recorded = JSON.parse(readFileSync(home.serverFile, 'utf8'));
-      if (recorded.pid === process.pid) rmSync(home.serverFile, { force: true });
+      const recorded = readJSON(home.serverFile);
+      if (recorded?.pid === process.pid) rmSync(home.serverFile, { force: true });
+    } catch (error) {
+      console.error(`review-desk: ${error.message}`);
     } finally {
       await server.close();
       process.exit(0);
@@ -106,4 +108,12 @@ async function serve({ settings, home, store }) {
   process.once('SIGINT', shut);
   process.once('SIGTERM', shut);
   return [`Review Desk is running at ${address}`];
+}
+
+function readConfigFile(path) {
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch (error) {
+    throw new Error(`could not read the config ${path}: ${error.message}`);
+  }
 }

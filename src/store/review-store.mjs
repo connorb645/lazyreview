@@ -7,10 +7,10 @@
  * writes are all-or-nothing: a failure partway puts back every file it had
  * written, and each file is replaced whole, never left half written.
  */
-import { readFileSync, rmSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { rmSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { withLocks } from './file-lock.mjs';
-import { writeWhole } from './whole-file.mjs';
+import { writeWhole, readText, readJSON } from './whole-file.mjs';
 import { PullRef } from '../github/pull-ref.mjs';
 
 export class ReviewStore {
@@ -32,6 +32,11 @@ export class ReviewStore {
   /** The page data of a review, as JSON text, or null. */
   readPage(ref) {
     return readText(this.#home.review(ref).page);
+  }
+
+  /** The page data of a review, or null. */
+  readPageData(ref) {
+    return readJSON(this.#home.review(ref).page);
   }
 
   readWritten(ref) {
@@ -124,20 +129,6 @@ function replace(path, text) {
   if (text === null) { rmSync(path, { force: true }); return; }
   mkdirSync(dirname(path), { recursive: true });
   writeWhole(path, text);
-}
-
-function readText(path) {
-  try {
-    return readFileSync(path, 'utf8');
-  } catch (error) {
-    if (error.code === 'ENOENT') return null;
-    throw error;
-  }
-}
-
-function readJSON(path) {
-  const text = readText(path);
-  return text === null ? null : JSON.parse(text);
 }
 
 function folders(path) {

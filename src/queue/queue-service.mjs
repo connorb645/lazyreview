@@ -33,7 +33,7 @@ export class QueueService {
 
   add(ref, given) {
     return this.#change(ref, async (review, gh) => {
-      const page = JSON.parse(this.#store.readPage(ref) || 'null');
+      const page = this.#store.readPageData(ref);
       const { pull, target, shown } = commentTarget(review, page && page.stack, given);
       const member = liveMember(review, pull);
       const problems = bodyProblems(given.body);

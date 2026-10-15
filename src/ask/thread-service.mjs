@@ -49,7 +49,7 @@ export class ThreadService {
 
   async #answer(ref, id) {
     const review = this.#reviewOf(ref);
-    const page = JSON.parse(this.#store.readPage(ref));
+    const page = this.#store.readPageData(ref);
     let message;
     try {
       message = { from: 'claude', text: await this.#claude.ask(questionFor({ review, page, thread: this.#thread(ref, id) })), at: this.#now() };

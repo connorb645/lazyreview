@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createServer } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { workbench } from '../support/workbench.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
+import { fakeGh } from '../support/fake-gh.mjs';
 
 const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'review-desk');
 const SLOW_DISK = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '..', 'support', 'slow-disk.mjs')).href;
@@ -80,6 +82,28 @@ test('the first load starts the app even when the disk is slow to fill the app\'
   } finally {
     for (let i = 0; i < 20 && (await run(['stop'], env)).code !== 0; i++) await sleep(100);
     w.done();
+  }
+});
+
+test('a file that is not JSON fails the command, naming the file', async () => {
+  const gh = fakeGh();
+  const root = mkdtempSync(join(tmpdir(), 'review-desk-home-'));
+  const env = { ...gh.env, REVIEW_DESK_HOME: root };
+  try {
+    writeFileSync(join(root, 'server.json'), '');
+    const started = await run(['start'], env);
+    assert.equal(started.code, 1);
+    assert.equal(started.stderr, `review-desk: could not read ${join(root, 'server.json')}: Unexpected end of JSON input\n`);
+
+    const config = join(root, 'components.json');
+    writeFileSync(config, '{"components": [');
+    const loaded = await run(['load', 'https://github.com/octo/widgets/pull/1', '--config', config], env);
+    assert.equal(loaded.code, 1);
+    assert.equal(loaded.stderr, `review-desk: could not read the config ${config}: Unexpected end of JSON input\n`);
+    assert.deepEqual(gh.calls(), []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+    gh.done();
   }
 });
 
