@@ -2,13 +2,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createServer } from 'node:net';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { workbench } from '../support/workbench.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 
 const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'review-desk');
+const SLOW_DISK = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '..', 'support', 'slow-disk.mjs')).href;
 
 function run(args, env) {
   return new Promise(resolve => {
@@ -63,6 +65,20 @@ test('one command loads a pull request, starts the app, and prints where to open
   } finally {
     await run(['stop'], env);
     fake.done();
+    w.done();
+  }
+});
+
+test('the first load starts the app even when the disk is slow to fill the app\'s record', async () => {
+  const w = workbench();
+  const port = await freePort();
+  const env = { ...w.env, REVIEW_DESK_PORT: String(port), NODE_OPTIONS: `--import=${SLOW_DISK}` };
+  try {
+    const loaded = await run(['load', w.link(30)], env);
+    assert.equal(loaded.code, 0, loaded.stderr);
+    assert.equal(loaded.stdout, `loaded #30: 1 file +1 -1, 1 component, 0 types\nopen http://127.0.0.1:${port}/review/github.com/octo/widgets/30\n`);
+  } finally {
+    for (let i = 0; i < 20 && (await run(['stop'], env)).code !== 0; i++) await sleep(100);
     w.done();
   }
 });

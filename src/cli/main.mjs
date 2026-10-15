@@ -6,11 +6,12 @@
  * returns once done; `load` starts the app in the background first when it
  * is not running, so its address is ready to open.
  */
-import { readFileSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
+import { readFileSync, rmSync, mkdirSync } from 'node:fs';
 import { parseArguments, USAGE } from './arguments.mjs';
 import { readSettings } from '../settings/settings.mjs';
 import { DataHome } from '../store/data-home.mjs';
 import { ReviewStore } from '../store/review-store.mjs';
+import { writeWhole } from '../store/whole-file.mjs';
 import { Clones } from '../clone/clones.mjs';
 import { Loader } from '../loader/loader.mjs';
 import { QueueService } from '../queue/queue-service.mjs';
@@ -92,7 +93,7 @@ async function serve({ settings, home, store }) {
     port: settings.port,
   });
   const address = await server.listen();
-  writeFileSync(home.serverFile, JSON.stringify({ pid: process.pid, address }) + '\n');
+  writeWhole(home.serverFile, JSON.stringify({ pid: process.pid, address }) + '\n');
   const shut = async () => {
     try {
       const recorded = JSON.parse(readFileSync(home.serverFile, 'utf8'));

@@ -7,10 +7,10 @@
  * writes are all-or-nothing: a failure partway puts back every file it had
  * written, and each file is replaced whole, never left half written.
  */
-import { readFileSync, writeFileSync, renameSync, rmSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, rmSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { randomBytes } from 'node:crypto';
 import { withLocks } from './file-lock.mjs';
+import { writeWhole } from './whole-file.mjs';
 import { PullRef } from '../github/pull-ref.mjs';
 
 export class ReviewStore {
@@ -123,9 +123,7 @@ function writeAll(files) {
 function replace(path, text) {
   if (text === null) { rmSync(path, { force: true }); return; }
   mkdirSync(dirname(path), { recursive: true });
-  const partial = `${path}.${process.pid}.${randomBytes(4).toString('hex')}.tmp`;
-  writeFileSync(partial, text);
-  renameSync(partial, path);
+  writeWhole(path, text);
 }
 
 function readText(path) {
