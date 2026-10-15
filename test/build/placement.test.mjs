@@ -33,6 +33,17 @@ test('balanced grouping does not split a folder just to peel off a stray file', 
   assert.deepEqual(groupByFolder(paths, { splitAbove: 8, balanced: true }).map(g => g.folder), ['big']);
 });
 
+test('a folder one subfolder dominates splits into that subfolder\'s parts, with the rest set apart', () => {
+  const paths = [...Array(14)].map((_, i) => `Modules/Search/Sources/f${i}.swift`)
+    .concat([...Array(8)].map((_, i) => `Modules/Basket/Sources/g${i}.swift`), ['App/App.xcodeproj/project.pbxproj', 'App/App/Main.swift']);
+  assert.deepEqual(groupByFolder(paths, { splitAbove: 8, balanced: true }).map(g => [g.folder, g.paths.length]),
+    [['Modules/Basket/Sources', 8], ['Modules/Search/Sources', 14], [null, 2]]);
+  const { components } = placeFiles(paths, readConfig(undefined), { rootTitle: 'app' });
+  assert.deepEqual(components.map(c => [c.title, c.size]), [['Search Sources', 14], ['Basket Sources', 8], ['Other files', 2]]);
+  const flat = [...Array(30)].map((_, i) => `src/f${i}.ts`).concat(['README.md', 'docs/a.md']);
+  assert.deepEqual(groupByFolder(flat, { splitAbove: 8, balanced: true }).map(g => g.folder), [''], 'a dominant folder with nothing to split into stays whole');
+});
+
 test('a small diff with no config is one component named after the repository', () => {
   const { components } = placeFiles(['Sources/Core/A.swift', 'Tests/CoreTests/ATests.swift'], readConfig(undefined), { rootTitle: 'core' });
   assert.deepEqual(components.map(c => [c.id, c.title]), [['root', 'core']]);

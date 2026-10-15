@@ -104,10 +104,10 @@ function folderPackages(paths, componentId, taken, splitAbove = 3) {
   });
 }
 
-// Groups of three files or fewer are not worth a component each.
+// Groups of three files or fewer are not worth a component each; they join any group of other files.
 function mergeSmall(groups) {
   if (groups.length <= 3) return groups;
-  const small = groups.filter(g => g.paths.length <= 3);
+  const small = groups.filter(g => g.paths.length <= 3 || g.folder === null);
   if (small.length < 2) return groups;
   return [...groups.filter(g => g.paths.length > 3), { folder: null, paths: small.flatMap(g => g.paths) }];
 }
