@@ -35,7 +35,7 @@ export async function run(argv, { env = process.env, bin }) {
       const loaded = await loader.load({
         links: options.positional,
         config: options.config ? JSON.parse(readFileSync(options.config, 'utf8')) : undefined,
-        context: options.noContext ? false : undefined,
+        context: options.context ? true : options.noContext ? false : undefined,
         account: options.account,
       });
       const address = (await running(home)) || (await start({ home, bin, env }));

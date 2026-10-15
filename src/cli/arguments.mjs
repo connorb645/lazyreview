@@ -11,7 +11,8 @@ export const USAGE = `usage: review-desk <command> [options]
                          loading one again refreshes it
       --account <login>  act as this GitHub account, not gh's active one
       --config <file>    JSON naming the components and packages to draw
-      --no-context       leave out the unchanged code the change touches
+      --context          also draw the unchanged code the change touches
+      --no-context       stop drawing it, for a review loaded with it
   attach <pull link> <file>
                          attach a written review, in Markdown, to the review
                          holding that pull request
@@ -22,7 +23,7 @@ export const USAGE = `usage: review-desk <command> [options]
   help                   show this`;
 
 const COMMANDS = {
-  load: { min: 1, valued: ['--account', '--config'], flags: ['--no-context'] },
+  load: { min: 1, valued: ['--account', '--config'], flags: ['--context', '--no-context'] },
   attach: { min: 2, max: 2 },
   list: { max: 0 },
   serve: { max: 0 },

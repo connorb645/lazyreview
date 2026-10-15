@@ -191,7 +191,8 @@ export function createOverview(ctx) {
       status.textContent = 'Fetching the pull request' + (pulls.members.length ? 's' : '') + ' and drawing them again…';
       try {
         const done = await send('POST', reviewPath(ctx.state.id, '/refresh'));
-        location.assign('/review/' + done.id + location.hash);
+        if (done.id === ctx.state.id) location.reload();
+        else location.assign('/review/' + done.id + location.hash);
       } catch (error) {
         refresh.disabled = false;
         status.textContent = error.message;

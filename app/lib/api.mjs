@@ -6,11 +6,12 @@ export async function getJSON(path) {
   return answer(await fetch(path, { headers: { Accept: 'application/json' } }));
 }
 
-export async function send(method, path, body) {
+export async function send(method, path, body = {}) {
+  const json = method !== 'DELETE';
   return answer(await fetch(path, {
     method,
-    headers: body === undefined ? { Accept: 'application/json' } : { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    headers: json ? { 'Content-Type': 'application/json', Accept: 'application/json' } : { Accept: 'application/json' },
+    body: json ? JSON.stringify(body) : undefined,
   }));
 }
 

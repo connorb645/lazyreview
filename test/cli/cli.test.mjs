@@ -39,7 +39,7 @@ test('one command loads a pull request, starts the app, and prints where to open
     const record = JSON.parse(readFileSync(w.home.serverFile, 'utf8'));
     assert.equal(record.address, `http://127.0.0.1:${port}`);
 
-    const stack = await run(['load', w.link(21), w.link(22), '--no-context'], env);
+    const stack = await run(['load', w.link(21), w.link(22), '--context'], env);
     assert.equal(stack.code, 0, stack.stderr);
     assert.match(stack.stdout, /^loaded #21, #22: 4 files \+\d+ -\d+, \d+ components?, \d+ types?\nopen http:\/\/127\.0\.0\.1:\d+\/review\/github\.com\/octo\/widgets\/21\n$/);
 

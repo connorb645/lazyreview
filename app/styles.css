@@ -694,7 +694,7 @@ tr.pr-other > td, td.pr-other { opacity: .4; }
 td.lineno.ln { cursor: pointer; }
 td.lineno.ln:hover { color: var(--accent); box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--accent) 14%, transparent); }
 tr.picked td.code, tr.picked td.lineno { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--accent) 12%, transparent); }
-tr.note-row > td { padding: 0; background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: var(--sans); white-space: normal; }
+tr.note-row > td { position: relative; z-index: 1; padding: 0; background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: var(--sans); white-space: normal; }
 .composer, .thread, .queued-note { max-width: 46rem; margin: 10px 14px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: 13.5px; line-height: 1.5; }
 .composer { position: relative; border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
 .composer-where { margin: 0 0 8px; padding-right: 64px; color: var(--muted); font-size: 12.5px; }

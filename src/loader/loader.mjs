@@ -52,7 +52,7 @@ export class Loader {
     const previous = this.#store.read(anchor);
     const settled = {
       account: account !== undefined ? account : previous?.account || null,
-      context: context !== undefined ? context : previous?.context ?? true,
+      context: context !== undefined ? context : previous?.context ?? false,
       config: config !== undefined ? config : this.#store.readConfig(anchor) || undefined,
     };
     const checked = readConfig(settled.config);

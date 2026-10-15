@@ -16,7 +16,7 @@ test('a pull request loads into a review: its record, its page and its clone', a
     assert.equal(review.me, 'reviewer');
     assert.equal(review.title, 'Fix the guide wording');
     assert.deepEqual(review.base, { ref: 'main', sha: w.repo.sha('main') });
-    assert.equal(review.context, true);
+    assert.equal(review.context, false, 'unchanged context is drawn only when asked for');
     assert.deepEqual(review.members.map(m => [m.pull, m.head, m.author, m.base, m.state, m.color, m.comments.length]),
       [[30, w.repo.sha('fix/wording'), 'alex', 'main', 'open', 1, 0]]);
     assert.equal(review.members[0].start, w.repo.sha('main'));
@@ -137,11 +137,11 @@ test('a components config is kept with the review and used again on the next loa
   const w = workbench();
   try {
     const config = { components: [{ id: 'catalog', title: 'Catalog', paths: ['Sources/Catalog/'] }] };
-    await w.loader.load({ links: [w.link(21)], config, context: false });
+    await w.loader.load({ links: [w.link(21)], config, context: true });
     await w.loader.load({ links: [w.link(21)] });
     const page = JSON.parse(w.store.readPage(ref(21)));
-    assert.deepEqual(page.model.components.map(c => c.title), ['Catalog']);
-    assert.equal(w.store.read(ref(21)).context, false);
+    assert.deepEqual(page.model.components.map(c => c.title), ['Catalog', 'Unchanged code']);
+    assert.equal(w.store.read(ref(21)).context, true, 'the choice of context is kept too');
     assert.deepEqual(JSON.parse(readFileSync(w.home.review(ref(21)).config, 'utf8')), config);
     await assert.rejects(w.loader.load({ links: [w.link(21)], config: { components: [{ id: 'Bad' }] } }), /the config has \d problems/);
   } finally {
