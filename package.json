@@ -1,0 +1,16 @@
+{
+  "name": "review-desk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local web app for reviewing pull requests and stacks of pull requests, loaded by one command.",
+  "type": "module",
+  "bin": {
+    "review-desk": "bin/review-desk"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test 'test/**/*.test.mjs'"
+  }
+}

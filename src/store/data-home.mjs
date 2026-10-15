@@ -1,0 +1,45 @@
+/**
+ * Where Review Desk keeps its files, under one folder, the data home:
+ *
+ *   clones/<host>/<owner>/<repo>.git          a bare clone per repository
+ *   reviews/<host>/<owner>/<repo>/<pull>/     one folder per review
+ *   server.json, server.log                   the running app, while it runs
+ *
+ * DataHome only names paths. It reads and writes nothing.
+ */
+import { join } from 'node:path';
+import { ReviewFolder } from './review-folder.mjs';
+
+export class DataHome {
+  constructor(root) {
+    this.root = root;
+    Object.freeze(this);
+  }
+
+  /** The bare clone of `repo` (owner/name) on `host`. */
+  clone(host, repo) {
+    return join(this.root, 'clones', host, `${repo}.git`);
+  }
+
+  get reviews() {
+    return join(this.root, 'reviews');
+  }
+
+  /** The folder of the review a PullRef's id names. */
+  review(ref) {
+    return new ReviewFolder(join(this.reviews, ref.host, ...ref.repo.split('/'), String(ref.pull)));
+  }
+
+  /** The folder holding every review of one repository. */
+  repository(host, repo) {
+    return join(this.reviews, host, ...repo.split('/'));
+  }
+
+  get serverFile() {
+    return join(this.root, 'server.json');
+  }
+
+  get serverLog() {
+    return join(this.root, 'server.log');
+  }
+}
