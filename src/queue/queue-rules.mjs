@@ -65,7 +65,9 @@ export function linesIn(patch) {
   const left = new Set();
   let old = 0;
   let now = 0;
-  for (const row of String(patch || '').split('\n')) {
+  const rows = patch ? patch.split('\n') : [];
+  if (rows[rows.length - 1] === '') rows.pop();
+  for (const row of rows) {
     const start = HUNK.exec(row);
     if (start) { old = +start[1]; now = +start[2]; continue; }
     if (row.startsWith('+')) right.add(now++);
