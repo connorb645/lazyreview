@@ -288,16 +288,6 @@ export function createLineNotes(ctx) {
     document.querySelectorAll('#main .picked').forEach(el => el.classList.remove('picked'));
   }
 
-  function codeOf(file, n) {
-    if (file.querySelector('.mdview')) return ctx.diffs.sourceOf(file.getAttribute('data-path'), n) || n.quote || '';
-    const wide = ctx.diffs.isWide();
-    return rowsOf(file, n).map(row => {
-      const cells = row.querySelectorAll('td.code');
-      const cell = cells.length > 1 && wide ? cells[n.side === 'LEFT' ? 0 : cells.length - 1] : cells[0];
-      return cell && !cell.classList.contains('void') ? cell.textContent : null;
-    }).filter(text => text !== null).join('\n');
-  }
-
   function refresh() {
     document.querySelectorAll('#main details.file[open]').forEach(decorate);
   }
@@ -318,7 +308,7 @@ export function createLineNotes(ctx) {
     try {
       const done = threadId
         ? await send('POST', reviewPath(ctx.state.id, '/threads/' + threadId + '/messages'), { text, build: ctx.data.build })
-        : await send('POST', reviewPath(ctx.state.id, '/threads'), { path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, code: anchor.code, text, build: ctx.data.build });
+        : await send('POST', reviewPath(ctx.state.id, '/threads'), { path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, text, build: ctx.data.build });
       const others = ctx.state.threads.filter(t => t.id !== done.thread.id);
       if (!threadId) composer = null;
       ctx.setState({ ...ctx.state, threads: others.concat([done.thread]).sort((a, b) => a.id - b.id) });
@@ -331,7 +321,7 @@ export function createLineNotes(ctx) {
     busy(box, 'Checking the line with GitHub…');
     try {
       const done = await send('POST', reviewPath(ctx.state.id, '/comments'), {
-        path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, body: text, code: anchor.code, pull: pull || null, build: ctx.data.build,
+        path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, body: text, pull: pull || null, build: ctx.data.build,
       });
       if (box.closest('.composer-row')) composer = null;
       else box.querySelector('textarea').value = '';
@@ -401,7 +391,7 @@ export function createLineNotes(ctx) {
       const text = composerBox.querySelector('textarea').value.trim();
       if (!text) { composerBox.querySelector('textarea').focus(); return; }
       const select = composerBox.querySelector('select[data-pull]');
-      const anchor = { path, side: composer.side, line: composer.line, start_line: composer.start_line, start_side: composer.start_side, code: codeOf(file, composer) };
+      const anchor = { path, side: composer.side, line: composer.line, start_line: composer.start_line, start_side: composer.start_side };
       if (act === 'ask') ask(composerBox, anchor, text, null);
       if (act === 'queue') queue(composerBox, anchor, text, select ? +select.value : null);
       return;
@@ -422,7 +412,7 @@ export function createLineNotes(ctx) {
       if (!text) { area.focus(); return; }
       const reply = threadBox.querySelector('.reply');
       if (act === 'ask') ask(reply, thread, text, thread.id);
-      if (act === 'queue') queue(reply, { ...thread, code: thread.code || codeOf(file, thread) }, text, null);
+      if (act === 'queue') queue(reply, thread, text, null);
       return;
     }
 

@@ -4,9 +4,9 @@
  * lines between hunks, and a Rendered view of a Markdown file.
  *
  * createDiffs(ctx) returns renderComponent(id) and the controls the other
- * views use: focusFile, focusLine, rerenderFile, sourceOf and
- * current(). Every line number takes a click, which opens a comment or a
- * question on that line through ctx.notes, and ctx.notes.decorate(file) adds the conversations and
+ * views use: focusFile, focusLine, rerenderFile and current(). Every line
+ * number takes a click, which opens a comment or a question on that line
+ * through ctx.notes, and ctx.notes.decorate(file) adds the conversations and
  * queued comments under their lines whenever a file's diff is drawn.
  */
 import { esc, fmt, plural, baseName, breakable, short } from '../lib/text.mjs';
@@ -359,21 +359,6 @@ export function createDiffs(ctx) {
     if (o) ctx.open.component(o.getAttribute('data-comp'));
   });
 
-  function sourceOf(path, n) {
-    if (!files[path]) return '';
-    const startSide = n.start_line ? n.start_side || n.side : n.side;
-    const first = n.start_line || n.line;
-    const on = (r, side, line) => (side === 'LEFT' ? r.t !== 'add' && r.o === line : r.t !== 'del' && r.n === line);
-    const keep = r => r.t !== 'meta' && (startSide !== n.side || (n.side === 'LEFT' ? r.t !== 'add' : r.t !== 'del'));
-    for (const h of parsed(path).hunks) {
-      const i = h.rows.findIndex(r => on(r, startSide, first));
-      const j = h.rows.findIndex(r => on(r, n.side, n.line));
-      if (i >= 0 && j >= i) return h.rows.slice(i, j + 1).filter(keep).map(r => r.s).join('\n');
-    }
-    const whole = startSide === 'RIGHT' && n.side === 'RIGHT' ? wholeText(parsed(path)) : null;
-    return whole ? whole.slice(first - 1, n.line).join('\n') : '';
-  }
-
   function detailsFor(path) {
     const meta = files[path] || contextFiles[path];
     return meta ? document.getElementById('f-' + meta.index) : null;
@@ -474,7 +459,7 @@ export function createDiffs(ctx) {
   });
 
   return {
-    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, parsed, wholeText, sourceOf,
+    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, parsed, wholeText,
     current: () => currentComp,
     forget: () => { currentComp = null; },
     setMode(path, mode) { fileModes[path] = mode; },

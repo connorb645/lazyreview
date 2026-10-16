@@ -1,7 +1,7 @@
 /**
  * Conversations with Claude on the lines of a review.
  *
- * start(ref, {path, side, line, start_line, start_side, code, text, build})
+ * start(ref, {path, side, line, start_line, start_side, text, build})
  * opens a conversation on a line or a range as the app shows it, with the
  * person's question, and reply(ref, id, {text, build}) adds a question to
  * one. Each names `build`, the build id of the page its window was drawn
@@ -25,7 +25,7 @@ export class ThreadService {
     this.#now = now;
   }
 
-  async start(ref, { path, side, line, start_line, start_side, code, text, build }) {
+  async start(ref, { path, side, line, start_line, start_side, text, build }) {
     if (!String(text || '').trim()) throw new Error('ask something first');
     if (!path || !['RIGHT', 'LEFT'].includes(side) || !Number.isInteger(line) || line < 1) throw new Error('a conversation needs a file, a side and a line');
     const thread = await this.#store.change([ref], async () => {
@@ -33,7 +33,7 @@ export class ThreadService {
       checkBuild(this.#store.pageBuild(ref), build, 'not asked');
       const id = Math.max(0, ...this.#store.threads(ref).map(t => t.id)) + 1;
       const fresh = {
-        id, path, side, line, ...(start_line ? { start_line, start_side: start_side || side } : {}), code: code || '', created_at: this.#now(),
+        id, path, side, line, ...(start_line ? { start_line, start_side: start_side || side } : {}), created_at: this.#now(),
         messages: [{ from: 'you', text: text.trim(), at: this.#now() }],
       };
       return { files: [this.#write(ref, fresh)], result: fresh };

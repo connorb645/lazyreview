@@ -8,7 +8,8 @@
  * where(ref, given) says where a comment on lines the app shows would go, as
  * commentTarget does, or why none can, or null when there is no review
  * `ref`. add(ref, given) queues a comment there, once GitHub confirms the
- * line is in that pull request's diff and its head has not moved. edit(ref, id, {body,
+ * line is in that pull request's diff and its head has not moved, quoting
+ * the code of its lines as the page shows them. edit(ref, id, {body,
  * version, build}) and drop(ref, id, {version, build}) change or remove a
  * queued comment, and are refused once it changed since `version`.
  *
@@ -25,6 +26,7 @@
 import { GitHub } from '../github/github.mjs';
 import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, placeProblem, liveMember, nextId, findComment, checkVersion } from './queue-rules.mjs';
 import { commentTarget } from './comment-target.mjs';
+import { quotedCode } from '../review/quoted-code.mjs';
 import { buildProblem, checkBuild } from '../store/page-build.mjs';
 
 export class QueueService {
@@ -67,7 +69,7 @@ export class QueueService {
       if (problem) throw new Error(`not queued: ${at} ${problem}`);
       const shown = { path: given.path, line: given.line, side: given.side, ...(target.start_line ? { start_line: given.start_line, start_side: target.start_side } : {}) };
       const comment = {
-        id: nextId(review), path: target.path, line: target.line, side: target.side, body: given.body.trim(), code: given.code || '',
+        id: nextId(review), path: target.path, line: target.line, side: target.side, body: given.body.trim(), code: quotedCode(page, given),
         ...(target.start_line ? { start_line: target.start_line, start_side: target.start_side } : {}), ...(page.stack ? { shown } : {}),
       };
       member.comments.push(comment);

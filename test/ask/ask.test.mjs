@@ -75,7 +75,7 @@ test('a conversation keeps the question, then Claude\'s answer, or why there is 
     const ref = new PullRef('github.com', 'octo/widgets', 30);
     const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) });
     const build = w.store.pageBuild(ref);
-    const thread = await threads.start(ref, { path: 'docs/guide.md', side: 'RIGHT', line: 3, code: 'The catalog lists every item.', text: ' Every? ', build });
+    const thread = await threads.start(ref, { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: ' Every? ', build });
     assert.deepEqual(thread.messages.map(m => [m.from, m.text]), [['you', 'Every?'], ['claude', 'It returns early when the list is empty.']]);
     assert.match(fake.asked()[0].prompt, /Pull request #30: Fix the guide wording[\s\S]*File: docs\/guide\.md \(changed\)/);
     fake.answer(null);

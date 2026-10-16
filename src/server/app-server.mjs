@@ -59,7 +59,7 @@ export class AppServer {
       ['POST', new RegExp(`^/api/reviews/${PULL}/comments$`), async (ref, body) => {
         const done = await this.#queue.add(ref, {
           path: text(body.path), line: whole(body.line), side: side(body.side), ...range(body),
-          body: text(body.body), code: typeof body.code === 'string' ? body.code : '', pull: body.pull ? whole(body.pull) : null, build: build(body),
+          body: text(body.body), pull: body.pull ? whole(body.pull) : null, build: build(body),
         });
         return { comment: done.comment, pull: done.pull, state: this.#state(ref) };
       }],
@@ -78,7 +78,7 @@ export class AppServer {
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/threads$`), async (ref, body) => ({
         thread: await this.#threads.start(ref, {
           path: text(body.path), side: side(body.side), line: whole(body.line), ...range(body),
-          code: typeof body.code === 'string' ? body.code : '', text: text(body.text), build: build(body),
+          text: text(body.text), build: build(body),
         }),
       })],
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/threads/(\\d+)/messages$`), async (ref, body, id) => ({
