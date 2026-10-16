@@ -482,7 +482,7 @@ button { font: inherit; }
 .node.removed .box { stroke: var(--del-ink); stroke-dasharray: 4 3; fill: var(--del-bg); }
 .node.removed .nm { fill: var(--del-ink); text-decoration: line-through; }
 .node.changed .box { stroke: var(--changed); stroke-width: 2; }
-.node .chg { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .06em; fill: var(--changed); text-transform: uppercase; }
+.node .chg { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .06em; fill: var(--changed); text-transform: uppercase; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
 .node.artifact .box { fill: var(--bg); }
 .node.artifact .nm { font-family: var(--mono); font-size: 12px; font-weight: 500; }
 .node:hover .box, .node:focus-visible .box, .node.hit .box { stroke: var(--accent); stroke-width: 2.4; }
