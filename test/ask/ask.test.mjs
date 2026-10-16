@@ -61,7 +61,8 @@ test('Claude is asked in one print-mode call with no tools, settings, servers or
       '--disable-slash-commands', '--no-session-persistence', '--system-prompt', 'Be brief.', '--model', 'claude-sonnet-5-5']);
     fake.answer(null);
     await assert.rejects(claude.ask({ system: 's', prompt: 'p' }), /Claude could not answer: the model is not available/);
-    await assert.rejects(new Claude({ command: '/no/such/claude' }).ask({ system: 's', prompt: 'p' }), /Claude Code did not answer/);
+    await assert.rejects(new Claude({ command: '/no/such/claude' }).ask({ system: 's', prompt: 'p' }), { message: 'Claude Code did not answer: /no/such/claude was not found' });
+    await assert.rejects(new Claude({ command: 'false' }).ask({ system: 'A long system prompt.', prompt: 'p' }), { message: 'Claude Code did not answer: it stopped with exit code 1' });
   } finally {
     fake.done();
   }

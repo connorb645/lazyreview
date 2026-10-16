@@ -33,7 +33,7 @@ export class Claude {
     try {
       answer = JSON.parse(done.stdout);
     } catch {
-      throw new Error(`Claude Code did not answer: ${(done.stderr || done.stdout).trim().split('\n').pop() || `exit ${done.code}`}`);
+      throw new Error(`Claude Code did not answer: ${(done.stderr || done.stdout).trim().split('\n').pop() || `it stopped with exit code ${done.code}`}`);
     }
     if (answer.is_error || typeof answer.result !== 'string') throw new Error(`Claude could not answer: ${answer.result || answer.subtype || 'no answer'}`);
     return answer.result.trim();
@@ -43,7 +43,8 @@ export class Claude {
 function runCommand(command, args, { input, cwd }) {
   return new Promise(done => {
     const child = execFile(command, args, { cwd, timeout: TIMEOUT, maxBuffer: 1 << 24 }, (error, stdout, stderr) => {
-      done({ code: error ? (typeof error.code === 'number' ? error.code : 1) : 0, stdout: String(stdout), stderr: String(stderr || (error && !stdout ? error.message : '')), timedOut: !!(error && error.killed) });
+      const missing = error && error.code === 'ENOENT' ? `${command} was not found` : '';
+      done({ code: error ? (typeof error.code === 'number' ? error.code : 1) : 0, stdout: String(stdout), stderr: String(stderr || missing), timedOut: !!(error && error.killed) });
     });
     child.stdin.end(input);
   });
