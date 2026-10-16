@@ -42,8 +42,8 @@ It prints what it loaded and where to open it:
     loaded #12, #13, #14: 24 files +966 -13, 8 components, 31 types
     open http://127.0.0.1:4747/review/github.com/owner/repo/12
 
-Loading again refreshes the review in place, as does **Load again from
-GitHub** in the app. A stack's review lives with its lowest pull request that
+Loading again refreshes the review in place, as does **Refresh** in the
+app's bar, in every view. A stack's review lives with its lowest pull request that
 already has one, and the comments queued on its members' own reviews move into
 it. Options:
 
@@ -101,8 +101,8 @@ It prints what it loaded and where to open it:
     open http://127.0.0.1:4747/review/local/widgets-1a2b3c4d/feature~search
 
 The review is kept by repository and branch, so loading the same branch again,
-from any worktree of the repository, refreshes it in place, as does **Load the
-branch again** in the app. `--head` names a branch, or `HEAD` on one. It gets
+from any worktree of the repository, refreshes it in place, as does
+**Refresh** in the app. `--head` names a branch, or `HEAD` on one. It gets
 the same diagram and diffs, and Ask Claude, but it is read only: it has no
 queue and no buttons, since there is no pull request to post to. `--title
 <text>` names it, where the branch's name is the default; `--config`,
@@ -117,14 +117,26 @@ each of them.
   the strip under the bar narrows the diagram and the diffs to one of them.
 - **Diffs.** Unified or split, wrapped lines, whole files, the unchanged lines
   between hunks, and a Rendered view of each Markdown file.
-- **A line.** Select a line number to open a box on it; shift-select another
-  for a range. **Ask Claude** asks about those lines in one short call that
+- **A line.** Select a line number to open a box on it. For a range, drag
+  across line numbers, or shift-select another; on a touch screen, tap a
+  second one. In the unified view a range may run from a removed line to an
+  added one. **Ask Claude** asks about those lines in one short call that
   carries only the file's hunk and the code around it, and the answer stays
   under the line. **Queue comment** queues the text for the pull request. On a
   stack the comment goes to the pull request that last changed the line, at
-  its own line number.
+  its own line number. As GitHub requires, a comment goes only on lines of the
+  diff, and a range only inside one hunk; the box says when a choice breaks
+  that, and still asks Claude.
+- **A passage.** In the Rendered view of a Markdown file, select a passage and
+  press the button beside it: the same box opens on the source lines the
+  passage came from, quoting it.
+- **Threads on GitHub.** The review threads already on the pull request,
+  colleagues', bots' and your own, sit under their lines, marked resolved or
+  outdated. A thread on no line shown sits at the top of its file. Each
+  thread, and each conversation with Claude, folds to one line; resolved and
+  outdated threads start folded. **Refresh** reads them again.
 - **Review.** The pull request or the stack, any written review, the queued
-  comments with Edit and Drop, and the buttons: **Add Comments**, **Approve
+  comments with Edit and Drop, every thread on GitHub, and the buttons: **Add Comments**, **Approve
   With Comments** and **Approve**. A press asks once more, then posts only if
   the queue still gives exactly the set of comments the button offered, the
   pull request is open, its head has not moved, every comment sits on a line
@@ -161,8 +173,9 @@ mistake named.
 
 Everything lives under `~/.review-desk`: a bare clone of each repository, and
 one folder per review holding its record (`review.json`: the pull requests,
-the queue and the reviews sent), the drawn page (`page.json`), any config and
-written review, and one file per conversation. A branch's review lives under
+the queue and the reviews sent), the drawn page (`page.json`, with the review
+threads GitHub had when it was loaded), any config and written review, and one
+file per conversation. A branch's review lives under
 `reviews/local/`, its record holding the branch, its base and the folder it
 was read from; it is read from the repository itself, with no clone. Settings
 come from the environment:
@@ -183,7 +196,8 @@ takes changes only as JSON from its own pages.
 - `src/loader` loads a review, of pull requests or of a branch; `src/local`
   names a branch's review; `src/build` reads the diff, the types and the
   stack, and lays out the diagram with ELK (`vendor/`).
-- `src/queue` holds the queue's rules and the one way a review is posted.
+- `src/queue` holds the queue's rules and the one way a review is posted;
+  `src/review` reads a written review and places GitHub's review threads.
 - `src/ask` asks Claude; `src/server` serves the app and its JSON.
 - `app/` is the web app, plain JavaScript modules with no build step. Its
   look is one stylesheet, `app/styles.css`, with a dark and a light theme
