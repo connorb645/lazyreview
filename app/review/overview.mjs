@@ -19,15 +19,6 @@ export function createOverview(ctx) {
   const side = document.getElementById('review-side');
   const view = document.getElementById('review-view');
 
-  // A file:line in the review, such as src/log.ts:31 or log.ts:31-40, points at a file in the diff when exactly one path ends with it.
-  function locate(text) {
-    const m = /^(.+?\.[A-Za-z0-9]+):(\d+)(?:[-–](\d+))?$/.exec(text.trim());
-    if (!m) return null;
-    const all = Object.keys(files).concat(Object.keys(contextFiles));
-    const hits = all.filter(p => p === m[1] || p.slice(-(m[1].length + 1)) === '/' + m[1]);
-    return hits.length === 1 ? { path: hits[0], line: +m[2] } : null;
-  }
-
   function changeTotals(label) {
     return '<span>' + label + plural(totals.files, 'file') + ' <span class="plus">+' + fmt(totals.adds) + '</span> <span class="minus">&minus;' + fmt(totals.dels) + '</span></span>';
   }
@@ -144,9 +135,11 @@ export function createOverview(ctx) {
         .replace(/#(\d+)(?!\d)/g, (whole, n) => (pulls.memberOf[+n] && t.parentNode.closest('.rv-sec') && !t.parentNode.closest('a, .pp') ? pulls.pullPill(+n) : whole));
       t.replaceWith(...Array.prototype.slice.call(span.childNodes));
     });
+    const sections = ctx.state.written ? ctx.state.written.sections : [];
     root.querySelectorAll('.rv-body code').forEach(code => {
       if (code.closest('pre')) return;
-      const at = locate(code.textContent);
+      const section = sections.find(s => 'rv-' + s.id === code.closest('.rv-sec').id);
+      const at = section && section.links.find(l => l.text === code.textContent.trim());
       if (!at) return;
       const a = document.createElement('a');
       a.className = 'loc';

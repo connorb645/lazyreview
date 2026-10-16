@@ -11,7 +11,7 @@ const version = (w, n, id) => queueView(w.store.read(ref(n))).members.flatMap(m 
 const REVIEW_URL = 'https://github.com/octo/widgets/pull/30#pullrequestreview-7';
 
 function sets(w, n, pull = n) {
-  return queueView(w.store.read(ref(n))).members.find(m => m.pull === pull).sets;
+  return Object.fromEntries(Object.entries(queueView(w.store.read(ref(n))).members.find(m => m.pull === pull).sets).map(([action, s]) => [action, s.set]));
 }
 function posts(w) {
   return w.gh.calls().filter(c => c.method === 'POST' && c.path.endsWith('/reviews'));

@@ -122,7 +122,7 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
       'GET repos/octo/widgets/pulls/30/comments?per_page=100&page=1': [{ pull_request_review_id: 5 }],
     } });
     const state = (await call(s.address, 'GET', base)).json;
-    const posted = await call(s.address, 'POST', `${base}/post`, { body: { pull: 30, action: 'comment', set: state.queue.members[0].sets.comment, build }, headers: s.own });
+    const posted = await call(s.address, 'POST', `${base}/post`, { body: { pull: 30, action: 'comment', set: state.queue.members[0].sets.comment.set, build }, headers: s.own });
     assert.equal(posted.json.message, 'posted 1 comment as one review: https://github.com/octo/widgets/pull/30#r5');
     assert.equal(posted.json.state.queue.members[0].posted.length, 1);
 

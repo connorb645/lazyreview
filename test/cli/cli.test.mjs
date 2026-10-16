@@ -52,10 +52,12 @@ test('one command loads a pull request, starts the app, and prints where to open
     assert.match(listed.stdout, /\/review\/github\.com\/octo\/widgets\/21 {2}#21, #22 {2}Stack #21 to #22/);
 
     const file = join(w.home.root, 'written.md');
-    writeFileSync(file, `---\nstack: 21, 22\nhead: ${w.repo.sha('feature/basket')}\n---\n## What it does\nAdds search, then a basket.\n`);
+    writeFileSync(file, `---\nstack: 21, 22\nhead: ${w.repo.sha('feature/basket')}\n---\n## What it does\nAdds search in \`Search.swift:4\`, then a basket.\n`);
     const attached = await run(['attach', w.link(22), file], env);
     assert.equal(attached.code, 0, attached.stderr);
     assert.match(attached.stdout, /^attached to github\.com\/octo\/widgets\/21; open http:/);
+    const state = await (await fetch(`http://127.0.0.1:${port}/api/reviews/github.com/octo/widgets/21`)).json();
+    assert.deepEqual(state.written.sections[0].links, [{ text: 'Search.swift:4', path: 'Sources/Catalog/Search.swift', line: 4 }], 'the server resolves the written review\'s links');
     writeFileSync(file, '---\npull: 30\nhead: 1111111\n---\n## Notes\nx\n');
     const stale = await run(['attach', w.link(30), file], env);
     assert.equal(stale.code, 1);

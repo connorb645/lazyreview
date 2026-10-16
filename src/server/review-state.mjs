@@ -3,14 +3,16 @@
  *
  * reviewState(store, ref) returns the review's pull requests, its queue as
  * the buttons need it, its conversations, the review threads on GitHub and
- * its written review, or null
- * when there is no review `ref`. A written review is marked `stale` when it
- * read another head than the review now shows. A branch review gives its
- * branch, its base and its conversations, with `queue` null: it takes no
- * comments and sends nothing.
+ * its written review, or null when there is no review `ref`. A written
+ * review is marked `stale` when it read another head than the review now
+ * shows, and each of its sections carries its `file:line` links, as
+ * writtenLinks resolves them. A branch review gives its branch, its base and
+ * its conversations, with `queue` null: it takes no comments and sends
+ * nothing.
  */
 import { queueView } from '../queue/queue-rules.mjs';
 import { readWrittenReview } from '../review/written-review.mjs';
+import { writtenLinks } from '../review/written-links.mjs';
 
 export function reviewState(store, ref) {
   const review = store.read(ref);
@@ -26,7 +28,9 @@ export function reviewState(store, ref) {
   if (text) {
     const read = readWrittenReview(text);
     const head = review.members[review.members.length - 1].head;
-    written = { ...read, stale: !head.startsWith(read.head) };
+    const drawn = store.readPage(ref);
+    const paths = drawn ? [...drawn.page.model.files, ...drawn.page.model.contextFiles].map(f => f.path) : [];
+    written = { ...read, sections: read.sections.map(s => ({ ...s, links: writtenLinks(s.markdown, paths) })), stale: !head.startsWith(read.head) };
   }
   return {
     id: review.id, host: review.host, repo: review.repo, title: review.title, me: review.me, account: review.account,

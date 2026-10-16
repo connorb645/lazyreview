@@ -57,6 +57,20 @@ export function offered(review, member) {
     .filter(action => approvable || ACTIONS[action].event !== 'APPROVE');
 }
 
+/**
+ * What a press of `action` does for `member`, as the one sentence both apps
+ * show before it posts.
+ */
+export function pressWords(review, member, action) {
+  const n = member.comments.length;
+  const where = `${review.repo}#${member.pull}`;
+  const count = `${n} comment${n === 1 ? '' : 's'}`;
+  const these = n === 1 ? 'this comment goes' : `these ${count} go`;
+  if (action === 'comment') return `${these.charAt(0).toUpperCase()}${these.slice(1)} on ${where} under your name, exactly as shown.`;
+  if (action === 'approve-with-comments') return `You approve ${where}, and ${these} with the approval under your name, exactly as shown.`;
+  return `You approve ${where} with no comments.${n ? ` The queued ${count} ${n === 1 ? 'stays' : 'stay'} queued, unposted.` : ''}`;
+}
+
 /** What stops a comment's text being posted. */
 export function bodyProblems(body) {
   return String(body || '').trim() ? [] : ['the text is empty'];
@@ -148,7 +162,8 @@ export function findComment(review, id) {
 
 /**
  * What the app shows for each pull request's queue: its comments, the reviews
- * sent from it, and a set id for each action on offer. A merged or closed
+ * sent from it, and for each action on offer its set id and the words its
+ * press shows, {set, words}. A merged or closed
  * pull request, one that left the stack, and a review that moved get no set
  * ids, so no button.
  */
@@ -158,7 +173,7 @@ export function queueView(review) {
     return {
       pull: member.pull, head: member.head, title: member.title, url: member.url, author: member.author, base: member.base,
       color: member.color, state: member.state || 'open', ended_at: member.ended_at || null,
-      sets: live && !ended && !review.moved ? Object.fromEntries(offered(review, member).map(a => [a, setId(review, member, a)])) : {},
+      sets: live && !ended && !review.moved ? Object.fromEntries(offered(review, member).map(a => [a, { set: setId(review, member, a), words: pressWords(review, member, a) }])) : {},
       comments: member.comments.map(c => ({ ...c, version: commentVersion(c) })),
       posted: member.posted.map(p => ({ set: p.set, action: p.action, review: p.review, at: p.at, count: p.comments.length })),
     };

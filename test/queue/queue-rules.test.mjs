@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { setId, offered, diffPlaces, placeProblem, postedFields, queueView, liveMember } from '../../src/queue/queue-rules.mjs';
+import { setId, offered, diffPlaces, placeProblem, postedFields, queueView, liveMember, pressWords } from '../../src/queue/queue-rules.mjs';
 import { regroup } from '../../src/queue/regroup.mjs';
 import { commentTarget } from '../../src/queue/comment-target.mjs';
 
@@ -61,6 +61,12 @@ test('the queue view offers no button for an ended pull request, one that left, 
   assert.deepEqual(view.members.map(m => Object.keys(m.sets)), [['comment', 'approve-with-comments', 'approve'], []]);
   assert.deepEqual(Object.keys(view.earlier[0].sets), []);
   assert.deepEqual(queueView({ ...review, moved: { to: 'x' } }).members.map(m => Object.keys(m.sets)), [[], []]);
+  assert.deepEqual(Object.values(view.members[0].sets).map(s => s.words), [
+    'This comment goes on o/r#1 under your name, exactly as shown.',
+    'You approve o/r#1, and this comment goes with the approval under your name, exactly as shown.',
+    'You approve o/r#1 with no comments. The queued 1 comment stays queued, unposted.',
+  ], 'each press comes with the sentence both apps ask before it posts');
+  assert.match(pressWords(review, member(1, { comments: [comment(1), comment(2)] }), 'comment'), /^These 2 comments go on o\/r#1/);
   assert.throws(() => liveMember(review, 3), /#3 is not in this stack any more/);
   assert.throws(() => liveMember({ ...review, moved: { to: 'github.com/o/r/9' } }, 1), /this review moved to github\.com\/o\/r\/9/);
 });

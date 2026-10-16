@@ -32,14 +32,6 @@ export function createQueuePanel(ctx) {
   const count = n => n + (n === 1 ? ' comment' : ' comments');
   const where = data => ctx.state.repo + '#' + data.pull;
 
-  function warning(data, action) {
-    const n = data.comments.length;
-    const these = n === 1 ? 'this comment goes' : 'these ' + count(n) + ' go';
-    if (action === 'comment') return these.charAt(0).toUpperCase() + these.slice(1) + ' on ' + where(data) + ' under your name, exactly as shown.';
-    if (action === 'approve-with-comments') return 'You approve ' + where(data) + ', and ' + these + ' with the approval under your name, exactly as shown.';
-    return 'You approve ' + where(data) + ' with no comments.' + (n ? ' The queued ' + count(n) + (n === 1 ? ' stays' : ' stay') + ' queued, unposted.' : '');
-  }
-
   function pill(pull, prefix) {
     const span = el('span', 'qc-pill', (prefix || '') + '#' + pull);
     span.style.setProperty('--qc-pc', ctx.pulls.pullColor(pull));
@@ -99,13 +91,13 @@ export function createQueuePanel(ctx) {
       const no = button('Cancel', 'qc-quiet');
       actionsEl.appendChild(yes);
       actionsEl.appendChild(no);
-      status.textContent = warning(data, action);
+      status.textContent = data.sets[action].words;
       no.addEventListener('click', () => { showButtons(); status.textContent = ''; opener.focus(); });
       yes.addEventListener('click', async () => {
         yes.disabled = no.disabled = true;
         status.textContent = 'Checking the pull request with GitHub, then sending…';
         try {
-          const done = await send('POST', reviewPath(ctx.state.id, '/post'), { pull: data.pull, action, set: data.sets[action], build: ctx.data.build });
+          const done = await send('POST', reviewPath(ctx.state.id, '/post'), { pull: data.pull, action, set: data.sets[action].set, build: ctx.data.build });
           ctx.setState(done.state, done.message);
         } catch (error) {
           showButtons();
