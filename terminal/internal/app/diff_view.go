@@ -182,6 +182,17 @@ func (v diffView) first(holds func(diffRow) bool) int {
 	return -1
 }
 
+func (v diffView) extent() extent {
+	var at extent
+	for i, r := range v.rows {
+		if i == v.top {
+			at.top = at.lines
+		}
+		at.lines += rowHeight(r, v)
+	}
+	return at
+}
+
 func (v diffView) rowAt(y int) int {
 	line := 0
 	for i := v.top; i < len(v.rows); i++ {

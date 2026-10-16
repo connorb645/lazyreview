@@ -146,7 +146,7 @@ func (a App) postingBox() []string {
 		}
 		footer = ""
 	}
-	return framed(out, w, len(out)+2, fmt.Sprintf("Post to %s#%d", a.review.state.Queue.Repo, pn.pull), "", footer, true, p)
+	return framed(out, extent{}, w, len(out)+2, fmt.Sprintf("Post to %s#%d", a.review.state.Queue.Repo, pn.pull), "", footer, true, p)
 }
 
 func commentPlace(c server.Comment) string {

@@ -63,7 +63,7 @@ func (a App) sideBox(n int, r rect, focused bool) []string {
 			}
 		}
 	}
-	return framed(content, r.w, r.h, panelTitle(n, panelNames[n]), a.tabs(n, in.w), fmt.Sprintf("%d of %d", at, total), focused, a.p)
+	return framed(content, extent{}, r.w, r.h, panelTitle(n, panelNames[n]), a.tabs(n, in.w), fmt.Sprintf("%d of %d", at, total), focused, a.p)
 }
 
 func sideLine(row sideRow, width int) string {
@@ -110,17 +110,18 @@ func (a App) tabs(n, width int) string {
 func (a App) mainBox(r rect, focused bool) []string {
 	p, in := a.p, r.inner()
 	var content []string
+	var shown extent
 	switch {
 	case a.loading:
 		content = []string{"", " " + p.Muted.Render("Loading…")}
 	case a.review == nil:
 		content = []string{"", " " + p.Bad.Render(a.failed), "", " " + p.Muted.Render("R tries again; :q quits.")}
 	case a.screen == screenDiff:
-		content = diffLines(*a.review, a.diff, in.h, a.filter, a.p, focused)
+		content, shown = diffLines(*a.review, a.diff, in.h, a.filter, a.p, focused), a.diff.extent()
 	case a.screen == screenDiagram && len(a.dg.level.Cards) == 0:
 		content = []string{"", " " + p.Muted.Render("Nothing to draw: this change has no parts the diagram knows.")}
 	case a.screen == screenDiagram:
-		content = a.dg.lines(*a.review, in.w, in.h, a.filter, a.styles)
+		content, shown = a.dg.lines(*a.review, in.w, in.h, a.filter, a.styles)
 	default:
 		v := a.rv.view
 		for i := v.top; i < v.top+in.h && i < len(v.lines); i++ {
@@ -131,8 +132,9 @@ func (a App) mainBox(r rect, focused bool) []string {
 			}
 			content = append(content, text)
 		}
+		shown = v.extent()
 	}
-	return framed(content, r.w, r.h, a.mainTitle(), "", a.placeWords(), focused, a.p)
+	return framed(content, shown, r.w, r.h, a.mainTitle(), "", a.placeWords(), focused, a.p)
 }
 
 func (a App) mainTitle() string {
@@ -179,7 +181,7 @@ func (a App) popup() []string {
 		for i, l := range body {
 			body[i] = " " + a.p.Ink.Render(l)
 		}
-		return framed(body, w, len(body)+2, fmt.Sprintf("Drop comment %d", c.comment), "", "y drop · any other key keeps it", true, a.p)
+		return framed(body, extent{}, w, len(body)+2, fmt.Sprintf("Drop comment %d", c.comment), "", "y drop · any other key keeps it", true, a.p)
 	case a.posting != nil:
 		return a.postingBox()
 	case a.menu != nil:

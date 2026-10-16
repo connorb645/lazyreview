@@ -1,12 +1,12 @@
 ╭─[1]─Review─────────────╮╭─[0]─Review─────────────────────────────────────────╮
-│▌#30 Fix the guide word…││ Pull request #30 by alex                           │
-╰─────────────────1 of 1─╯│ Fix the guide wording                              │
-╭─[2]─Files──────────────╮│ Base main · Head 058ff259 · 2 files +18 −1         │
-│ ▾ ■ docs        +18 −1 ││                                                    │
-│   A basket.md          ││ No written review is attached. The diagram and the │
-╰─────────────────1 of 3─╯│ diffs hold the change.                             │
-╭─[3]─Notes──────────────╮│                                                    │
-│ 1 guide.md:3           ││ ▾ Queued comments                                  │
+│▌#30 Fix the guide word…││ Pull request #30 by alex                           ▐
+╰─────────────────1 of 1─╯│ Fix the guide wording                              ▐
+╭─[2]─Files──────────────╮│ Base main · Head 058ff259 · 2 files +18 −1         ▐
+│ ▾ ■ docs        +18 −1 ││                                                    ▐
+│   A basket.md          ││ No written review is attached. The diagram and the ▐
+╰─────────────────1 of 3─╯│ diffs hold the change.                             ▐
+╭─[3]─Notes──────────────╮│                                                    ▐
+│ 1 guide.md:3           ││ ▾ Queued comments                                  ▐
 ╰─────────────────1 of 1─╯│   1 docs/guide.md, line 3                          │
 ╭─[4]─Diagram────────────╮│     │ The catalog lists every item.                │
 │ ■ docs                 ││     Every item, or every item shown?               │

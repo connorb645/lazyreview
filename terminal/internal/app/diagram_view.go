@@ -71,9 +71,9 @@ func (v diagramView) moved(by int) diagramView {
 	return v
 }
 
-func (v diagramView) lines(d reviewData, width, height, filter int, styles map[string]lipgloss.Style) []string {
+func (v diagramView) lines(d reviewData, width, height, filter int, styles map[string]lipgloss.Style) ([]string, extent) {
 	c, _, _ := drawDiagram(d, v, filter)
-	return c.lines(v.left, v.top, width, height, styles)
+	return c.lines(v.left, v.top, width, height, styles), extent{lines: c.h, top: v.top}
 }
 
 func (v diagramView) boxAt(d reviewData, x, y, filter int) int {

@@ -175,8 +175,10 @@ Review, the pull requests; 2 Files, the changed files by component and
 folder; 3 Notes, the queued comments, conversations with Claude and threads on
 GitHub; and 4 Diagram, the boxes of the level shown. The main panel, 0, on the
 right shows what is selected on the left: the Review view, a file's diff, a
-note in its diff, or the diagram. `Enter` gives the main panel the keys and
-`Esc` gives them back. The bar at the bottom lists the keys that matter where
+note in its diff, or the diagram. When that runs past the main panel, a thumb
+in its right border shows how much of it fits and where you are, as in
+Lazygit. `Enter` gives the main panel the keys and `Esc` gives them back. The
+bar at the bottom lists the keys that matter where
 you are, and `Space ?` lists them all. A count goes before a move in the main
 panel, such as `5j` or `3]c`.
 

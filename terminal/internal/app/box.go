@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
-func framed(content []string, w, h int, title, tabs, footer string, focused bool, p palette) []string {
+func framed(content []string, shown extent, w, h int, title, tabs, footer string, focused bool, p palette) []string {
 	if w < 2 || h < 2 {
 		return nil
 	}
@@ -28,13 +28,17 @@ func framed(content []string, w, h int, title, tabs, footer string, focused bool
 		bottom = border.Render("╰"+strings.Repeat("─", max(0, inner-1-ansi.StringWidth(footer)))) + foot.Render(footer) + border.Render("─╯")
 	}
 	out := []string{top}
-	side := border.Render("│")
+	side, thumb := border.Render("│"), border.Render("▐")
+	start, size := shown.thumb(h - 2)
 	for i := 0; i < h-2; i++ {
-		text := ""
+		text, right := "", side
 		if i < len(content) {
 			text = content[i]
 		}
-		out = append(out, side+fit(text, inner)+side)
+		if i >= start && i < start+size {
+			right = thumb
+		}
+		out = append(out, side+fit(text, inner)+right)
 	}
 	return append(out, bottom)
 }

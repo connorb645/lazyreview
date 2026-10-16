@@ -140,7 +140,7 @@ func (pn menu) box(width, height int, p palette) []string {
 	if pn.finding {
 		h = height
 	}
-	return framed(content, w, h, pn.title, "", footer, true, p)
+	return framed(content, extent{}, w, h, pn.title, "", footer, true, p)
 }
 
 func (pn menu) drawRow(r menuRow, selected bool, left, inner int, p palette) []string {

@@ -1,28 +1,28 @@
 ╭─[1]─Review─────────────────╮╭─[0]─Diff · docs › docs/basket.md─────────────────────────╮
-│ #30 Fix the guide wording  ││▌ ▾ docs/basket.md  new  +6 −0                            │
-╰─────────────────────1 of 1─╯│   @@ -0,0 +1,6 @@                                        │
-╭─[2]─Files──────────────────╮│          1 + # Basket                                    │
-│ ▾ ■ docs            +18 −1 ││          2 +                                             │
-│   A basket.md              ││          3 + A basket keeps its prices until checkout.   │
-│   M guide.md               ││          4 +                                             │
-│                            ││          5 + 1. Add an item                              │
-│                            ││          6 + 2. Remove an item                           │
-│                            ││  ▾ docs/guide.md  changed  +12 −1                        │
-│                            ││   @@ -1,6 +1,17 @@                                       │
-│                            ││     1    1   # Guide                                     │
-╰─────────────────────2 of 3─╯│     2    2                                               │
-╭─[3]─Notes──────────────────╮│     3      - The catalog lists items.                    │
-│ Queued                   1 ││          3 + The catalog lists every item.               │
-│ 1 guide.md:3               ││              ▾ Queued 1 → #30 · line 3   e edit  dd drop │
-│                            ││                Every item, or every item shown?          │
-│                            ││     4    4                                               │
-│                            ││     5    5   - Browse                                    │
-│                            ││     6    6   - Search                                    │
-╰─────────────────────1 of 1─╯│          7 + - Keep a basket                             │
-╭─[4]─Diagram────────────────╮│          8 +                                             │
-│ Components                 ││          9 + ## Steps                                    │
-│ ■ docs                     ││         10 +                                             │
-│                            ││         11 + 1. Open the catalog.                        │
+│ #30 Fix the guide wording  ││▌ ▾ docs/basket.md  new  +6 −0                            ▐
+╰─────────────────────1 of 1─╯│   @@ -0,0 +1,6 @@                                        ▐
+╭─[2]─Files──────────────────╮│          1 + # Basket                                    ▐
+│ ▾ ■ docs            +18 −1 ││          2 +                                             ▐
+│   A basket.md              ││          3 + A basket keeps its prices until checkout.   ▐
+│   M guide.md               ││          4 +                                             ▐
+│                            ││          5 + 1. Add an item                              ▐
+│                            ││          6 + 2. Remove an item                           ▐
+│                            ││  ▾ docs/guide.md  changed  +12 −1                        ▐
+│                            ││   @@ -1,6 +1,17 @@                                       ▐
+│                            ││     1    1   # Guide                                     ▐
+╰─────────────────────2 of 3─╯│     2    2                                               ▐
+╭─[3]─Notes──────────────────╮│     3      - The catalog lists items.                    ▐
+│ Queued                   1 ││          3 + The catalog lists every item.               ▐
+│ 1 guide.md:3               ││              ▾ Queued 1 → #30 · line 3   e edit  dd drop ▐
+│                            ││                Every item, or every item shown?          ▐
+│                            ││     4    4                                               ▐
+│                            ││     5    5   - Browse                                    ▐
+│                            ││     6    6   - Search                                    ▐
+╰─────────────────────1 of 1─╯│          7 + - Keep a basket                             ▐
+╭─[4]─Diagram────────────────╮│          8 +                                             ▐
+│ Components                 ││          9 + ## Steps                                    ▐
+│ ■ docs                     ││         10 +                                             ▐
+│                            ││         11 + 1. Open the catalog.                        ▐
 │                            ││         12 + 1. Pick an item.                            │
 │                            ││         13 + 1. Add it to the basket.                    │
 │                            ││         14 +                                             │

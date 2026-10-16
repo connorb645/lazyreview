@@ -1,17 +1,17 @@
 ╭─[1]─Review - All - #21 - #22──╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift────────────────╮
-│ #21 Add search to the catalog ││  ▾ Sources/Basket/Basket.swift  changed  #22  whole  +3 −1      │
-│ #22 Add a basket that uses se…││          1   final class Basket {                               │
-╰────────────────────────1 of 2─╯│          2       let catalog: Catalog                           │
-╭─[2]─Files─────────────────────╮│▌▎        3 +     let search: Search                             │
-│ ▾ ■ widgets            +15 −1 ││          4                                                      │
-│   ▾ Sources/Basket            ││          5       init(catalog: Catalog) {                       │
-│     M Basket.swift          ● ││          6           self.catalog = catalog                     │
-│   ▾ Sources/Catalog           ││ ▎        7 +         self.search = Search(catalog: catalog)     │
-│     M MemoryCatalog.swift   ● ││              ▾ Claude · 2 messages · line 7           a ask  za │
-│     A Search.swift          ● ││                You: Could this be passed in?                    │
-│   ▾ web/src                   ││                Claude: It returns early when the list is        │
-│     M cart.ts               ● ││                empty.                                           │
-╰───────────────────────3 of 10─╯│              ▾ sam · 1 comment · resolved         gx GitHub  za │
+│ #21 Add search to the catalog ││  ▾ Sources/Basket/Basket.swift  changed  #22  whole  +3 −1      ▐
+│ #22 Add a basket that uses se…││          1   final class Basket {                               ▐
+╰────────────────────────1 of 2─╯│          2       let catalog: Catalog                           ▐
+╭─[2]─Files─────────────────────╮│▌▎        3 +     let search: Search                             ▐
+│ ▾ ■ widgets            +15 −1 ││          4                                                      ▐
+│   ▾ Sources/Basket            ││          5       init(catalog: Catalog) {                       ▐
+│     M Basket.swift          ● ││          6           self.catalog = catalog                     ▐
+│   ▾ Sources/Catalog           ││ ▎        7 +         self.search = Search(catalog: catalog)     ▐
+│     M MemoryCatalog.swift   ● ││              ▾ Claude · 2 messages · line 7           a ask  za ▐
+│     A Search.swift          ● ││                You: Could this be passed in?                    ▐
+│   ▾ web/src                   ││                Claude: It returns early when the list is        ▐
+│     M cart.ts               ● ││                empty.                                           ▐
+╰───────────────────────3 of 10─╯│              ▾ sam · 1 comment · resolved         gx GitHub  za ▐
 ╭─[3]─Notes─────────────────────╮│                sam · 15 Oct, 10:00                              │
 │ Queued                      2 ││                Could the search be passed in?                   │
 │ 1 MemoryCatalog.swift:8-… #21 ││          8       }                                              │

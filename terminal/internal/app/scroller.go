@@ -69,6 +69,10 @@ func (s scroller) shown(height int) scroller {
 	return s
 }
 
+func (s scroller) extent() extent {
+	return extent{lines: len(s.lines), top: s.top}
+}
+
 func (s scroller) at(y int) int {
 	if i := s.top + y; i >= 0 && i < len(s.lines) {
 		return s.lines[i].item
