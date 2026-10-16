@@ -170,7 +170,8 @@ func queueLines(b *builder, d reviewData, loc *time.Location) {
 		left := i >= len(q.Members)
 		color := memberColor(d.state, m.Pull)
 		if stacked {
-			b.text("", "  "+p.pull(color).Render(fmt.Sprintf("#%d", m.Pull))+"  "+p.Ink.Render(m.Title))
+			b.text("")
+			b.add(item{kind: "pull", section: "queue", title: fmt.Sprintf("#%d %s", m.Pull, m.Title), pull: m.Pull, url: m.URL}, "  "+p.pull(color).Render(fmt.Sprintf("#%d", m.Pull))+"  "+p.Ink.Render(m.Title))
 		}
 		if len(m.Comments) == 0 {
 			b.text("   " + p.Muted.Render("No comments queued."))

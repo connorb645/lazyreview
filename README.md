@@ -194,6 +194,7 @@ Every review and the Review view:
 | `]]` `[[` | the next or previous section of the Review view |
 | `za` | folds or unfolds a section |
 | `e` `dd` | edits or drops the queued comment at the cursor |
+| `P` | posts: the actions offered for the pull request at the cursor, then exactly what one sends, then `y` |
 | `/` `n` `N` | find a review |
 
 The diagram shows the components, then the packages of one, then the types of

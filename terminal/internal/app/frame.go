@@ -111,6 +111,13 @@ func (a App) bodyLines() []string {
 		drawn := a.panel.lines(a.width, min(h, a.panelRows()+3), a.p)
 		copy(out[h-len(drawn):], drawn)
 	}
+	if a.posting != nil {
+		drawn := a.postingLines(a.width)
+		if len(drawn) > h {
+			drawn = drawn[len(drawn)-h:]
+		}
+		copy(out[h-len(drawn):], drawn)
+	}
 	return out
 }
 
@@ -159,6 +166,8 @@ func (a App) hintLine() string {
 	p := a.p
 	var hints [][2]string
 	switch {
+	case a.posting != nil:
+		hints = a.postingHints()
 	case a.keys.Pending() == "space":
 		for _, k := range a.bindings().After("space") {
 			hints = append(hints, [2]string{"Space " + k[0], leaderWords[k[1]]})
@@ -173,6 +182,8 @@ func (a App) hintLine() string {
 		hints = [][2]string{{"a label", "jumps to its box"}, {"Esc", "stop"}}
 	case a.screen == screenDiagram:
 		hints = a.diagramHints()
+	case a.screen == screenReview && a.rv.view.cursor < len(a.rv.view.items) && a.rv.view.items[a.rv.view.cursor].pull != 0:
+		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"P", "post"}, {"e dd", "edit, drop"}, {"]] [[", "sections"}, {"Space ?", "keys"}}
 	case a.screen == screenReview:
 		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"]] [[", "sections"}, {"za", "fold"}, {"gh", "every review"}, {"Space ?", "keys"}, {":q", "quit"}}
 	case a.screen == screenDiff && a.diff.selecting:
@@ -258,7 +269,7 @@ func itemWords(it item) string {
 			return fmt.Sprintf("%s %s", it.place.Path, linesWords(it.place.Side, it.place.Line, it.place.StartLine, it.place.StartSide))
 		}
 		return it.kind
-	case "component":
+	case "component", "pull":
 		return it.title
 	}
 	return ""

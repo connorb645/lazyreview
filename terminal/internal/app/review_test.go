@@ -17,8 +17,12 @@ func TestTheReviewViewOfAStack(t *testing.T) {
 	a = press(t, a, "z", "a")
 	screenIs(t, a, "review-stack-queue-folded")
 	a = press(t, a, "z", "a", "j")
-	if it := a.rv.view.items[a.rv.view.cursor]; it.kind != "comment" || it.comment != 1 {
+	if it := a.rv.view.items[a.rv.view.cursor]; it.kind != "pull" || it.pull != 21 {
 		t.Fatalf("j from the queue's heading stopped on %+v", it)
+	}
+	a = press(t, a, "j")
+	if it := a.rv.view.items[a.rv.view.cursor]; it.kind != "comment" || it.comment != 1 {
+		t.Fatalf("j from #21 stopped on %+v", it)
 	}
 	a = press(t, a, "g", "x")
 	if (*visited)[0] != "https://github.com/octo/widgets/pull/21" {

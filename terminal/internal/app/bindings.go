@@ -17,7 +17,7 @@ var listKeys = keys.Bindings{
 var reviewKeys = keys.Bindings{
 	"j": "down", "down": "down", "k": "up", "up": "up", "g g": "top", "G": "bottom",
 	"] ]": "next section", "[ [": "previous section", "z a": "fold", "enter": "open",
-	"e": "edit", "d d": "drop",
+	"e": "edit", "d d": "drop", "P": "post",
 }
 
 var diffKeys = keys.Bindings{
@@ -65,6 +65,7 @@ var reviewHelp = []helpRow{
 	{"Enter", "opens the item in its diff; a component opens its diff"},
 	{"za", "folds or unfolds a section"},
 	{"e dd", "edit or drop the queued comment"},
+	{"P", "post: the actions offered for the pull request at the cursor"},
 }
 
 var diffHelp = []helpRow{

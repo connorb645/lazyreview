@@ -3687,5 +3687,86 @@
     ]
    }
   }
+ },
+ "POST /api/reviews/github.com/octo/widgets/30/post {\"action\":\"comment\",\"build\":\"bba6e9d7be03\",\"pull\":30,\"set\":\"stale0000000\"}": {
+  "status": 409,
+  "body": {
+   "error": "the page showed set stale0000000, but \"comment\" now gives set 43028caa56d9; nothing was posted"
+  }
+ },
+ "POST /api/reviews/github.com/octo/widgets/30/post {\"action\":\"approve-with-comments\",\"build\":\"bba6e9d7be03\",\"pull\":30,\"set\":\"2a11c02816a5\"}": {
+  "status": 200,
+  "body": {
+   "message": "approved with 1 comment: https://github.com/octo/widgets/pull/30#pullrequestreview-8",
+   "review": "https://github.com/octo/widgets/pull/30#pullrequestreview-8",
+   "state": {
+    "id": "github.com/octo/widgets/30",
+    "host": "github.com",
+    "repo": "octo/widgets",
+    "title": "Fix the guide wording",
+    "me": "reviewer",
+    "account": null,
+    "base": {
+     "ref": "main",
+     "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+    },
+    "context": false,
+    "loaded_at": "2026-10-15T12:00:01.000Z",
+    "notes": [],
+    "moved": null,
+    "members": [
+     {
+      "pull": 30,
+      "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+      "title": "Fix the guide wording",
+      "url": "https://github.com/octo/widgets/pull/30",
+      "author": "alex",
+      "base": "main",
+      "state": "open",
+      "ended_at": null,
+      "color": 1
+     }
+    ],
+    "earlier": [],
+    "queue": {
+     "repo": "octo/widgets",
+     "members": [
+      {
+       "pull": 30,
+       "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+       "title": "Fix the guide wording",
+       "url": "https://github.com/octo/widgets/pull/30",
+       "author": "alex",
+       "base": "main",
+       "color": 1,
+       "state": "open",
+       "ended_at": null,
+       "sets": {
+        "approve": {
+         "set": "a6feecc25af5",
+         "words": "You approve octo/widgets#30 with no comments."
+        }
+       },
+       "comments": [],
+       "posted": [
+        {
+         "set": "2a11c02816a5",
+         "action": "approve-with-comments",
+         "review": "https://github.com/octo/widgets/pull/30#pullrequestreview-8",
+         "at": "2026-10-15T12:00:02.000Z",
+         "count": 1
+        }
+       ]
+      }
+     ],
+     "earlier": [],
+     "moved": null
+    },
+    "threads": [],
+    "github": [],
+    "written": null,
+    "version": "4de40ca58c84"
+   }
+  }
  }
 }

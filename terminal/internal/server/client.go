@@ -134,6 +134,19 @@ func (c *Client) Reply(id string, conversation int, text, build string) (Convers
 	return answer.Thread, c.change(http.MethodPost, ReviewPath(id, fmt.Sprintf("/threads/%d/messages", conversation)), nil, fields, askWait, &answer)
 }
 
+// Post sends one action offered for a pull request, naming the set of
+// comments it was shown with, and returns the server's words for what it
+// did and the state as it then stands.
+func (c *Client) Post(id string, pull int, action, set, build string) (string, State, error) {
+	var answer struct {
+		Message string
+		State   State
+	}
+	fields := map[string]any{"pull": pull, "action": action, "set": set, "build": build}
+	err := c.change(http.MethodPost, ReviewPath(id, "/post"), nil, fields, changeWait, &answer)
+	return answer.Message, answer.State, err
+}
+
 func linesFields(at Lines) map[string]any {
 	fields := map[string]any{"path": at.Path, "side": at.Side, "line": at.Line}
 	if at.StartLine != 0 {

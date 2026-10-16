@@ -55,6 +55,7 @@ type App struct {
 	where      whereShown
 	confirming *confirmation
 	choosing   *editing
+	posting    *posting
 }
 
 // New returns the app, which opens on the review opts names, or on the list
@@ -139,6 +140,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case whereShown:
 		a.where = msg
 		return a, nil
+	case posted:
+		return a.afterPost(msg), nil
 	case stateLoaded:
 		if msg.err != nil {
 			return a, nil
@@ -164,6 +167,9 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	name := keyName(msg)
 	if a.confirming != nil {
 		return a.confirmKey(name)
+	}
+	if a.posting != nil {
+		return a.postingKey(name)
 	}
 	if a.panel != nil && a.panel.finding {
 		return a.finderKey(msg)
@@ -327,6 +333,8 @@ func (a App) reviewAction(action string, count, h int) (tea.Model, tea.Cmd) {
 		return a.editQueued()
 	case "drop":
 		return a.dropQueued(), nil
+	case "post":
+		return a.openPosting(), nil
 	case "fold":
 		id := a.rv.sectionAt()
 		if id == "" {

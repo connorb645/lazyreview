@@ -61,10 +61,11 @@ async function recordAnswers() {
       'docs/basket.md': '# Basket\n\nA basket keeps its prices until checkout.\n\n1. Add an item\n2. Remove an item\n',
     }, 'More guide');
     w.repo.checkout('main');
-    w.routes({ reviews: {
+    const reviews = {
       21: { threads: [thread('T1', 'Sources/Catalog/MemoryCatalog.swift', 9, 'sam', 'Should this keep the order items were added in?')] },
       22: { threads: [thread('T2', 'Sources/Basket/Basket.swift', 7, 'sam', 'Could the search be passed in?', { isResolved: true, resolvedBy: { login: 'sam' } })] },
-    } });
+    };
+    w.routes({ reviews });
     await w.loader.load({ links: [w.link(21), w.link(22)], context: true });
     await w.loader.load({ links: [w.link(30)] });
     let tick = 0;
@@ -118,6 +119,17 @@ async function recordAnswers() {
         ['POST', `${base}/threads`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 3, text: 'Why keep a search here?', build }],
         ['POST', `${base}/threads/1/messages`, { text: 'Could it be passed in?', build }],
       ];
+      const one = `/api/reviews/${SINGLE}`;
+      const oneState = (await send(address, 'GET', one)).body;
+      const oneBuild = w.store.pageBuild(single);
+      w.routes({ reviews, extra: {
+        'POST repos/octo/widgets/pulls/30/reviews': { id: 8, state: 'APPROVED', html_url: 'https://github.com/octo/widgets/pull/30#pullrequestreview-8' },
+        'GET repos/octo/widgets/pulls/30/comments?per_page=100&page=1': [{ pull_request_review_id: 8 }],
+      } });
+      changes.push(
+        ['POST', `${one}/post`, { pull: 30, action: 'comment', set: 'stale0000000', build: oneBuild }],
+        ['POST', `${one}/post`, { pull: 30, action: 'approve-with-comments', set: oneState.queue.members[0].sets['approve-with-comments'].set, build: oneBuild }],
+      );
       for (const [method, path, body] of changes) answers[key(method, path, body)] = await send(address, method, path, body);
       return answers;
     } finally {
