@@ -112,8 +112,9 @@ each of them.
 ## Using the app
 
 - **Diagram.** The types the change adds and edits, in components and
-  packages. Point at a type to see everything it links to; select it, or a
-  component, to open its diff. On a stack, each pull request has a colour, and
+  packages. Point at a type to see everything it links to and its stored
+  properties, each with its type and line; a link that holds a type names the
+  properties that hold it. Select a type, or a component, to open its diff. On a stack, each pull request has a colour, and
   the strip under the bar narrows the diagram and the diffs to one of them.
 - **Diffs.** Unified or split, wrapped lines, whole files, the unchanged lines
   between hunks, and a Rendered view of each Markdown file.
@@ -136,13 +137,20 @@ each of them.
   thread, and each conversation with Claude, folds to one line; resolved and
   outdated threads start folded. **Refresh** reads them again.
 - **Review.** The pull request or the stack, any written review, the queued
-  comments with Edit and Drop, every thread on GitHub, and the buttons: **Add Comments**, **Approve
-  With Comments** and **Approve**. A press asks once more, then posts only if
+  comments with Edit and Drop, every thread on GitHub, and the buttons:
+  **Add Comments**, **Approve With Comments** and **Approve**. A press asks once more, then posts only if
   the queue still gives exactly the set of comments the button offered, the
   pull request is open, its head has not moved, every comment sits on a line
   of its diff, and GitHub answers as the account the review was loaded as. A
   press whose review GitHub already holds posts nothing twice. No button asks
   for changes, and no approval shows on your own pull request.
+- **More than one window.** Every open page of a review shows a change made
+  elsewhere within a second: in another window, or by `load` or `attach`.
+  What you are writing stays as it is. When the review is loaded again, a page
+  opens again at the same place, or, while you are writing, offers to. A
+  window opened before a load cannot queue, edit or post until it does, and
+  an edit or a drop made on a comment another window changed since is
+  refused, showing how the comment now reads.
 
 ## Components and packages
 
