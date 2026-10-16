@@ -247,6 +247,13 @@ func (a App) diffPlace() string {
 	if n, ok := noteOf(*a.review, r.path, r.key); ok && (r.kind == "notehead" || r.kind == "notetext") {
 		return noteWords(n)
 	}
+	if r.kind == "block" {
+		b, start := r.block, 0
+		if b.StartLine != b.Line {
+			start = b.StartLine
+		}
+		return linesWords(b.Side, b.Line, start, "") + " · " + map[string]string{"add": "added", "del": "removed", "same": "unchanged"}[b.State]
+	}
 	side, line, ok := r.at()
 	if !ok {
 		return map[string]string{"file": "file header", "hunk": "hunk header", "gap": "unchanged lines", "note": ""}[r.kind]

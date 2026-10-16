@@ -221,3 +221,12 @@ func trimmed(lines []string) []string {
 	}
 	return lines
 }
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+	text, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("could not read %s: %v", path, err)
+	}
+	return string(text)
+}

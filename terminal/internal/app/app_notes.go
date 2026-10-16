@@ -28,7 +28,8 @@ func (a App) noteAt() (note, diffRow, bool) {
 }
 
 // selected is the lines of the selection, or of the cursor's line, with
-// the code on them as the diff shows it. A selection stays in one file.
+// the code on them as the diff shows it. A selection stays in one file, and
+// in a Rendered view covers whole blocks.
 func (a App) selected() (server.Lines, []string, bool) {
 	v := a.diff
 	if v.cursor >= len(v.rows) {
@@ -39,29 +40,60 @@ func (a App) selected() (server.Lines, []string, bool) {
 		from, to = min(v.anchor, v.cursor), max(v.anchor, v.cursor)
 	}
 	var first, last server.Lines
+	var firstBlock, seen *server.Block
 	var code []string
 	for i := from; i <= to; i++ {
 		r := v.rows[i]
-		side, line, ok := r.at()
-		if !ok {
+		var start, end server.Lines
+		switch side, line, ok := r.at(); {
+		case r.kind == "block":
+			b := r.block
+			start = server.Lines{Path: r.path, Side: b.Side, Line: b.StartLine}
+			end = server.Lines{Path: r.path, Side: b.Side, Line: b.Line}
+			if b != seen {
+				code = append(code, blockCode(b)...)
+				seen = b
+			}
+			if firstBlock == nil {
+				firstBlock = b
+			}
+		case ok:
+			start = server.Lines{Path: r.path, Side: side, Line: line}
+			end = start
+			code = append(code, codeLine(r))
+		default:
 			continue
 		}
 		if first.Path != "" && r.path != first.Path {
 			return server.Lines{}, nil, false
 		}
 		if first.Path == "" {
-			first = server.Lines{Path: r.path, Side: side, Line: line}
+			first = start
 		}
-		last = server.Lines{Path: r.path, Side: side, Line: line}
-		code = append(code, codeLine(r))
+		last = end
 	}
 	if first.Path == "" {
 		return server.Lines{}, nil, false
+	}
+	if first.Side != last.Side && last.Side == "LEFT" && firstBlock != nil && firstBlock.Left != nil {
+		first.Side, first.Line = "LEFT", firstBlock.Left.StartLine
 	}
 	if first != last {
 		last.StartLine, last.StartSide = first.Line, first.Side
 	}
 	return last, code, true
+}
+
+func blockCode(b *server.Block) []string {
+	sign := map[string]string{"add": "+", "del": "-"}[b.State]
+	if sign == "" {
+		sign = " "
+	}
+	var out []string
+	for i, text := range strings.Split(b.Markdown, "\n") {
+		out = append(out, fmt.Sprintf("%4d %s %s", b.StartLine+i, sign, text))
+	}
+	return out
 }
 
 func codeLine(r diffRow) string {

@@ -228,6 +228,7 @@ The diff shows one component's files:
 | `e` `dd` | edits or drops the queued comment at the cursor; `dd` asks first |
 | `gd` | shows the type at the cursor on the diagram |
 | `Space s` `Space w` `Space o` | split or unified, wrap, the whole file |
+| `Space r` | a Markdown file rendered, block by block, or back to its diff; `V`, `c` and `a` work on whole blocks |
 | `-` | back to where it was opened from |
 
 A comment, a question or an edit is written in your own editor: the first of

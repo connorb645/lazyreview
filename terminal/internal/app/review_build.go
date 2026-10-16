@@ -59,7 +59,7 @@ func buildReview(d reviewData, folded map[string]bool, width int, p palette, md 
 		for _, s := range w.Sections {
 			s := s
 			section("written:"+s.ID, s.Title, plural(len(s.Links), "link"), func() {
-				for _, l := range md.lines(s.Markdown, width-2) {
+				for _, l := range md.lines(withoutDiagrams(s.Markdown), width-2) {
 					b.text(" " + l)
 				}
 				for _, link := range s.Links {

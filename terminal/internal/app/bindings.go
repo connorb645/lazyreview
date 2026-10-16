@@ -25,7 +25,7 @@ var diffKeys = keys.Bindings{
 	"g g": "top", "G": "bottom", "] c": "next hunk", "[ c": "previous hunk", "] f": "next file", "[ f": "previous file",
 	"/": "search", "?": "search back", "n": "next match", "N": "previous match",
 	"z a": "toggle fold", "z o": "open fold", "z c": "close fold", "z R": "open folds", "z M": "close folds",
-	"enter": "open", "-": "back", "space s": "split", "space w": "wrap", "space o": "whole", "g d": "show type",
+	"enter": "open", "-": "back", "space s": "split", "space w": "wrap", "space o": "whole", "space r": "rendered", "g d": "show type",
 	"] n": "next note", "[ n": "previous note", "V": "select", "o": "other end",
 	"c": "comment", "a": "ask", "e": "edit", "d d": "drop",
 }
@@ -89,6 +89,7 @@ var diffHelp = []helpRow{
 	{"Space s", "split or unified"},
 	{"Space w", "wraps lines, or stops"},
 	{"Space o", "the whole file, or back to the diff"},
+	{"Space r", "a Markdown file rendered, or back to the diff"},
 }
 
 var diagramHelp = []helpRow{
@@ -109,6 +110,6 @@ var diagramHelp = []helpRow{
 
 // leaderWords say what each key after the leader does, for the hint line.
 var leaderWords = map[string]string{
-	"keys": "keys", "review": "Review view", "split": "split", "wrap": "wrap", "whole": "whole file",
+	"keys": "keys", "review": "Review view", "split": "split", "wrap": "wrap", "whole": "whole file", "rendered": "rendered",
 	"diagram": "diagram", "finder": "find", "links": "links", "properties": "properties", "box diff": "diff", "all links": "every link",
 }

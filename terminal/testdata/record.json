@@ -2057,6 +2057,34 @@
    "words": "Goes on #22, line 7."
   }
  },
+ "GET /api/reviews/github.com/octo/widgets/30/where?build=bba6e9d7be03&line=3&path=docs%2Fguide.md&side=RIGHT": {
+  "status": 200,
+  "body": {
+   "goes": {
+    "pull": 30,
+    "path": "docs/guide.md",
+    "side": "RIGHT",
+    "line": 3,
+    "start_line": null,
+    "start_side": null
+   },
+   "words": "Goes on #30, line 3."
+  }
+ },
+ "GET /api/reviews/github.com/octo/widgets/30/where?build=bba6e9d7be03&line=3&path=docs%2Fguide.md&side=RIGHT&start_line=3&start_side=LEFT": {
+  "status": 200,
+  "body": {
+   "goes": {
+    "pull": 30,
+    "path": "docs/guide.md",
+    "side": "RIGHT",
+    "line": 3,
+    "start_line": 3,
+    "start_side": "LEFT"
+   },
+   "words": "Goes on #30, removed line 3 to line 3."
+  }
+ },
  "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"Name the search for what it finds.\",\"build\":\"e4f74f751668\",\"line\":3,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\"}": {
   "status": 200,
   "body": {
@@ -3766,6 +3794,110 @@
     "github": [],
     "written": null,
     "version": "4de40ca58c84"
+   }
+  }
+ },
+ "POST /api/reviews/github.com/octo/widgets/30/comments {\"body\":\"Why every item?\",\"build\":\"bba6e9d7be03\",\"line\":3,\"path\":\"docs/guide.md\",\"side\":\"RIGHT\",\"start_line\":3,\"start_side\":\"LEFT\"}": {
+  "status": 200,
+  "body": {
+   "comment": {
+    "id": 2,
+    "path": "docs/guide.md",
+    "line": 3,
+    "side": "RIGHT",
+    "body": "Why every item?",
+    "code": "The catalog lists items.\nThe catalog lists every item.",
+    "start_line": 3,
+    "start_side": "LEFT"
+   },
+   "pull": 30,
+   "state": {
+    "id": "github.com/octo/widgets/30",
+    "host": "github.com",
+    "repo": "octo/widgets",
+    "title": "Fix the guide wording",
+    "me": "reviewer",
+    "account": null,
+    "base": {
+     "ref": "main",
+     "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+    },
+    "context": false,
+    "loaded_at": "2026-10-15T12:00:01.000Z",
+    "notes": [],
+    "moved": null,
+    "members": [
+     {
+      "pull": 30,
+      "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+      "title": "Fix the guide wording",
+      "url": "https://github.com/octo/widgets/pull/30",
+      "author": "alex",
+      "base": "main",
+      "state": "open",
+      "ended_at": null,
+      "color": 1
+     }
+    ],
+    "earlier": [],
+    "queue": {
+     "repo": "octo/widgets",
+     "members": [
+      {
+       "pull": 30,
+       "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+       "title": "Fix the guide wording",
+       "url": "https://github.com/octo/widgets/pull/30",
+       "author": "alex",
+       "base": "main",
+       "color": 1,
+       "state": "open",
+       "ended_at": null,
+       "sets": {
+        "comment": {
+         "set": "e02e2ca3b6d3",
+         "words": "This comment goes on octo/widgets#30 under your name, exactly as shown."
+        },
+        "approve-with-comments": {
+         "set": "e30730822bc5",
+         "words": "You approve octo/widgets#30, and this comment goes with the approval under your name, exactly as shown."
+        },
+        "approve": {
+         "set": "a6feecc25af5",
+         "words": "You approve octo/widgets#30 with no comments. The queued 1 comment stays queued, unposted."
+        }
+       },
+       "comments": [
+        {
+         "id": 2,
+         "path": "docs/guide.md",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Why every item?",
+         "code": "The catalog lists items.\nThe catalog lists every item.",
+         "start_line": 3,
+         "start_side": "LEFT",
+         "version": "f338d4933ea8"
+        }
+       ],
+       "posted": [
+        {
+         "set": "2a11c02816a5",
+         "action": "approve-with-comments",
+         "review": "https://github.com/octo/widgets/pull/30#pullrequestreview-8",
+         "at": "2026-10-15T12:00:02.000Z",
+         "count": 1
+        }
+       ]
+      }
+     ],
+     "earlier": [],
+     "moved": null
+    },
+    "threads": [],
+    "github": [],
+    "written": null,
+    "version": "6ebd31545b3a"
    }
   }
  }

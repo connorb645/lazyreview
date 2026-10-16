@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	inlineSVG  = regexp.MustCompile(`(?is)<svg\b.*?</svg>`)
 	fencedCode = regexp.MustCompile("(?s)```.*?```")
 	mdLink     = regexp.MustCompile(`\[([^\]]*)\]\([^)]*\)`)
 	listMark   = regexp.MustCompile(`(?m)^\s*[-+]\s+`)
@@ -86,6 +87,10 @@ func linesWords(side string, line, startLine int, startSide string) string {
 
 func itoa(n int) string {
 	return fmt.Sprint(n)
+}
+
+func withoutDiagrams(markdown string) string {
+	return inlineSVG.ReplaceAllString(markdown, "\n\n*A diagram is here that a terminal cannot draw. gX opens this review in the web app.*\n\n")
 }
 
 func stripped(line string) string {

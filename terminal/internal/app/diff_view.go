@@ -12,6 +12,8 @@ import (
 // unified or split, wrapped or cut, and the row the cursor is on.
 type diffView struct {
 	loc       *time.Location
+	md        *markdown
+	rendered  map[string]bool
 	notes     map[string]bool
 	selecting bool
 	anchor    int
@@ -29,8 +31,8 @@ type diffView struct {
 	width     int
 }
 
-func newDiffView(component string, files map[string]server.File, loc *time.Location) diffView {
-	return diffView{component: component, files: files, loc: loc, notes: map[string]bool{}, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
+func newDiffView(component string, files map[string]server.File, loc *time.Location, md *markdown) diffView {
+	return diffView{component: component, files: files, loc: loc, md: md, rendered: map[string]bool{}, notes: map[string]bool{}, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
 }
 
 // rebuilt draws the rows again, keeping the cursor on the same place where it still shows.
@@ -50,6 +52,9 @@ func (v diffView) place() *server.Lines {
 		return nil
 	}
 	r := v.rows[v.cursor]
+	if r.kind == "block" {
+		return &server.Lines{Path: r.path, Side: r.block.Side, Line: r.block.StartLine}
+	}
 	side, line, ok := r.at()
 	if !ok {
 		return &server.Lines{Path: r.path, Side: r.kind + ":" + r.key}
@@ -57,7 +62,8 @@ func (v diffView) place() *server.Lines {
 	return &server.Lines{Path: r.path, Side: side, Line: line}
 }
 
-// find puts the cursor on a place's row, or on its file's header, or leaves it.
+// find puts the cursor on a place's row, the first row of a block the
+// line is in, or on its file's header, or leaves it.
 func (v diffView) find(at server.Lines) diffView {
 	header := -1
 	for i, r := range v.rows {
@@ -73,6 +79,10 @@ func (v diffView) find(at server.Lines) diffView {
 			return v
 		}
 		if !ok && r.kind+":"+r.key == at.Side {
+			v.cursor = i
+			return v
+		}
+		if b := r.block; b != nil && b.Side == at.Side && at.Line >= b.StartLine && at.Line <= b.Line {
 			v.cursor = i
 			return v
 		}
@@ -190,7 +200,7 @@ func (v diffView) file() string {
 }
 
 func (v diffView) copied() diffView {
-	v.folded, v.opened, v.whole, v.notes = copyBools(v.folded), copyBools(v.opened), copyBools(v.whole), copyBools(v.notes)
+	v.folded, v.opened, v.whole, v.notes, v.rendered = copyBools(v.folded), copyBools(v.opened), copyBools(v.whole), copyBools(v.notes), copyBools(v.rendered)
 	return v
 }
 
@@ -208,7 +218,7 @@ func matches(r diffRow, query string) bool {
 	if query == "" {
 		return false
 	}
-	texts := []string{r.text}
+	texts := []string{stripped(r.text)}
 	for _, l := range []*server.Row{r.line, r.left, r.right} {
 		if l != nil {
 			texts = append(texts, l.Text)

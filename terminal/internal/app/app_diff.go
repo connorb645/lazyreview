@@ -32,7 +32,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 		return a, loadFiles(a.opts.Server, a.review.id, a.review.page.Build, component, missing, place)
 	}
 	if a.diff.component != component || a.diff.files == nil {
-		a.diff = newDiffView(component, a.files, a.opts.Location)
+		a.diff = newDiffView(component, a.files, a.opts.Location, a.md)
 		a.diff.width = a.width
 	}
 	a.screen = screenDiff
@@ -175,14 +175,31 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 	case "drop":
 		return a.dropQueued(), nil
 	case "select":
-		if _, _, ok := v.rows[min(v.cursor, len(v.rows)-1)].at(); !ok || len(v.rows) == 0 {
-			return a.say("V starts a selection on a line", true), nil
+		if len(v.rows) == 0 {
+			return a, nil
+		}
+		if r := v.rows[v.cursor]; r.kind != "block" {
+			if _, _, ok := r.at(); !ok {
+				return a.say("V starts a selection on a line", true), nil
+			}
 		}
 		a.diff.selecting, a.diff.anchor = true, v.cursor
 	case "other end":
 		if v.selecting {
 			a.diff.anchor, a.diff.cursor = v.cursor, v.anchor
 			a.diff = a.diff.shown(h)
+		}
+	case "rendered":
+		path := v.file()
+		if f, ok := v.files[path]; !ok || f.Rendered == nil {
+			return a.say("Space r shows a Markdown file rendered, and this file has no rendered view", true), nil
+		}
+		v = v.copied()
+		v.rendered[path] = !v.rendered[path]
+		v.folded[path] = false
+		a.diff = v.rebuilt(*a.review, a.filter, h)
+		if i := a.diff.first(func(r diffRow) bool { return r.kind == "file" && r.path == path }); i >= 0 {
+			a.diff = a.diff.to(i, h)
 		}
 	case "whole":
 		path := v.file()

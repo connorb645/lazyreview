@@ -4,8 +4,9 @@ import "review-desk/terminal/internal/server"
 
 // diffRow is one row of the diff view: a file's header, a hunk's header, a
 // folded run of unchanged lines, a note about a file, a line, which the
-// split view draws as a pair, its removed side on the left, or the head or
-// a line of text of a note on a line. Key names the hunk a header heads,
+// split view draws as a pair, its removed side on the left, a drawn line of
+// a block of a Markdown file's Rendered view, or the head or a line of text
+// of a note on a line. Key names the hunk a header heads,
 // the run of unchanged lines a row is in, or the note a row is part of.
 type diffRow struct {
 	kind    string
@@ -19,6 +20,8 @@ type diffRow struct {
 	added   bool
 	part    string
 	message int
+	block   *server.Block
+	last    bool
 }
 
 // at is the side and line a comment on the row goes on, as the app shows

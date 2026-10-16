@@ -43,6 +43,8 @@ func buildDiff(d reviewData, v diffView, filter int) []diffRow {
 			rows = append(rows, diffRow{kind: "note", path: f.Path, text: "Renamed, with no change to its contents."})
 		case len(file.Hunks) == 0:
 			rows = append(rows, diffRow{kind: "note", path: f.Path, text: "No change to its contents, only to its mode."})
+		case v.rendered[f.Path] && file.Rendered != nil:
+			rows = append(rows, blockRows(f.Path, *file.Rendered, v)...)
 		case v.whole[f.Path] && file.Whole != nil:
 			added := map[int]*server.Row{}
 			for h := range file.Hunks {
@@ -58,6 +60,40 @@ func buildDiff(d reviewData, v diffView, filter int) []diffRow {
 		}
 	}
 	return withNotes(d, v, rows)
+}
+
+func blockRows(path string, rendered server.Rendered, v diffView) []diffRow {
+	var rows []diffRow
+	if rendered.Partial {
+		rows = append(rows, diffRow{kind: "note", path: path, text: "Only the changed parts show: the page kept no whole text of this file."})
+	}
+	for i := range rendered.Blocks {
+		b := &rendered.Blocks[i]
+		if rendered.Partial && i > 0 && b.Part != rendered.Blocks[i-1].Part {
+			rows = append(rows, diffRow{kind: "note", path: path, text: "···"})
+		}
+		drawn := withoutMargin(v.md.lines(b.Markdown, max(20, v.width-blockGutter)))
+		if len(drawn) == 0 {
+			drawn = []string{""}
+		}
+		for j, text := range drawn {
+			rows = append(rows, diffRow{kind: "block", path: path, text: text, block: b, last: j == len(drawn)-1})
+		}
+	}
+	return rows
+}
+
+func withoutMargin(lines []string) []string {
+	for _, l := range lines {
+		if !strings.HasPrefix(stripped(l), "  ") {
+			return lines
+		}
+	}
+	out := make([]string, len(lines))
+	for i, l := range lines {
+		out[i] = strings.Replace(l, "  ", "", 1)
+	}
+	return out
 }
 
 func wholeRows(path string, whole []string, added map[int]*server.Row) []diffRow {

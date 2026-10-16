@@ -129,7 +129,12 @@ async function recordAnswers() {
       changes.push(
         ['POST', `${one}/post`, { pull: 30, action: 'comment', set: 'stale0000000', build: oneBuild }],
         ['POST', `${one}/post`, { pull: 30, action: 'approve-with-comments', set: oneState.queue.members[0].sets['approve-with-comments'].set, build: oneBuild }],
+        ['POST', `${one}/comments`, { path: 'docs/guide.md', side: 'RIGHT', start_line: 3, start_side: 'LEFT', line: 3, body: 'Why every item?', build: oneBuild }],
       );
+      for (const given of [{ path: 'docs/guide.md', side: 'RIGHT', line: 3 }, { path: 'docs/guide.md', side: 'RIGHT', start_line: 3, start_side: 'LEFT', line: 3 }]) {
+        const path = where(one, { ...given, build: oneBuild });
+        answers[key('GET', path)] = await send(address, 'GET', path);
+      }
       for (const [method, path, body] of changes) answers[key(method, path, body)] = await send(address, method, path, body);
       return answers;
     } finally {

@@ -110,6 +110,16 @@ func rowHolds(r diffRow, at server.Lines, v diffView) bool {
 		}
 		return false
 	}
+	if r.kind == "block" {
+		b := r.block
+		if !r.last {
+			return false
+		}
+		if b.Left != nil && at.Side == "LEFT" {
+			return at.Line >= b.Left.StartLine && at.Line <= b.Left.Line
+		}
+		return at.Side == b.Side && at.Line >= b.StartLine && at.Line <= b.Line
+	}
 	if r.line != nil {
 		side, line, ok := r.at()
 		return ok && side == at.Side && line == at.Line

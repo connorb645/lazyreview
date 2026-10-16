@@ -38,6 +38,8 @@ func drawRow(d reviewData, v diffView, i, filter int, p palette) []string {
 	switch r.kind {
 	case "notehead", "notetext":
 		return []string{mark + noteLine(d, v, r, p)}
+	case "block":
+		return []string{mark + blockLine(v, i, p)}
 	case "file":
 		return []string{mark + fileHeader(d, v, r, p)}
 	case "hunk":
@@ -51,6 +53,36 @@ func drawRow(d reviewData, v diffView, i, filter int, p palette) []string {
 		return splitRow(d, v, r, mark, filter, p)
 	}
 	return unifiedRow(d, v, r, mark, filter, p)
+}
+
+const blockGutter = 12
+
+func blockLine(v diffView, i int, p palette) string {
+	r := v.rows[i]
+	b := r.block
+	label := ""
+	if i == 0 || v.rows[i-1].block != b {
+		label = blockLabel(b)
+	}
+	bar := " "
+	switch b.State {
+	case "add":
+		bar = p.Add.Render("▌")
+	case "del":
+		bar = p.Del.Render("▌")
+	}
+	return p.Muted.Render(fmt.Sprintf("%8s ", label)) + bar + p.Muted.Render("│") + " " + r.text
+}
+
+func blockLabel(b *server.Block) string {
+	label := fmt.Sprint(b.StartLine)
+	if b.Line != b.StartLine {
+		label += fmt.Sprintf("-%d", b.Line)
+	}
+	if b.Side == "LEFT" {
+		label = "-" + label
+	}
+	return label
 }
 
 func noteLine(d reviewData, v diffView, r diffRow, p palette) string {
@@ -83,6 +115,9 @@ func fileHeader(d reviewData, v diffView, r diffRow, p palette) string {
 	}
 	if v.whole[r.path] {
 		out += "  " + p.Accent.Render("whole")
+	}
+	if v.rendered[r.path] {
+		out += "  " + p.Accent.Render("rendered")
 	}
 	if entry.Status == "" {
 		return out + "  " + p.Muted.Render(plural(entry.Lines, "line"))
