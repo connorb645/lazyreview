@@ -13,6 +13,7 @@
  */
 import { esc, when } from '../lib/text.mjs';
 import { send, reviewPath } from '../lib/api.mjs';
+import { linesWords } from './line-range.mjs';
 
 const ORDER = ['comment', 'approve-with-comments', 'approve'];
 const LABELS = { 'comment': 'Add Comments', 'approve-with-comments': 'Approve With Comments', 'approve': 'Approve' };
@@ -27,7 +28,6 @@ export function createQueuePanel(ctx) {
     return node;
   }
   const count = n => n + (n === 1 ? ' comment' : ' comments');
-  const lines = c => (c.start_line ? 'lines ' + c.start_line + '-' + c.line : 'line ' + c.line);
   const where = data => ctx.state.repo + '#' + data.pull;
 
   function warning(data, action) {
@@ -51,13 +51,12 @@ export function createQueuePanel(ctx) {
     row.appendChild(el('span', 'qc-num', String(comment.id)));
     if (stacked) row.appendChild(pill(data.pull, '→ '));
     const shown = comment.shown || comment;
-    const link = el('a', 'qc-path', comment.path + ', ' + lines(comment));
+    const link = el('a', 'qc-path', comment.path + ', ' + linesWords(comment));
     link.href = '#';
     link.setAttribute('data-go-file', shown.path);
     link.setAttribute('data-go-line', String(shown.line));
     link.setAttribute('data-go-side', shown.side);
     row.appendChild(link);
-    if (comment.side === 'LEFT') row.appendChild(el('span', 'qc-side', 'on the removed line'));
     if (comment.shown && (comment.shown.path !== comment.path || comment.shown.line !== comment.line)) {
       row.appendChild(el('span', 'qc-shown', 'line ' + comment.shown.line + (comment.shown.path !== comment.path ? ' of ' + comment.shown.path : '') + ' on this page'));
     }

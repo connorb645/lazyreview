@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { setId, offered, linesIn, queueView, liveMember } from '../../src/queue/queue-rules.mjs';
+import { setId, offered, diffPlaces, placeProblem, postedFields, queueView, liveMember } from '../../src/queue/queue-rules.mjs';
 import { regroup } from '../../src/queue/regroup.mjs';
 import { commentTarget } from '../../src/queue/comment-target.mjs';
 
@@ -28,12 +28,31 @@ test('the actions offered leave out a stale comment and one\'s own approval', ()
   assert.deepEqual(offered(review, member(1, { author: 'reviewer', comments: [comment(1)] })), ['comment']);
 });
 
-test('the lines of a patch are read on both sides', () => {
-  const lines = linesIn('@@ -3,3 +3,4 @@\n one\n-two\n+TWO\n+three\n four\n\\ No newline at end of file');
-  assert.deepEqual([...lines.RIGHT], [3, 4, 5, 6]);
-  assert.deepEqual([...lines.LEFT], [3, 4, 5]);
-  assert.deepEqual(linesIn(undefined), { RIGHT: new Set(), LEFT: new Set() }, 'a file GitHub shows no patch for, such as a binary one, has no lines');
-  assert.deepEqual([...linesIn('@@ -1 +1 @@\n-a\n+b\n').RIGHT], [1], 'a trailing newline adds no line');
+test('the lines of a patch are placed on both sides, each in its hunk and its row', () => {
+  const places = diffPlaces('@@ -3,3 +3,4 @@\n one\n-two\n+TWO\n+three\n four\n\\ No newline at end of file\n@@ -20 +21 @@\n-x\n+y');
+  assert.deepEqual([...places.RIGHT.keys()], [3, 4, 5, 6, 21]);
+  assert.deepEqual([...places.LEFT.keys()], [3, 4, 5, 20]);
+  assert.deepEqual([places.LEFT.get(3), places.RIGHT.get(3)], [{ hunk: 0, row: 1 }, { hunk: 0, row: 1 }], 'an unchanged line has one place');
+  assert.deepEqual(places.RIGHT.get(21), { hunk: 1, row: 9 });
+  assert.deepEqual(diffPlaces(undefined), { RIGHT: new Map(), LEFT: new Map() }, 'a file GitHub shows no patch for, such as a binary one, has no lines');
+  assert.deepEqual([...diffPlaces('@@ -1 +1 @@\n-a\n+b\n').RIGHT.keys()], [1], 'a trailing newline adds no line');
+});
+
+test('GitHub takes a comment on a line of the diff, and a range only inside one hunk, first line first', () => {
+  const places = diffPlaces('@@ -3,3 +3,4 @@\n one\n-two\n+TWO\n+three\n four\n@@ -20,2 +21,2 @@\n-x\n+y\n z');
+  const at = (line, side = 'RIGHT', start_line, start_side) => placeProblem(places, { line, side, start_line, start_side });
+  assert.equal(at(4), null);
+  assert.equal(at(4, 'LEFT'), null);
+  assert.equal(at(9), 'is not on a line of the diff');
+  assert.equal(at(6, 'RIGHT', 3), null);
+  assert.equal(at(5, 'RIGHT', 4, 'LEFT'), null, 'a range may start on a removed line and end on an added one');
+  assert.equal(at(22, 'RIGHT', 4), 'runs from line 4 across more than one hunk of the diff, and GitHub takes a range only inside one hunk');
+  assert.equal(at(5, 'RIGHT', 8), 'starts on line 8, which is not on a line of the diff');
+  assert.equal(at(4, 'RIGHT', 5), 'starts on line 5, which does not come before its last line in the diff');
+  assert.equal(at(4, 'LEFT', 4, 'RIGHT'), 'starts on line 4, which does not come before its last line in the diff', 'the removed line comes before the line added in its place');
+  assert.deepEqual(postedFields({ path: 'a.ts', line: 5, side: 'RIGHT', start_line: 4, start_side: 'LEFT', body: 'b' }),
+    { path: 'a.ts', line: 5, side: 'RIGHT', start_line: 4, start_side: 'LEFT', body: 'b' });
+  assert.equal(postedFields({ path: 'a.ts', line: 6, side: 'RIGHT', start_line: 3, body: 'b' }).start_side, 'RIGHT', 'a range queued before ranges had a side starts on its own side');
 });
 
 test('the queue view offers no button for an ended pull request, one that left, or a moved review', () => {
@@ -82,7 +101,7 @@ test('regrouping moves another review\'s queue in, renumbered, and refuses to dr
 test('a comment on a single pull request goes where it was made', () => {
   const review = { members: [member(7)] };
   assert.deepEqual(commentTarget(review, null, { path: 'a.ts', line: 3, side: 'RIGHT', start_line: 2 }),
-    { pull: 7, target: { path: 'a.ts', line: 3, side: 'RIGHT', start_line: 2 }, shown: null });
+    { pull: 7, target: { path: 'a.ts', line: 3, side: 'RIGHT', start_line: 2, start_side: 'RIGHT' }, shown: null });
   assert.throws(() => commentTarget(review, null, { path: 'a.ts', line: 3, side: 'RIGHT', pull: 8 }), /this review is #7's, not #8's/);
   const stack = { members: [{ pull: 7, head: 'other' }], lines: {} };
   assert.throws(() => commentTarget(review, stack, { path: 'a.ts', line: 3, side: 'RIGHT' }), /the page shows other heads of #7 than the review holds/);

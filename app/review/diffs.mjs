@@ -4,9 +4,9 @@
  * lines between hunks, and a Rendered view of a Markdown file.
  *
  * createDiffs(ctx) returns renderComponent(id) and the controls the other
- * views use: focusFile, focusLine, rerenderFile and current(). Every line
- * number takes a click, which opens a comment or a question on that line
- * through ctx.notes, and ctx.notes.decorate(file) adds the conversations and
+ * views use: focusFile, focusLine, rerenderFile, hunkAt and current(). Every
+ * line number takes a click, which opens a comment or a question on that
+ * line through ctx.notes, and ctx.notes.decorate(file) adds the conversations and
  * queued comments under their lines whenever a file's diff is drawn.
  */
 import { esc, fmt, plural, baseName, breakable, short } from '../lib/text.mjs';
@@ -346,11 +346,7 @@ export function createDiffs(ctx) {
       return;
     }
     const ln = e.target.closest('td.ln');
-    if (ln) {
-      const at = ln.getAttribute('data-at');
-      ctx.notes.compose(ln.closest('details.file'), at.charAt(0) === 'L' ? 'LEFT' : 'RIGHT', +at.slice(2), e.shiftKey, ln.closest('tr'));
-      return;
-    }
+    if (ln) { ctx.notes.pick(ln, e); return; }
     if (e.target.closest('[data-clear-filter]')) ctx.setPullFilter(null);
   });
 
@@ -360,6 +356,11 @@ export function createDiffs(ctx) {
     const o = e.target.closest('[data-comp]');
     if (o) ctx.open.component(o.getAttribute('data-comp'));
   });
+
+  function hunkAt(path, side, line) {
+    if (!files[path]) return -1;
+    return parsed(path).hunks.findIndex(h => h.rows.some(r => (side === 'LEFT' ? r.t !== 'add' && r.o === line : r.t !== 'del' && r.n === line)));
+  }
 
   function detailsFor(path) {
     const meta = files[path] || contextFiles[path];
@@ -461,7 +462,7 @@ export function createDiffs(ctx) {
   });
 
   return {
-    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, parsed, wholeText,
+    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, parsed, wholeText, hunkAt,
     current: () => currentComp,
     forget: () => { currentComp = null; },
     setMode(path, mode) { fileModes[path] = mode; },

@@ -210,7 +210,7 @@
 .qc-where { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; }
 .qc-num { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--surface-3); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .qc-path { font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
-.qc-side, .qc-shown { color: var(--muted); }
+.qc-shown { color: var(--muted); }
 .qc-code { margin: 0; padding: 8px 12px; border-radius: var(--r-sm); background: var(--hunk-bg); font: 12px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
 .qc-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
 .qc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
@@ -612,7 +612,7 @@ button { font: inherit; }
 .fbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
 .fstats { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .note { padding: 10px 18px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--hunk-bg); }
-.diffwrap { overflow-x: auto; position: relative; }
+.diffwrap { overflow-x: auto; position: relative; container-type: inline-size; }
 .difftable { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12.5px; line-height: 1.6; background: var(--code-bg); }
 .difftable td { padding: 0 10px 0 0; vertical-align: top; }
 td.lineno { width: 1%; min-width: 48px; text-align: right; padding: 0 10px; color: var(--lineno); user-select: none; font-variant-numeric: tabular-nums; border-right: 1px solid var(--border); }
@@ -625,7 +625,7 @@ tr.del { background: var(--del-bg); }
 tr.del td.sign, tr.del td.code { color: var(--del-ink); }
 tr.del td.lineno { background: var(--del-strong); color: var(--del-ink); }
 tr.hunk td { background: var(--hunk-bg); color: var(--hunk-ink); padding: 5px 18px; font-size: 11.5px; }
-tr.spot td.code, tr.spot td.lineno { box-shadow: inset 0 0 0 999px var(--mark); }
+tr.spot > td:not(.void) { box-shadow: inset 0 0 0 999px var(--mark); }
 .wholetable td.code { padding-left: 14px; }
 .wholetable tr.mark { background: var(--add-bg); }
 .wholetable tr.mark td.lineno { background: var(--add-strong); color: var(--add-ink); }
@@ -811,9 +811,11 @@ tr.pr-other > td, td.pr-other { opacity: .4; }
 /* ---------- notes on lines ---------- */
 td.lineno.ln { cursor: pointer; }
 td.lineno.ln:hover { color: var(--accent); box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--accent) 16%, transparent); }
-tr.picked td.code, tr.picked td.lineno { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--accent) 14%, transparent); }
+tr.picked > td:not(.void) { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--accent) 14%, transparent); }
 tr.note-row > td { position: relative; z-index: 1; padding: 0; background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: var(--sans); white-space: normal; }
 .composer, .thread, .queued-note { max-width: 48rem; margin: 14px 18px; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow-card); font-size: 13.5px; line-height: 1.55; }
+/* A note keeps to the part of a wide diff in view, and stays there as the diff scrolls sideways. */
+tr.note-row > td > * { position: sticky; left: 18px; width: min(48rem, calc(100cqw - 36px)); }
 .composer { position: relative; border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
 .composer-where { margin: 0 0 10px; padding-right: 72px; color: var(--muted); font-size: 13px; }
 .composer-where b { color: var(--ink); font-weight: 700; }
@@ -856,9 +858,10 @@ tr.note-row > td { position: relative; z-index: 1; padding: 0; background: var(-
 .queued-note { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
 .qn-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 8px; }
 .qn-tag { font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); }
+.qn-lines { font-size: 12px; color: var(--muted); }
 .qn-to { font-size: 12px; color: var(--muted); }
 .qn-stale { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--changed); }
-.qn-head .spacer { flex: 1 1 auto; }
+.qn-tools { display: inline-flex; gap: 4px; margin-left: auto; }
 .qn-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ncount { font-size: 12px; font-weight: 600; color: var(--accent); white-space: nowrap; }
 
@@ -912,6 +915,7 @@ tr.note-row > td { position: relative; z-index: 1; padding: 0; background: var(-
   .pr-title { font-size: 30px; }
   .rv-sec { padding-top: 40px; }
   .composer, .thread, .queued-note { margin: 10px; padding: 14px; }
+  tr.note-row > td > * { left: 10px; width: calc(100cqw - 20px); }
   #home-view { padding: 48px max(16px, env(safe-area-inset-right, 0px)) 80px max(16px, env(safe-area-inset-left, 0px)); }
   .home-wrap h2 { font-size: 36px; }
   .home-sub { margin-bottom: 32px; }

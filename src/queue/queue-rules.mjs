@@ -30,7 +30,7 @@ export function postedFields(comment) {
   const fields = { path: comment.path, line: comment.line, side: comment.side, body: comment.body };
   if (comment.start_line) {
     fields.start_line = comment.start_line;
-    fields.start_side = comment.side;
+    fields.start_side = comment.start_side || comment.side;
   }
   return fields;
 }
@@ -59,22 +59,47 @@ export function bodyProblems(body) {
   return String(body || '').trim() ? [] : ['the text is empty'];
 }
 
-/** The lines a file's patch shows, on each side: {RIGHT: Set, LEFT: Set}. */
-export function linesIn(patch) {
-  const right = new Set();
-  const left = new Set();
+/**
+ * Where each line of a file's patch sits, on each side: {RIGHT, LEFT}, each a
+ * Map from a line number to {hunk, row}, the hunk it is in and its row in
+ * the patch. The unchanged line of a row has the same place on both sides,
+ * so two places compare in the order the diff shows them.
+ */
+export function diffPlaces(patch) {
+  const places = { RIGHT: new Map(), LEFT: new Map() };
+  let hunk = -1;
   let old = 0;
   let now = 0;
   const rows = patch ? patch.split('\n') : [];
   if (rows[rows.length - 1] === '') rows.pop();
-  for (const row of rows) {
+  rows.forEach((row, index) => {
     const start = HUNK.exec(row);
-    if (start) { old = +start[1]; now = +start[2]; continue; }
-    if (row.startsWith('+')) right.add(now++);
-    else if (row.startsWith('-')) left.add(old++);
-    else if (!row.startsWith('\\')) { right.add(now++); left.add(old++); }
-  }
-  return { RIGHT: right, LEFT: left };
+    const at = { hunk, row: index };
+    if (start) { hunk++; old = +start[1]; now = +start[2]; return; }
+    if (row.startsWith('+')) places.RIGHT.set(now++, at);
+    else if (row.startsWith('-')) places.LEFT.set(old++, at);
+    else if (!row.startsWith('\\')) { places.RIGHT.set(now++, at); places.LEFT.set(old++, at); }
+  });
+  return places;
+}
+
+/**
+ * What stops GitHub taking a comment on a file whose diff has `places`, as
+ * words that follow the comment's name, or null when nothing does. Its line
+ * must be a line of the diff, and a range's first line must be an earlier
+ * line of the same hunk: GitHub refuses a range that leaves its hunk.
+ */
+export function placeProblem(places, comment) {
+  const end = places[comment.side].get(comment.line);
+  if (!end) return 'is not on a line of the diff';
+  if (!comment.start_line) return null;
+  const side = comment.start_side || comment.side;
+  const start = places[side].get(comment.start_line);
+  const first = `${side === 'LEFT' ? 'removed ' : ''}line ${comment.start_line}`;
+  if (!start) return `starts on ${first}, which is not on a line of the diff`;
+  if (start.hunk !== end.hunk) return `runs from ${first} across more than one hunk of the diff, and GitHub takes a range only inside one hunk`;
+  if (start.row >= end.row) return `starts on ${first}, which does not come before its last line in the diff`;
+  return null;
 }
 
 /** The live member for `pull`, or an error saying why there is none. */

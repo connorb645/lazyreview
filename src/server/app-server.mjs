@@ -52,7 +52,7 @@ export class AppServer {
       }],
       ['POST', new RegExp(`^/api/reviews/${PULL}/comments$`), async (ref, body) => {
         const done = await this.#queue.add(ref, {
-          path: text(body.path), line: whole(body.line), side: side(body.side), start_line: body.start_line ? whole(body.start_line) : null,
+          path: text(body.path), line: whole(body.line), side: side(body.side), ...range(body),
           body: text(body.body), code: typeof body.code === 'string' ? body.code : '', pull: body.pull ? whole(body.pull) : null,
         });
         return { comment: done.comment, pull: done.pull, state: this.#state(ref) };
@@ -71,7 +71,7 @@ export class AppServer {
       }],
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/threads$`), async (ref, body) => ({
         thread: await this.#threads.start(ref, {
-          path: text(body.path), side: side(body.side), line: whole(body.line), start_line: body.start_line ? whole(body.start_line) : null,
+          path: text(body.path), side: side(body.side), line: whole(body.line), ...range(body),
           code: typeof body.code === 'string' ? body.code : '', text: text(body.text),
         }),
       })],
@@ -157,6 +157,11 @@ function whole(value) {
   const n = Number(value);
   if (!Number.isInteger(n) || n < 1) throw new Error(`"${value}" is not a line or pull request number`);
   return n;
+}
+
+function range(body) {
+  if (!body.start_line) return { start_line: null, start_side: null };
+  return { start_line: whole(body.start_line), start_side: body.start_side ? side(body.start_side) : side(body.side) };
 }
 
 function side(value) {

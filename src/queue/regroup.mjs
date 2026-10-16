@@ -14,8 +14,9 @@
  *
  * It returns {members, earlier, moved, notes}. A member keeps its queued
  * comments, the reviews sent from it and its colour. A comment whose pull
- * request's head moved is marked stale, as is one on a removed line whose
- * pull request's diff now starts from another commit, as when the one below
+ * request's head moved is marked stale, as is one on a removed line, or
+ * whose range starts on one, whose pull request's diff now starts from
+ * another commit, as when the one below
  * is rebased or merged: its line may mean something else now, so no button
  * sends it until it is queued again or dropped. A member the load no longer
  * names leaves the stack, kept with what it had, unless it is still open with
@@ -93,7 +94,8 @@ function staled(comments, before, now, notes) {
   } else {
     return comments;
   }
-  const count = comments.filter(c => sides.includes(c.side)).length;
+  const touched = c => sides.includes(c.side) || (c.start_line && sides.includes(c.start_side || c.side));
+  const count = comments.filter(touched).length;
   if (count) notes.push(`#${now.pull}: ${count} queued comment${count === 1 ? '' : 's'} marked stale (${why}); queue each again or drop it`);
-  return comments.map(c => (sides.includes(c.side) ? { ...c, stale: c.stale || why } : c));
+  return comments.map(c => (touched(c) ? { ...c, stale: c.stale || why } : c));
 }

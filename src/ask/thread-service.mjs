@@ -1,8 +1,8 @@
 /**
  * Conversations with Claude on the lines of a review.
  *
- * start(ref, {path, side, line, start_line, code, text}) opens a
- * conversation on a line as the app shows it, with the person's question,
+ * start(ref, {path, side, line, start_line, start_side, code, text}) opens a
+ * conversation on a line or a range as the app shows it, with the person's question,
  * and reply(ref, id, text) adds a question to one. Each keeps the question
  * at once, then asks Claude in one short call, with only that file's part of
  * the diff and code around the line, and keeps the answer, or why there is
@@ -22,14 +22,14 @@ export class ThreadService {
     this.#now = now;
   }
 
-  async start(ref, { path, side, line, start_line, code, text }) {
+  async start(ref, { path, side, line, start_line, start_side, code, text }) {
     if (!String(text || '').trim()) throw new Error('ask something first');
     if (!path || !['RIGHT', 'LEFT'].includes(side) || !Number.isInteger(line) || line < 1) throw new Error('a conversation needs a file, a side and a line');
     const thread = await this.#store.change([ref], async () => {
       this.#reviewOf(ref);
       const id = Math.max(0, ...this.#store.threads(ref).map(t => t.id)) + 1;
       const fresh = {
-        id, path, side, line, ...(start_line ? { start_line } : {}), code: code || '', created_at: this.#now(),
+        id, path, side, line, ...(start_line ? { start_line, start_side: start_side || side } : {}), code: code || '', created_at: this.#now(),
         messages: [{ from: 'you', text: text.trim(), at: this.#now() }],
       };
       return { files: [this.#write(ref, fresh)], result: fresh };

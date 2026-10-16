@@ -71,6 +71,10 @@ function fileState(file) {
 
 function lines(thread) {
   const side = thread.side === 'LEFT' ? 'removed line' : 'line';
+  const startSide = thread.start_side || thread.side;
+  if (thread.start_line && startSide !== thread.side) {
+    return `${startSide === 'LEFT' ? 'removed line' : 'line'} ${thread.start_line} to ${side} ${thread.line}`;
+  }
   return thread.start_line ? `${side}s ${thread.start_line}-${thread.line}` : `${side} ${thread.line}`;
 }
 
@@ -86,7 +90,7 @@ function hunkAround(diff, thread) {
   }
   if (!hunks.length) return null;
   const span = thread.side === 'LEFT' ? 'old' : 'now';
-  const first = thread.start_line || thread.line;
+  const first = firstLine(thread);
   const distance = h => (thread.line < h[span][0] ? h[span][0] - thread.line : first > h[span][1] ? first - h[span][1] : 0);
   return hunks.reduce((best, h) => (distance(h) < distance(best) ? h : best)).rows.join('\n').replace(/\n$/, '');
 }
@@ -96,9 +100,13 @@ function addedText(diff, file) {
   return diff.split('\n').filter(r => r.startsWith('+') && !r.startsWith('+++')).map(r => r.slice(1));
 }
 
+function firstLine(thread) {
+  return thread.start_line && (thread.start_side || thread.side) === thread.side ? thread.start_line : thread.line;
+}
+
 function range(count, thread) {
   if (count <= WHOLE_FILE) return [1, count];
-  const first = thread.start_line || thread.line;
+  const first = firstLine(thread);
   return [Math.max(1, first - AROUND), Math.min(count, thread.line + AROUND)];
 }
 

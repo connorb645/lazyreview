@@ -45,6 +45,9 @@ test('a new file sends its whole text, a removed line sends no head text, and an
   assert.match(removed, /-old 500/);
   assert.ok(!removed.includes('The file at the head'));
   assert.match(ask('src/other.ts', 'RIGHT', 1), /File: src\/other\.ts \(unchanged by this change\)[\s\S]*1 \| export class Other \{\}/);
+  const across = questionFor({ review: single, page: page(), thread: { path: 'src/a.ts', side: 'RIGHT', line: 11, start_line: 11, start_side: 'LEFT', messages: [{ from: 'you', text: 'Q?' }] } }).prompt;
+  assert.match(across, /They ask about removed line 11 to line 11\./, 'a range from a removed line to an added one names both sides');
+  assert.match(across, /\+added 11/);
 });
 
 test('Claude is asked in one print-mode call with no tools, settings, servers or saved session', async () => {

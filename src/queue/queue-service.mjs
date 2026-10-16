@@ -17,7 +17,7 @@
  * nothing.
  */
 import { GitHub } from '../github/github.mjs';
-import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, linesIn, liveMember, nextId, findComment } from './queue-rules.mjs';
+import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, placeProblem, liveMember, nextId, findComment } from './queue-rules.mjs';
 import { commentTarget } from './comment-target.mjs';
 
 export class QueueService {
@@ -42,12 +42,13 @@ export class QueueService {
       if (now.head.sha !== member.head) {
         throw new Error(`not queued: #${pull} moved from ${member.head.slice(0, 8)} to ${now.head.sha.slice(0, 8)}; load it again, then queue`);
       }
-      const lines = await diffLines(gh, review.repo, pull);
-      const where = `${target.path}:${target.line}${shown ? ` of #${pull}` : ''}`;
-      if (!lines[target.path]?.[target.side]?.has(target.line)) throw new Error(`not queued: ${where} is not on a line of the diff`);
+      const places = await filePlaces(gh, review.repo, pull);
+      const where = `${target.path}:${target.start_line ? `${target.start_line}-` : ''}${target.line}${shown ? ` of #${pull}` : ''}`;
+      const problem = placeProblem(places[target.path] || NO_PLACES, target);
+      if (problem) throw new Error(`not queued: ${where} ${problem}`);
       const comment = {
         id: nextId(review), path: target.path, line: target.line, side: target.side, body: given.body.trim(), code: given.code || '',
-        ...(target.start_line ? { start_line: target.start_line } : {}), ...(shown ? { shown } : {}),
+        ...(target.start_line ? { start_line: target.start_line, start_side: target.start_side } : {}), ...(shown ? { shown } : {}),
       };
       member.comments.push(comment);
       return { review, result: { comment, pull } };
@@ -114,9 +115,11 @@ export class QueueService {
   }
 }
 
-async function diffLines(gh, repo, pull) {
+const NO_PLACES = diffPlaces(null);
+
+async function filePlaces(gh, repo, pull) {
   const files = {};
-  for (const item of await gh.files(repo, pull)) files[item.filename] = linesIn(item.patch);
+  for (const item of await gh.files(repo, pull)) files[item.filename] = diffPlaces(item.patch);
   return files;
 }
 
@@ -125,14 +128,11 @@ async function problemsIn(gh, review, member, comments) {
   const problems = [];
   if (now.state !== 'open') problems.push(`#${member.pull} is ${now.merged_at ? 'merged' : now.state}`);
   if (now.head.sha !== member.head) problems.push(`the head moved from ${member.head.slice(0, 9)} to ${now.head.sha.slice(0, 9)}`);
-  const lines = comments.length ? await diffLines(gh, review.repo, member.pull) : {};
+  const places = comments.length ? await filePlaces(gh, review.repo, member.pull) : {};
   for (const comment of comments) {
     const where = `comment ${comment.id} (${comment.path}:${comment.line})`;
-    const onSide = lines[comment.path]?.[comment.side] || new Set();
-    if (!onSide.has(comment.line)) problems.push(`${where} is not on a line of the diff`);
-    if (comment.start_line && (!onSide.has(comment.start_line) || comment.start_line >= comment.line)) {
-      problems.push(`${where} starts on line ${comment.start_line}, which is not an earlier line of the diff`);
-    }
+    const problem = placeProblem(places[comment.path] || NO_PLACES, comment);
+    if (problem) problems.push(`${where} ${problem}`);
     problems.push(...bodyProblems(comment.body).map(p => `${where}: ${p}`));
     if (comment.stale) problems.push(`${where} is stale: ${comment.stale}; queue it again or drop it`);
   }

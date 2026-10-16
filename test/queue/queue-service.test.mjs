@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { workbench } from '../support/workbench.mjs';
 import { PullRef } from '../../src/github/pull-ref.mjs';
 import { queueView } from '../../src/queue/queue-rules.mjs';
+import { GitHub } from '../../src/github/github.mjs';
 
 const ref = n => new PullRef('github.com', 'octo/widgets', n);
 const REVIEW_URL = 'https://github.com/octo/widgets/pull/30#pullrequestreview-7';
@@ -24,6 +25,40 @@ test('a comment is queued on a line of the diff, and refused anywhere else', asy
     await assert.rejects(w.queue.add(ref(30), { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: '   ' }), /not queued: the text is empty/);
     await w.queue.add(ref(30), { path: 'docs/guide.md', line: 3, side: 'LEFT', body: 'Why drop this?' });
     assert.deepEqual(w.store.read(ref(30)).members[0].comments.map(c => [c.id, c.side]), [[1, 'RIGHT'], [2, 'LEFT']]);
+  } finally {
+    w.done();
+  }
+});
+
+test('a range is queued only inside one hunk, may start on a removed line, and posts as a range', async () => {
+  const w = workbench();
+  try {
+    const long = reworded => Array.from({ length: 30 }, (_, i) => `Line ${i + 1}${reworded && (i === 3 || i === 24) ? ', reworded' : ''}.`).join('\n') + '\n';
+    w.repo.commit('main', { 'docs/long.md': long(false) }, 'long');
+    w.repo.checkout('fix/wording');
+    w.repo.git('merge', '-q', '--no-edit', 'main');
+    w.repo.commit('fix/wording', { 'docs/long.md': long(true) }, 'reword');
+    w.repo.checkout('main');
+    w.routes();
+    await w.loader.load({ links: [w.link(30)] });
+    await assert.rejects(w.queue.add(ref(30), { path: 'docs/long.md', start_line: 4, line: 25, side: 'RIGHT', body: 'Both?' }),
+      /not queued: docs\/long\.md:4-25 runs from line 4 across more than one hunk of the diff, and GitHub takes a range only inside one hunk/);
+    await assert.rejects(w.queue.add(ref(30), { path: 'docs/long.md', start_line: 5, line: 4, side: 'RIGHT', body: 'Backwards?' }), /starts on line 5, which does not come before its last line/);
+    const mixed = await w.queue.add(ref(30), { path: 'docs/long.md', start_line: 4, start_side: 'LEFT', line: 5, side: 'RIGHT', body: 'Why reword it?' });
+    assert.deepEqual([mixed.comment.start_line, mixed.comment.start_side, mixed.comment.line, mixed.comment.side], [4, 'LEFT', 5, 'RIGHT']);
+
+    w.routes({ extra: {
+      'POST repos/octo/widgets/pulls/30/reviews': { id: 7, state: 'COMMENTED', html_url: REVIEW_URL },
+      'GET repos/octo/widgets/pulls/30/comments?per_page=100&page=1': [{ pull_request_review_id: 7 }],
+    } });
+    await w.queue.post(ref(30), { pull: 30, action: 'comment', set: sets(w, 30).comment });
+    assert.deepEqual(posts(w)[0].body.comments, [{ path: 'docs/long.md', line: 5, side: 'RIGHT', start_line: 4, start_side: 'LEFT', body: 'Why reword it?' }]);
+
+    const github = new GitHub();
+    const review = comment => github.createReview('octo/widgets', 30, { commit_id: w.repo.sha('fix/wording'), event: 'COMMENT', comments: [{ path: 'docs/long.md', body: 'x', ...comment }] });
+    await assert.rejects(review({ line: 25, side: 'RIGHT', start_line: 4, start_side: 'RIGHT' }), /HTTP 422[\s\S]*start_line must be part of the same hunk as the line/, 'the stand-in for GitHub refuses a range across hunks');
+    await assert.rejects(review({ line: 15, side: 'RIGHT' }), /HTTP 422[\s\S]*Line could not be resolved/, 'and a line off the diff');
+    assert.equal(posts(w).length, 3);
   } finally {
     w.done();
   }
