@@ -8,8 +8,9 @@
  * {number, base, head, title, author, state, merged, body}, where base and
  * head are branches, its details at its current head and its files with
  * their patches, as GitHub shows them, from the merge base. `reviews` gives
- * each pull request's existing reviews and review comments, and `extra`
- * routes are added as they are.
+ * each pull request's existing reviews, review comments and review threads,
+ * the threads as GitHub's GraphQL API gives them, and `extra` routes are
+ * added as they are.
  */
 import { splitDiff } from '../../src/build/diff/diff-parser.mjs';
 
@@ -35,9 +36,10 @@ export function githubRoutes({ repo, name = 'octo/widgets', me = 'reviewer', pul
       const first = lines.findIndex(l => l.startsWith('@@'));
       return { filename: chunk.path, ...(first >= 0 ? { patch: lines.slice(first).join('\n') } : {}) };
     });
-    const existing = reviews[p.number] || { reviews: [], comments: [] };
+    const existing = { reviews: [], comments: [], threads: [], ...reviews[p.number] };
     routes[`GET repos/${name}/pulls/${p.number}/reviews?per_page=100&page=1`] = existing.reviews;
     routes[`GET repos/${name}/pulls/${p.number}/comments?per_page=100&page=1`] = existing.comments;
+    routes[`POST graphql ${name}#${p.number}`] = { data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: existing.threads } } } } };
   }
   return { ...routes, ...extra };
 }

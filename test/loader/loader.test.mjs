@@ -47,6 +47,32 @@ test('a stack loads bottom first into one review, each pull request in its own c
   }
 });
 
+test('a load keeps the review threads on GitHub with the page, each on the line it shows them on', async () => {
+  const w = workbench();
+  const thread = (id, path, line, login, extra = {}) => ({
+    id, isResolved: false, isOutdated: false, path, line, startLine: null, originalLine: line, originalStartLine: null, diffSide: 'RIGHT', startDiffSide: null,
+    subjectType: 'LINE', resolvedBy: null, ...extra,
+    comments: { totalCount: 1, nodes: [{ databaseId: 1, author: { login, __typename: 'User' }, body: 'Why?', createdAt: '2026-10-15T10:00:00Z', url: 'https://github.com/x', diffHunk: '' }] },
+  });
+  try {
+    w.routes({ reviews: {
+      21: { threads: [thread('T1', 'Sources/Catalog/MemoryCatalog.swift', 9, 'alex'), thread('T2', 'Sources/Catalog/Search.swift', null, 'alex', { isOutdated: true, isResolved: true })] },
+      22: { threads: [thread('T3', 'Sources/Basket/Basket.swift', 7, 'sam')] },
+    } });
+    await w.loader.load({ links: [w.link(21), w.link(22)] });
+    const page = JSON.parse(w.store.readPage(ref(21)));
+    assert.deepEqual(page.threads.map(t => [t.id, t.pull, t.resolved, t.outdated, t.at && t.at.line]), [['T1', 21, false, false, 9], ['T2', 21, true, true, null], ['T3', 22, false, false, 7]]);
+
+    w.routes({ extra: { 'POST graphql octo/widgets#30': { errors: [{ message: 'Resource not accessible' }] } } });
+    const loaded = await w.loader.load({ links: [w.link(30)] });
+    assert.deepEqual(JSON.parse(w.store.readPage(ref(30))).threads, []);
+    assert.deepEqual(loaded.notes, ["#30's review threads on GitHub are not shown, as they could not be read: GitHub refused the review threads of octo/widgets#30: Resource not accessible"]);
+    assert.deepEqual(w.store.read(ref(30)).notes, loaded.notes, 'the Review view says so too');
+  } finally {
+    w.done();
+  }
+});
+
 test('a load refuses pull requests that are not a stack bottom first, or not of one repository', async () => {
   const w = workbench();
   try {

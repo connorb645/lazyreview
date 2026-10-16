@@ -10,6 +10,10 @@
  * and `account` the GitHub account to act as; each left out keeps what the
  * review had, or the default.
  *
+ * The review threads already on GitHub are read with the pull requests and
+ * kept with the page, each on the line the app shows it on; when GitHub
+ * will not give them, the load goes on without them and a note says why.
+ *
  * Loading again refreshes a review in place. A stack's review lives with its
  * lowest pull request that has one, and the queues of other reviews of its
  * pull requests move into it, those reviews then pointing at it. Every file
@@ -24,6 +28,7 @@ import { buildPage } from '../build/page-builder.mjs';
 import { pullsSubject } from '../build/page/heading.mjs';
 import { defaultElk } from '../build/layout/elk.mjs';
 import { regroup } from '../queue/regroup.mjs';
+import { readThreads, placeThreads } from '../review/github-threads.mjs';
 
 const DESCRIPTION = 2000;
 
@@ -60,6 +65,15 @@ export class Loader {
     for (const pull of pulls) found.push(await gh.pull(repo, pull));
     if (found.length > 1) checkChained(found, repo);
     const me = await gh.login();
+    const threads = [];
+    const unread = [];
+    for (const f of found) {
+      try {
+        threads.push(...readThreads(f.number, await gh.reviewThreads(repo, f.number)));
+      } catch (error) {
+        unread.push(`#${f.number}'s review threads on GitHub are not shown, as they could not be read: ${error.message}`);
+      }
+    }
     const leaving = {};
     for (const m of previous && !previous.moved ? previous.members : []) {
       if (!pulls.includes(m.pull)) leaving[m.pull] = stateOf(await gh.pull(repo, m.pull));
@@ -99,17 +113,17 @@ export class Loader {
       const review = {
         id: anchor.id, host, repo, account: settled.account, me, title: built.page.model.heading.title,
         base: { ref: bottom.base.ref, sha: bottom.base.sha }, context: settled.context, loaded_at: now,
-        notes: built.notes, moved: null, members: grouped.members, earlier: grouped.earlier,
+        notes: [...built.notes, ...unread], moved: null, members: grouped.members, earlier: grouped.earlier,
       };
       const folder = this.#store.home.review(anchor);
       return {
         files: [
-          [folder.page, JSON.stringify(built.page)],
+          [folder.page, JSON.stringify({ ...built.page, threads: placeThreads(threads, built.page.stack) })],
           this.#store.recordWrite(anchor, review),
           ...(settled.config !== undefined ? [[folder.config, JSON.stringify(settled.config, null, 2) + '\n']] : []),
           ...grouped.moved.map(m => this.#store.recordWrite(m.ref, m.review)),
         ],
-        result: { ref: anchor, review, counts: built.counts, notes: [...built.notes, ...grouped.notes] },
+        result: { ref: anchor, review, counts: built.counts, notes: [...review.notes, ...grouped.notes] },
       };
     });
   }

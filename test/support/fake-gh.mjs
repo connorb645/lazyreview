@@ -5,7 +5,9 @@
  * fakeGh() makes a folder holding an executable `gh` and returns {env, bin,
  * routes, calls, done}: `env` puts it first on PATH for a child process, and
  * `bin` is its folder, for this process's own PATH; `routes(map)` sets the
- * answers, as {"GET repos/o/r/pulls/1": body} or {"POST ...": body};
+ * answers, as {"GET repos/o/r/pulls/1": body} or {"POST ...": body}, and a
+ * GraphQL query by its variables, as {"POST graphql o/r#1": body}, with
+ * " after <cursor>" for a later page;
  * `calls()` reads back each call as {method, path, body}; `done()` removes
  * the folder. `gh auth token` answers with a token named for the account, and
  * a route with no answer fails as GitHub's 404 does.
@@ -32,8 +34,9 @@ for (let i = 1; i < args.length; i++) {
   else if (!path) path = args[i];
 }
 method = method || (input ? 'POST' : 'GET');
-const key = method + ' ' + path;
 const body = input ? JSON.parse(fs.readFileSync(0, 'utf8')) : null;
+const asked = path === 'graphql' && body && body.variables;
+const key = asked ? 'POST graphql ' + asked.owner + '/' + asked.name + '#' + asked.number + (asked.after ? ' after ' + asked.after : '') : method + ' ' + path;
 log({ method, path, body, token: process.env.GH_TOKEN || null });
 const routes = JSON.parse(fs.readFileSync(process.env.FAKE_GH_ROUTES, 'utf8'));
 const review = /^repos\\/([^/]+\\/[^/]+)\\/pulls\\/(\\d+)\\/reviews$/.exec(path);

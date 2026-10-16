@@ -1,7 +1,7 @@
 /**
  * The Review view: the pull request, or the stack, at the top; the written
  * review when one is attached; the Queued comments with the review buttons;
- * and every conversation with Claude. Beside it, the way to the diagram, each
+ * the review threads already on GitHub; and every conversation with Claude. Beside it, the way to the diagram, each
  * pull request of a stack, the components, and what is on the page. A
  * branch's review shows the branch at the top and its conversations, with no
  * queue and no buttons: it is read only.
@@ -9,7 +9,7 @@
  * createOverview(ctx) returns render(message), which draws the view from
  * ctx.state again, with `message` saying what the last action did.
  */
-import { esc, fmt, plural, short, when } from '../lib/text.mjs';
+import { esc, fmt, plural, short, when, plainText } from '../lib/text.mjs';
 import { trustedMarkdown } from '../lib/markdown.mjs';
 
 export function createOverview(ctx) {
@@ -107,10 +107,26 @@ export function createOverview(ctx) {
     }).join('') + '</ul></section>';
   }
 
-  // Markdown read as plain words, for a short preview.
-  function plainText(markdown) {
-    return markdown.replace(/```[\s\S]*?```/g, ' ').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/^\s*[-+]\s+/gm, '')
-      .replace(/[`*_>#]/g, '').replace(/\s+/g, ' ').trim();
+  function githubHTML() {
+    const threads = ctx.data.threads;
+    if (!threads.length) return '';
+    const open = threads.filter(t => !t.resolved).length;
+    return '<section class="rv-sec" id="on-github"><h2>On GitHub</h2>' +
+      '<p class="rv-quiet">' + plural(threads.length, 'review thread') + ', ' + fmt(open) + ' unresolved, as GitHub had them when this review was loaded.</p>' +
+      '<ul class="convo-list">' + threads.map(t => {
+        const first = t.comments[0];
+        const at = t.at || { path: t.path, line: t.original_line || 1, side: t.side || 'RIGHT' };
+        const lines = t.file ? '' : ':' + (t.at && t.at.start_line ? t.at.start_line + '-' : '') + (t.at ? t.at.line : t.original_line || '');
+        const people = [...new Set(t.comments.map(c => c.author))];
+        return '<li><a href="#" class="convo-at" data-go-file="' + esc(at.path) + '" data-go-line="' + at.line + '" data-go-side="' + esc(at.side) + '">' + esc(at.path) + lines + '</a>' +
+          '<span class="convo-when">' + (pulls.members.length ? pulls.pullPill(t.pull) + ' ' : '') + esc(people.join(', ')) + ' &middot; ' + plural(t.comments.length + t.more, 'comment') +
+          (t.resolved ? ' &middot; resolved' : '') + (t.outdated ? ' &middot; outdated' : '') + '</span>' +
+          (first ? '<p class="convo-a">' + esc(clip(plainText(first.body))) + '</p>' : '') + '</li>';
+      }).join('') + '</ul></section>';
+  }
+
+  function clip(text) {
+    return text.length > 220 ? text.slice(0, 220) + '…' : text;
   }
 
   function decorate(root) {
@@ -153,12 +169,14 @@ export function createOverview(ctx) {
       (state.notes && state.notes.length ? '<div class="load-notes">' + state.notes.map(n => '<p class="warn-line">' + esc(n) + '</p>').join('') + '</div>' : '') +
       sectionsHTML(written) +
       (state.queue ? '<section id="queued-comments"></section>' : '') +
+      githubHTML() +
       conversationsHTML();
     decorate(body);
     if (state.queue) ctx.queuePanel.mount(document.getElementById('queued-comments'), message);
 
     const shared = sharedPrefix(pulls.members.map(m => m.title));
     const toc = (written ? written.sections.map(s => ['rv-' + s.id, s.title]) : []).concat(state.queue ? [['queued-comments', 'Queued comments']] : [])
+      .concat(ctx.data.threads.length ? [['on-github', 'On GitHub']] : [])
       .concat(state.threads.length ? [['conversations', 'Conversations']] : []);
     side.innerHTML =
       '<div class="side-open"><button class="back" data-go="map">Open the diagram &rarr;</button></div>' +

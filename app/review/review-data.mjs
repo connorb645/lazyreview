@@ -2,8 +2,9 @@
  * The page data of a review, indexed for drawing.
  *
  * indexPage(page) takes the page data the server built and returns it with
- * lookups by id and path, and the totals of the whole change and of each
- * component. It changes nothing in `page` but the context files' own index.
+ * lookups by id and path, the totals of the whole change and of each
+ * component, and its review threads on GitHub, none when it holds none. It
+ * changes nothing in `page` but the context files' own index.
  */
 export function indexPage(page) {
   const model = page.model;
@@ -34,7 +35,7 @@ export function indexPage(page) {
     t.files++;
   });
   return {
-    model, layout: page.layout, diffs: page.diff || {}, sources: page.sources || {}, contextSources: page.context || {}, stack: page.stack,
+    model, layout: page.layout, diffs: page.diff || {}, sources: page.sources || {}, contextSources: page.context || {}, stack: page.stack, threads: page.threads || [],
     nodes, comps, files, contextFiles, nodesByFile, groupsById, totals, compTotals,
   };
 }

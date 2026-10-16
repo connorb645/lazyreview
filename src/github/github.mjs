@@ -10,6 +10,23 @@
 import { execFile } from 'node:child_process';
 
 const TIMEOUT = 60_000;
+const THREADS = `query($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      reviewThreads(first: 50, after: $after) {
+        pageInfo { hasNextPage endCursor }
+        nodes {
+          id isResolved isOutdated path line startLine originalLine originalStartLine diffSide startDiffSide subjectType
+          resolvedBy { login }
+          comments(first: 100) {
+            totalCount
+            nodes { databaseId author { login __typename } body createdAt url diffHunk }
+          }
+        }
+      }
+    }
+  }
+}`;
 
 export class GitHub {
   #host;
@@ -80,6 +97,26 @@ export class GitHub {
 
   reviewComments(repo, number) {
     return this.#pages(`repos/${repo}/pulls/${number}/comments`);
+  }
+
+  /**
+   * Every review thread on the pull request, as GitHub's GraphQL API gives
+   * them, each with its first 100 comments and their count: the REST API
+   * does not say which threads are resolved.
+   */
+  async reviewThreads(repo, number) {
+    const [owner, name] = repo.split('/');
+    const threads = [];
+    let after = null;
+    do {
+      const answer = await this.api('graphql', { method: 'POST', payload: { query: THREADS, variables: { owner, name, number, after } } });
+      if (answer?.errors?.length) throw new Error(`GitHub refused the review threads of ${repo}#${number}: ${answer.errors.map(e => e.message).join('; ')}`);
+      const page = answer?.data?.repository?.pullRequest?.reviewThreads;
+      if (!page) throw new Error(`GitHub gave no review threads for ${repo}#${number}`);
+      threads.push(...page.nodes);
+      after = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
+    } while (after);
+    return threads;
   }
 
   createReview(repo, number, payload) {

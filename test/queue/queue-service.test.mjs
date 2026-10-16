@@ -12,7 +12,7 @@ function sets(w, n, pull = n) {
   return queueView(w.store.read(ref(n))).members.find(m => m.pull === pull).sets;
 }
 function posts(w) {
-  return w.gh.calls().filter(c => c.method === 'POST');
+  return w.gh.calls().filter(c => c.method === 'POST' && c.path.endsWith('/reviews'));
 }
 
 test('a comment is queued on a line of the diff, and refused anywhere else', async () => {

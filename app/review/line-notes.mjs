@@ -1,6 +1,7 @@
 /**
  * Notes on the lines of a diff: the composer a line number opens, the
- * conversations with Claude, and the comments queued for the pull request.
+ * review threads already on GitHub, the conversations with Claude, and the
+ * comments queued for the pull request.
  *
  * createLineNotes(ctx) returns:
  *   pick(cell, event) open the composer on a line number's line; with Shift,
@@ -15,17 +16,27 @@
  * Queue comment queues the text for the pull request. A conversation takes
  * follow-up questions, and any answer can be taken as the comment's text. A
  * branch's review has no queue, so there only Ask Claude is offered.
+ *
+ * GitHub threads and conversations fold to one line and open again from it.
+ * A GitHub thread that is resolved or outdated starts folded, as on GitHub;
+ * one on no line the diff shows sits at the top of its file.
  */
 import { esc, plural } from '../lib/text.mjs';
 import { send, reviewPath } from '../lib/api.mjs';
-import { safeMarkdown } from '../lib/markdown.mjs';
+import { createFolds } from '../lib/folds.mjs';
 import { pointOf, rangeOf, rowFor, rowsOf, linesWords } from './line-range.mjs';
+import { createNoteCards } from './note-cards.mjs';
 
 export function createLineNotes(ctx) {
+  const cards = createNoteCards(ctx);
+  const folds = createFolds(ctx.state.id);
   let composer = null;
 
   function threadsOn(path) {
     return ctx.state.threads.filter(t => t.path === path);
+  }
+  function githubOn(path) {
+    return ctx.data.threads.filter(t => (t.at ? t.at.path : t.path) === path);
   }
   function queuedOn(path) {
     const out = [];
@@ -39,49 +50,10 @@ export function createLineNotes(ctx) {
   }
 
   function countBadge(path) {
-    const t = threadsOn(path).length, q = queuedOn(path).length;
-    if (!t && !q) return '';
-    const words = [t ? plural(t, 'conversation') : '', q ? plural(q, 'queued comment') : ''].filter(Boolean).join(', ');
+    const g = githubOn(path).length, t = threadsOn(path).length, q = queuedOn(path).length;
+    if (!g && !t && !q) return '';
+    const words = [g ? plural(g, 'GitHub thread') : '', t ? plural(t, 'conversation') : '', q ? plural(q, 'queued comment') : ''].filter(Boolean).join(', ');
     return '<span class="ncount" title="' + esc(words) + '">' + esc(words) + '</span>';
-  }
-
-  function messageHTML(m) {
-    if (m.from === 'you') return '<div class="msg you"><p class="who">You</p><div class="msg-body plain">' + esc(m.text) + '</div></div>';
-    if (m.error) return '<div class="msg claude failed"><p class="who">Claude</p><div class="msg-body">No answer: ' + esc(m.error) + '</div></div>';
-    return '<div class="msg claude"><p class="who">Claude</p><div class="msg-body md">' + safeMarkdown(m.text) + '</div>' +
-      (ctx.state.queue ? '<button type="button" class="nbtn quiet small" data-act="use">Use as comment</button>' : '') + '</div>';
-  }
-
-  function threadHTML(t) {
-    const waiting = t.messages.length && t.messages[t.messages.length - 1].from === 'you';
-    return '<div class="thread" data-thread="' + t.id + '">' +
-      '<p class="thread-head">Conversation on ' + esc(linesWords(t)) + '</p>' +
-      t.messages.map(m => messageHTML(m)).join('') +
-      (waiting ? '<p class="thinking">Claude is reading the file and the diff&hellip;</p>' : '') +
-      '<div class="reply">' + textArea(ctx.state.queue ? 'Ask a follow-up, or write a comment for the pull request' : 'Ask a follow-up') +
-      actions(false) + '</div></div>';
-  }
-
-  function queuedHTML(n) {
-    const c = n.comment;
-    const stacked = ctx.pulls.members.length > 0;
-    return '<div class="queued-note" data-comment="' + c.id + '">' +
-      '<div class="qn-head"><span class="qn-tag">Queued ' + c.id + '</span><span class="qn-lines">' + esc(linesWords(n)) + '</span>' +
-      (stacked ? '<span class="qn-to">&rarr; ' + ctx.pulls.pullPill(n.member.pull) + '</span>' : '') +
-      (c.stale ? '<span class="qn-stale" title="' + esc(c.stale) + '">stale</span>' : '') +
-      '<span class="qn-tools"><button type="button" class="nbtn quiet small" data-act="edit">Edit</button>' +
-      '<button type="button" class="nbtn quiet small" data-act="drop">Drop</button></span></div>' +
-      '<p class="qn-body">' + esc(c.body) + '</p></div>';
-  }
-
-  function textArea(placeholder, value) {
-    return '<textarea rows="3" placeholder="' + esc(placeholder) + '">' + esc(value || '') + '</textarea>';
-  }
-  function actions(queueOff) {
-    return '<div class="note-actions">' +
-      '<button type="button" class="nbtn primary" data-act="ask">Ask Claude</button>' +
-      (ctx.state.queue ? '<button type="button" class="nbtn" data-act="queue"' + (queueOff ? ' disabled title="' + esc(queueOff) + '"' : '') + '>Queue comment</button>' : '') +
-      '<span class="note-status" aria-live="polite"></span></div>';
   }
 
   // Where a comment on the composer's lines would go, or why none can.
@@ -120,8 +92,8 @@ export function createLineNotes(ctx) {
     return '<div class="composer">' +
       '<p class="composer-where"><b>' + esc(linesWords(c)) + '</b>' + (to.words ? ' &middot; ' + esc(to.words) : '') +
       (to.off ? ' &middot; ' + esc(to.off) : '') + ' <span class="hint-inline">' + (touch ? 'Tap another line number for a range.' : 'Drag across line numbers, or shift-select another, for a range.') + '</span></p>' + choose +
-      textArea(ctx.state.queue ? 'Ask Claude about these lines, or write a comment for the pull request' : 'Ask Claude about these lines', c.text) +
-      actions(to.off) + '<button type="button" class="nbtn quiet close" data-act="cancel" aria-label="Close">Cancel</button></div>';
+      cards.textArea(ctx.state.queue ? 'Ask Claude about these lines, or write a comment for the pull request' : 'Ask Claude about these lines', c.text) +
+      cards.actions(to.off) + '<button type="button" class="nbtn quiet close" data-act="cancel" aria-label="Close">Cancel</button></div>';
   }
 
   function columns(row) {
@@ -148,23 +120,37 @@ export function createLineNotes(ctx) {
     const fresh = countBadge(path);
     if (badge) badge.outerHTML = fresh || '';
     else if (fresh) file.querySelector('summary .fstats').insertAdjacentHTML('beforebegin', fresh);
-    if (!file.querySelector('tr[data-l]')) return;
+    const first = file.querySelector('tr[data-l]');
+    if (!first) return;
 
-    const notes = threadsOn(path).map(t => ({ side: t.side, line: t.line, html: threadHTML(t), cls: 'thread-row', key: 't' + t.id }))
-      .concat(queuedOn(path).map(n => ({ side: n.side, line: n.line, html: queuedHTML(n), cls: 'queued-row', key: 'q' + n.comment.id })));
+    const away = [];
+    const github = githubOn(path).map(t => ({ ...t.at, html: githubCard(t), cls: 'gh-row', thread: t }));
+    const notes = github.filter(n => n.line)
+      .concat(threadsOn(path).map(t => ({ side: t.side, line: t.line, html: cards.conversation(t, folds.isOpen('t' + t.id, true)), cls: 'thread-row' })))
+      .concat(queuedOn(path).map(n => ({ side: n.side, line: n.line, html: cards.queued(n), cls: 'queued-row' })));
+    away.push(...github.filter(n => !n.line).map(n => n.thread));
     notes.forEach(n => {
       let row = rowFor(file, n.side, n.line);
       if (!row && n.side === 'RIGHT') { ctx.diffs.expandFor(file, n.line); row = rowFor(file, n.side, n.line); }
-      if (!row) return;
+      if (!row) { if (n.thread) away.push(n.thread); return; }
       let after = row;
       while (after.nextElementSibling && after.nextElementSibling.classList.contains('note-row')) after = after.nextElementSibling;
       after.after(noteRow(row, n.cls, n.html));
     });
+    if (away.length) first.parentElement.prepend(noteRow(first, 'gh-row gh-away-row', awayBand(away)));
     Object.keys(typed).forEach(id => {
       const area = file.querySelector('.thread[data-thread="' + id + '"] textarea');
       if (area) area.value = typed[id];
     });
     if (composer && composer.path === path) placeComposer(file);
+  }
+
+  function githubCard(t) {
+    return cards.github(t, folds.isOpen('g' + t.id, !t.resolved && !t.outdated));
+  }
+
+  function awayBand(threads) {
+    return '<div class="gh-away"><p class="gh-away-h">On GitHub, on no line shown here</p>' + threads.map(githubCard).join('') + '</div>';
   }
 
   function placeComposer(file) {
@@ -293,6 +279,12 @@ export function createLineNotes(ctx) {
     if (composer && e.target.matches('.composer select[data-pull]')) composer.pull = +e.target.value;
   });
   main.addEventListener('click', e => {
+    const fold = e.target.closest('.note-row summary.note-head');
+    if (fold) {
+      const card = fold.parentElement;
+      folds.set(card.matches('.thread') ? 't' + card.getAttribute('data-thread') : 'g' + card.getAttribute('data-gh'), !card.open);
+      return;
+    }
     const button = e.target.closest('.note-row button[data-act]');
     if (!button) return;
     const act = button.getAttribute('data-act');
