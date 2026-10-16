@@ -109,7 +109,6 @@ var diagramHelp = []helpRow{
 	{"Space a", "draws every link faintly, or stops"},
 }
 
-// leaderWords say what each key after the leader does, for the hint line.
 var leaderWords = map[string]string{
 	"keys": "keys", "review": "Review view", "split": "split", "wrap": "wrap", "whole": "whole file", "rendered": "rendered",
 	"diagram": "diagram", "finder": "find", "links": "links", "properties": "properties", "box diff": "diff", "all links": "every link",

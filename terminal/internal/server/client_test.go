@@ -11,8 +11,6 @@ import (
 	"testing"
 )
 
-// streaming is a client of a stand-in server whose events route sends each
-// of a stream's notices to the client that connects nth, then ends it.
 func streaming(t *testing.T, streams ...[]string) *Client {
 	t.Helper()
 	connected := 0

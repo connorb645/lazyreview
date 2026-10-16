@@ -8,7 +8,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// kindWords are a link's words by its kind, as the web app says them.
 var kindWords = map[string]string{"has": "holds", "realize": "conforms to", "inherit": "inherits from", "extend": "extends", "use": "uses", "test": "tests"}
 
 // Level is the cards of one container of the diagram and the links between
@@ -165,7 +164,6 @@ func nodeCard(n server.Node, box server.Box) Card {
 	return Card{ID: n.ID, Kind: kind, Title: title, Detail: path.Base(n.File), State: n.State, Pulls: n.Pulls, Box: box}
 }
 
-// outside names a type beyond the level with where it is, such as "Search · in Catalog › search".
 func outside(page server.Page, n server.Node) string {
 	place := n.Component
 	for _, c := range page.Model.Components {

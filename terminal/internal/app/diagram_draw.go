@@ -10,10 +10,8 @@ import (
 	"review-desk/terminal/internal/diagram"
 )
 
-// drawDiagram draws a level on a canvas: links first, their words over
-// them, cards over both, then where links meet the cards' borders, and the
-// focused card's stubs. It returns the canvas, each row's first line, and
-// what the stubs take.
+const noLane = -1
+
 func drawDiagram(d reviewData, v diagramView, filter int) (canvas, []int, stubs) {
 	lvl, g := v.level, v.grid
 	stubLines := stubWords(lvl, v)
@@ -99,8 +97,6 @@ func drawDiagram(d reviewData, v diagramView, filter int) (canvas, []int, stubs)
 	return c, tops, below
 }
 
-// stubWords are the focused card's links to parts outside its level, out
-// of it and then into it, each as the line its stub shows.
 func stubWords(lvl diagram.Level, v diagramView) []string {
 	card, ok := v.card()
 	if !ok || lvl.Kind != "types" {
@@ -124,10 +120,6 @@ func isFaint(r route) bool { return r.faint }
 func isPlain(r route) bool { return !r.faint && !r.lit }
 func isLit(r route) bool   { return r.lit }
 
-// routesOf finds how each link of a level that shows runs, links between
-// the same two cards drawn as one, and how many lanes each gap below a row
-// needs. The focused card keeps the right of its bottom border for stubs
-// when it has them.
 func routesOf(lvl diagram.Level, g diagram.Grid, focus int, all, stubbed bool) ([]route, []int) {
 	var routes []route
 	at := map[[2]int]int{}
@@ -183,9 +175,6 @@ func routesOf(lvl diagram.Level, g diagram.Grid, focus int, all, stubbed bool) (
 	return routes, laneRoutes(routes, g)
 }
 
-// placePorts spreads the ends of the routes on each border along it, in
-// the order of where they go, and runs a route straight down when it is
-// alone at both ends and the cards overlap.
 func placePorts(routes []route, g diagram.Grid, focus int, stubbed bool) {
 	ends := map[[2]int][]port{}
 	centre := func(i int) int { return g.Spots[i].Col + g.Spots[i].Width/2 }
@@ -256,11 +245,6 @@ func placePorts(routes []route, g diagram.Grid, focus int, stubbed bool) {
 	}
 }
 
-// laneRoutes gives each route a lane in each gap it crosses, in an order
-// that crosses fewer lines: links that turn back into their own row first,
-// the narrowest highest; then those running right, the one that starts
-// furthest right highest; then those running left, mirrored. A straight
-// run takes a lane only for its words. It returns each gap's lanes.
 func laneRoutes(routes []route, g diagram.Grid) []int {
 	byGap := map[int][]stretch{}
 	for i := range routes {
@@ -306,7 +290,7 @@ func laneRoutes(routes []route, g diagram.Grid) []int {
 		for _, s := range list {
 			r := &routes[s.route]
 			if s.upper == s.lower && !s.turn && (r.words == "" || s.at != len(r.gaps)-1) {
-				r.lanes[s.at] = -1
+				r.lanes[s.at] = noLane
 				continue
 			}
 			r.lanes[s.at] = lanes[gap]
@@ -323,8 +307,6 @@ func abs(n int) int {
 	return n
 }
 
-// freeColumn is the column nearest x that no card of rows first to last
-// covers, so a link can pass the rows between its ends.
 func freeColumn(g diagram.Grid, first, last, x int) int {
 	taken := func(col int) bool {
 		for r := first; r <= last; r++ {
@@ -373,9 +355,6 @@ func routeStyle(r route) string {
 	return "line"
 }
 
-// path is the points a route between rows passes, from the border it
-// leaves to the border its arrow sits on, and the direction the arrow
-// points.
 func (r route) path(g diagram.Grid, tops []int, laneY func(gap, lane int) int) ([][2]int, int) {
 	sf, st := g.Spots[r.from], g.Spots[r.to]
 	top := func(s diagram.Spot) int { return tops[s.Row] }
@@ -393,7 +372,7 @@ func (r route) path(g diagram.Grid, tops []int, laneY func(gap, lane int) int) (
 		xs = []int{r.xa, r.via, r.via, r.xb}
 	}
 	for k, gap := range r.gaps {
-		if r.lanes[k] < 0 {
+		if r.lanes[k] == noLane {
 			continue
 		}
 		ly := laneY(gap, r.lanes[k])
@@ -418,8 +397,6 @@ func drawRoute(c canvas, g diagram.Grid, tops []int, r route, laneY func(gap, la
 	}
 }
 
-// sideEnds are where a link between cards side by side runs: from the
-// column of the border it leaves to the column its arrow sits on, on line y.
 func sideEnds(g diagram.Grid, tops []int, r route) (int, int, int) {
 	sf, st := g.Spots[r.from], g.Spots[r.to]
 	y := tops[sf.Row] + 1 + r.across
@@ -470,10 +447,6 @@ func drawWords(c canvas, g diagram.Grid, tops []int, r route, laneY func(gap, la
 	}
 }
 
-// wordsIn fits a link's words on line y between columns lo and hi, in the
-// run of free cells nearest lo (lean -1), hi (lean 1) or the widest, cut to
-// fit it. It returns where they start, the words as cut, and the run's room,
-// which is 0 where too little is free.
 func wordsIn(c canvas, y, lo, hi int, words string, lean int) (int, string, int) {
 	lo, hi = max(lo, 0), min(hi, c.w-1)
 	free := func(x int) bool { return c.cells[y][x].r == ' ' }
@@ -518,8 +491,6 @@ func wordsIn(c canvas, y, lo, hi int, words string, lean int) (int, string, int)
 	return start, words, room
 }
 
-// drawEnds puts a route's arrow on the border it points at, and joins its
-// line to the border it leaves.
 func drawEnds(c canvas, g diagram.Grid, tops []int, r route, laneY func(gap, lane int) int) {
 	style := routeStyle(r)
 	if r.side {
@@ -549,7 +520,6 @@ func drawEnds(c canvas, g diagram.Grid, tops []int, r route, laneY func(gap, lan
 	c.put(end[0], end[1], head, style)
 }
 
-// joined is a card's border rune with a line leaving it in a direction.
 func joined(border rune, dir int) rune {
 	joints := map[int]map[rune]rune{
 		down:  {'─': '┬', '━': '┯', '┄': '┬'},
@@ -664,7 +634,6 @@ func componentColour(d reviewData, id string) string {
 	return "grey"
 }
 
-// diagramStyles are the styles the diagram's canvas names.
 func diagramStyles(p palette) map[string]lipgloss.Style {
 	styles := map[string]lipgloss.Style{
 		"line": p.Muted, "lit": p.Accent, "faint": p.Muted.Faint(true), "border": p.Muted, "focus": p.Accent, "dim": p.Muted.Faint(true),

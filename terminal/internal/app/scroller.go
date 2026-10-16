@@ -1,7 +1,5 @@
 package app
 
-// scroller is a view of lines and the items they show: where the cursor is,
-// on which item, and the first line shown, kept so the cursor's item shows.
 type scroller struct {
 	lines  []line
 	items  []item
@@ -9,8 +7,6 @@ type scroller struct {
 	top    int
 }
 
-// reset takes new lines and items, keeping the cursor on the same item where
-// it still is, and its line where it showed.
 func (s scroller) reset(lines []line, items []item, same func(a, b item) bool, height int) scroller {
 	next := scroller{lines: lines, items: items, top: s.top}
 	if s.cursor < len(s.items) {
@@ -46,7 +42,6 @@ func (s scroller) scroll(by, height int) scroller {
 	return s
 }
 
-// shown moves the first line shown so the cursor's item shows, all of it when it fits.
 func (s scroller) shown(height int) scroller {
 	first, last := -1, -1
 	for i, l := range s.lines {
@@ -74,7 +69,6 @@ func (s scroller) shown(height int) scroller {
 	return s
 }
 
-// at is the item drawn on row y of the view, or -1.
 func (s scroller) at(y int) int {
 	if i := s.top + y; i >= 0 && i < len(s.lines) {
 		return s.lines[i].item

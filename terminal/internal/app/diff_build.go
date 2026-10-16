@@ -7,8 +7,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// diffFiles are the files of a component the diff view shows: on a stack
-// filtered to one pull request, only those it changed.
 func diffFiles(d reviewData, component string, filter int) []server.FileEntry {
 	var out []server.FileEntry
 	for _, f := range d.page.Model.Files {
@@ -151,7 +149,6 @@ func hunkRows(path string, file server.File, v diffView) []diffRow {
 	return rows
 }
 
-// pairs sets each run of removed rows beside the added rows that follow it, for the split view.
 func pairs(path string, hunkRows []server.Row) []diffRow {
 	var rows []diffRow
 	var dels, adds []*server.Row

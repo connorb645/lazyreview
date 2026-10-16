@@ -14,7 +14,6 @@ import (
 
 const labelLetters = "asdfghjklqwertyuiopzxcvbnm"
 
-// openDiagram shows the diagram where it was left, or its components.
 func (a App) openDiagram() App {
 	if a.review == nil {
 		return a.say("no review is open; Enter on one opens it", true)
@@ -30,7 +29,6 @@ func (a App) openDiagram() App {
 	return a.diagramShown()
 }
 
-// showBox shows the diagram's level that holds a box, focused on it.
 func (a App) showBox(at diagramPlace) App {
 	v := newDiagramView(levelAt(a.review.page, at), at.box)
 	v.all, v.query = a.dg.all, a.dg.query
@@ -103,8 +101,6 @@ func (a App) diagramAction(action string, count int) (tea.Model, tea.Cmd) {
 	return a, nil
 }
 
-// label is the i-th of n labels: one letter each while there are letters
-// enough, or else two.
 func label(i, n int) string {
 	if n <= len(labelLetters) {
 		return labelLetters[i : i+1]
@@ -112,8 +108,6 @@ func label(i, n int) string {
 	return labelLetters[i/len(labelLetters)%len(labelLetters):][:1] + labelLetters[i%len(labelLetters):][:1]
 }
 
-// labelKey takes a key typed toward a label: the box that has it gets the
-// focus, and anything no label begins with stops the labels.
 func (a App) labelKey(name string) App {
 	v := a.dg
 	typed := v.typed + name
@@ -162,8 +156,6 @@ func (a App) stepIn() (tea.Model, tea.Cmd) {
 	return a.boxDiff()
 }
 
-// stepOut shows the level above, focused on the box it left: from the
-// components, the Review view.
 func (a App) stepOut() App {
 	l := a.dg.level
 	switch l.Kind {
@@ -180,8 +172,6 @@ func (a App) stepOut() App {
 	return a.relaid()
 }
 
-// boxDiff opens the focused box's diff: a component's, a package's first
-// file, or a type's line.
 func (a App) boxDiff() (tea.Model, tea.Cmd) {
 	card, ok := a.dg.card()
 	if !ok {
@@ -205,7 +195,6 @@ func (a App) boxDiff() (tea.Model, tea.Cmd) {
 	return a.openNode(card.ID)
 }
 
-// openNode opens a type's diff at its line, or a file box's file at its top.
 func (a App) openNode(id string) (tea.Model, tea.Cmd) {
 	n, ok := nodeOf(a.review.page, id)
 	if !ok {
@@ -234,8 +223,6 @@ func nodeOf(page server.Page, id string) (server.Node, bool) {
 	return server.Node{}, false
 }
 
-// boxOf is where the diagram draws a type: the types of its package, in its
-// group's box when it has one.
 func boxOf(n server.Node) diagramPlace {
 	box := n.ID
 	if n.Group != "" {
@@ -244,8 +231,6 @@ func boxOf(n server.Node) diagramPlace {
 	return diagramPlace{level: "types", component: n.Component, pkg: n.Package, box: box}
 }
 
-// linkRows are the focused box's links, out of it, into it or both, as rows
-// that go to the box at the other end.
 func (a App) linkRows(out, in bool) []panelRow {
 	card, ok := a.dg.card()
 	if !ok {
@@ -285,7 +270,6 @@ func (a App) linkRows(out, in bool) []panelRow {
 	return append(outs, ins...)
 }
 
-// boxName names a box of the level, or a type anywhere, by its name alone.
 func (a App) boxName(id string) string {
 	if n, ok := nodeOf(a.review.page, id); ok {
 		return n.Name
@@ -313,7 +297,6 @@ func (a App) linksPanel(out, in bool, none string) App {
 	return a
 }
 
-// follow goes along the focused box's one link out, or lists them.
 func (a App) follow() (tea.Model, tea.Cmd) {
 	card, ok := a.dg.card()
 	if !ok {
@@ -383,8 +366,6 @@ func (a App) propertiesPanel() App {
 	return a
 }
 
-// findBox goes to the next type or file whose name holds what / last
-// found, at any level, or the one before.
 func (a App) findBox(back bool) (tea.Model, tea.Cmd) {
 	query := strings.ToLower(a.dg.query)
 	if query == "" {
@@ -429,8 +410,6 @@ func (a App) findBox(back bool) (tea.Model, tea.Cmd) {
 	return a.say(fmt.Sprintf("%d of %d for %q", pick+1, len(hits), a.dg.query), false), nil
 }
 
-// showType shows the type at the diff's cursor on the diagram, or lists
-// the types of the file whose header the cursor is on.
 func (a App) showType() (tea.Model, tea.Cmd) {
 	v := a.diff
 	if v.cursor >= len(v.rows) {
@@ -470,7 +449,6 @@ func (a App) showType() (tea.Model, tea.Cmd) {
 	return a.showBox(boxOf(at)), nil
 }
 
-// boxWords say what the focused box is, for the status line.
 func (a App) boxWords() string {
 	card, ok := a.dg.card()
 	if !ok {
@@ -503,7 +481,6 @@ func (a App) boxWords() string {
 	return words
 }
 
-// diagramTitle names the level shown: the diagram, then its component and package.
 func (a App) diagramTitle() string {
 	p, l := a.p, a.dg.level
 	out := " " + p.Bold.Render("Diagram")
@@ -530,7 +507,6 @@ func packageTitle(page server.Page, component, id string) string {
 	return id
 }
 
-// diagramHints are the keys the focused box takes, for the hint line.
 func (a App) diagramHints() [][2]string {
 	card, _ := a.dg.card()
 	switch card.Kind {

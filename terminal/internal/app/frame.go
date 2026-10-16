@@ -44,7 +44,6 @@ func (a App) titleLine() string {
 	return spread(left, right, a.width)
 }
 
-// filterPills name the pull request filter on a stack: All, then each pull request, the one in use marked.
 func (a App) filterPills() string {
 	p := a.p
 	if a.review == nil || a.review.page.Stack == nil {
@@ -227,7 +226,6 @@ func (a App) diffHints() [][2]string {
 	return [][2]string{{"j k", "move"}, {"]c [c", "hunks"}, {"V", "select"}, {"c", "comment"}, {"a", "ask Claude"}, {"/", "search"}, {"-", "back"}, {"Space ?", "keys"}}
 }
 
-// spread puts left at the start of a line width cells wide and right at its end.
 func spread(left, right string, width int) string {
 	gap := width - ansi.StringWidth(left) - ansi.StringWidth(right)
 	if gap < 1 {
@@ -236,8 +234,6 @@ func spread(left, right string, width int) string {
 	return left + strings.Repeat(" ", gap) + right
 }
 
-// diffPlace says where the cursor is in the diff: the line, and on a stack
-// who changed it and where a comment on it goes.
 func (a App) diffPlace() string {
 	v := a.diff
 	if v.cursor >= len(v.rows) {

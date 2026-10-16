@@ -9,8 +9,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// openFinder lists every component, type and file of the review, for
-// typing to narrow.
 func (a App) openFinder() App {
 	if a.review == nil {
 		return a.say("no review is open; Enter on one opens it", true)
@@ -36,7 +34,6 @@ func (a App) openFinder() App {
 	return a
 }
 
-// finderKey takes a key while the finder is open: typing narrows it.
 func (a App) finderKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	pn := *a.panel
 	switch msg.Type {
@@ -62,7 +59,6 @@ func (a App) finderKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return a, nil
 }
 
-// openRow goes where the panel's row at the cursor leads, and closes it.
 func (a App) openRow() (tea.Model, tea.Cmd) {
 	pn := a.panel
 	if pn == nil || pn.cursor >= len(pn.rows) || pn.rows[pn.cursor].open == nil {

@@ -2,8 +2,6 @@ package app
 
 import "time"
 
-// reviewView is the Review view of the review open, and which of its
-// sections are folded.
 type reviewView struct {
 	view   scroller
 	folded map[string]bool
@@ -15,7 +13,6 @@ func (v reviewView) rebuilt(d reviewData, width, height int, p palette, md *mark
 	return v
 }
 
-// section moves the cursor to the next section's heading, or the one before.
 func (v reviewView) section(back bool, count, height int) reviewView {
 	for ; count > 0; count-- {
 		for i := v.view.cursor + step(back); i >= 0 && i < len(v.view.items); i += step(back) {
@@ -28,7 +25,6 @@ func (v reviewView) section(back bool, count, height int) reviewView {
 	return v
 }
 
-// sectionAt is the section the cursor is in.
 func (v reviewView) sectionAt() string {
 	if v.view.cursor < len(v.view.items) {
 		return v.view.items[v.view.cursor].section

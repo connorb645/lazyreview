@@ -587,7 +587,6 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	return a, nil
 }
 
-// relaid draws the screen's lines again for its width, keeping the cursor.
 func (a App) relaid() App {
 	if a.width == 0 {
 		return a

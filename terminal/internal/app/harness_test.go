@@ -30,13 +30,11 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// answer is what the stand-in for the server answers to one request.
 type answer struct {
 	Status int             `json:"status"`
 	Body   json.RawMessage `json:"body"`
 }
 
-// recorded is the answers the Node tests recorded from a real server, by request.
 func recorded(t *testing.T) map[string]answer {
 	t.Helper()
 	text, err := os.ReadFile(filepath.Join("..", "..", "testdata", "record.json"))
@@ -50,8 +48,6 @@ func recorded(t *testing.T) map[string]answer {
 	return answers
 }
 
-// changes are answers a test gives the stand-in for the server in place of
-// recorded ones, from when it gives them.
 type changes struct {
 	mu      sync.Mutex
 	answers map[string]answer
@@ -70,9 +66,6 @@ func (c *changes) get(key string) (answer, bool) {
 	return a, ok
 }
 
-// served starts a stand-in for the server that gives the answers the Node
-// tests recorded from a real one, or those a test changed, and returns a
-// client of it. Like the server, it takes a change only with the token.
 func served(t *testing.T, changed *changes) *server.Client {
 	t.Helper()
 	answers := recorded(t)
@@ -111,7 +104,6 @@ func served(t *testing.T, changed *changes) *server.Client {
 	return server.NewClient(file)
 }
 
-// sortedFields is a change's JSON fields with their keys sorted, as the record keys them.
 func sortedFields(t *testing.T, body io.Reader) string {
 	var fields map[string]any
 	if err := json.NewDecoder(body).Decode(&fields); err != nil {
@@ -124,14 +116,12 @@ func sortedFields(t *testing.T, body io.Reader) string {
 	return strings.TrimSpace(out.String())
 }
 
-// opened is the app on the stand-in server, sized, with everything it asked for at the start answered.
 func opened(t *testing.T, review string, width, height int, set ...func(*Options)) (App, *[]string) {
 	t.Helper()
 	a, visited, _ := openedWith(t, review, width, height, set...)
 	return a, visited
 }
 
-// openedWith is the app opened, with a way to change what the stand-in answers from then on.
 func openedWith(t *testing.T, review string, width, height int, set ...func(*Options)) (App, *[]string, *changes) {
 	t.Helper()
 	var visited []string
@@ -153,7 +143,6 @@ func openedWith(t *testing.T, review string, width, height int, set ...func(*Opt
 	return a, &visited, changed
 }
 
-// send gives the app a message, then every message its commands give back, until none is left.
 func send(t *testing.T, a App, msg tea.Msg) App {
 	t.Helper()
 	next, cmd := a.Update(msg)
@@ -184,16 +173,12 @@ func drive(t *testing.T, a App, cmd tea.Cmd) App {
 	return a
 }
 
-// heardNothing stands in for listening to a review's changes: a test sends
-// the notices it means the app to hear as messages.
 func heardNothing(context.Context, *server.Client, string) <-chan tea.Msg {
 	none := make(chan tea.Msg)
 	close(none)
 	return none
 }
 
-// writer is an editor that writes text above the file's cut line, and
-// keeps a copy of the file as it was given, at the path it returns.
 func writer(t *testing.T, text string) (func(*Options), string) {
 	t.Helper()
 	dir := t.TempDir()
@@ -206,7 +191,6 @@ func writer(t *testing.T, text string) (func(*Options), string) {
 	return func(o *Options) { o.Editor = script }, seen
 }
 
-// press types keys, each named as the app names keys, such as "j", "space" or "enter".
 func press(t *testing.T, a App, names ...string) App {
 	t.Helper()
 	for _, n := range names {
@@ -235,7 +219,6 @@ func keyMsg(name string) tea.KeyMsg {
 	return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(name)}
 }
 
-// typed types text into the command line or a search, then Enter.
 func typed(t *testing.T, a App, text string) App {
 	t.Helper()
 	for _, r := range text {
@@ -244,7 +227,6 @@ func typed(t *testing.T, a App, text string) App {
 	return send(t, a, tea.KeyMsg{Type: tea.KeyEnter})
 }
 
-// screenIs compares the whole screen with the one kept under testdata/screens.
 func screenIs(t *testing.T, a App, name string) {
 	t.Helper()
 	got := strings.Join(trimmed(strings.Split(a.View(), "\n")), "\n") + "\n"

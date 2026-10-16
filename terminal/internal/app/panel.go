@@ -6,9 +6,6 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
-// panel is a list drawn over the foot of a view, such as the keys the view
-// takes: its rows, the row the cursor is on and the first row shown. A
-// finder narrows every row it holds to those that match what is typed.
 type panel struct {
 	title   string
 	rows    []panelRow
@@ -19,8 +16,6 @@ type panel struct {
 	all     []panelRow
 }
 
-// narrowed is the finder with only the rows that match query: those that
-// hold it first, then those that hold its letters in order.
 func (pn panel) narrowed(query string) panel {
 	pn.query, pn.cursor, pn.top = query, 0, 0
 	q := strings.ToLower(query)
@@ -63,7 +58,6 @@ func (pn panel) move(by, height int) panel {
 	return pn
 }
 
-// lines draws the panel in a frame width cells wide and at most height rows high.
 func (pn panel) lines(width, height int, p palette) []string {
 	rows := min(len(pn.rows), max(1, height-3))
 	if pn.finding {

@@ -27,9 +27,6 @@ func (a App) noteAt() (note, diffRow, bool) {
 	return n, r, ok
 }
 
-// selected is the lines of the selection, or of the cursor's line, with
-// the code on them as the diff shows it. A selection stays in one file, and
-// in a Rendered view covers whole blocks.
 func (a App) selected() (server.Lines, []string, bool) {
 	v := a.diff
 	if v.cursor >= len(v.rows) {
@@ -183,7 +180,6 @@ func (a App) askClaude() (tea.Model, tea.Cmd) {
 	return a.edit(editing{purpose: "ask", at: at, key: "ask " + linesKey(at), about: about})
 }
 
-// queuedAt is the queued comment at the cursor, in the diff or the Review view.
 func (a App) queuedAt() (server.Comment, int, bool) {
 	id := 0
 	if n, _, ok := a.noteAt(); ok && n.kind == "queued" {
@@ -240,8 +236,6 @@ func (a App) confirmKey(name string) (tea.Model, tea.Cmd) {
 	}
 }
 
-// edit opens the editor on a file holding the draft, or the text to start
-// from, above the cut line, and what it is about below.
 func (a App) edit(e editing) (tea.Model, tea.Cmd) {
 	text := e.text
 	if draft, ok := a.drafts[e.key]; ok {
@@ -420,8 +414,6 @@ func checkWhere(c *server.Client, id, build string, e editing) tea.Cmd {
 	}
 }
 
-// whereNow asks where a comment on the selection would go, when the status
-// line does not already say.
 func (a App) whereNow() tea.Cmd {
 	if a.screen != screenDiff || !a.diff.selecting || a.review == nil {
 		return nil

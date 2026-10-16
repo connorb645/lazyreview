@@ -2,8 +2,6 @@ package app
 
 import "github.com/charmbracelet/lipgloss"
 
-// palette is the app's colours, the web app's own, for a dark or a light
-// terminal.
 type palette struct {
 	Dark       bool
 	Ink        lipgloss.Style

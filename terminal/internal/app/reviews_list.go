@@ -8,7 +8,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// reviewsList is the list of every review the server keeps, newest load first.
 type reviewsList struct {
 	reviews []server.Summary
 	view    scroller
@@ -47,8 +46,6 @@ func (r reviewsList) build(width int, p palette, loc *time.Location) ([]line, []
 	return b.lines, b.items
 }
 
-// match is the review after the cursor, or before it when back, whose title,
-// repository, or pull requests and their titles hold the query, or -1.
 func (r reviewsList) match(back bool) int {
 	q := strings.ToLower(r.query)
 	if q == "" {

@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-// cursorAt is the file, side and line the diff's cursor is on.
 func cursorAt(a App) string {
 	r := a.diff.rows[a.diff.cursor]
 	side, line, ok := r.at()

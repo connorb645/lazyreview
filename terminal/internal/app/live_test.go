@@ -17,8 +17,6 @@ import (
 
 const stack = "github.com/octo/widgets/21"
 
-// changedElsewhere is the stack's state after a comment was queued from
-// another window, as the server recorded it, and its version.
 func changedElsewhere(t *testing.T) (answer, string) {
 	t.Helper()
 	for key, a := range recorded(t) {

@@ -10,9 +10,6 @@ import (
 	"github.com/muesli/termenv"
 )
 
-// markdown draws Markdown for the terminal with Glamour, in the terminal's
-// own light or dark, or plain where it has no colour, and keeps what it drew
-// for each text and width.
 type markdown struct {
 	style     string
 	renderers map[int]*glamour.TermRenderer

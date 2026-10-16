@@ -14,7 +14,6 @@ const gutter = 14
 
 var badges = map[string]string{"A": "new", "D": "deleted", "R": "renamed", "M": "changed", "": "unchanged"}
 
-// diffLines draws the diff view's rows from the first shown, as many lines as fit.
 func diffLines(d reviewData, v diffView, height, filter int, p palette) []string {
 	var out []string
 	for i := v.top; i < len(v.rows) && len(out) < height; i++ {
@@ -191,7 +190,6 @@ func splitRow(d reviewData, v diffView, r diffRow, mark string, filter int, p pa
 	return out
 }
 
-// stripe marks a changed row of a stack with its pull request's colour.
 func stripe(d reviewData, l *server.Row, p palette) string {
 	if l == nil || l.Owner == 0 || l.Kind == "same" {
 		return " "
@@ -199,7 +197,6 @@ func stripe(d reviewData, l *server.Row, p palette) string {
 	return p.pull(memberColor(d.state, l.Owner)).Render("▎")
 }
 
-// rowStyle colours a row by its kind, and dims a changed row another pull request than the filter's changed.
 func rowStyle(l *server.Row, added bool, filter int, p palette) lipgloss.Style {
 	if filter != 0 && l.Kind != "same" && l.Owner != filter {
 		return p.Muted
@@ -232,7 +229,6 @@ func rowHeight(r diffRow, v diffView) int {
 	return h
 }
 
-// cut is a line of code cut to width, or broken into lines of width when wrapping.
 func cut(text string, width int, wrapping bool) []string {
 	if width < 4 {
 		width = 4

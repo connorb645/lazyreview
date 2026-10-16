@@ -10,7 +10,6 @@ import (
 
 const preview = 220
 
-// builder gathers a view's lines, and its items with the lines each covers.
 type builder struct {
 	lines []line
 	items []item
@@ -31,9 +30,6 @@ func (b *builder) add(it item, texts ...string) {
 	}
 }
 
-// buildReview draws the Review view: the change at the top, its written
-// review, the queued comments, the threads on GitHub, the conversations and
-// the change's components, each a section that folds.
 func buildReview(d reviewData, folded map[string]bool, width int, p palette, md *markdown, loc *time.Location) ([]line, []item) {
 	b := &builder{width: width, p: p}
 	reviewHeader(b, d)

@@ -20,9 +20,6 @@ var lineRunes = map[int]rune{
 	up | down | right: '├', up | down | left: '┤', left | right | down: '┬', left | right | up: '┴', up | down | left | right: '┼',
 }
 
-// canvas is a grid of cells the diagram draws on: each cell's rune, the
-// name of its style, and for a line the directions it runs in, so lines
-// that meet join.
 type canvas struct {
 	w, h  int
 	cells [][]cell
@@ -49,7 +46,6 @@ func (c canvas) put(x, y int, r rune, style string) {
 	}
 }
 
-// text writes s from x on line y, a wide character taking two cells.
 func (c canvas) text(x, y int, s, style string) {
 	for _, r := range s {
 		w := runewidth.RuneWidth(r)
@@ -61,8 +57,6 @@ func (c canvas) text(x, y int, s, style string) {
 	}
 }
 
-// joint adds a line's directions to a cell, unless something not a line,
-// other than an area's frame, is there.
 func (c canvas) joint(x, y, dirs int, style string) {
 	if !c.in(x, y) {
 		return
@@ -76,7 +70,6 @@ func (c canvas) joint(x, y, dirs int, style string) {
 	at.style = style
 }
 
-// segment draws a straight line from one point to another, across or down.
 func (c canvas) segment(x0, y0, x1, y1 int, style string) {
 	if y0 == y1 {
 		if x0 > x1 {
@@ -112,8 +105,6 @@ func (c canvas) segment(x0, y0, x1, y1 int, style string) {
 	}
 }
 
-// lines draws the part of the canvas from column x0 and line y0, w by h,
-// each run of one style styled once.
 func (c canvas) lines(x0, y0, w, h int, styles map[string]lipgloss.Style) []string {
 	out := make([]string, 0, h)
 	for y := y0; y < y0+h; y++ {

@@ -7,9 +7,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// diffView is the diff of one component: its files, each open or folded,
-// whole or as a diff, with runs of unchanged lines opened or not, drawn
-// unified or split, wrapped or cut, and the row the cursor is on.
 type diffView struct {
 	loc       *time.Location
 	md        *markdown
@@ -35,7 +32,6 @@ func newDiffView(component string, files map[string]server.File, loc *time.Locat
 	return diffView{component: component, files: files, loc: loc, md: md, rendered: map[string]bool{}, notes: map[string]bool{}, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
 }
 
-// rebuilt draws the rows again, keeping the cursor on the same place where it still shows.
 func (v diffView) rebuilt(d reviewData, filter, height int) diffView {
 	was := v.place()
 	v.rows = buildDiff(d, v, filter)
@@ -46,7 +42,6 @@ func (v diffView) rebuilt(d reviewData, filter, height int) diffView {
 	return v.shown(height)
 }
 
-// place is where the cursor is: a line of a file, or a file's header.
 func (v diffView) place() *server.Lines {
 	if v.cursor >= len(v.rows) {
 		return nil
@@ -62,8 +57,6 @@ func (v diffView) place() *server.Lines {
 	return &server.Lines{Path: r.path, Side: side, Line: line}
 }
 
-// find puts the cursor on a place's row, the first row of a block the
-// line is in, or on its file's header, or leaves it.
 func (v diffView) find(at server.Lines) diffView {
 	header := -1
 	for i, r := range v.rows {
@@ -93,7 +86,6 @@ func (v diffView) find(at server.Lines) diffView {
 	return v
 }
 
-// sameLine is true when a row shows the line on its other side too, as an unchanged line does.
 func sameLine(r diffRow, at server.Lines) bool {
 	for _, l := range []*server.Row{r.line, r.left, r.right} {
 		if l != nil && l.Kind == "same" && ((at.Side == "LEFT" && l.Old == at.Line) || (at.Side == "RIGHT" && l.New == at.Line)) {
@@ -138,8 +130,6 @@ func (v diffView) placed(height int) diffView {
 	return v
 }
 
-// shown moves the first row shown so the cursor's row shows, counting the
-// lines a wrapped row takes.
 func (v diffView) shown(height int) diffView {
 	if v.cursor < v.top {
 		v.top = v.cursor
@@ -158,8 +148,6 @@ func (v diffView) shown(height int) diffView {
 	return v
 }
 
-// next is the next row after the cursor, or the one before when back, that
-// holds, or -1.
 func (v diffView) next(back bool, holds func(diffRow) bool) int {
 	for i := v.cursor + step(back); i >= 0 && i < len(v.rows); i += step(back) {
 		if holds(v.rows[i]) {
@@ -169,7 +157,6 @@ func (v diffView) next(back bool, holds func(diffRow) bool) int {
 	return -1
 }
 
-// first is the first row that holds, or -1.
 func (v diffView) first(holds func(diffRow) bool) int {
 	for i, r := range v.rows {
 		if holds(r) {
@@ -179,7 +166,6 @@ func (v diffView) first(holds func(diffRow) bool) int {
 	return -1
 }
 
-// rowAt is the row drawn on line y of the view, or -1.
 func (v diffView) rowAt(y int) int {
 	line := 0
 	for i := v.top; i < len(v.rows); i++ {
@@ -191,7 +177,6 @@ func (v diffView) rowAt(y int) int {
 	return -1
 }
 
-// file is the path of the file the cursor is in.
 func (v diffView) file() string {
 	if v.cursor < len(v.rows) {
 		return v.rows[v.cursor].path
@@ -212,8 +197,6 @@ func copyBools(m map[string]bool) map[string]bool {
 	return out
 }
 
-// matches says whether a row's text holds the query: case does not count
-// unless the query has a capital.
 func matches(r diffRow, query string) bool {
 	if query == "" {
 		return false

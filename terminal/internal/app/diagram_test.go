@@ -8,7 +8,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// onDiagram is the stack review's diagram, its types of Sources shown.
 func onDiagram(t *testing.T) App {
 	t.Helper()
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
@@ -189,9 +188,6 @@ func TestThePullRequestFilterDimsTheTypesItLeavesOut(t *testing.T) {
 	}
 }
 
-// standIn is a review of made-up parts, laid out to need every way a link
-// runs: cards side by side both ways, links past a row, a named use, a
-// group, a link out of the level, and areas around components.
 func standIn() reviewData {
 	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
 	node := func(id, file string, line int) server.Node {
@@ -237,7 +233,6 @@ func standIn() reviewData {
 	}}
 }
 
-// standInApp is the app showing the stand-in review on a screen width by height.
 func standInApp(width, height int) App {
 	a := New(Options{Dark: true})
 	d := standIn()

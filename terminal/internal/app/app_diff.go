@@ -11,8 +11,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// openPlace opens the diff of a component at a place in it, or at its top,
-// asking the server for the component's files first when it has not yet.
 func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cmd) {
 	if a.review == nil || component == "" {
 		return a, nil
@@ -50,7 +48,6 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 	return a, nil
 }
 
-// withRunOpen opens the run of unchanged lines a new-side line sits in, so it shows.
 func (a App) withRunOpen(path, side string, line int) diffView {
 	v := a.diff
 	file, ok := v.files[path]
@@ -65,7 +62,6 @@ func (a App) withRunOpen(path, side string, line int) diffView {
 	return v
 }
 
-// componentOf is the component that holds a file of the review.
 func (a App) componentOf(path string) string {
 	return fileEntry(*a.review, path).Component
 }
@@ -232,8 +228,6 @@ func noHunkBetween(rows []diffRow, from, to int) bool {
 	return true
 }
 
-// fold opens or closes the fold the cursor is in: a run of unchanged lines,
-// or else its file.
 func (a App) fold(action string) App {
 	v := a.diff.copied()
 	if v.cursor >= len(v.rows) {
@@ -272,7 +266,6 @@ func (a App) fold(action string) App {
 	return a
 }
 
-// toLine moves to line n of the file the cursor is in, opening what hides it.
 func (a App) toLine(n int) (tea.Model, tea.Cmd) {
 	path := a.diff.file()
 	if path == "" {
@@ -305,7 +298,6 @@ func (a App) matchNext(back bool) (tea.Model, tea.Cmd) {
 	return a.say(fmt.Sprintf("no more of %q", query), true), nil
 }
 
-// filterBy moves the pull request filter on a stack: All, then each pull request.
 func (a App) filterBy(by int) App {
 	if a.review == nil || a.review.page.Stack == nil {
 		return a.say("only a stack has pull requests to filter by", true)
@@ -331,7 +323,6 @@ func (a App) setFilter(pull int) App {
 	return a
 }
 
-// pullCommand reads :pull 13 or :pull all.
 func (a App) pullCommand(arg string) App {
 	if a.review == nil || a.review.page.Stack == nil {
 		return a.say("only a stack has pull requests to filter by", true)
@@ -358,7 +349,6 @@ func (a App) here() jump {
 	return j
 }
 
-// leave keeps where the app is before a jump, so Ctrl-o comes back to it.
 func (a App) leave() App {
 	a.jumps = append(append([]jump{}, a.jumps[:a.jumpAt]...), a.here())
 	a.jumpAt = len(a.jumps)

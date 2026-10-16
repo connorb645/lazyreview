@@ -52,9 +52,6 @@ func noteOf(d reviewData, path, key string) (note, bool) {
 	return note{}, false
 }
 
-// withNotes puts each note of the files shown under the row of its line, a
-// note on an unchanged line under the run that hides it, and any other
-// under its file's header.
 func withNotes(d reviewData, v diffView, rows []diffRow) []diffRow {
 	byPath := map[string][]note{}
 	for _, r := range rows {

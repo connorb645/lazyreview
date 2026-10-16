@@ -7,10 +7,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// diagramView is one level of the diagram: its cards in rows and columns,
-// the card in focus, where the view is scrolled to, whether every link is
-// drawn, what / last found, and while f labels the cards, each label's card
-// and what has been typed of one.
 type diagramView struct {
 	level  diagram.Level
 	grid   diagram.Grid
@@ -38,7 +34,6 @@ func newDiagramView(level diagram.Level, focusID string) diagramView {
 	return v
 }
 
-// levelAt is the level that holds a place of the diagram.
 func levelAt(page server.Page, at diagramPlace) diagram.Level {
 	switch at.level {
 	case "types":
@@ -65,7 +60,6 @@ func (v diagramView) place() diagramPlace {
 	return at
 }
 
-// moved is the view with the focus count boxes on in reading order, or back.
 func (v diagramView) moved(by int) diagramView {
 	order := v.grid.Order()
 	for i, at := range order {
@@ -77,13 +71,11 @@ func (v diagramView) moved(by int) diagramView {
 	return v
 }
 
-// lines draws the part of the level a body width by height shows.
 func (v diagramView) lines(d reviewData, width, height, filter int, styles map[string]lipgloss.Style) []string {
 	c, _, _ := drawDiagram(d, v, filter)
 	return c.lines(v.left, v.top, width, height, styles)
 }
 
-// boxAt is the card drawn at a column and line of the body, or -1.
 func (v diagramView) boxAt(d reviewData, x, y, filter int) int {
 	_, tops, _ := drawDiagram(d, v, filter)
 	x, y = x+v.left, y+v.top
@@ -95,7 +87,6 @@ func (v diagramView) boxAt(d reviewData, x, y, filter int) int {
 	return -1
 }
 
-// scrolled moves the view by columns and lines, within what is drawn.
 func (v diagramView) scrolled(d reviewData, across, by, width, height, filter int) diagramView {
 	c, _, _ := drawDiagram(d, v, filter)
 	v.left = clamp(v.left+across, 0, max(0, c.w-width))
@@ -103,9 +94,6 @@ func (v diagramView) scrolled(d reviewData, across, by, width, height, filter in
 	return v
 }
 
-// shownIn scrolls the view so the focused card, and the stubs drawn under
-// it, fit a body width by height, moving as little as it can. Stubs too
-// wide for the screen run off its edge rather than push the card aside.
 func (v diagramView) shownIn(d reviewData, width, height, filter int) diagramView {
 	if _, ok := v.card(); !ok {
 		return v

@@ -8,7 +8,6 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
-// onBasket is the stack's diff open at Basket.swift's header, with an editor set.
 func onBasket(t *testing.T, set ...func(*Options)) App {
 	t.Helper()
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30, set...)

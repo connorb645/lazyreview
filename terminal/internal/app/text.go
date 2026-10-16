@@ -33,7 +33,6 @@ func short(sha string) string {
 	return sha
 }
 
-// when is a time the server wrote, such as 15 Oct, 13:00, in the app's time zone.
 func when(iso string, location *time.Location) string {
 	t, err := time.Parse(time.RFC3339, iso)
 	if err != nil {
@@ -42,7 +41,6 @@ func when(iso string, location *time.Location) string {
 	return t.In(location).Format("2 Jan, 15:04")
 }
 
-// fit cuts a line, styled or not, to width cells, and pads it out to them.
 func fit(line string, width int) string {
 	if width <= 0 {
 		return ""
@@ -54,7 +52,6 @@ func fit(line string, width int) string {
 	return cut
 }
 
-// wrap breaks plain text into lines of at most width cells, at spaces where it can.
 func wrap(text string, width int) []string {
 	if width < 8 {
 		width = 8
@@ -97,7 +94,6 @@ func stripped(line string) string {
 	return ansi.Strip(line)
 }
 
-// plainText is Markdown read as plain words, for a short preview.
 func plainText(markdown string) string {
 	out := fencedCode.ReplaceAllString(markdown, " ")
 	out = mdLink.ReplaceAllString(out, "$1")
@@ -106,7 +102,6 @@ func plainText(markdown string) string {
 	return strings.Join(strings.Fields(out), " ")
 }
 
-// clipped is text cut to `preview` characters and wrapped to width, at most `rows` lines.
 func clipped(text string, width, rows int) []string {
 	if r := []rune(text); len(r) > preview {
 		text = string(r[:preview]) + "…"
