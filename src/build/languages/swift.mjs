@@ -1,7 +1,10 @@
 /**
  * Reads the type declarations in a Swift file: classes, structs, enums,
  * protocols, actors and extensions, with what each inherits or conforms to
- * and the types of its stored properties.
+ * and its stored properties, each {name, type, line, inferred}: `type` is
+ * the written type, or the type its initializer constructs, with `inferred`
+ * true, or null. A computed property, whose name or type is followed by a
+ * body that is not only willSet or didSet, stores nothing and is left out.
  */
 import { maskSource, SWIFT_SYNTAX } from './source-mask.mjs';
 import { indexSource } from './source-index.mjs';
@@ -47,7 +50,7 @@ export function readSwift(text) {
   }
   const declarations = nestDeclarations(found, d => d.depth === 0).map(d => ({
     ...d,
-    ...members(masked, index, d),
+    properties: properties(masked, index, d),
   }));
   return { masked, declarations, imports: [] };
 }
@@ -69,19 +72,25 @@ function readHeader(masked, k) {
   return { open: j + brace, inherits: splitTopLevel(inheritText) };
 }
 
-function members(masked, index, declaration) {
-  if (declaration.kind === 'extension' || declaration.kind === 'protocol') return { members: [], made: [] };
+function properties(masked, index, declaration) {
+  if (declaration.kind === 'extension' || declaration.kind === 'protocol') return [];
   const [open, close] = declaration.body;
   const inner = index.depth(open) + 1;
-  const body = masked.slice(open, close);
-  const memberTypes = [];
-  const made = [];
-  for (const m of body.matchAll(PROPERTY)) {
+  const out = [];
+  for (const m of masked.slice(open, close).matchAll(PROPERTY)) {
     const at = open + m.indices[3][0];
     if (index.depth(at) !== inner) continue;
     if (/\b(?:static|class)\b/.test(m[2])) continue;
-    if (m[5]) memberTypes.push(m[5].trim());
-    if (m[6]) made.push(m[6]);
+    if (!m[6] && computed(masked, index, open + (m.indices[5] || m.indices[4])[1])) continue;
+    const written = m[5] ? m[5].trim() : null;
+    out.push({ name: m[4], type: written || m[6] || null, line: index.line(at), inferred: !written && !!m[6] });
   }
-  return { members: memberTypes, made };
+  return out;
+}
+
+function computed(masked, index, end) {
+  const brace = /^[ \t]*\{/.exec(masked.slice(end, end + 200));
+  if (!brace) return false;
+  const open = end + brace[0].length - 1;
+  return !/^\s*(?:willSet|didSet)\b/.test(masked.slice(open + 1, index.close(open)));
 }

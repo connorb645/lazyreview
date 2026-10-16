@@ -69,7 +69,7 @@ export function buildModel({ files, nodes: given, imports, config, rootTitle }) 
       id: n.id, name: n.name, kind: n.kind, stereotype: n.stereotype, file: n.file, line: n.line === Infinity ? 1 : n.line,
       component: n.component, package: n.package, state: n.state,
       inherits: n.inherits, nested: n.nested, extends: n.extends, extFiles: n.extFiles,
-      view: n.view, test: n.test, group: n.group || null, pulls: n.pulls,
+      view: n.view, test: n.test, group: n.group || null, pulls: n.pulls, properties: n.properties,
     })),
     edges,
     groups: groups.map(g => ({ id: g.id, title: g.title, description: g.description, members: g.members, target: g.target })),

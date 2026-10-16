@@ -49,6 +49,8 @@ test('masking handles Python prefixed and triple-quoted strings', () => {
   assert.ok(masked.includes('class Real:'));
 });
 
+const named = d => d.properties.map(p => [p.name, p.type, p.line, p.inferred]);
+
 test('Swift: kinds, inheritance, nesting and stored properties', () => {
   const result = readSwift(`
 import Foundation
@@ -88,8 +90,8 @@ actor Store {}
     ['class CheckoutSession', 'protocol CheckoutRunning', 'enum PaymentKind', 'extension CheckoutSession', 'struct Box', 'actor Store']);
   const session = byName(result, 'CheckoutSession');
   assert.deepEqual(session.inherits, ['NSObject', 'CheckoutRunning', 'Sendable']);
-  assert.deepEqual(session.members, ['ShopClock', 'CheckoutDelegate?', 'Int']);
-  assert.deepEqual(session.made, ['ReceiptReader']);
+  assert.deepEqual(named(session), [['clock', 'ShopClock', 6, false], ['delegate', 'CheckoutDelegate?', 7, false], ['reader', 'ReceiptReader', 9, true]],
+    'a computed property stores nothing, so it is left out');
   assert.equal(byName(result, 'Config').parent, 'CheckoutSession');
   assert.equal(byName(result, 'Config').top, false);
   assert.ok(!result.declarations.some(d => d.name === 'NotThis' || d.name === 'notAType'));
@@ -137,11 +139,10 @@ class UploaderTest {
     ['class Price', 'interface Outcome', 'class Uploader', 'object Registry', 'enum Mode', 'class UploaderTest']);
   const price = byName(result, 'Price');
   assert.equal(price.label, 'data class');
-  assert.deepEqual(price.members, ['Double', 'PriceSource']);
+  assert.deepEqual(named(price), [['amount', 'Double', 4, false], ['source', 'PriceSource', 4, false]]);
   const uploader = byName(result, 'Uploader');
   assert.deepEqual(uploader.inherits, ['BaseUploader', 'Outcome', 'Closeable']);
-  assert.deepEqual(uploader.members, ['HttpClient', 'UploadQueue']);
-  assert.deepEqual(uploader.made, ['UploadQueue', 'Parser']);
+  assert.deepEqual(named(uploader), [['client', 'HttpClient', 9, false], ['queue', 'UploadQueue', 11, false], ['lazyThing', 'Parser', 12, true]]);
   assert.equal(byName(result, 'Part').parent, 'Uploader');
   assert.equal(byName(result, 'Outcome').label, 'sealed interface');
   assert.equal(byName(result, 'UploaderTest').test, true);
@@ -164,9 +165,8 @@ record Point(int x, Label label) implements Shape {}
   const store = byName(result, 'Store');
   assert.equal(store.label, 'abstract class');
   assert.deepEqual(store.inherits, ['BaseStore', 'Closeable', 'Flushable']);
-  assert.deepEqual(store.members, ['Cache', 'List<Entry>']);
-  assert.deepEqual(store.made, ['Cache']);
-  assert.deepEqual(byName(result, 'Point').members, ['int', 'Label']);
+  assert.deepEqual(named(store), [['cache', 'Cache', 4, false], ['entries', 'List<Entry>', 6, false]]);
+  assert.deepEqual(named(byName(result, 'Point')), [['x', 'int', 11, false], ['label', 'Label', 11, false]], 'a record component keeps its name');
   assert.equal(byName(result, 'Inner').top, false);
 });
 
@@ -198,9 +198,8 @@ function inner() { class Local {} }
     ['class Service', 'interface Runner', 'type Result', 'enum Flag', 'class Circle']);
   const service = byName(result, 'Service');
   assert.deepEqual(service.inherits, ['Base', 'Runner', 'Stopper']);
-  assert.deepEqual(service.members, ['Map<string, Item>', 'Fetcher']);
-  assert.deepEqual(service.made, ['Map', 'Secret']);
-  assert.deepEqual(byName(result, 'Runner').members, ['Status']);
+  assert.deepEqual(named(service), [['cache', 'Map<string, Item>', 12, false], ['#secret', 'Secret', 13, true], ['fetcher', 'Fetcher', 14, false]]);
+  assert.deepEqual(named(byName(result, 'Runner')), [['status', 'Status', 18, false]]);
   assert.ok(byName(result, 'Result').end >= byName(result, 'Result').start);
   assert.equal(byName(result, 'Local').top, false);
   assert.deepEqual(result.imports, [
@@ -247,8 +246,7 @@ class Mode(Enum):
   const price = byName(result, 'Price');
   assert.equal(price.label, 'dataclass');
   assert.deepEqual(price.inherits, ['Base']);
-  assert.deepEqual(price.members, ['float', 'PriceSource', 'Uploader']);
-  assert.deepEqual(price.made, ['UploadQueue']);
+  assert.deepEqual(named(price), [['amount', 'float', 13, false], ['source', 'PriceSource', 14, false], ['uploader', 'Uploader', 17, false], ['queue', 'UploadQueue', 18, true]]);
   assert.equal(price.start, 12);
   assert.equal(price.end, 22);
   assert.equal(byName(result, 'Inner').parent, 'Price');

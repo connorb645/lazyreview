@@ -85,7 +85,7 @@ test('test code is known by its path', () => {
 });
 
 function node(id, fields) {
-  return { id, name: id, kind: 'class', file: `Sources/${id}.swift`, family: 'swift', inherits: [], members: [], made: [],
+  return { id, name: id, kind: 'class', file: `Sources/${id}.swift`, family: 'swift', inherits: [], properties: [],
     extends: [], view: false, test: false, code: '', ...fields };
 }
 
@@ -93,7 +93,7 @@ test('relations: conformance, inheritance, holding, use, tests and the nearest t
   const nodes = [
     node('Store', { kind: 'protocol' }),
     node('Base'),
-    node('Cache', { inherits: ['Store', 'Base'], members: ['[Entry]'], code: 'class Cache { func f() { Logger.log() } }' }),
+    node('Cache', { inherits: ['Store', 'Base'], properties: [{ name: 'entries', type: '[Entry]', line: 2, inferred: false }, { name: 'spare', type: 'Entry?', line: 3, inferred: false }], code: 'class Cache { func f() { Logger.log() } }' }),
     node('Entry', { kind: 'struct' }),
     node('Logger'),
     node('Logger@Other', { name: 'Logger', file: 'Other/Logger.swift' }),
@@ -105,6 +105,7 @@ test('relations: conformance, inheritance, holding, use, tests and the nearest t
   assert.deepEqual(kinds, {
     'Cache>Store': 'realize', 'Cache>Base': 'inherit', 'Cache>Entry': 'has', 'Cache>Logger': 'use', 'CacheTests>Cache': 'test',
   });
+  assert.deepEqual(edges.find(e => e.kind === 'has').properties, ['entries', 'spare'], 'a has link names the properties that hold its target');
 });
 
 test('relations: imports link script and Python files that have no types', () => {

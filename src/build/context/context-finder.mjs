@@ -43,7 +43,7 @@ export function findContextCandidates({ git, head, drawn, changedPaths, include 
     const drawnNames = new Set(own.map(n => n.name));
     const named = new Set();
     for (const n of own) {
-      for (const word of identifiers([n.code, ...n.members, ...n.inherits, ...n.extends].join(' '))) {
+      for (const word of identifiers([n.code, ...n.properties.map(p => p.type || ''), ...n.inherits, ...n.extends].join(' '))) {
         if (declared.has(word) && !drawnNames.has(word)) named.add(word);
       }
     }

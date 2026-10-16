@@ -4,7 +4,8 @@
  * findRelations(nodes, imports) returns [{source, target, kind, label}]:
  *   realize   a type conforms to a protocol or implements an interface
  *   inherit   a type inherits from a class, or a protocol from a protocol
- *   has       a stored property holds the other type
+ *   has       a stored property holds the other type; the link names those
+ *             properties in `properties`
  *   extend    a file of extensions extends the other type
  *   use       the code names the other type, or imports the other file
  *   test      any link from a test
@@ -29,12 +30,12 @@ export function findRelations(nodes, imports = new Map()) {
   const resolve = (name, from) => nearest((byName.get(`${from.family}:${name}`) || []).filter(c => c !== from), from);
 
   const edges = new Map();
-  const add = (source, target, kind, label = null) => {
+  const add = (source, target, kind, label = null, properties = null) => {
     if (!target || source === target) return;
     const key = `${source.id}>${target.id}`;
     const had = edges.get(key);
     if (had && STRENGTH[had.kind] >= STRENGTH[kind]) return;
-    edges.set(key, { source: source.id, target: target.id, kind, label });
+    edges.set(key, { source: source.id, target: target.id, kind, label, ...(properties ? { properties } : {}) });
   };
 
   for (const n of nodes) {
@@ -44,12 +45,16 @@ export function findRelations(nodes, imports = new Map()) {
       if (t) add(n, t, INTERFACES.has(t.kind) && !INTERFACES.has(n.kind) ? 'realize' : 'inherit');
     }
     for (const e of n.extends) add(n, resolve(e, n), 'extend');
-    const held = new Set(n.made);
-    for (const text of n.members) for (const word of identifiers(text)) held.add(word);
-    for (const word of held) {
-      const t = resolve(word, n);
-      if (t) add(n, t, 'has', n.view && t.view ? 'shows' : null);
+    const holders = new Map();
+    for (const p of n.properties) {
+      for (const word of identifiers(p.type || '')) {
+        const t = resolve(word, n);
+        if (!t) continue;
+        if (!holders.has(t)) holders.set(t, []);
+        if (!holders.get(t).includes(p.name)) holders.get(t).push(p.name);
+      }
     }
+    for (const [t, names] of holders) add(n, t, 'has', n.view && t.view ? 'shows' : null, names);
     for (const word of identifiers(n.code)) {
       if (word === n.name) continue;
       const t = resolve(word, n);

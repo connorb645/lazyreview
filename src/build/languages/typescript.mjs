@@ -1,7 +1,10 @@
 /**
  * Reads the type declarations in a TypeScript or JavaScript file: classes,
  * interfaces, enums and type aliases, with what each extends or implements,
- * the types of its fields, and the file's imports.
+ * its fields, and the file's imports. Each field, and each constructor
+ * parameter that declares one, is {name, type, line, inferred}: `type` is
+ * the written type, or the class its initializer constructs, with
+ * `inferred` true, or null. A getter is no field.
  */
 import { maskSource, TYPESCRIPT_SYNTAX } from './source-mask.mjs';
 import { indexSource } from './source-index.mjs';
@@ -10,7 +13,7 @@ import { nestDeclarations } from './declaration-tree.mjs';
 
 const DECLARATION = /(?<=^|[;{}\n])[ \t]*((?:@[\w.]+(?:\([^()]*\))?\s+)*)((?:(?:export|default|declare|abstract|const)\s+)*)(class|interface|enum|type|namespace|module)\s+([A-Za-z_$][\w$]*)/gd;
 const FIELD = /(?:^|[;{])[ \t]*((?:@[\w.]+(?:\([^()\n]*\))?\s+)*)((?:(?:public|private|protected|readonly|declare|override|abstract|static|accessor)[ \t]+)*)(#?[A-Za-z_$][\w$]*)[?!]?[ \t]*(?::[ \t]*([^=;\n]+?))?[ \t]*(?:=[ \t]*(?:new[ \t]+([A-Z][\w$]*))?[^;\n]*)?(?=;|$)/gmd;
-const CONSTRUCTOR_PARAMETER = /^(?:(?:public|private|protected|readonly|override)\s+)+[A-Za-z_$][\w$]*\??\s*:\s*([\s\S]+?)\s*(?:=[\s\S]*)?$/;
+const CONSTRUCTOR_PARAMETER = /^(?:(?:public|private|protected|readonly|override)\s+)+([A-Za-z_$][\w$]*)\??\s*:\s*([\s\S]+?)\s*(?:=[\s\S]*)?$/;
 const IMPORT = /(?:^|[;\n])[ \t]*(?:import|export)\s+(?:type\s+)?([\s\S]*?)\s*from\s*(['"])([^'"\n]*)\2|(?:^|[;\n])[ \t]*import\s*(['"])([^'"\n]*)\4|\brequire\s*\(\s*(['"])([^'"\n]*)\6\s*\)|\bimport\s*\(\s*(['"])([^'"\n]*)\8\s*\)/gm;
 
 export function readTypeScript(text) {
@@ -41,7 +44,7 @@ export function readTypeScript(text) {
   const containers = found.filter(d => d.kind === 'namespace' || d.kind === 'module');
   const insideContainerOnly = d => d.depth === containers.filter(c => c.span[0] < d.at && d.at < c.span[1]).length;
   const declarations = nestDeclarations(found.filter(d => d.kind !== 'namespace' && d.kind !== 'module'), insideContainerOnly)
-    .map(d => ({ ...d, ...members(masked, index, d) }));
+    .map(d => ({ ...d, properties: properties(masked, index, d) }));
   return { masked, declarations, imports: readImports(text, masked) };
 }
 
@@ -84,28 +87,30 @@ function readAlias(masked, index, k) {
   return { open: -1, end: j, extends: [], implements: [] };
 }
 
-function members(masked, index, declaration) {
-  if (declaration.kind === 'type') return { members: [], made: [] };
-  if (!declaration.body || declaration.kind === 'enum') return { members: [], made: [] };
+function properties(masked, index, declaration) {
+  if (declaration.kind === 'type' || !declaration.body || declaration.kind === 'enum') return [];
   const [open, close] = declaration.body;
   const inner = index.depth(open) + 1;
-  const memberTypes = [];
-  const made = [];
+  const out = [];
   for (const m of masked.slice(open, close).matchAll(FIELD)) {
-    if (index.depth(open + m.indices[3][0]) !== inner) continue;
+    const at = open + m.indices[3][0];
+    if (index.depth(at) !== inner) continue;
     if (/\bstatic\b/.test(m[2])) continue;
-    if (m[4]) memberTypes.push(m[4].trim());
-    if (m[5]) made.push(m[5]);
+    const written = m[4] ? m[4].trim() : null;
+    out.push({ name: m[3], type: written || m[5] || null, line: index.line(at), inferred: !written && !!m[5] });
   }
   const constructor = /\bconstructor\s*\(/.exec(masked.slice(open, close));
   if (constructor) {
     const start = open + constructor.index + constructor[0].length - 1;
+    let cursor = start + 1;
     for (const parameter of splitTopLevel(masked.slice(start + 1, skipBalanced(masked, start) - 1))) {
-      const m = CONSTRUCTOR_PARAMETER.exec(parameter);
-      if (m) memberTypes.push(m[1]);
+      const at = masked.indexOf(parameter.trim(), cursor);
+      cursor = at + parameter.trim().length;
+      const m = CONSTRUCTOR_PARAMETER.exec(parameter.trim());
+      if (m) out.push({ name: m[1], type: m[2], line: index.line(at), inferred: false });
     }
   }
-  return { members: memberTypes, made };
+  return out;
 }
 
 // Imports are found in the masked text, so commented-out ones never count,

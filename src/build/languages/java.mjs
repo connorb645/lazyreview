@@ -1,7 +1,8 @@
 /**
  * Reads the type declarations in a Java file: classes, interfaces, enums,
- * records and annotation types, with what each extends or implements and the
- * types of its fields.
+ * records and annotation types, with what each extends or implements and its
+ * fields and record components, each {name, type, line, inferred}, where
+ * `inferred` is always false: Java writes every field's type.
  */
 import { maskSource, JAVA_SYNTAX } from './source-mask.mjs';
 import { indexSource } from './source-index.mjs';
@@ -31,15 +32,14 @@ export function readJava(text) {
       start: index.line(m.index),
       end: index.line(index.close(header.open)),
       recordComponents: header.components,
+      componentsAt: header.componentsAt,
       view: false,
       test: false,
     });
   }
   const declarations = nestDeclarations(found, d => d.depth === 0).map(d => {
-    const own = fields(masked, index, d);
-    const components = d.recordComponents.map(c => c.replace(/\s+\w+\s*$/, '')).filter(Boolean);
     const test = /@(?:Test|ParameterizedTest)\b/.test(text.slice(d.body[0], d.body[1]));
-    return { ...d, members: [...components, ...own.members], made: own.made, test };
+    return { ...d, properties: [...components(masked, index, d), ...fields(masked, index, d)], test };
   });
   return { masked, declarations, imports: [] };
 }
@@ -49,10 +49,12 @@ function readHeader(masked, k, word) {
   while (/\s/.test(masked[j] || '')) j++;
   if (masked[j] === '<') j = skipBalanced(masked, j);
   let components = [];
+  let componentsAt = -1;
   if (word === 'record') {
     while (/\s/.test(masked[j] || '')) j++;
     if (masked[j] === '(') {
       const close = skipBalanced(masked, j);
+      componentsAt = j + 1;
       components = splitTopLevel(masked.slice(j + 1, close - 1));
       j = close;
     }
@@ -66,19 +68,31 @@ function readHeader(masked, k, word) {
     const m = new RegExp(`\\b${keyword}\\b([\\s\\S]*?)(?=\\b(?:extends|implements|permits)\\b|$)`).exec(clause);
     return m ? splitTopLevel(m[1]) : [];
   };
-  return { open: j + brace, extends: part('extends'), implements: part('implements'), components };
+  return { open: j + brace, extends: part('extends'), implements: part('implements'), components, componentsAt };
+}
+
+function components(masked, index, declaration) {
+  const out = [];
+  let cursor = declaration.componentsAt;
+  for (const component of declaration.recordComponents) {
+    const text = component.trim();
+    const at = masked.indexOf(text, cursor);
+    cursor = at + text.length;
+    const m = /^([\s\S]*\S)\s+(\w+)$/.exec(text.replace(/^(?:@[\w.]+(?:\([^()]*\))?\s+)*/, ''));
+    if (m) out.push({ name: m[2], type: m[1], line: index.line(at), inferred: false });
+  }
+  return out;
 }
 
 function fields(masked, index, declaration) {
   const [open, close] = declaration.body;
   const inner = index.depth(open) + 1;
-  const memberTypes = [];
-  const made = [];
+  const out = [];
   for (const m of masked.slice(open, close).matchAll(FIELD)) {
-    if (index.depth(open + m.indices[3][0]) !== inner) continue;
+    const at = open + m.indices[3][0];
+    if (index.depth(at) !== inner) continue;
     if (/\bstatic\b/.test(m[2]) || /^(?:return|throw|new|else|case)$/.test(m[3])) continue;
-    memberTypes.push(m[3]);
-    if (m[5]) made.push(m[5]);
+    out.push({ name: m[4], type: m[3], line: index.line(at), inferred: false });
   }
-  return { members: memberTypes, made };
+  return out;
 }

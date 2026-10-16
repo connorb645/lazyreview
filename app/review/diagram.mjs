@@ -1,8 +1,8 @@
 /**
  * The class diagram of the change: drawn once, panned and zoomed, with every
- * link of a type shown while it is pointed at, every link at once on request,
- * a search for a type or file, and the rail listing the components and the
- * notation.
+ * link of a type and its stored properties shown while it is pointed at or
+ * has the keyboard, every link at once on request, a search for a type or
+ * file, and the rail listing the components and the notation.
  *
  * createDiagram(ctx) draws into the diagram view and returns the controls the
  * other views use: fit, zoomTo, showNode (zoom to a type and light its
@@ -23,6 +23,7 @@ export function createDiagram(ctx) {
   const pulls = ctx.pulls;
   const svg = document.getElementById('diagram');
   const canvas = document.getElementById('canvas');
+  const propsPanel = document.getElementById('props-panel');
   const colors = [];
   model.components.forEach(c => { if (colors.indexOf(c.color) < 0) colors.push(c.color); });
 
@@ -393,6 +394,24 @@ export function createDiagram(ctx) {
     const k = Math.min((b.w / 2) / Math.abs(dx || 1e-9), (b.h / 2) / Math.abs(dy || 1e-9));
     return [cx + dx * k, cy + dy * k];
   }
+  // A link's words: a has link names the properties that hold its target.
+  function linkWords(e) {
+    const words = e.label || KIND_WORDS[e.kind];
+    return e.kind === 'has' && e.properties ? words + ' ' + e.properties.join(', ') : words;
+  }
+  function showProperties(id, rels) {
+    const n = nodes[id];
+    if (!n || n.kind === 'artifact' || !n.properties) { propsPanel.hidden = true; return; }
+    const holds = name => rels.filter(e => e.source === id && e.kind === 'has' && (e.properties || []).includes(name))
+      .map(e => (nodes[e.target] ? nodes[e.target].name : e.target));
+    propsPanel.innerHTML = '<p class="props-head"><b>' + esc(n.name) + '</b> &middot; ' + (n.properties.length === 1 ? '1 stored property' : n.properties.length ? fmt(n.properties.length) + ' stored properties' : 'no stored properties') + '</p>' +
+      (n.properties.length ? '<table class="props"><tbody>' + n.properties.map(p => '<tr>' +
+        '<td class="prop-name">' + esc(p.name) + '</td>' +
+        '<td class="prop-type">' + esc(p.type || '') + (p.inferred ? ' <span class="prop-inferred" title="Read from what its initializer constructs">inferred</span>' : '') + '</td>' +
+        '<td class="prop-line">line ' + p.line + '</td>' +
+        '<td class="prop-holds">' + holds(p.name).map(name => 'holds ' + esc(name)).join(', ') + '</td></tr>').join('') + '</tbody></table>' : '');
+    propsPanel.hidden = false;
+  }
   function relationsOf(id) {
     const n = nodes[id];
     const group = n && n.group ? 'group:' + n.group : null;
@@ -416,9 +435,10 @@ export function createDiagram(ctx) {
       const bend = Math.min(80, len * 0.12);
       const qx = mx - dy / len * bend, qy = my + dx / len * bend;
       parts.push('<path class="hover-edge ' + e.kind + '" d="M' + p1[0] + ',' + p1[1] + ' Q' + qx + ',' + qy + ' ' + p2[0] + ',' + p2[1] + '"' + markersFor(e.kind, 'h') + '></path>');
-      parts.push('<text class="hover-label" x="' + (mx - dy / len * bend / 2) + '" y="' + (my + dx / len * bend / 2 + 4) + '">' + esc(e.label || KIND_WORDS[e.kind]) + '</text>');
+      parts.push('<text class="hover-label" x="' + (mx - dy / len * bend / 2) + '" y="' + (my + dx / len * bend / 2 + 4) + '">' + esc(linkWords(e)) + '</text>');
     });
     hoverLayer.innerHTML = parts.join('');
+    showProperties(id, rels);
     svg.classList.add('focus');
     svg.querySelectorAll('.node').forEach(g => {
       g.classList.toggle('lit', !!lit[g.getAttribute('data-id')]);
@@ -428,6 +448,7 @@ export function createDiagram(ctx) {
   }
   function clearHover() {
     hoverLayer.innerHTML = '';
+    propsPanel.hidden = true;
     svg.classList.remove('focus');
     svg.querySelectorAll('.node.lit').forEach(g => g.classList.remove('lit', 'self'));
   }

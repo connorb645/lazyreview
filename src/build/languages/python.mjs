@@ -1,7 +1,10 @@
 /**
- * Reads the classes in a Python file, with their base classes and the types
- * of their attributes, and the file's imports. A class runs until the first
- * line indented no deeper than its own `class` line.
+ * Reads the classes in a Python file, with their base classes and their
+ * attributes, and the file's imports. A class runs until the first line
+ * indented no deeper than its own `class` line. An attribute is one the
+ * class body annotates, or one `__init__` gives `self`, typed or made by
+ * calling a class; each is {name, type, line, inferred}, where `type` is the
+ * written type, or the class called, with `inferred` true.
  */
 import { maskSource, PYTHON_SYNTAX } from './source-mask.mjs';
 import { skipBalanced, splitTopLevel, bareTypeName } from './header-text.mjs';
@@ -63,7 +66,7 @@ export function readPython(text) {
     });
   });
 
-  const declarations = nestDeclarations(found, d => d.indent === 0).map(d => ({ ...d, ...members(lines, d) }));
+  const declarations = nestDeclarations(found, d => d.indent === 0).map(d => ({ ...d, properties: properties(lines, d) }));
   return { masked, declarations, imports: readImports(masked) };
 }
 
@@ -76,10 +79,10 @@ function lineIndexOf(starts, offset) {
   return lo;
 }
 
-function members(lines, declaration) {
+function properties(lines, declaration) {
   const [from, to] = declaration.bodyLines;
-  const memberTypes = [];
-  const made = [];
+  const out = [];
+  const add = (name, type, line, inferred) => { if (!out.some(p => p.name === name)) out.push({ name, type, line, inferred }); };
   let bodyIndent = null;
   let inInit = false;
   let initIndent = 0;
@@ -93,17 +96,17 @@ function members(lines, declaration) {
       initIndent = indent;
       const annotated = /^\s*([A-Za-z_]\w*)\s*:\s*([^=\n]+)/.exec(line);
       if (annotated && !/^(?:def|class|if|for|while|with|try|except|else|elif|return|async|match|case)$/.test(annotated[1])) {
-        memberTypes.push(annotated[2].trim());
+        add(annotated[1], annotated[2].trim(), j + 1, false);
       }
       continue;
     }
     if (!inInit || indent <= initIndent) continue;
-    const typed = /\bself\.\w+\s*:\s*([^=\n]+)/.exec(line);
-    if (typed) memberTypes.push(typed[1].trim());
-    const assigned = /\bself\.\w+\s*=\s*([A-Z]\w*)\s*\(/.exec(line);
-    if (assigned) made.push(assigned[1]);
+    const typed = /\bself\.(\w+)\s*:\s*([^=\n]+)/.exec(line);
+    if (typed) add(typed[1], typed[2].trim(), j + 1, false);
+    const assigned = /\bself\.(\w+)\s*=\s*([A-Z]\w*)\s*\(/.exec(line);
+    if (assigned) add(assigned[1], assigned[2], j + 1, true);
   }
-  return { members: memberTypes, made };
+  return out;
 }
 
 function readImports(masked) {

@@ -1,7 +1,10 @@
 /**
  * Reads the type declarations in a Kotlin file: classes, interfaces, objects
- * and enums, with their supertypes and the types of their properties,
- * including those declared in the primary constructor.
+ * and enums, with their supertypes and their properties, including those
+ * declared in the primary constructor, each {name, type, line, inferred}:
+ * `type` is the written type, or the type its initializer constructs, with
+ * `inferred` true, or null. A property with a getter and no initializer
+ * stores nothing and is left out.
  */
 import { maskSource, KOTLIN_SYNTAX } from './source-mask.mjs';
 import { indexSource } from './source-index.mjs';
@@ -37,14 +40,14 @@ export function readKotlin(text) {
       start: index.line(m.index),
       end: index.line(Math.max(m.index, end - 1)),
       parameters: header.parameters,
+      parametersAt: header.parametersAt,
       view: false,
       test: false,
     });
   }
   const declarations = nestDeclarations(found, d => d.depth === 0).map(d => {
-    const own = members(masked, index, d);
     const test = !!d.body && /@(?:Test|ParameterizedTest)\b/.test(text.slice(d.body[0], d.body[1]));
-    return { ...d, members: [...constructorMembers(d.parameters), ...own.members], made: own.made, test };
+    return { ...d, properties: [...constructorProperties(masked, index, d), ...properties(masked, index, d)], test };
   });
   return { masked, declarations, imports: [] };
 }
@@ -74,9 +77,11 @@ function readHeader(masked, k) {
   if (masked[j] === '<') { j = skipBalanced(masked, j); skipSpace(); }
   const constructor = /^(?:(?:@[\w.:]+(?:\([^()\n]*\))?\s+)*(?:(?:private|public|internal|protected)\s+)?constructor\s*)?(?=\()/.exec(masked.slice(j, j + 400));
   let parameters = [];
+  let parametersAt = -1;
   if (constructor) {
     j += constructor[0].length;
     const close = skipBalanced(masked, j);
+    parametersAt = j + 1;
     parameters = splitTopLevel(masked.slice(j + 1, close - 1));
     j = close;
   }
@@ -104,25 +109,41 @@ function readHeader(masked, k) {
     open,
     end: j,
     parameters,
+    parametersAt,
     supertypes: splitTopLevel(supertypeText.split(/\bwhere\b/)[0]),
   };
 }
 
-function constructorMembers(parameters) {
-  return parameters.map(p => PARAMETER.exec(p.trim())).filter(Boolean).map(m => m[3].trim());
+function constructorProperties(masked, index, declaration) {
+  const out = [];
+  let cursor = declaration.parametersAt;
+  for (const parameter of declaration.parameters) {
+    const at = masked.indexOf(parameter.trim(), cursor);
+    cursor = at + parameter.trim().length;
+    const m = PARAMETER.exec(parameter.trim());
+    if (m) out.push({ name: m[2], type: m[3].trim(), line: index.line(at), inferred: false });
+  }
+  return out;
 }
 
-function members(masked, index, declaration) {
-  if (!declaration.body) return { members: [], made: [] };
+function properties(masked, index, declaration) {
+  if (!declaration.body) return [];
   const [open, close] = declaration.body;
   const inner = index.depth(open) + 1;
-  const memberTypes = [];
-  const made = [];
+  const out = [];
   for (const m of masked.slice(open, close).matchAll(PROPERTY)) {
-    if (index.depth(open + m.indices[3][0]) !== inner) continue;
+    const at = open + m.indices[3][0];
+    if (index.depth(at) !== inner) continue;
     if (/\bconst\b/.test(m[2])) continue;
-    if (m[5]) memberTypes.push(m[5].trim());
-    if (m[6]) made.push(m[6]);
+    const typed = m[5] || '';
+    const accessor = /\s(?:get|set)\b/.exec(typed);
+    const written = (accessor ? typed.slice(0, accessor.index) : typed).trim() || null;
+    const after = open + (m.indices[5] ? m.indices[5][0] + written.length : m.indices[4][1]);
+    const getterHere = !!accessor && /^\s+get\b/.test(typed.slice(accessor.index));
+    const initialised = !getterHere && /^[ \t]*(?:=|by\b)/.test(masked.slice(after, close));
+    const getterBelow = /^[^\n]*\n[ \t]*(?:(?:private|protected|internal|public)[ \t]+)?get\b/.test(masked.slice(after, close));
+    if (getterHere || (getterBelow && !initialised)) continue;
+    out.push({ name: m[4], type: written || m[6] || null, line: index.line(at), inferred: !written && !!m[6] });
   }
-  return { members: memberTypes, made };
+  return out;
 }
