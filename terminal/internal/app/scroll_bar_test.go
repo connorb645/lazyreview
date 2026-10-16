@@ -111,6 +111,10 @@ func TestTheDiagramShowsTheSameBarForItsHeight(t *testing.T) {
 	if got := mainThumb(a); len(got) == 0 || got[0] != 0 {
 		t.Fatalf("at the top of the diagram, the thumb is on rows %v", got)
 	}
+	a = press(t, a, "G")
+	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != a.mainHeight()-1 {
+		t.Fatalf("on the diagram's last box, the thumb is on rows %v", got)
+	}
 	a = standInApp(110, 40).showBox(diagramPlace{level: "components", box: "core"})
 	if got := mainThumb(a); got != nil {
 		t.Fatalf("a diagram that fits shows a thumb on rows %v", got)

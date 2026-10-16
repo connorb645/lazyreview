@@ -41,7 +41,7 @@ func drawDiagram(d reviewData, v diagramView, filter int) (canvas, []int, stubs)
 	if focusRow >= 0 {
 		width = max(width, g.Spots[v.focus].Col+below.width+2)
 	}
-	c := newCanvas(width, y)
+	c := newCanvas(width, y-1)
 	laneY := func(gap, lane int) int {
 		ly := tops[gap] + diagram.CardHeight + 1 + lane
 		if gap == focusRow {

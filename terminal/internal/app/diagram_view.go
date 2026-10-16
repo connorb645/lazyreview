@@ -98,10 +98,13 @@ func (v diagramView) shownIn(d reviewData, width, height, filter int) diagramVie
 	if _, ok := v.card(); !ok {
 		return v
 	}
-	_, tops, below := drawDiagram(d, v, filter)
+	c, tops, below := drawDiagram(d, v, filter)
 	s := v.grid.Spots[v.focus]
 	x0, x1 := s.Col-2, s.Col+s.Width+2
 	y0, y1 := tops[s.Row]-1, tops[s.Row]+diagram.CardHeight+below.lines+1
+	if s.Row == len(tops)-1 {
+		y1 = c.h
+	}
 	if x1-v.left > width {
 		v.left = x1 - width
 	}

@@ -4,11 +4,11 @@
 │                                      │
 │                                      │
 │                       ╭──────────────│
-│                       │              ▐
+│                       │              │
 │           ┏━━━━━━━━━━━┷━━━━━━━━━━━┓  ▐
 │           ┃ Receipt               ┃  ▐
 │           ┃ Receipt.swift changed ┃  ▐
 │           ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ▐
-│                                      │
+│                                      ▐
 ╰─Receipt · class · Sources/Core/Rece…─╯
  Diff: Enter | Keys: Space ?
