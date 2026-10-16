@@ -59,6 +59,14 @@ func (c *Client) Page(id string) (Page, error) {
 	return page, c.get(ReviewPath(id, "/page"), nil, &page)
 }
 
+// File reads one file of a review ready to draw, for the page build the app
+// drew from: its hunks of rows, the unchanged runs between them and its
+// whole text.
+func (c *Client) File(id, path, build string) (File, error) {
+	var file File
+	return file, c.get(ReviewPath(id, "/file"), url.Values{"path": {path}, "build": {build}}, &file)
+}
+
 // ReviewPath is the address of a review's part of the API, from its id.
 func ReviewPath(id, rest string) string {
 	parts := strings.Split(id, "/")

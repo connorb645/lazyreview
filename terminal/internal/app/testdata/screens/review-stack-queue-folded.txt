@@ -1,4 +1,4 @@
- Search, then a basket › Review                                                            #21  #22
+ Search, then a basket › Review                                                     [All]  #21  #22
  A stack of 2 pull requests, each built on the one before, reviewed together
  Search, then a basket
   #21  Add search to the catalog  by sam · on main · head ec6fb42d · 2 files +11 −0
@@ -57,4 +57,4 @@
 
 
  NORMAL  Review · Queued comments
- j k move   ]] [[ sections   za fold   gh every review   Space ? keys   :q quit
+ j k move   Enter open   ]] [[ sections   za fold   gh every review   Space ? keys   :q quit

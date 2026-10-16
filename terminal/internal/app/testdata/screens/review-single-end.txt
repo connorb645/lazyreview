@@ -11,4 +11,4 @@
  ▾ The change
 ▌  ■ docs  2 files +18 −1
  NORMAL  Review · docs
- j k move   ]] [[ sections   za fold   gh every review   Space ? keys   :q quit
+ j k move   Enter open   ]] [[ sections   za fold   gh every review   Space ? k…

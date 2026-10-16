@@ -1,0 +1,207 @@
+package app
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
+
+	"review-desk/terminal/internal/server"
+)
+
+const gutter = 14
+
+var badges = map[string]string{"A": "new", "D": "deleted", "R": "renamed", "M": "changed", "": "unchanged"}
+
+// diffLines draws the diff view's rows from the first shown, as many lines as fit.
+func diffLines(d reviewData, v diffView, height, filter int, p palette) []string {
+	var out []string
+	for i := v.top; i < len(v.rows) && len(out) < height; i++ {
+		out = append(out, drawRow(d, v, i, filter, p)...)
+	}
+	if len(out) > height {
+		out = out[:height]
+	}
+	return out
+}
+
+func drawRow(d reviewData, v diffView, i, filter int, p palette) []string {
+	r := v.rows[i]
+	mark := " "
+	if i == v.cursor {
+		mark = p.Accent.Render("▌")
+	}
+	switch r.kind {
+	case "file":
+		return []string{mark + fileHeader(d, v, r, p)}
+	case "hunk":
+		return []string{mark + "  " + p.Muted.Render(r.text)}
+	case "gap":
+		return []string{mark + "  " + p.Muted.Render(fmt.Sprintf("··· %s ···", plural(r.count, "unchanged line"))) + "  " + p.Key.Render("zo")}
+	case "note":
+		return []string{mark + "  " + p.Muted.Render(r.text)}
+	}
+	if r.line == nil {
+		return splitRow(d, v, r, mark, filter, p)
+	}
+	return unifiedRow(d, v, r, mark, filter, p)
+}
+
+func fileHeader(d reviewData, v diffView, r diffRow, p palette) string {
+	fold := "▾"
+	if v.folded[r.path] {
+		fold = "▸"
+	}
+	entry := fileEntry(d, r.path)
+	out := " " + p.Muted.Render(fold) + " " + p.Bold.Render(r.path) + "  " + p.Muted.Render(badges[entry.Status])
+	for _, pull := range entry.Pulls {
+		out += "  " + p.pull(memberColor(d.state, pull)).Render(fmt.Sprintf("#%d", pull))
+	}
+	if v.whole[r.path] {
+		out += "  " + p.Accent.Render("whole")
+	}
+	if entry.Status == "" {
+		return out + "  " + p.Muted.Render(plural(entry.Lines, "line"))
+	}
+	return out + "  " + p.Add.Render(fmt.Sprintf("+%d", entry.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", entry.Dels))
+}
+
+func unifiedRow(d reviewData, v diffView, r diffRow, mark string, filter int, p palette) []string {
+	l := r.line
+	sign := map[string]string{"add": "+", "del": "-", "same": " ", "note": " "}[l.Kind]
+	if r.added {
+		sign = "+"
+	}
+	head := mark + stripe(d, l, p) + p.Muted.Render(fmt.Sprintf("%4s %4s ", number(l.Old), number(l.New)))
+	style := rowStyle(l, r.added, filter, p)
+	body := v.width - gutter
+	texts := cut(expandTabs(l.Text), body, v.wrap)
+	out := []string{head + style.Render(sign+" "+texts[0])}
+	for _, more := range texts[1:] {
+		out = append(out, strings.Repeat(" ", gutter)+style.Render(more))
+	}
+	return out
+}
+
+func splitRow(d reviewData, v diffView, r diffRow, mark string, filter int, p palette) []string {
+	half := (v.width - 3) / 2
+	side := func(l *server.Row, old bool) []string {
+		if l == nil {
+			return []string{strings.Repeat(" ", half)}
+		}
+		n := l.New
+		sign := "+"
+		if old {
+			n = l.Old
+			sign = "-"
+		}
+		if l.Kind == "same" {
+			sign = " "
+		}
+		style := rowStyle(l, false, filter, p)
+		texts := cut(expandTabs(l.Text), half-7, v.wrap)
+		out := []string{p.Muted.Render(fmt.Sprintf("%4s ", number(n))) + style.Render(sign+" "+texts[0])}
+		for _, more := range texts[1:] {
+			out = append(out, "       "+style.Render(more))
+		}
+		for i := range out {
+			out[i] = fit(out[i], half)
+		}
+		return out
+	}
+	left, right := side(r.left, true), side(r.right, false)
+	owner := r.right
+	if owner == nil || owner.Kind == "same" {
+		owner = r.left
+	}
+	var out []string
+	for i := 0; i < max(len(left), len(right)); i++ {
+		a, b := strings.Repeat(" ", half), strings.Repeat(" ", half)
+		if i < len(left) {
+			a = left[i]
+		}
+		if i < len(right) {
+			b = right[i]
+		}
+		lead := "  "
+		if i == 0 {
+			lead = mark + stripe(d, owner, p)
+		}
+		out = append(out, lead+a+p.Muted.Render("│")+b)
+	}
+	return out
+}
+
+// stripe marks a changed row of a stack with its pull request's colour.
+func stripe(d reviewData, l *server.Row, p palette) string {
+	if l == nil || l.Owner == 0 || l.Kind == "same" {
+		return " "
+	}
+	return p.pull(memberColor(d.state, l.Owner)).Render("▎")
+}
+
+// rowStyle colours a row by its kind, and dims a changed row another pull request than the filter's changed.
+func rowStyle(l *server.Row, added bool, filter int, p palette) lipgloss.Style {
+	if filter != 0 && l.Kind != "same" && l.Owner != filter {
+		return p.Muted
+	}
+	switch {
+	case l.Kind == "add" || added:
+		return p.Add
+	case l.Kind == "del":
+		return p.Del
+	case l.Kind == "note":
+		return p.Muted
+	}
+	return p.Ink
+}
+
+func rowHeight(r diffRow, v diffView) int {
+	if !v.wrap || r.kind != "line" {
+		return 1
+	}
+	if r.line != nil {
+		return len(cut(expandTabs(r.line.Text), v.width-gutter, true))
+	}
+	half := (v.width - 3) / 2
+	h := 1
+	for _, l := range []*server.Row{r.left, r.right} {
+		if l != nil {
+			h = max(h, len(cut(expandTabs(l.Text), half-7, true)))
+		}
+	}
+	return h
+}
+
+// cut is a line of code cut to width, or broken into lines of width when wrapping.
+func cut(text string, width int, wrapping bool) []string {
+	if width < 4 {
+		width = 4
+	}
+	if !wrapping || ansi.StringWidth(text) <= width {
+		return []string{ansi.Truncate(text, width, "…")}
+	}
+	return strings.Split(ansi.Hardwrap(text, width, true), "\n")
+}
+
+func number(n int) string {
+	if n == 0 {
+		return ""
+	}
+	return fmt.Sprint(n)
+}
+
+func fileEntry(d reviewData, path string) server.FileEntry {
+	for _, f := range d.page.Model.Files {
+		if f.Path == path {
+			return f
+		}
+	}
+	for _, f := range d.page.Model.ContextFiles {
+		if f.Path == path {
+			return f
+		}
+	}
+	return server.FileEntry{Path: path}
+}

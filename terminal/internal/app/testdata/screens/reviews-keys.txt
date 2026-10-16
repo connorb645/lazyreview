@@ -8,17 +8,17 @@
 
 ╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Keys of this view                                                                                │
-│ j k gg G  move                                                                                   │
-│ Enter     opens the review                                                                       │
-│ / n N     find                                                                                   │
-│ :         the command line: :q quits, :q! quits and drops drafts                                 │
-│ Space ?   lists the keys of this view                                                            │
-│ Space v   the Review view                                                                        │
-│ gh        every review                                                                           │
-│ gx        opens the pull request, or the thread at the cursor, on GitHub                         │
-│ gX        opens this place in the web app                                                        │
-│ q Esc     closes the top panel or list                                                           │
-│ ZZ        quits, as :q does                                                                      │
+│ j k gg G       move                                                                              │
+│ Enter          opens the review                                                                  │
+│ / n N          find                                                                              │
+│ :              the command line: :q quits, :q! quits and drops drafts                            │
+│ Space ?        lists the keys of this view                                                       │
+│ Space v        the Review view                                                                   │
+│ gh             every review                                                                      │
+│ gx             opens the pull request, or the thread at the cursor, on GitHub                    │
+│ gX             opens this place in the web app                                                   │
+│ ]p [p          the next or previous pull request filter on a stack: All, then each one           │
+│ Ctrl-o Ctrl-i  back and forward through jumps                                                    │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
  NORMAL  every review
  j k move   q close

@@ -1,0 +1,30 @@
+ widgets › Sources/Catalog/MemoryCatalog.swift                                      [All]  #21  #22
+  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1
+   @@ -1,11 +1,13 @@
+     1    1   final class Basket {
+     2    2       let catalog: Catalog
+ ▎        3 +     let search: Search
+     3    4
+     4    5       init(catalog: Catalog) {
+     5    6           self.catalog = catalog
+ ▎        7 +         self.search = Search(catalog: catalog)
+     6    8       }
+     7    9
+     8   10       func total() -> Int {
+ ▎   9      -         0
+ ▎       11 +         1
+    10   12       }
+    11   13   }
+  ▾ Sources/Catalog/MemoryCatalog.swift  changed  #21  +4 −0
+   ··· 3 unchanged lines ···  zo
+   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {
+     4    4       func items() -> [Item] {
+     5    5           stored
+     6    6       }
+ ▎        7 +
+ ▎        8 +     func add(_ item: Item) {
+ ▎        9 +         stored.append(item)
+▌▎       10 +     }
+     7   11   }
+ NORMAL  line 10 · Changed in #21. A comment here goes on #21, line 10.
+ j k move   ]c [c hunks   ]f [f files   za fold   / search   - back   Space ? keys

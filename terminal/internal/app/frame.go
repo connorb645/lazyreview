@@ -22,24 +22,53 @@ func (a App) View() string {
 func (a App) titleLine() string {
 	p := a.p
 	left, right := " "+p.Bold.Render("Every review"), p.Muted.Render(plural(len(a.reviews.reviews), "review")+" ")
-	if a.screen == screenReview {
+	d := a.review
+	switch {
+	case a.screen == screenReviews:
+	case d == nil:
 		left, right = " "+p.Bold.Render("Review"), ""
-		if d := a.review; d != nil {
-			title := d.state.Title
-			if d.state.Written != nil && d.state.Written.Title != "" {
-				title = d.state.Written.Title
-			}
-			left = " " + p.Bold.Render(title) + p.Muted.Render(" › Review")
-			if d.page.Stack != nil {
-				var pills []string
-				for _, m := range d.state.Members {
-					pills = append(pills, p.pull(m.Color).Render(fmt.Sprintf("#%d", m.Pull)))
-				}
-				right = strings.Join(pills, "  ") + " "
-			}
+	case a.screen == screenDiff:
+		left, right = " "+p.Bold.Render(componentTitle(*d, a.diff.component)), a.filterPills()
+		if path := a.diff.file(); path != "" {
+			left += p.Muted.Render(" › ") + p.Ink.Render(path)
 		}
+	default:
+		title := d.state.Title
+		if d.state.Written != nil && d.state.Written.Title != "" {
+			title = d.state.Written.Title
+		}
+		left, right = " "+p.Bold.Render(title)+p.Muted.Render(" › Review"), a.filterPills()
 	}
 	return spread(left, right, a.width)
+}
+
+// filterPills name the pull request filter on a stack: All, then each pull request, the one in use marked.
+func (a App) filterPills() string {
+	p := a.p
+	if a.review == nil || a.review.page.Stack == nil {
+		return ""
+	}
+	pills := []string{p.Muted.Render("All")}
+	if a.filter == 0 {
+		pills[0] = p.Bold.Render("[All]")
+	}
+	for _, m := range a.review.state.Members {
+		pill := fmt.Sprintf("#%d", m.Pull)
+		if a.filter == m.Pull {
+			pill = "[" + pill + "]"
+		}
+		pills = append(pills, p.pull(m.Color).Render(pill))
+	}
+	return strings.Join(pills, "  ") + " "
+}
+
+func componentTitle(d reviewData, id string) string {
+	for _, c := range d.page.Model.Components {
+		if c.ID == id {
+			return c.Title
+		}
+	}
+	return id
 }
 
 func (a App) bodyLines() []string {
@@ -52,8 +81,10 @@ func (a App) bodyLines() []string {
 	switch {
 	case a.loading:
 		out = append(out, "", " "+a.p.Muted.Render("Loading…"))
-	case a.screen == screenReview && a.review == nil:
+	case a.screen != screenReviews && a.review == nil:
 		out = append(out, "", " "+a.p.Muted.Render("No review is open. gh lists every review."))
+	case a.screen == screenDiff:
+		out = diffLines(*a.review, a.diff, h, a.filter, a.p)
 	default:
 		for i := view.top; i < view.top+h && i < len(view.lines); i++ {
 			l := view.lines[i]
@@ -83,13 +114,16 @@ func (a App) statusLine() string {
 		return fit(a.prompt.View(), a.width)
 	}
 	place := "every review"
-	if a.screen == screenReview {
+	switch a.screen {
+	case screenReview:
 		place = "Review"
 		if a.review != nil && a.rv.view.cursor < len(a.rv.view.items) {
 			if words := itemWords(a.rv.view.items[a.rv.view.cursor]); words != "" {
 				place += " · " + words
 			}
 		}
+	case screenDiff:
+		place = a.diffPlace()
 	}
 	left := " " + p.Key.Render("NORMAL") + "  " + p.Muted.Render(place)
 	right := p.Muted.Render(a.keys.Typed()) + " "
@@ -114,7 +148,9 @@ func (a App) hintLine() string {
 	case a.panel != nil:
 		hints = [][2]string{{"j k", "move"}, {"q", "close"}}
 	case a.screen == screenReview:
-		hints = [][2]string{{"j k", "move"}, {"]] [[", "sections"}, {"za", "fold"}, {"gh", "every review"}, {"Space ?", "keys"}, {":q", "quit"}}
+		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"]] [[", "sections"}, {"za", "fold"}, {"gh", "every review"}, {"Space ?", "keys"}, {":q", "quit"}}
+	case a.screen == screenDiff:
+		hints = [][2]string{{"j k", "move"}, {"]c [c", "hunks"}, {"]f [f", "files"}, {"za", "fold"}, {"/", "search"}, {"-", "back"}, {"Space ?", "keys"}}
 	default:
 		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"/", "find"}, {"Space ?", "keys"}, {":q", "quit"}}
 	}
@@ -132,6 +168,25 @@ func spread(left, right string, width int) string {
 		return fit(left, width)
 	}
 	return left + strings.Repeat(" ", gap) + right
+}
+
+// diffPlace says where the cursor is in the diff: the line, and on a stack
+// who changed it and where a comment on it goes.
+func (a App) diffPlace() string {
+	v := a.diff
+	if v.cursor >= len(v.rows) {
+		return ""
+	}
+	r := v.rows[v.cursor]
+	side, line, ok := r.at()
+	if !ok {
+		return map[string]string{"file": "file header", "hunk": "hunk header", "gap": "unchanged lines", "note": ""}[r.kind]
+	}
+	words := linesWords(side, line, 0, "")
+	if w := r.words(); w != "" {
+		words += " · " + w
+	}
+	return words
 }
 
 func itemWords(it item) string {

@@ -11,4 +11,4 @@
      Every item, or every item shown?
 
  NORMAL  Review · Queued comments
- j k move   ]] [[ sections   za fold   gh every review   Space ? keys   :q quit
+ j k move   Enter open   ]] [[ sections   za fold   gh every review   Space ? k…

@@ -1,0 +1,30 @@
+ docs › docs/basket.md
+▌ ▾ docs/basket.md  new  +6 −0
+   @@ -0,0 +1,6 @@
+          1 + # Basket
+          2 +
+          3 + A basket keeps its prices until checkout.
+          4 +
+          5 + 1. Add an item
+          6 + 2. Remove an item
+  ▾ docs/guide.md  changed  +12 −1
+   @@ -1,6 +1,17 @@
+     1    1   # Guide
+     2    2
+     3      - The catalog lists items.
+          3 + The catalog lists every item.
+     4    4
+     5    5   - Browse
+     6    6   - Search
+          7 + - Keep a basket
+          8 +
+          9 + ## Steps
+         10 +
+         11 + 1. Open the catalog.
+         12 + 1. Pick an item.
+         13 + 1. Add it to the basket.
+         14 +
+         15 + ```swift
+         16 + let basket = Basket(catalog: catalog)
+ NORMAL  file header
+ j k move   ]c [c hunks   ]f [f files   za fold   / search   - back   Space ? keys
