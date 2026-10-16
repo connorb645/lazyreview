@@ -5,26 +5,26 @@
 ╭─[2]─Files──────────────╭─Find a file, type or component─────────────────╮                        │
 │ ▾ ■ widgets            │ › bask▏                                        │ 2 files +11 −0         │
 │   ▾ Sources/Basket     │▌type  Basket · Basket.swift                    │                        │
-│     M Basket.swift     │ file  Sources/Basket/Basket.swift              │cd3c7027 · 2 files +4 −1│
-│   ▾ Sources/Catalog    │                                                │files +15 −1            │
-│     M MemoryCatalog.swi│                                                │                        │
+│     M Basket.swift     │ file  Sources/Basket/Basket.swift              │cd3c7027                │
+│   ▾ Sources/Catalog    │                                                │                        │
+│     M MemoryCatalog.swi│                                                │files +15 −1            │
 │     A Search.swift     │                                                │                        │
-│   ▾ web/src            │                                                │Search.swift:4. #22     │
-│     M cart.ts          │                                                │in Basket.swift:7.      │
-│ ▾ ■ Unchanged code  unc│                                                │                        │
-│   · Catalog.swift      │                                                │ch.swift line 4         │
-╰───────────────────────1│                                                │t.swift line 7          │
-╭─[3]─Notes──────────────│                                                │                        │
+│   ▾ web/src            │                                                │                        │
+│     M cart.ts          │                                                │Search.swift:4. #22     │
+│ ▾ ■ Unchanged code  unc│                                                │in Basket.swift:7.      │
+│   · Catalog.swift      │                                                │                        │
+╰───────────────────────1│                                                │ch.swift line 4         │
+╭─[3]─Notes──────────────│                                                │t.swift line 7          │
 │ Queued                 │                                                │                        │
-│ 1 MemoryCatalog.swift:8│                                                │checking for            │
-│ 2 Basket.swift:9-11    │                                                │                        │
-│ Claude                 │                                                │og/MemoryCatalog.swift …│
-│ Basket.swift:7 Could th│                                                │                        │
+│ 1 MemoryCatalog.swift:8│                                                │                        │
+│ 2 Basket.swift:9-11    │                                                │checking for            │
+│ Claude                 │                                                │                        │
+│ Basket.swift:7 Could th│                                                │og/MemoryCatalog.swift …│
 │ On GitHub              │                                                │                        │
-╰────────────────────────╰─────────────────────────────────────────1 of 2─╯last changed its line,  │
-╭─[4]─Diagram───────────────────╮│ shown as → #number.                                             │
-│ Components                    ││                                                                 │
-│ ■ widgets                     ││  #21  Add search to the catalog                                 │
-│ ■ Unchanged code              ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
+╰────────────────────────╰─────────────────────────────────────────1 of 2─╯                        │
+╭─[4]─Diagram───────────────────╮│ A comment goes on the pull request that last changed its line,  │
+│ Components                    ││ shown as → #number.                                             │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││  #21  Add search to the catalog                                 │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
  Narrow: type | Move: Ctrl-n Ctrl-p | Go: Enter | Close: Esc

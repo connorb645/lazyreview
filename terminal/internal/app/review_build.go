@@ -32,6 +32,23 @@ func (b *builder) prose(indent string, style lipgloss.Style, text string) {
 	}
 }
 
+func (b *builder) parts(indent string, parts ...string) {
+	sep := b.p.Muted.Render(" · ")
+	line := ""
+	for _, part := range parts {
+		switch {
+		case line == "":
+			line = part
+		case ansi.StringWidth(indent+line+sep+part) <= b.width-1:
+			line += sep + part
+		default:
+			b.text(indent + line)
+			line = part
+		}
+	}
+	b.text(indent + line)
+}
+
 func (b *builder) add(it item, texts ...string) {
 	b.items = append(b.items, it)
 	for _, t := range texts {
@@ -128,27 +145,27 @@ func reviewHeader(b *builder, d reviewData) {
 	case s.Kind == "branch":
 		b.prose(" ", p.Muted, fmt.Sprintf("Branch %s in %s, with no pull request yet", s.Head.Ref, s.Repo))
 		b.prose(" ", p.Bold, title)
-		b.text(" " + p.Muted.Render(fmt.Sprintf("Base %s · Head %s · ", s.Base.Ref, short(s.Head.Sha))) + totals)
+		b.parts(" ", p.Muted.Render("Base "+s.Base.Ref), p.Muted.Render("Head "+short(s.Head.Sha)), totals)
 	case d.page.Stack != nil:
 		b.prose(" ", p.Muted, fmt.Sprintf("A stack of %d pull requests, each built on the one before, reviewed together", len(s.Members)))
 		b.prose(" ", p.Bold, title)
 		for _, m := range s.Members {
 			own := stackMember(d.page.Stack, m.Pull)
-			meta := fmt.Sprintf("by %s · on %s · head %s · %s ", m.Author, m.Base, short(m.Head), plural(own.Files, "file"))
-			state := ""
+			parts := []string{p.Muted.Render("by " + m.Author), p.Muted.Render("on " + m.Base), p.Muted.Render("head " + short(m.Head)),
+				p.Muted.Render(plural(own.Files, "file")+" ") + p.Add.Render(fmt.Sprintf("+%d", own.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", own.Dels))}
 			if m.State != "" && m.State != "open" {
-				state = p.Del.Render(" · " + m.State)
+				parts = append(parts, p.Del.Render(m.State))
 			}
 			head := "  " + p.pull(m.Color).Render(fmt.Sprintf("#%d", m.Pull)) + "  " + p.Ink.Render(m.Title)
-			tail := p.Muted.Render(meta) + p.Add.Render(fmt.Sprintf("+%d", own.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", own.Dels)) + state
-			if ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {
+			if tail := strings.Join(parts, p.Muted.Render(" · ")); ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {
 				b.text(head + "  " + tail)
 				continue
 			}
-			b.text(head, "       "+tail)
+			b.text(head)
+			b.parts("       ", parts...)
 		}
 		top := s.Members[len(s.Members)-1]
-		b.text(" " + p.Muted.Render(fmt.Sprintf("Base %s · Head %s · Combined: ", s.Base.Ref, short(top.Head))) + totals)
+		b.parts(" ", p.Muted.Render("Base "+s.Base.Ref), p.Muted.Render("Head "+short(top.Head)), p.Muted.Render("Combined: ")+totals)
 		for _, w := range d.page.Stack.Warnings {
 			b.prose(" ", p.Warn, w)
 		}
@@ -160,7 +177,7 @@ func reviewHeader(b *builder, d reviewData) {
 		}
 		b.text(" " + p.Muted.Render(fmt.Sprintf("Pull request #%d by %s%s", m.Pull, m.Author, state)))
 		b.prose(" ", p.Bold, title)
-		b.text(" " + p.Muted.Render(fmt.Sprintf("Base %s · Head %s · ", m.Base, short(m.Head))) + totals)
+		b.parts(" ", p.Muted.Render("Base "+m.Base), p.Muted.Render("Head "+short(m.Head)), totals)
 	}
 	if s.Moved != nil {
 		b.prose(" ", p.Warn, fmt.Sprintf("This review moved: its pull requests are reviewed together on %s. Its queued comments moved there, and nothing can be sent from here.", s.Moved.To))

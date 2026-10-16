@@ -5,25 +5,27 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/glamour"
+	glamourstyle "github.com/charmbracelet/glamour/ansi"
 	"github.com/charmbracelet/glamour/styles"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 )
 
 type markdown struct {
-	style     string
+	style     glamourstyle.StyleConfig
 	renderers map[int]*glamour.TermRenderer
 	drawn     map[string][]string
 }
 
 func newMarkdown(dark bool) *markdown {
-	style := styles.LightStyle
+	style := styles.LightStyleConfig
 	switch {
 	case lipgloss.ColorProfile() == termenv.Ascii:
-		style = styles.NoTTYStyle
+		style = styles.NoTTYStyleConfig
 	case dark:
-		style = styles.DarkStyle
+		style = styles.DarkStyleConfig
 	}
+	style.Code.Prefix, style.Code.Suffix = "", ""
 	return &markdown{style: style, renderers: map[int]*glamour.TermRenderer{}, drawn: map[string][]string{}}
 }
 
@@ -35,7 +37,7 @@ func (m *markdown) lines(text string, width int) []string {
 	renderer, ok := m.renderers[width]
 	if !ok {
 		var err error
-		renderer, err = glamour.NewTermRenderer(glamour.WithStandardStyle(m.style), glamour.WithColorProfile(lipgloss.ColorProfile()), glamour.WithWordWrap(width))
+		renderer, err = glamour.NewTermRenderer(glamour.WithStyles(m.style), glamour.WithColorProfile(lipgloss.ColorProfile()), glamour.WithWordWrap(width))
 		if err != nil {
 			return wrap(text, width)
 		}
