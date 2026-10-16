@@ -32,14 +32,13 @@ func lay(width, height, focus, driving int, mode screenMode, wants [sideCount + 
 		}
 		return l
 	}
-	side := width / 3
+	side := max(width/3, 24)
 	switch {
 	case mode == halfScreen && focus == mainPanel:
-		side = width / 5
+		side = max(width/5, 16)
 	case mode == halfScreen:
 		side = width / 2
 	}
-	side = max(side, 24)
 	l.main = rect{x: side, w: width - side, h: h}
 	first := min(wants[reviewPanel]+2, max(3, h/4))
 	l.sides[reviewPanel] = rect{w: side, h: first}
