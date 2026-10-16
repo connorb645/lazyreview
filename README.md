@@ -187,7 +187,7 @@ Every panel:
 | `1` `2` `3` `4` | from a panel on the left: the Review, Files, Notes or Diagram panel |
 | `0` | the main panel |
 | `Esc` | closes a popup, or gives the keys back to the panel on the left |
-| `+` `_` | makes the panel with the keys bigger or smaller: half the screen, then the whole of it |
+| `+` `_` | gives the panel with the keys more of the screen, then all of it; `_` goes back |
 | `Space v` | the Review view |
 | `Space m` | the diagram |
 | `Space f` | finds a file, type or component as you type; `Ctrl-n` `Ctrl-p` move, `Enter` goes there |
