@@ -108,7 +108,7 @@ func (v diffView) to(i, height int) diffView {
 }
 
 func (v diffView) scroll(by, height int) diffView {
-	v.top = clamp(v.top+by, 0, max(0, len(v.rows)-height))
+	v.top = clamp(v.top+by, 0, v.lastTop(height))
 	return v
 }
 
@@ -124,26 +124,23 @@ func (v diffView) placed(height int) diffView {
 	for v.top > 0 && used(v.top-1, v.cursor-1) < height/3 {
 		v.top--
 	}
-	for v.top > 0 && used(v.top-1, len(v.rows)-1) <= height {
-		v.top--
-	}
+	v.top = min(v.top, v.lastTop(height))
 	return v
 }
 
 func (v diffView) atTop(height int) diffView {
-	v.top = v.cursor
-	for v.top > 0 && rowsBelow(v, v.top-1) <= height {
-		v.top--
-	}
+	v.top = min(v.cursor, v.lastTop(height))
 	return v
 }
 
-func rowsBelow(v diffView, from int) int {
-	n := 0
-	for i := from; i < len(v.rows); i++ {
-		n += rowHeight(v.rows[i], v)
+func (v diffView) lastTop(height int) int {
+	used := 0
+	for i := len(v.rows) - 1; i >= 0; i-- {
+		if used += rowHeight(v.rows[i], v); used > height {
+			return min(i+1, len(v.rows)-1)
+		}
 	}
-	return n
+	return 0
 }
 
 func (v diffView) shown(height int) diffView {

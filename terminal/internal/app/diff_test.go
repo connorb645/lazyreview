@@ -3,6 +3,8 @@ package app
 import (
 	"strings"
 	"testing"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func cursorAt(a App) string {
@@ -152,4 +154,20 @@ func TestAMarkdownFileOfAPullRequest(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 90, 30)
 	a = press(t, a, "0", "G", "enter", "space", "w")
 	screenIs(t, a, "diff-single")
+}
+
+func TestTheWheelReachesTheEndOfAWrappedDiff(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	a = press(t, a, "2", "0", "space", "w")
+	main := a.layout().main.inner()
+	for i := 0; i < 30; i++ {
+		a = send(t, a, tea.MouseMsg{X: main.x + 2, Y: main.y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonWheelDown})
+	}
+	lines := strings.Split(a.View(), "\n")
+	if last := lines[main.y+main.h-1]; !strings.Contains(last, "4   }") {
+		t.Fatalf("the wheel stopped short of the diff's last line; the panel ends with:\n%s", last)
+	}
+	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != main.h-1 {
+		t.Fatalf("at the end of the diff, the thumb is on rows %v", got)
+	}
 }
