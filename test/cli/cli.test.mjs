@@ -13,7 +13,7 @@ import { fakeClaude } from '../support/fake-claude.mjs';
 import { fakeGh } from '../support/fake-gh.mjs';
 import { run as command } from '../../src/cli/main.mjs';
 
-const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'review-desk');
+const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'lazyreview');
 const SLOW_DISK = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '..', 'support', 'slow-disk.mjs')).href;
 
 function run(args, env) {
@@ -35,7 +35,7 @@ test('one command loads a pull request, starts the app, and prints where to open
   const w = workbench();
   const fake = fakeClaude();
   const port = await freePort();
-  const env = { ...w.env, REVIEW_DESK_PORT: String(port), REVIEW_DESK_CLAUDE: fake.command };
+  const env = { ...w.env, LAZYREVIEW_PORT: String(port), LAZYREVIEW_CLAUDE: fake.command };
   try {
     const loaded = await run(['load', w.link(30)], env);
     assert.equal(loaded.code, 0, loaded.stderr);
@@ -51,11 +51,11 @@ test('one command loads a pull request, starts the app, and prints where to open
     assert.equal(stack.code, 0, stack.stderr);
     assert.match(stack.stdout, /^loaded #21, #22: 4 files \+\d+ -\d+, \d+ components?, \d+ types?\nopen http:\/\/127\.0\.0\.1:\d+\/review\/github\.com\/octo\/widgets\/21\n$/);
 
-    assert.match((await run(['terminal', 'github.com/octo/widgets/99'], env)).stderr, /^review-desk: there is no review github\.com\/octo\/widgets\/99; review-desk list shows every review\n/);
+    assert.match((await run(['terminal', 'github.com/octo/widgets/99'], env)).stderr, /^lazyreview: there is no review github\.com\/octo\/widgets\/99; lazyreview list shows every review\n/);
     const missing = await run(['terminal', 'https://github.com/octo/widgets/pull/99'], env);
     assert.equal(missing.stdout, 'loading https://github.com/octo/widgets/pull/99…\n', 'a pull request no review holds is loaded first');
-    assert.match(missing.stderr, /^review-desk: .*pulls\/99/);
-    assert.match((await run(['terminal', 'widgets'], env)).stderr, /^review-desk: "widgets" is not a review id/);
+    assert.match(missing.stderr, /^lazyreview: .*pulls\/99/);
+    assert.match((await run(['terminal', 'widgets'], env)).stderr, /^lazyreview: "widgets" is not a review id/);
     const listed = await run(['list'], env);
     assert.equal(listed.stdout.trim().split('\n').length, 2);
     assert.match(listed.stdout, /\/review\/github\.com\/octo\/widgets\/21 {2}#21, #22 {2}Stack #21 to #22/);
@@ -75,7 +75,7 @@ test('one command loads a pull request, starts the app, and prints where to open
     writeFileSync(file, '---\npull: 30\nhead: 1111111\n---\n## Notes\nx\n');
     const stale = await run(['attach', w.link(30), file], env);
     assert.equal(stale.code, 1);
-    assert.match(stale.stderr, /review-desk: the written review read 1111111, but the review shows head/);
+    assert.match(stale.stderr, /lazyreview: the written review read 1111111, but the review shows head/);
 
     assert.equal((await run(['stop'], env)).stdout, 'stopped\n');
     assert.ok(!existsSync(w.home.serverFile));
@@ -90,7 +90,7 @@ test('one command loads a pull request, starts the app, and prints where to open
 test('the terminal app opens on the review a link names, loading a pull request no review holds yet, and with none on the home screen', async () => {
   const w = workbench();
   const port = await freePort();
-  const env = { ...w.env, REVIEW_DESK_PORT: String(port) };
+  const env = { ...w.env, LAZYREVIEW_PORT: String(port) };
   const said = [];
   const opened = [];
   const terminal = { launch: async ({ review }) => { opened.push(review); } };
@@ -114,7 +114,7 @@ test('the terminal app opens on the review a link names, loading a pull request 
 test('one command loads a branch with no pull request, and prints the address that opens it', async () => {
   const w = workbench();
   const port = await freePort();
-  const env = { ...w.env, REVIEW_DESK_PORT: String(port) };
+  const env = { ...w.env, LAZYREVIEW_PORT: String(port) };
   try {
     const loaded = await run(['load', '--repo', w.repo.work, '--base', 'main', '--head', 'fix/wording', '--title', 'Wording'], env);
     assert.equal(loaded.code, 0, loaded.stderr);
@@ -141,7 +141,7 @@ test('one command loads a branch with no pull request, and prints the address th
 test('the first load starts the app even when the disk is slow to fill the app\'s record', async () => {
   const w = workbench();
   const port = await freePort();
-  const env = { ...w.env, REVIEW_DESK_PORT: String(port), NODE_OPTIONS: `--import=${SLOW_DISK}` };
+  const env = { ...w.env, LAZYREVIEW_PORT: String(port), NODE_OPTIONS: `--import=${SLOW_DISK}` };
   try {
     const loaded = await run(['load', w.link(30)], env);
     assert.equal(loaded.code, 0, loaded.stderr);
@@ -154,19 +154,19 @@ test('the first load starts the app even when the disk is slow to fill the app\'
 
 test('a file that is not JSON fails the command, naming the file', async () => {
   const gh = fakeGh();
-  const root = mkdtempSync(join(tmpdir(), 'review-desk-home-'));
-  const env = { ...gh.env, REVIEW_DESK_HOME: root };
+  const root = mkdtempSync(join(tmpdir(), 'lazyreview-home-'));
+  const env = { ...gh.env, LAZYREVIEW_HOME: root };
   try {
     writeFileSync(join(root, 'server.json'), '');
     const started = await run(['start'], env);
     assert.equal(started.code, 1);
-    assert.equal(started.stderr, `review-desk: could not read ${join(root, 'server.json')}: Unexpected end of JSON input\n`);
+    assert.equal(started.stderr, `lazyreview: could not read ${join(root, 'server.json')}: Unexpected end of JSON input\n`);
 
     const config = join(root, 'components.json');
     writeFileSync(config, '{"components": [');
     const loaded = await run(['load', 'https://github.com/octo/widgets/pull/1', '--config', config], env);
     assert.equal(loaded.code, 1);
-    assert.equal(loaded.stderr, `review-desk: could not read the config ${config}: Unexpected end of JSON input\n`);
+    assert.equal(loaded.stderr, `lazyreview: could not read the config ${config}: Unexpected end of JSON input\n`);
     assert.deepEqual(gh.calls(), []);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -176,15 +176,15 @@ test('a file that is not JSON fails the command, naming the file', async () => {
 
 test('the command explains itself, and names what was wrong', async () => {
   const help = await run(['help'], process.env);
-  assert.match(help.stdout, /^usage: review-desk <command> \[options\]/);
+  assert.match(help.stdout, /^usage: lazyreview <command> \[options\]/);
   const wrong = await run(['load'], process.env);
   assert.equal(wrong.code, 1);
-  assert.match(wrong.stderr, /^review-desk: load needs a pull request, or --repo with --base and --head\n\nusage:/);
-  assert.match((await run(['load', '--repo', '.', '--base', 'main'], process.env)).stderr, /^review-desk: --repo needs --head\n/);
-  assert.match((await run(['load', '--head', 'feature'], process.env)).stderr, /^review-desk: --head needs --repo\n/);
-  assert.match((await run(['load', 'octo/widgets#1', '--repo', '.', '--base', 'a', '--head', 'b'], process.env)).stderr, /^review-desk: load takes pull requests or --repo, not both\n/);
-  assert.match((await run(['load', '--repo', '.', '--base', 'a', '--head', 'b', '--account', 'me'], process.env)).stderr, /^review-desk: --account is for pull requests/);
-  assert.match((await run(['terminal', 'octo/widgets#1', 'octo/widgets#2'], process.env)).stderr, /^review-desk: terminal takes 1 argument\n\nusage:/);
+  assert.match(wrong.stderr, /^lazyreview: load needs a pull request, or --repo with --base and --head\n\nusage:/);
+  assert.match((await run(['load', '--repo', '.', '--base', 'main'], process.env)).stderr, /^lazyreview: --repo needs --head\n/);
+  assert.match((await run(['load', '--head', 'feature'], process.env)).stderr, /^lazyreview: --head needs --repo\n/);
+  assert.match((await run(['load', 'octo/widgets#1', '--repo', '.', '--base', 'a', '--head', 'b'], process.env)).stderr, /^lazyreview: load takes pull requests or --repo, not both\n/);
+  assert.match((await run(['load', '--repo', '.', '--base', 'a', '--head', 'b', '--account', 'me'], process.env)).stderr, /^lazyreview: --account is for pull requests/);
+  assert.match((await run(['terminal', 'octo/widgets#1', 'octo/widgets#2'], process.env)).stderr, /^lazyreview: terminal takes 1 argument\n\nusage:/);
   assert.match((await run(['frobnicate'], process.env)).stderr, /unknown command "frobnicate"/);
   assert.match((await run(['load', 'x', '--colour'], process.env)).stderr, /unknown option --colour for load/);
 });

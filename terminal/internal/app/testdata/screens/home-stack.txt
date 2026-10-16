@@ -3,7 +3,7 @@
 │      #9 Sort the gadgets by price          kim ││ #22 by sam · feature/basket → feature/search   │
 │                                                ││                                                │
 │                                                ││ ● Waiting on your review, asked of reviewer.   │
-│                                                ││ ◆ Loaded in Review Desk.                       │
+│                                                ││ ◆ Loaded in lazyreview.                        │
 │                                                ││                                                │
 │                                                ││ Enter opens the stack's review.                │
 ╰─────────────────────────────────────────1 of 2─╯│                                                │

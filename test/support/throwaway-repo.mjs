@@ -24,7 +24,7 @@ import { join, dirname } from 'node:path';
 const FIXED_TIME = { GIT_AUTHOR_DATE: '2026-10-15T12:00:00Z', GIT_COMMITTER_DATE: '2026-10-15T12:00:00Z' };
 
 export function throwawayRepo() {
-  const root = mkdtempSync(join(tmpdir(), 'review-desk-repo-'));
+  const root = mkdtempSync(join(tmpdir(), 'lazyreview-repo-'));
   const work = join(root, 'work');
   const origin = join(root, 'origin.git');
   const git = (cwd, ...args) => execFileSync('git', ['-C', cwd, '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { encoding: 'utf8', env: { ...process.env, ...FIXED_TIME } }).trim();

@@ -8,8 +8,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"review-desk/terminal/internal/diagram"
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 const labelLetters = "asdfghjklqwertyuiopzxcvbnm"

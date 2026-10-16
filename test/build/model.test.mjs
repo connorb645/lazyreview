@@ -13,7 +13,7 @@ import { readConfig } from '../../src/build/config/config.mjs';
 
 // The diff git itself makes between two versions of a file.
 function changed(path, baseText, text) {
-  const folder = mkdtempSync(join(tmpdir(), 'review-desk-test-'));
+  const folder = mkdtempSync(join(tmpdir(), 'lazyreview-test-'));
   const a = join(folder, 'a'), b = join(folder, 'b');
   writeFileSync(a, baseText ?? '');
   writeFileSync(b, text ?? '');

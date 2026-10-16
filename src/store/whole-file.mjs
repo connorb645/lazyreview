@@ -1,5 +1,5 @@
 /**
- * Reads and writes the files Review Desk keeps, each one whole.
+ * Reads and writes the files lazyreview keeps, each one whole.
  *
  * writeWhole(path, text, {mode}) writes `text` to a new file beside `path`,
  * made with `mode`, 0644 less the umask unless given, then renames that over

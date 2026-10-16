@@ -2,7 +2,7 @@
 │ ●    #7 Count the gadgets in stock            kim ││ Add search to the catalog                                                                                │
 │      #9 Sort the gadgets by price             kim ││ #21 by sam · feature/search → main                                                                       │
 │                                                   ││                                                                                                          │
-│                                                   ││ ◆ Loaded in Review Desk.                                                                                 │
+│                                                   ││ ◆ Loaded in lazyreview.                                                                                  │
 │                                                   ││                                                                                                          │
 │                                                   ││ Enter opens the stack's review.                                                                          │
 │                                                   ││                                                                                                          │

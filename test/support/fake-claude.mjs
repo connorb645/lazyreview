@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export function fakeClaude() {
-  const dir = mkdtempSync(join(tmpdir(), 'review-desk-claude-'));
+  const dir = mkdtempSync(join(tmpdir(), 'lazyreview-claude-'));
   const command = join(dir, 'claude');
   const log = join(dir, 'asked.jsonl');
   const answerFile = join(dir, 'answer.json');

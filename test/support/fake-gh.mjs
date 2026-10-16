@@ -83,7 +83,7 @@ function refusal(files, c) {
 `;
 
 export function fakeGh() {
-  const dir = mkdtempSync(join(tmpdir(), 'review-desk-gh-'));
+  const dir = mkdtempSync(join(tmpdir(), 'lazyreview-gh-'));
   writeFileSync(join(dir, 'gh'), SCRIPT);
   chmodSync(join(dir, 'gh'), 0o755);
   const routesFile = join(dir, 'routes.json');

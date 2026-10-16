@@ -27,7 +27,7 @@ const thread = (id, path, line, login, body, extra = {}) => ({
 const TOKEN = 'record-token';
 const UNREACHABLE = { $fail: 'error connecting to api.github.com\ncheck your internet connection or https://githubstatus.com' };
 // The data home the answers name, in place of the throwaway one, so the same review gives the same record.
-const STAND_IN_HOME = '/home/reviewer/.review-desk';
+const STAND_IN_HOME = '/home/reviewer/.lazyreview';
 
 // Sends a request as the terminal app does, a change carrying the token and its fields as JSON.
 function send(address, method, path, body = null) {
@@ -185,7 +185,7 @@ function firstDifference(recorded, now) {
 
 test('the server answers the terminal app is tested against are the ones it gives now', async () => {
   const now = await recordAnswers();
-  if (process.env.REVIEW_DESK_RECORD) {
+  if (process.env.LAZYREVIEW_RECORD) {
     mkdirSync(dirname(RECORD), { recursive: true });
     writeFileSync(RECORD, JSON.stringify(now, null, 1) + '\n');
     return;
@@ -194,8 +194,8 @@ test('the server answers the terminal app is tested against are the ones it give
   try {
     recorded = JSON.parse(readFileSync(RECORD, 'utf8'));
   } catch (error) {
-    assert.fail(`could not read the record ${RECORD}: ${error.message}; write it with REVIEW_DESK_RECORD=1 npm test`);
+    assert.fail(`could not read the record ${RECORD}: ${error.message}; write it with LAZYREVIEW_RECORD=1 npm test`);
   }
   const differs = firstDifference(recorded, now);
-  assert.equal(differs, null, `the server now answers ${differs} differently from the record the terminal app's tests read; write it again with REVIEW_DESK_RECORD=1 npm test, then run the Go tests`);
+  assert.equal(differs, null, `the server now answers ${differs} differently from the record the terminal app's tests read; write it again with LAZYREVIEW_RECORD=1 npm test, then run the Go tests`);
 });

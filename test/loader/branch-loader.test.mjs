@@ -16,7 +16,7 @@ function bench() {
   repo.commit('main', { 'src/catalog.ts': 'export const items: string[] = [];\n' }, 'base');
   repo.commit('feature/search', { 'src/search.ts': 'export function find(text: string) {\n  return text;\n}\n' }, 'Add search');
   repo.checkout('main');
-  const root = mkdtempSync(join(tmpdir(), 'review-desk-home-'));
+  const root = mkdtempSync(join(tmpdir(), 'lazyreview-home-'));
   const store = new ReviewStore(new DataHome(root));
   let tick = 0;
   const now = () => new Date(Date.UTC(2026, 9, 16, 9, 0, tick++)).toISOString();
@@ -58,7 +58,7 @@ test('a branch loads from its repository into a read-only review, kept by reposi
 
 test('loading the same branch again, from any worktree of its repository, updates its review in place', async () => {
   const b = bench();
-  const outside = realpathSync(mkdtempSync(join(tmpdir(), 'review-desk-worktree-')));
+  const outside = realpathSync(mkdtempSync(join(tmpdir(), 'lazyreview-worktree-')));
   const second = join(outside, 'second');
   try {
     const first = await b.loader.load({ repo: b.repo.work, base: 'main', head: 'feature/search', title: 'Search', context: true });
@@ -100,7 +100,7 @@ test('two repositories of the same name keep their branches apart', async () => 
 
 test('a branch load names what was wrong, and writes nothing', async () => {
   const b = bench();
-  const empty = mkdtempSync(join(tmpdir(), 'review-desk-empty-'));
+  const empty = mkdtempSync(join(tmpdir(), 'lazyreview-empty-'));
   try {
     await assert.rejects(b.loader.load({ repo: b.repo.work, base: 'main', head: b.repo.sha('feature/search') }),
       /is not a branch of .*; give a branch, so loading it again updates the same review/);

@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 var (

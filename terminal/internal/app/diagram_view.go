@@ -3,8 +3,8 @@ package app
 import (
 	"github.com/charmbracelet/lipgloss"
 
-	"review-desk/terminal/internal/diagram"
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 type diagramView struct {

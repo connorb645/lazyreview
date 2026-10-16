@@ -20,7 +20,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 var update = flag.Bool("update", false, "write the screens the tests compare against")

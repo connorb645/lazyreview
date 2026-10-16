@@ -7,7 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 // Options are what the app needs from outside: the server, the review to

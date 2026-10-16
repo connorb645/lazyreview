@@ -7,7 +7,7 @@
  * fetching any missing one by its id. It returns the clone's path. Network
  * calls go through gh as git's credential helper, as the account
  * `environment` names, so a private repository needs nothing set up beyond
- * gh itself. A clone only ever holds what Review Desk fetched into it, so
+ * gh itself. A clone only ever holds what lazyreview fetched into it, so
  * fetching overwrites its refs freely; one fetch at a time runs in it.
  */
 import { execFile } from 'node:child_process';

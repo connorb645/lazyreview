@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 const stack = "github.com/octo/widgets/21"

@@ -2,7 +2,7 @@
 │▌   ┌ #3 Keep the notes in plain… reviewer-home ││ Keep the notes in plain text                   │
 │    └ #4 Tag the notes            reviewer-home ││ #3 by reviewer-home · plain-text → main        │
 │                                                ││                                                │
-│                                                ││   Not loaded in Review Desk yet.               │
+│                                                ││   Not loaded in lazyreview yet.                │
 │                                                ││   You opened it.                               │
 │                                                ││                                                │
 │                                                ││ Enter loads the stack, #3 → #4, as             │

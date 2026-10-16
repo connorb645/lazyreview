@@ -1,6 +1,6 @@
 package app
 
-import "review-desk/terminal/internal/keys"
+import "github.com/connorb645/lazyreview/terminal/internal/keys"
 
 var everyView = keys.Bindings{
 	":": "command", "space ?": "keys", "space v": "review", "g x": "github", "g X": "web",
@@ -175,7 +175,7 @@ var homeHelp = []helpRow{
 
 var homeMarks = []helpRow{
 	{"●", "your review is waiting: asked of you, or of your team"},
-	{"◆", "loaded in Review Desk"},
+	{"◆", "loaded in lazyreview"},
 	{"┌ └", "a stack, bottom first, reviewed as one"},
 	{"dim", "a draft"},
 }

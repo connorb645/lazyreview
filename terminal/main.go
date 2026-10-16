@@ -1,6 +1,6 @@
-// Command review-desk-terminal is Review Desk in a terminal: the same reviews
+// Command lazyreview-terminal is lazyreview in a terminal: the same reviews
 // as the web app, with Vim keys, as a second client of the same server.
-// review-desk terminal builds it and runs it.
+// lazyreview terminal builds it and runs it.
 package main
 
 import (
@@ -11,12 +11,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"review-desk/terminal/internal/app"
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/app"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 func editor() string {
-	for _, name := range []string{"REVIEW_DESK_EDITOR", "VISUAL", "EDITOR"} {
+	for _, name := range []string{"LAZYREVIEW_EDITOR", "VISUAL", "EDITOR"} {
 		if command := os.Getenv(name); command != "" {
 			return command
 		}
@@ -25,9 +25,9 @@ func editor() string {
 }
 
 func main() {
-	serverFile := flag.String("server-file", "", "the Review Desk server's own record, server.json, holding its address and token")
+	serverFile := flag.String("server-file", "", "the lazyreview server's own record, server.json, holding its address and token")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: review-desk-terminal --server-file <server.json> [<review id>]")
+		fmt.Fprintln(os.Stderr, "usage: lazyreview-terminal --server-file <server.json> [<review id>]")
 	}
 	flag.Parse()
 	if *serverFile == "" || flag.NArg() > 1 {
@@ -37,7 +37,7 @@ func main() {
 	opts := app.Options{Server: server.NewClient(*serverFile), Review: flag.Arg(0), Dark: lipgloss.HasDarkBackground(), Editor: editor()}
 	program := tea.NewProgram(app.New(opts), tea.WithAltScreen(), tea.WithMouseCellMotion())
 	if _, err := program.Run(); err != nil {
-		fmt.Fprintln(os.Stderr, "review-desk terminal:", err)
+		fmt.Fprintln(os.Stderr, "lazyreview terminal:", err)
 		os.Exit(1)
 	}
 }

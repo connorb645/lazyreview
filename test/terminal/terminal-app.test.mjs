@@ -7,7 +7,7 @@ import { TerminalApp } from '../../src/terminal/terminal-app.mjs';
 
 // A terminal folder whose program records how it was run, built by a stand-in for go.
 function folder() {
-  const root = mkdtempSync(join(tmpdir(), 'review-desk-terminal-'));
+  const root = mkdtempSync(join(tmpdir(), 'lazyreview-terminal-'));
   mkdirSync(join(root, 'internal'), { recursive: true });
   mkdirSync(join(root, 'vendor', 'x'), { recursive: true });
   writeFileSync(join(root, 'go.mod'), 'module x\n');

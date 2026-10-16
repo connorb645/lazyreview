@@ -2,7 +2,7 @@
 │ ●    #7 Count the gadgets in stock         kim ││ Fix the guide wording                          │
 │      #9 Sort the gadgets by price          kim ││ #30 by alex · fix/wording → main               │
 │                                                ││                                                │
-│                                                ││   Not loaded in Review Desk yet.               │
+│                                                ││   Not loaded in lazyreview yet.                │
 │                                                ││   You have commented on it.                    │
 │                                                ││                                                │
 │                                                ││ Enter loads it as reviewer, then opens it.     │

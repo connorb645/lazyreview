@@ -9,7 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 const cutLine = "# ------------------------ >8 ------------------------"
@@ -246,7 +246,7 @@ func (a App) edit(e editing) (tea.Model, tea.Cmd) {
 	if draft, ok := a.drafts[e.key]; ok {
 		text = draft
 	}
-	file, err := os.CreateTemp("", "review-desk-*.md")
+	file, err := os.CreateTemp("", "lazyreview-*.md")
 	if err != nil {
 		return a.say("could not make a file to write in: "+err.Error(), true), nil
 	}

@@ -1,4 +1,4 @@
-# Review Desk
+# lazyreview
 
 A web app, run on your own machine, for reviewing a pull request or a stack of
 them, or a branch that has no pull request yet. One command loads a pull
@@ -21,21 +21,21 @@ libraries and the one font in `vendor/`, and it loads nothing from the network.
 
 ## Start the app
 
-    bin/review-desk start      # in the background
-    bin/review-desk serve      # or in this terminal
-    bin/review-desk stop
+    bin/lazyreview start      # in the background
+    bin/lazyreview serve      # or in this terminal
+    bin/lazyreview stop
 
 It listens on http://127.0.0.1:4747, on this machine only. `load` starts it
 when it is not running, so starting it by hand is rarely needed.
 
 ## Load a pull request or a stack
 
-    bin/review-desk load https://github.com/owner/repo/pull/12
+    bin/lazyreview load https://github.com/owner/repo/pull/12
 
 A stack is every pull request of it, bottom first, each based on the head
 branch of the one below:
 
-    bin/review-desk load https://github.com/owner/repo/pull/12 \
+    bin/lazyreview load https://github.com/owner/repo/pull/12 \
       https://github.com/owner/repo/pull/13 https://github.com/owner/repo/pull/14
 
 It prints what it loaded and where to open it:
@@ -56,24 +56,24 @@ it. Options:
   a dashed component of its own, its code read only; `--no-context` stops it.
   The review keeps the choice.
 
-`bin/review-desk list` prints every review with its address.
+`bin/lazyreview list` prints every review with its address.
 
 ### For an agent
 
 An agent asked to review a pull request runs one command and passes on the
 address it prints:
 
-    bin/review-desk load <pull request address>...
+    bin/lazyreview load <pull request address>...
 
 That is the whole job. Comments, questions and the review itself happen in the
 app. A change with no pull request yet is one command too:
 
-    bin/review-desk load --repo <folder> --base <ref> --head <branch>
+    bin/lazyreview load --repo <folder> --base <ref> --head <branch>
 
 An agent that has written a review of a pull request can attach it, and the
 app then opens on it:
 
-    bin/review-desk attach <pull request address> review.md
+    bin/lazyreview attach <pull request address> review.md
 
 The written review is Markdown: a header naming what it read, then its
 sections as `##` headings. A `file:line` in backticks, such as
@@ -94,7 +94,7 @@ A branch about to be pushed, or any branch, loads straight from its
 repository on this machine, as its pull request would show it: from where it
 leaves the base to its head.
 
-    bin/review-desk load --repo ~/code/widgets --base main --head feature/search
+    bin/lazyreview load --repo ~/code/widgets --base main --head feature/search
 
 It prints what it loaded and where to open it:
 
@@ -158,9 +158,9 @@ each of them.
 The same reviews open in a terminal app with Vim keys, a second client of the
 same server. Both apps can be open on one review at once.
 
-    bin/review-desk terminal
-    bin/review-desk terminal http://127.0.0.1:4747/review/github.com/owner/repo/12
-    bin/review-desk terminal https://github.com/owner/repo/pull/12
+    bin/lazyreview terminal
+    bin/lazyreview terminal http://127.0.0.1:4747/review/github.com/owner/repo/12
+    bin/lazyreview terminal https://github.com/owner/repo/pull/12
 
 With no link, it opens on the home screen of your open pull requests, below.
 With one, it opens that review straight away: the address `load` printed, or
@@ -179,7 +179,7 @@ accounts, read live from GitHub: those that ask for your review, or your
 team's, those you opened, and those you have commented on or reviewed. Each
 repository has a panel of its own on the left, numbered as Lazygit numbers
 its panels. Each row shows a pull request's number, title and author, `●`
-when your review is waiting and `◆` when it is loaded in Review Desk; a draft
+when your review is waiting and `◆` when it is loaded in lazyreview; a draft
 is dim. A stack's pull requests sit together, bottom first, joined by a
 bracket, and any of them opens the stack's review. The main panel shows the
 pull request selected: why it involves you, its stack, its description, and
@@ -198,7 +198,7 @@ and why, and the others are still listed.
 | `Space h` | from any review, the home screen |
 
 The accounts are named in `settings.json` in the data home,
-`~/.review-desk/settings.json`, which the home screen reads each time it
+`~/.lazyreview/settings.json`, which the home screen reads each time it
 reads GitHub:
 
 ```json
@@ -311,7 +311,7 @@ in place and keeps your view, folds and filter. With a draft open it says so
 instead, and `R` loads it when you are ready.
 
 A comment, a question or an edit is written in your own editor: the first of
-`REVIEW_DESK_EDITOR`, `VISUAL` and `EDITOR` that is set, or `vi`, as git
+`LAZYREVIEW_EDITOR`, `VISUAL` and `EDITOR` that is set, or `vi`, as git
 chooses. Write above the cut line and save; what is below it says where the
 comment goes and is never sent. Saving with no text sends nothing. When the
 server refuses a comment, the bar at the bottom says why and `c` or `e` opens
@@ -347,7 +347,7 @@ mistake named.
 
 ## Where things are kept
 
-Everything lives under `~/.review-desk`: a bare clone of each repository, and
+Everything lives under `~/.lazyreview`: a bare clone of each repository, and
 one folder per review holding its record (`review.json`: the pull requests,
 the queue and the reviews sent), the drawn page (`page.json`, with the review
 threads GitHub had when it was loaded), any config and written review, and one
@@ -359,17 +359,17 @@ above. Other settings come from the environment:
 
 | Variable | Meaning | Default |
 | --- | --- | --- |
-| `REVIEW_DESK_HOME` | where reviews and clones are kept | `~/.review-desk` |
-| `REVIEW_DESK_PORT` | the app's port, on this machine only | `4747` |
-| `REVIEW_DESK_CLAUDE` | the Claude Code command | `claude` |
-| `REVIEW_DESK_MODEL` | the model that answers questions | Claude Code's default |
+| `LAZYREVIEW_HOME` | where reviews and clones are kept | `~/.lazyreview` |
+| `LAZYREVIEW_PORT` | the app's port, on this machine only | `4747` |
+| `LAZYREVIEW_CLAUDE` | the Claude Code command | `claude` |
+| `LAZYREVIEW_MODEL` | the model that answers questions | Claude Code's default |
 
 The server answers only requests addressed to 127.0.0.1 or localhost, and
 takes changes only as JSON from its own pages.
 
 ## Code
 
-- `bin/review-desk` is the command; `src/cli` reads it.
+- `bin/lazyreview` is the command; `src/cli` reads it.
 - `src/loader` loads a review, of pull requests or of a branch; `src/local`
   names a branch's review; `src/build` reads the diff, the types and the
   stack, and lays out the diagram with ELK (`vendor/`).
@@ -387,4 +387,4 @@ test:terminal`. They make their own throwaway repositories and answer for
 GitHub and Claude Code with stand-ins, so they reach no network. The terminal
 app's tests read the server's answers from `terminal/testdata/record.json`,
 which a Node test checks against the server; when the server changes what it
-answers, `REVIEW_DESK_RECORD=1 npm test` writes it again.
+answers, `LAZYREVIEW_RECORD=1 npm test` writes it again.

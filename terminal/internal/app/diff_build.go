@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 func diffFiles(d reviewData, component string, filter int) []server.FileEntry {

@@ -7,8 +7,8 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"review-desk/terminal/internal/diagram"
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 func pullKey(pull int) string              { return fmt.Sprintf("pull:%d", pull) }

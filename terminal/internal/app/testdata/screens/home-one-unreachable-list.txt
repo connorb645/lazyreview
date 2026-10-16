@@ -4,7 +4,7 @@
 │                                                ││                                                │
 │                                                ││ ● Waiting on your review, asked of             │
 │                                                ││   octo/reviewers.                              │
-│                                                ││   Not loaded in Review Desk yet.               │
+│                                                ││   Not loaded in lazyreview yet.                │
 ╰─────────────────────────────────────────1 of 1─╯│                                                │
 ╭─[1]─octo/gadgets ● 1───────────────────────────╮│ Enter loads it as reviewer, then opens it.     │
 │▌●    #7 Count the gadgets in stock         kim ││                                                │

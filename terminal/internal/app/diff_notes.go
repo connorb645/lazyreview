@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 func notesOf(d reviewData, path string) []note {

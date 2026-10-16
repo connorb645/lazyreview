@@ -1,10 +1,10 @@
 /**
- * Reads the review-desk command line.
+ * Reads the lazyreview command line.
  *
  * parseArguments(argv) returns {command, ...options}, or throws an error whose
  * message says what was wrong and ends with the usage.
  */
-export const USAGE = `usage: review-desk <command> [options]
+export const USAGE = `usage: lazyreview <command> [options]
 
   load <pull link>...    load a pull request into the app, or a stack of
                          them, bottom first, and print where to open it;

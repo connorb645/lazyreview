@@ -1,5 +1,5 @@
 // Package app is the terminal app: the panels and the keys, drawn from what
-// the Review Desk server answers. It decides nothing the web app also needs.
+// the lazyreview server answers. It decides nothing the web app also needs.
 package app
 
 import (
@@ -16,8 +16,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"review-desk/terminal/internal/keys"
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/keys"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 const doubleClick = 400 * time.Millisecond

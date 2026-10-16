@@ -11,7 +11,7 @@
 import { send, reviewPath, reviewAddress } from '../lib/api.mjs';
 import { when } from '../lib/text.mjs';
 
-const RETURN = 'review-desk:return';
+const RETURN = 'lazyreview:return';
 
 export function createRefresh(ctx) {
   const button = document.getElementById('refresh');

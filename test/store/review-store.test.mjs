@@ -9,7 +9,7 @@ import { withLocks } from '../../src/store/file-lock.mjs';
 import { PullRef } from '../../src/github/pull-ref.mjs';
 
 function scratch() {
-  const root = mkdtempSync(join(tmpdir(), 'review-desk-store-'));
+  const root = mkdtempSync(join(tmpdir(), 'lazyreview-store-'));
   return { root, store: new ReviewStore(new DataHome(root)), done: () => rmSync(root, { recursive: true, force: true }) };
 }
 

@@ -8,7 +8,7 @@
  * or opened by hand. Without storage they last as long as the page.
  */
 export function createFolds(reviewId) {
-  const name = 'review-desk:folds:' + reviewId;
+  const name = 'lazyreview:folds:' + reviewId;
   let kept = {};
   try {
     kept = JSON.parse(sessionStorage.getItem(name) || '{}');

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// review-desk: loads pull requests into the Review Desk app, and runs the app.
-// Run `review-desk help` for the commands.
+// lazyreview: loads pull requests into the lazyreview app, and runs the app.
+// Run `lazyreview help` for the commands.
 import { fileURLToPath } from 'node:url';
 import { run } from '../src/cli/main.mjs';
 
@@ -8,6 +8,6 @@ try {
   const lines = await run(process.argv.slice(2), { env: process.env, bin: fileURLToPath(import.meta.url), say: line => console.log(line) });
   for (const line of lines) console.log(line);
 } catch (error) {
-  console.error(`review-desk: ${error.message}`);
+  console.error(`lazyreview: ${error.message}`);
   process.exitCode = 1;
 }

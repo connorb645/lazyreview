@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 
-	"review-desk/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 )
 
 const noLane = -1

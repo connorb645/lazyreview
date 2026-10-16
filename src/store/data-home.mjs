@@ -1,5 +1,5 @@
 /**
- * Where Review Desk keeps its files, under one folder, the data home:
+ * Where lazyreview keeps its files, under one folder, the data home:
  *
  *   clones/<host>/<owner>/<repo>.git          a bare clone per repository
  *   reviews/<host>/<owner>/<repo>/<pull>/     one folder per pull request review

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { readAccounts } from '../../src/settings/settings.mjs';
 
 function settings(text) {
-  const dir = mkdtempSync(join(tmpdir(), 'review-desk-settings-'));
+  const dir = mkdtempSync(join(tmpdir(), 'lazyreview-settings-'));
   const file = join(dir, 'settings.json');
   if (text !== undefined) writeFileSync(file, typeof text === 'string' ? text : JSON.stringify(text));
   return { file, done: () => rmSync(dir, { recursive: true, force: true }) };

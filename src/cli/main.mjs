@@ -1,5 +1,5 @@
 /**
- * The review-desk command.
+ * The lazyreview command.
  *
  * run(argv, {env, bin, say, terminal}) does what the command line asks and
  * returns the lines to print; `say` prints a line at once, such as what is
@@ -77,7 +77,7 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
     case 'list': {
       const address = (await running(home)) || 'http://127.0.0.1:' + settings.port;
       const reviews = store.list();
-      if (!reviews.length) return ['no reviews yet; load one with review-desk load <pull link>'];
+      if (!reviews.length) return ['no reviews yet; load one with lazyreview load <pull link>'];
       return reviews.map(({ ref, review }) => (review.moved
         ? `${ref.id}  moved to ${review.moved.to}`
         : `${reviewAddress(address, ref)}  ${changeName(review)}  ${review.title}`));
@@ -102,7 +102,7 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
 }
 
 async function serve({ settings, home, store }) {
-  if (await running(home)) throw new Error('the app is running already; review-desk stop stops it');
+  if (await running(home)) throw new Error('the app is running already; lazyreview stop stops it');
   const token = randomBytes(32).toString('hex');
   const server = new AppServer({
     store,
@@ -121,7 +121,7 @@ async function serve({ settings, home, store }) {
       const recorded = readJSON(home.serverFile);
       if (recorded?.pid === process.pid) rmSync(home.serverFile, { force: true });
     } catch (error) {
-      console.error(`review-desk: ${error.message}`);
+      console.error(`lazyreview: ${error.message}`);
     } finally {
       await server.close();
       process.exit(0);
@@ -129,7 +129,7 @@ async function serve({ settings, home, store }) {
   };
   process.once('SIGINT', shut);
   process.once('SIGTERM', shut);
-  return [`Review Desk is running at ${address}`];
+  return [`lazyreview is running at ${address}`];
 }
 
 function changeName(review) {
@@ -153,7 +153,7 @@ async function reviewToOpen(text, { store, home, say }) {
     return loaded.ref.id;
   }
   const ref = reviewRef(text);
-  if (!store.read(ref)) throw new Error(`there is no review ${text}; review-desk list shows every review`);
+  if (!store.read(ref)) throw new Error(`there is no review ${text}; lazyreview list shows every review`);
   return ref.id;
 }
 

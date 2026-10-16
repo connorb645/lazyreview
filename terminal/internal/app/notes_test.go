@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 func onBasket(t *testing.T, set ...func(*Options)) App {

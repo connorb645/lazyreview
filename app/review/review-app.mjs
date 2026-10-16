@@ -35,7 +35,7 @@ export async function openReview(id) {
   const viewsNav = document.getElementById('views');
   const totalsEl = document.getElementById('totals');
 
-  document.title = model.heading.title + ' - Review Desk';
+  document.title = model.heading.title + ' - lazyreview';
   document.getElementById('page-title').textContent = model.heading.title;
   document.getElementById('page-title').title = model.heading.title;
   document.getElementById('context').innerHTML = model.heading.context.map(part => (part[1] ? '<b>' + esc(part[0]) + '</b>' : esc(part[0]))).join('');

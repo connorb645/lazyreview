@@ -2,7 +2,7 @@
 │ No accounts are set                            ││                                                │
 │                                                ││ No GitHub accounts are set, so there is        │
 │                                                ││ nothing to list yet. Name them in              │
-│                                                ││ ~/.review-desk/settings.json:                  │
+│                                                ││ ~/.lazyreview/settings.json:                   │
 │                                                ││                                                │
 │                                                ││   {"accounts": [                               │
 │                                                ││     {"login": "your-login"},                   │

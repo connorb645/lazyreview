@@ -1,4 +1,4 @@
-// Package server reads and changes reviews through the Review Desk server on
+// Package server reads and changes reviews through the lazyreview server on
 // this machine, the one back half the web app and the terminal app share.
 package server
 
@@ -27,7 +27,7 @@ const (
 	loadWait    = 20 * time.Minute
 )
 
-// Client talks to the Review Desk server. It reads the server's address and
+// Client talks to the lazyreview server. It reads the server's address and
 // token from the server's own record at each call, so a server started again
 // is found again.
 type Client struct {
@@ -186,7 +186,7 @@ func (c *Client) Events(ctx context.Context, id string, notices chan<- Notice) e
 	request.Header.Set("Accept", "text/event-stream")
 	response, err := c.http.Do(request)
 	if err != nil {
-		return fmt.Errorf("the Review Desk server did not answer: %w", err)
+		return fmt.Errorf("the lazyreview server did not answer: %w", err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
@@ -234,7 +234,7 @@ func ReviewPath(id, rest string) string {
 func (c *Client) record() (Record, error) {
 	text, err := os.ReadFile(c.file)
 	if errors.Is(err, os.ErrNotExist) {
-		return Record{}, fmt.Errorf("the Review Desk server is not running; review-desk start starts it")
+		return Record{}, fmt.Errorf("the lazyreview server is not running; lazyreview start starts it")
 	}
 	if err != nil {
 		return Record{}, fmt.Errorf("could not read %s: %w", c.file, err)
@@ -299,7 +299,7 @@ func (c *Client) change(method, path string, query url.Values, fields map[string
 func (c *Client) do(request *http.Request, into any) error {
 	response, err := c.http.Do(request)
 	if err != nil {
-		return fmt.Errorf("the Review Desk server did not answer: %w", err)
+		return fmt.Errorf("the lazyreview server did not answer: %w", err)
 	}
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)

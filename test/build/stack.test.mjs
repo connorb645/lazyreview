@@ -22,7 +22,7 @@ const text = rows => rows.join('\n') + '\n';
 //   pr2  changes another line of Cache, moves Clock to Time/ and edits it, adds Timer
 //   pr3  rewrites one line pr2 added to Timer, adds README.md
 function stackRepo() {
-  const repo = mkdtempSync(join(tmpdir(), 'review-desk-stack-'));
+  const repo = mkdtempSync(join(tmpdir(), 'lazyreview-stack-'));
   const git = (...args) => execFileSync('git', ['-C', repo, '-c', 'user.name=Test', '-c', 'user.email=test@example.com', ...args], { encoding: 'utf8' }).trim();
   const write = files => {
     for (const [path, body] of Object.entries(files)) {
@@ -182,7 +182,7 @@ test('a stack out of step says so, and still sends each line where that pull req
 });
 
 test('a removed line goes to its pull request at the path that pull request\'s own diff gives the file', async () => {
-  const repo = mkdtempSync(join(tmpdir(), 'review-desk-rename-'));
+  const repo = mkdtempSync(join(tmpdir(), 'lazyreview-rename-'));
   const git = (...args) => execFileSync('git', ['-C', repo, '-c', 'user.name=Test', '-c', 'user.email=test@example.com', ...args], { encoding: 'utf8' }).trim();
   try {
     const rows = lines('row', 12);

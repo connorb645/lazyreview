@@ -34,7 +34,7 @@ export class ReviewEvents {
       review = { ref, sends: new Set(), last: this.#now(ref), timer: null, watcher: null };
       review.watcher = this.#watch(this.#store.home.review(ref).path, () => this.#changed(review));
       review.watcher.on('error', error => {
-        console.error(`review-desk: stopped watching ${ref.id}: ${error.message}`);
+        console.error(`lazyreview: stopped watching ${ref.id}: ${error.message}`);
         this.#end(review);
       });
       this.#reviews.set(ref.id, review);
@@ -58,7 +58,7 @@ export class ReviewEvents {
       try {
         now = this.#now(review.ref);
       } catch (error) {
-        console.error(`review-desk: could not read ${review.ref.id} after a change: ${error.message}`);
+        console.error(`lazyreview: could not read ${review.ref.id} after a change: ${error.message}`);
         return;
       }
       const notice = {};

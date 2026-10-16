@@ -28,7 +28,7 @@ export class TerminalApp {
   }
 
   get program() {
-    return join(this.#folder, 'bin', 'review-desk-terminal');
+    return join(this.#folder, 'bin', 'lazyreview-terminal');
   }
 
   async launch({ serverFile, review, env }) {

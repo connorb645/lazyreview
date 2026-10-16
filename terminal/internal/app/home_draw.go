@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 var htmlComment = regexp.MustCompile(`(?s)<!--.*?-->`)
@@ -105,9 +105,9 @@ func (a App) pullLines(b *builder, repo server.PullRepo, u server.Unit, m server
 		marked(b, p.Warn.Render("●"), p.Ink, "Waiting on your review, asked of "+listed(m.Asked)+".")
 	}
 	if m.Review != "" {
-		marked(b, p.Accent.Render("◆"), p.Ink, "Loaded in Review Desk.")
+		marked(b, p.Accent.Render("◆"), p.Ink, "Loaded in lazyreview.")
 	} else {
-		marked(b, " ", p.Muted, "Not loaded in Review Desk yet.")
+		marked(b, " ", p.Muted, "Not loaded in lazyreview yet.")
 	}
 	if m.Yours {
 		marked(b, " ", p.Muted, "You opened it.")

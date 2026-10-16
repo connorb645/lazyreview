@@ -3,7 +3,7 @@ package app
 import (
 	"testing"
 
-	"review-desk/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
 func TestPostingShowsWhatItSendsThenSendsIt(t *testing.T) {

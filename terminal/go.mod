@@ -1,4 +1,4 @@
-module review-desk/terminal
+module github.com/connorb645/lazyreview/terminal
 
 go 1.24.2
 

@@ -1,6 +1,6 @@
 package app
 
-import "review-desk/terminal/internal/server"
+import "github.com/connorb645/lazyreview/terminal/internal/server"
 
 type changed struct {
 	e            editing

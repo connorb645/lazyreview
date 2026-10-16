@@ -64,7 +64,7 @@ export function workbench() {
   };
   routes();
 
-  const root = mkdtempSync(join(tmpdir(), 'review-desk-home-'));
+  const root = mkdtempSync(join(tmpdir(), 'lazyreview-home-'));
   const home = new DataHome(root);
   const store = new ReviewStore(home);
   let tick = 0;
@@ -73,7 +73,7 @@ export function workbench() {
     repo, gh, home, store, routes,
     loader: new Loader({ store, clones: new Clones(home), now }),
     queue: new QueueService({ store, now }),
-    env: { ...gh.env, REVIEW_DESK_HOME: root },
+    env: { ...gh.env, LAZYREVIEW_HOME: root },
     link: n => `https://github.com/octo/widgets/pull/${n}`,
     done() {
       for (const [key, value] of Object.entries(before)) {
