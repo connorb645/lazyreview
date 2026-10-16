@@ -6,8 +6,16 @@ var everyView = keys.Bindings{
 	":": "command", "space ?": "keys", "space v": "review", "g x": "github", "g X": "web",
 	"q": "close", "esc": "close", "Z Z": "quit", "ctrl+c": "quit",
 	"] p": "next pull", "[ p": "previous pull", "ctrl+o": "jump back", "tab": "jump forward",
-	"space m": "diagram", "space f": "finder", "R": "refresh",
+	"space m": "diagram", "space f": "finder", "space h": "home", "R": "refresh",
 	"0": "focus main", "+": "bigger", "_": "smaller",
+}
+
+var homeKeys = keys.Bindings{
+	":": "command", "space ?": "keys", "space v": "review", "g x": "github", "g X": "web",
+	"q": "close", "esc": "close", "Z Z": "quit", "ctrl+c": "quit", "R": "refresh", "+": "bigger", "_": "smaller",
+	"j": "down", "down": "down", "k": "up", "up": "up", "g g": "top", "G": "bottom", "enter": "open",
+	"1": "repository 1", "2": "repository 2", "3": "repository 3", "4": "repository 4", "5": "repository 5",
+	"6": "repository 6", "7": "repository 7", "8": "repository 8", "9": "repository 9",
 }
 
 var sideKeys = keys.Bindings{
@@ -58,6 +66,7 @@ var everyViewHelp = []helpRow{
 	{"Space ?", "lists the keys of this panel"},
 	{"R :refresh", "loads the review again: from GitHub, or a branch from its repository"},
 	{"Space v", "the Review view"},
+	{"Space h", "the home screen: the open pull requests of your accounts"},
 	{"Space m", "the diagram"},
 	{"Space f", "finds a file, type or component by name"},
 	{"gx", "opens the pull request, or the thread at the cursor, on GitHub"},
@@ -150,7 +159,28 @@ var diagramHelp = []helpRow{
 	{"Space a", "draws every link faintly, or stops"},
 }
 
+var homeHelp = []helpRow{
+	{"j k", "the next or previous pull request, on into the next or previous repository"},
+	{"gg G", "the first or last pull request"},
+	{"1 to 9", "the first nine repositories"},
+	{"Enter", "opens the pull request's review; one no review holds yet is loaded from GitHub first"},
+	{"R :refresh", "reads the open pull requests from GitHub again"},
+	{"gx", "opens the pull request on GitHub"},
+	{"gX", "opens the web app's list of reviews"},
+	{"Space v", "the Review view of the review open"},
+	{"+ _", "more of the screen for the list, then all of it; _ goes back"},
+	{":", "the command line: :q quits"},
+	{"ZZ", "quits, as :q does"},
+}
+
+var homeMarks = []helpRow{
+	{"●", "your review is waiting: asked of you, or of your team"},
+	{"◆", "loaded in Review Desk"},
+	{"┌ └", "a stack, bottom first, reviewed as one"},
+	{"dim", "a draft"},
+}
+
 var leaderWords = map[string]string{
-	"keys": "Keys", "review": "Review view", "split": "Split", "wrap": "Wrap", "whole": "Whole file", "rendered": "Rendered",
+	"keys": "Keys", "review": "Review view", "home": "Home", "split": "Split", "wrap": "Wrap", "whole": "Whole file", "rendered": "Rendered",
 	"diagram": "Diagram", "finder": "Find", "links": "Links", "properties": "Properties", "box diff": "Diff", "all links": "Every link",
 }

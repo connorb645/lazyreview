@@ -1,0 +1,30 @@
+╭─Not read from GitHub───────────────────────────╮╭─[0]─octo/gadgets #7────────────────────────────╮
+│ ✗ reviewer-home                       not read ││ Count the gadgets in stock                     │
+│                                                ││ #7 by kim · kim/stock → main                   │
+│                                                ││                                                │
+│                                                ││ ● Waiting on your review, asked of             │
+│                                                ││   octo/reviewers.                              │
+│                                                ││   Not loaded in Review Desk yet.               │
+╰─────────────────────────────────────────1 of 1─╯│                                                │
+╭─[1]─octo/gadgets ● 1───────────────────────────╮│ Enter loads it as reviewer, then opens it.     │
+│▌●    #7 Count the gadgets in stock         kim ││                                                │
+│      #9 Sort the gadgets by price          kim ││ Counts each gadget once.                       │
+│                                                ││                                                │
+│                                                ││ • Adds a stock count                           │
+│                                                ││ • Shows it on the shelf                        │
+│                                                ││                                                │
+│                                                ││                                                │
+╰─────────────────────────────────────────1 of 2─╯│                                                │
+╭─[2]─octo/widgets ● 1───────────────────────────╮│                                                │
+│  ◆ ┌ #21 Add search to the catalog         sam ││                                                │
+│ ●◆ └ #22 Add a basket that uses search     sam ││                                                │
+│      #30 Fix the guide wording            alex ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+╰─────────────────────────────────────────1 of 3─╯╰────────────────────────────────────────────────╯
+ Load and open: Enter | GitHub: gx | Refresh: R | Repositories: 1 2 | Keys: Space ?

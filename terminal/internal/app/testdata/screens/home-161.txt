@@ -1,0 +1,48 @@
+╭─[1]─octo/gadgets ● 1──────────────────────────────╮╭─[0]─octo/widgets #21─────────────────────────────────────────────────────────────────────────────────────╮
+│ ●    #7 Count the gadgets in stock            kim ││ Add search to the catalog                                                                                │
+│      #9 Sort the gadgets by price             kim ││ #21 by sam · feature/search → main                                                                       │
+│                                                   ││                                                                                                          │
+│                                                   ││ ◆ Loaded in Review Desk.                                                                                 │
+│                                                   ││                                                                                                          │
+│                                                   ││ Enter opens the stack's review.                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││ The stack, bottom first:                                                                                 │
+│                                                   ││ ▸ #21 Add search to the catalog                                                                          │
+│                                                   ││   #22 Add a basket that uses search                                                                      │
+│                                                   ││                                                                                                          │
+│                                                   ││ Adds a search over the catalog by name.                                                                  │
+│                                                   ││                                                                                                          │
+╰────────────────────────────────────────────2 of 2─╯│                                                                                                          │
+╭─[2]─octo/widgets ● 1──────────────────────────────╮│                                                                                                          │
+│▌ ◆ ┌ #21 Add search to the catalog            sam ││                                                                                                          │
+│ ●◆ └ #22 Add a basket that uses search        sam ││                                                                                                          │
+│      #30 Fix the guide wording               alex ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+╰────────────────────────────────────────────1 of 3─╯│                                                                                                          │
+╭─[3]─reviewer-home/notes───────────────────────────╮│                                                                                                          │
+│    ┌ #3 Keep the notes in plain te… reviewer-home ││                                                                                                          │
+│    └ #4 Tag the notes               reviewer-home ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+╰────────────────────────────────────────────1 of 2─╯╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ Open: Enter | GitHub: gx | Refresh: R | Repositories: 1 2 3 | Keys: Space ?

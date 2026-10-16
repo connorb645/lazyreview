@@ -7,8 +7,8 @@
  * resolves {code, stderr}. launch({serverFile, review, env}) builds the app
  * when its program is missing or older than any of its code, then runs it on
  * this terminal, telling it where the server records its address and token,
- * and which review to open. It resolves once the app quits, and throws when
- * it cannot be built or fails.
+ * and which review to open, or none for the home screen. It resolves once
+ * the app quits, and throws when it cannot be built or fails.
  */
 import { spawn, execFile } from 'node:child_process';
 import { readdirSync, statSync, existsSync } from 'node:fs';
@@ -34,7 +34,7 @@ export class TerminalApp {
   async launch({ serverFile, review, env }) {
     if (this.stale()) await this.#build(env);
     const code = await new Promise((resolve, reject) => {
-      const child = spawn(this.program, ['--server-file', serverFile, review], { stdio: 'inherit', env });
+      const child = spawn(this.program, ['--server-file', serverFile, ...(review ? [review] : [])], { stdio: 'inherit', env });
       child.once('error', reject);
       child.once('exit', (exit, signal) => resolve(signal ? 1 : exit));
     });

@@ -1,0 +1,24 @@
+╭─[1]─octo/gadgets ● 1─────────────────╮╭─[0]─octo/widgets #21─────────────────╮
+│ ●    #7 Count the gadgets in st… kim ││ Add search to the catalog            │
+│      #9 Sort the gadgets by pri… kim ││ #21 by sam · feature/search → main   │
+│                                      ││                                      │
+│                                      ││ ◆ Loaded in Review Desk.             │
+│                                      ││                                      │
+╰───────────────────────────────2 of 2─╯│ Enter opens the stack's review.      │
+╭─[2]─octo/widgets ● 1─────────────────╮│                                      │
+│▌ ◆ ┌ #21 Add search to the cata… sam ││ The stack, bottom first:             │
+│ ●◆ └ #22 Add a basket that uses… sam ││ ▸ #21 Add search to the catalog      │
+│      #30 Fix the guide wording  alex ││   #22 Add a basket that uses search  │
+│                                      ││                                      │
+│                                      ││ Adds a search over the catalog       │
+│                                      ││ by name.                             │
+╰───────────────────────────────1 of 3─╯│                                      │
+╭─[3]─reviewer-home/notes──────────────╮│                                      │
+│    ┌ #3 Keep the note… reviewer-home ││                                      │
+│    └ #4 Tag the notes  reviewer-home ││                                      │
+│                                      ││                                      │
+│                                      ││                                      │
+│                                      ││                                      │
+│                                      ││                                      │
+╰───────────────────────────────1 of 2─╯╰──────────────────────────────────────╯
+ Open: Enter | GitHub: gx | Refresh: R | Repositories: 1 2 3 | Keys: Space ?

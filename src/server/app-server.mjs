@@ -1,10 +1,12 @@
 /**
  * The app's web server, for this machine only.
  *
- * new AppServer({store, loader, branches, queue, threads, events, token, port}) serves the
+ * new AppServer({store, loader, branches, queue, threads, pulls, events, token, port}) serves the
  * app at http://127.0.0.1:<port>/, each review at /review/<review id>, and
  * the JSON the app reads and changes reviews through under /api. `loader`
- * loads pull requests again and `branches` branches. A branch review takes
+ * loads pull requests, new or again, and `branches` branches again; `pulls`
+ * lists the open pull requests that involve the user's accounts, for the
+ * terminal app's home screen. A branch review takes
  * no comments: only a pull request's review has a queue to change or post.
  * A review's page comes with its build id, without its per-file parts, which
  * the file route gives one file at a time, for the build a window names.
@@ -44,6 +46,7 @@ export class AppServer {
   #branches;
   #queue;
   #threads;
+  #pulls;
   #port;
   #events;
   #server = null;
@@ -52,7 +55,7 @@ export class AppServer {
   #streams = new Set();
   #token;
 
-  constructor({ store, loader, branches, queue, threads, events = new ReviewEvents({ store }), token = null, port }) {
+  constructor({ store, loader, branches, queue, threads, pulls, events = new ReviewEvents({ store }), token = null, port }) {
     this.#store = store;
     this.#token = token;
     this.#events = events;
@@ -60,10 +63,16 @@ export class AppServer {
     this.#branches = branches;
     this.#queue = queue;
     this.#threads = threads;
+    this.#pulls = pulls;
     this.#port = port;
     this.#routes = [
       ['GET', /^\/api\/health$/, () => ({ ok: true })],
       ['GET', /^\/api\/reviews$/, () => this.#store.list().map(reviewSummary)],
+      ['GET', /^\/api\/pulls$/, () => this.#pulls.list()],
+      ['POST', /^\/api\/load$/, async body => {
+        const loaded = await this.#loader.load({ links: links(body.links), account: typeof body.account === 'string' ? body.account : undefined });
+        return { id: loaded.ref.id, notes: loaded.notes };
+      }],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}$`), ref => this.#state(ref)],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}/page$`), ref => this.#page(ref)],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}/file$`), (ref, query) => this.#file(ref, text(query.path), build(query))],
@@ -215,6 +224,11 @@ export class AppServer {
 
 function text(value) {
   if (typeof value !== 'string') throw new Error('a text field is missing');
+  return value;
+}
+
+function links(value) {
+  if (!Array.isArray(value) || !value.length || value.some(link => typeof link !== 'string')) throw new Error('give the pull requests to load as links, bottom first');
   return value;
 }
 

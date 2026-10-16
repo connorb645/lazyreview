@@ -9,19 +9,19 @@
 │                               ││ ▾ Queued comments                                               │
 │                               ││   1 docs/guide.md, line 3                                       │
 │                               ││     │ The catalog lists every item.                             │
-│                               ││     Every item, or every item shown?                            │
-╰───────────────────╭─Post to octo/widgets#30──────────────────────────────────╮                   │
-╭─[3]─Notes─────────│▌1  Add Comments (1)                                      │                   │
-│ Queued            │ 2  Approve With Comments (1)                             │                   │
-│ 1 guide.md:3      │ 3  Approve                                               │                   │
+╰────────────────────────1 of 3─╯│     Every item, or every item shown?                            │
+╭─[3]─Notes─────────╭─Post to octo/widgets#30──────────────────────────────────╮                   │
+│ Queued            │▌1  Add Comments (1)                                      │                   │
+│ 1 guide.md:3      │ 2  Approve With Comments (1)                             │                   │
+│                   │ 3  Approve                                               │                   │
 │                   ╰───────────────────────────────────────────────────1 of 3─╯                   │
-│                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │
 ╰────────────────────────1 of 1─╯│                                                                 │
 ╭─[4]─Diagram───────────────────╮│                                                                 │
 │ Components                    ││                                                                 │
 │ ■ docs                        ││                                                                 │
+│                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │

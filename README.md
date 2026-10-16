@@ -158,17 +158,65 @@ each of them.
 The same reviews open in a terminal app with Vim keys, a second client of the
 same server. Both apps can be open on one review at once.
 
+    bin/review-desk terminal
     bin/review-desk terminal http://127.0.0.1:4747/review/github.com/owner/repo/12
     bin/review-desk terminal https://github.com/owner/repo/pull/12
 
-It takes one link: the address `load` printed, or a pull request link. A pull
-request that no review holds yet is loaded first, as `load` loads it, so one
-command opens it. A review id, such as `github.com/owner/repo/12`, works too.
-With no link, it prints how to use it. It starts the server when it is not
+With no link, it opens on the home screen of your open pull requests, below.
+With one, it opens that review straight away: the address `load` printed, or
+a pull request link. A pull request that no review holds yet is loaded first,
+as `load` loads it, so one command opens it. A review id, such as
+`github.com/owner/repo/12`, works too. It starts the server when it is not
 running, as `load` does. The app is a Go program in `terminal/`, built on this
 machine the first time it runs and again whenever its code changes; building
 it needs Go 1.24 or later, and its libraries are vendored, so the build
 reaches no network.
+
+### The home screen
+
+The home screen lists the open pull requests that involve your GitHub
+accounts, read live from GitHub: those that ask for your review, or your
+team's, those you opened, and those you have commented on or reviewed. Each
+repository has a panel of its own on the left, numbered as Lazygit numbers
+its panels. Each row shows a pull request's number, title and author, `●`
+when your review is waiting and `◆` when it is loaded in Review Desk; a draft
+is dim. A stack's pull requests sit together, bottom first, joined by a
+bracket, and any of them opens the stack's review. The main panel shows the
+pull request selected: why it involves you, its stack, its description, and
+what `Enter` does. When GitHub cannot be read as an account, a panel says so
+and why, and the others are still listed.
+
+| Key | Does |
+| --- | --- |
+| `j` `k` | the next or previous pull request, on into the next or previous repository |
+| `gg` `G` | the first or last pull request |
+| `1` to `9` | the first nine repositories |
+| `Enter` | opens the pull request's review; one no review holds yet is loaded from GitHub first, as the account that found it |
+| `R` `:refresh` | reads GitHub again |
+| `gx` | opens the pull request on GitHub |
+| `Space v` | back to the review open |
+| `Space h` | from any review, the home screen |
+
+The accounts are named in `settings.json` in the data home,
+`~/.review-desk/settings.json`, which the home screen reads each time it
+reads GitHub:
+
+```json
+{
+  "accounts": [
+    { "login": "lee" },
+    { "login": "lee-at-work", "teams": [{ "name": "example-org/mobile", "since": "2026-10-01" }] }
+  ]
+}
+```
+
+Each account is read by its own token, as `gh auth token --user <login>`
+gives it, so each must be signed in to gh; the account gh has active is never
+changed. A review asked of one of an account's teams counts as asked of you,
+for pull requests opened on or after the team's `since` date when it has one.
+With no settings file, the home screen says how to write one.
+
+### In a review
 
 The screen is laid out as in Lazygit. Four panels run down the left: 1
 Review, the pull requests; 2 Files, the changed files by component and
@@ -178,9 +226,9 @@ right shows what is selected on the left: the Review view, a file's diff, a
 note in its diff, or the diagram. When that runs past the main panel, a thumb
 in its right border shows how much of it fits and where you are, as in
 Lazygit. `Enter` gives the main panel the keys and `Esc` gives them back. The
-bar at the bottom lists the keys that matter where
-you are, and `Space ?` lists them all. A count goes before a move in the main
-panel, such as `5j` or `3]c`.
+bar at the bottom lists the keys that matter where you are, and `Space ?`
+lists them all. A count goes before a move in the main panel, such as `5j` or
+`3]c`.
 
 Every panel:
 
@@ -191,6 +239,7 @@ Every panel:
 | `Esc` | closes a popup, or gives the keys back to the panel on the left |
 | `+` `_` | gives the panel with the keys more of the screen, then all of it; `_` goes back |
 | `Space v` | the Review view |
+| `Space h` | the home screen |
 | `Space m` | the diagram |
 | `Space f` | finds a file, type or component as you type; `Ctrl-n` `Ctrl-p` move, `Enter` goes there |
 | `R` `:refresh` | loads the review again: from GitHub, or a branch from its repository |
@@ -304,8 +353,9 @@ the queue and the reviews sent), the drawn page (`page.json`, with the review
 threads GitHub had when it was loaded), any config and written review, and one
 file per conversation. A branch's review lives under
 `reviews/local/`, its record holding the branch, its base and the folder it
-was read from; it is read from the repository itself, with no clone. Settings
-come from the environment:
+was read from; it is read from the repository itself, with no clone. The
+accounts the terminal app's home screen lists are in `settings.json`, as
+above. Other settings come from the environment:
 
 | Variable | Meaning | Default |
 | --- | --- | --- |

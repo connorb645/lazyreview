@@ -23,10 +23,11 @@ export const USAGE = `usage: review-desk <command> [options]
                          attach a written review, in Markdown, to the review
                          holding that pull request
   list                   list every review, with where to open it
-  terminal <link>        review in this terminal, with Vim keys: the review
+  terminal [<link>]      review in this terminal, with Vim keys: the review
                          at the address load printed, or the one holding a
                          pull request link, which loads it first when no
-                         review holds it yet
+                         review holds it yet; with no link, the open pull
+                         requests of the accounts in settings.json
   serve                  run the app in this terminal
   start                  run the app in the background
   stop                   stop the app running in the background
@@ -36,7 +37,7 @@ const COMMANDS = {
   load: { valued: ['--account', '--config', '--repo', '--base', '--head', '--title'], flags: ['--context', '--no-context'], check: checkLoad },
   attach: { min: 2, max: 2 },
   list: { max: 0 },
-  terminal: { max: 1, check: checkTerminal },
+  terminal: { max: 1 },
   serve: { max: 0 },
   start: { max: 0 },
   stop: { max: 0 },
@@ -77,10 +78,6 @@ function checkLoad(options, fail) {
   if (options.positional.length) fail('load takes pull requests or --repo, not both');
   if (options.account !== undefined) fail('--account is for pull requests; a branch loads from its own repository');
   for (const option of ['--base', '--head']) if (options[name(option)] === undefined) fail(`--repo needs ${option}`);
-}
-
-function checkTerminal(options, fail) {
-  if (!options.positional.length) fail('terminal needs a link: the address load printed, or a pull request link');
 }
 
 function name(option) {

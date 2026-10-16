@@ -7,7 +7,7 @@ import (
 )
 
 func framed(content []string, shown extent, w, h int, title, tabs, footer string, focused bool, p palette) []string {
-	if w < 2 || h < 2 {
+	if w < 2 || h < 1 {
 		return nil
 	}
 	border, heading, foot := p.Border, p.Ink, p.Muted
@@ -17,6 +17,11 @@ func framed(content []string, shown extent, w, h int, title, tabs, footer string
 	inner := w - 2
 	title = ansi.Truncate(title, max(0, inner-2), "…")
 	tabs = ansi.Truncate(tabs, max(0, inner-2-ansi.StringWidth(title)), "")
+	if h == 1 {
+		footer = ansi.Truncate(footer, max(0, inner-3-ansi.StringWidth(title)-ansi.StringWidth(tabs)), "")
+		fill := max(0, inner-2-ansi.StringWidth(title)-ansi.StringWidth(tabs)-ansi.StringWidth(footer))
+		return []string{border.Render("──") + heading.Render(title) + tabs + border.Render(strings.Repeat("─", fill)) + foot.Render(footer) + border.Render("──")}
+	}
 	footer = ansi.Truncate(footer, max(0, inner-2), "…")
 	used := ansi.StringWidth(title) + ansi.StringWidth(tabs)
 	top := border.Render("╭─") + heading.Render(title) + tabs + border.Render(strings.Repeat("─", max(0, inner-1-used))+"╮")

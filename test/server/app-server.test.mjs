@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { request } from 'node:http';
+import { writeFileSync } from 'node:fs';
 import { workbench } from '../support/workbench.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { AppServer } from '../../src/server/app-server.mjs';
@@ -8,6 +9,9 @@ import { ThreadService } from '../../src/ask/thread-service.mjs';
 import { Claude } from '../../src/ask/claude.mjs';
 import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 import { notices } from '../support/notices.mjs';
+import { SETTINGS, homeRoutes } from '../support/home-routes.mjs';
+import { OpenPulls } from '../../src/home/open-pulls.mjs';
+import { PullRef } from '../../src/github/pull-ref.mjs';
 
 function call(address, method, path, { body, headers = {} } = {}) {
   const url = new URL(path, address);
@@ -32,7 +36,7 @@ async function started({ token } = {}) {
   const branches = new BranchLoader({ store: w.store });
   const server = new AppServer({
     store: w.store, loader: w.loader, branches, queue: w.queue,
-    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), token, port: 0,
+    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), pulls: new OpenPulls({ store: w.store }), token, port: 0,
   });
   const address = await server.listen();
   const own = { Origin: address, 'Content-Type': 'application/json' };
@@ -92,6 +96,37 @@ test('a client with the server\'s token makes changes from outside the app\'s pa
     const added = await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: { ...json, Authorization: 'Bearer secret-token-1234' } });
     assert.equal(added.status, 200);
     assert.equal(added.json.comment.body, 'Every item?');
+  } finally {
+    await s.done();
+  }
+});
+
+test('the API lists the open pull requests involving the accounts, and loads the ones a client with the token names', async () => {
+  const s = await started({ token: 'secret-token-1234' });
+  const json = { 'Content-Type': 'application/json' };
+  try {
+    writeFileSync(s.w.home.settingsFile, JSON.stringify(SETTINGS));
+    s.w.routes({ extra: homeRoutes() });
+    const listed = await call(s.address, 'GET', '/api/pulls');
+    assert.equal(listed.status, 200);
+    assert.deepEqual(listed.json.repos.map(r => r.name), ['octo/gadgets', 'octo/widgets', 'reviewer-home/notes']);
+    const widgets = listed.json.repos[1].units;
+    assert.deepEqual(widgets.map(u => [u.review, u.members.map(m => m.number)]), [[null, [21, 22]], ['github.com/octo/widgets/30', [30]]]);
+
+    const body = { links: [s.w.link(21), s.w.link(22)], account: 'reviewer' };
+    assert.equal((await call(s.address, 'POST', '/api/load', { body, headers: json })).status, 403);
+    const loaded = await call(s.address, 'POST', '/api/load', { body, headers: { ...json, Authorization: 'Bearer secret-token-1234' } });
+    assert.equal(loaded.status, 200, loaded.text);
+    assert.deepEqual(loaded.json, { id: 'github.com/octo/widgets/21', notes: [] });
+    assert.equal(s.w.store.read(new PullRef('github.com', 'octo/widgets', 21)).account, 'reviewer', 'the review is loaded as the account that found it');
+    assert.ok(s.w.gh.calls().filter(c => c.path === 'repos/octo/widgets/pulls/22').every(c => c.token === 'token-reviewer'));
+    assert.equal((await call(s.address, 'GET', '/api/pulls')).json.repos[1].units[0].review, 'github.com/octo/widgets/21');
+    const none = await call(s.address, 'POST', '/api/load', { body: { links: [] }, headers: { ...json, Authorization: 'Bearer secret-token-1234' } });
+    assert.deepEqual([none.status, none.json], [409, { error: 'give the pull requests to load as links, bottom first' }]);
+
+    writeFileSync(s.w.home.settingsFile, '{"accounts": 3}');
+    const wrong = await call(s.address, 'GET', '/api/pulls');
+    assert.deepEqual([wrong.status, wrong.json], [409, { error: `${s.w.home.settingsFile} needs "accounts", a list of {"login": "..."}` }]);
   } finally {
     await s.done();
   }

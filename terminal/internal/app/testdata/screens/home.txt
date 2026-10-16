@@ -1,0 +1,30 @@
+╭─[1]─octo/gadgets ● 1───────────────────────────╮╭─[0]─octo/gadgets #7────────────────────────────╮
+│▌●    #7 Count the gadgets in stock         kim ││ Count the gadgets in stock                     │
+│      #9 Sort the gadgets by price          kim ││ #7 by kim · kim/stock → main                   │
+│                                                ││                                                │
+│                                                ││ ● Waiting on your review, asked of             │
+│                                                ││   octo/reviewers.                              │
+│                                                ││   Not loaded in Review Desk yet.               │
+│                                                ││                                                │
+╰─────────────────────────────────────────1 of 2─╯│ Enter loads it as reviewer, then opens it.     │
+╭─[2]─octo/widgets ● 1───────────────────────────╮│                                                │
+│  ◆ ┌ #21 Add search to the catalog         sam ││ Counts each gadget once.                       │
+│ ●◆ └ #22 Add a basket that uses search     sam ││                                                │
+│      #30 Fix the guide wording            alex ││ • Adds a stock count                           │
+│                                                ││ • Shows it on the shelf                        │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+╰─────────────────────────────────────────1 of 3─╯│                                                │
+╭─[3]─reviewer-home/notes────────────────────────╮│                                                │
+│    ┌ #3 Keep the notes in plain… reviewer-home ││                                                │
+│    └ #4 Tag the notes            reviewer-home ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+╰─────────────────────────────────────────1 of 2─╯╰────────────────────────────────────────────────╯
+ Load and open: Enter | GitHub: gx | Refresh: R | Repositories: 1 2 3 | Keys: Space ?

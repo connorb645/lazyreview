@@ -3,6 +3,9 @@ package app
 import tea "github.com/charmbracelet/bubbletea"
 
 func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
+	if a.screen == screenHome {
+		return a.homeMouse(msg)
+	}
 	if msg.Action != tea.MouseActionPress || a.review == nil {
 		return a, nil
 	}

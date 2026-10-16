@@ -83,7 +83,7 @@ func blockRows(path string, rendered server.Rendered, v diffView) []diffRow {
 
 func withoutMargin(lines []string) []string {
 	for _, l := range lines {
-		if !strings.HasPrefix(stripped(l), "  ") {
+		if text := stripped(l); text != "" && !strings.HasPrefix(text, "  ") {
 			return lines
 		}
 	}

@@ -124,8 +124,14 @@ func opened(t *testing.T, review string, width, height int, set ...func(*Options
 
 func openedWith(t *testing.T, review string, width, height int, set ...func(*Options)) (App, *[]string, *changes) {
 	t.Helper()
-	var visited []string
 	changed := &changes{answers: map[string]answer{}}
+	a, visited := openedOn(t, changed, review, width, height, set...)
+	return a, visited, changed
+}
+
+func openedOn(t *testing.T, changed *changes, review string, width, height int, set ...func(*Options)) (App, *[]string) {
+	t.Helper()
+	var visited []string
 	opts := Options{
 		Server: served(t, changed), Review: review, Dark: true,
 		Open:     func(address string) error { visited = append(visited, address); return nil },
@@ -140,7 +146,7 @@ func openedWith(t *testing.T, review string, width, height int, set ...func(*Opt
 	a := New(opts)
 	a = drive(t, a, a.Init())
 	a = send(t, a, tea.WindowSizeMsg{Width: width, Height: height})
-	return a, &visited, changed
+	return a, &visited
 }
 
 func send(t *testing.T, a App, msg tea.Msg) App {

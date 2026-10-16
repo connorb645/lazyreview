@@ -5,6 +5,7 @@
  *   reviews/<host>/<owner>/<repo>/<pull>/     one folder per pull request review
  *   reviews/local/<repo key>/<branch>/        one folder per branch review
  *   server.json, server.log                   the running app, while it runs
+ *   settings.json                             the accounts the home screen lists
  *
  * DataHome only names paths. It reads and writes nothing.
  */
@@ -47,5 +48,9 @@ export class DataHome {
 
   get serverLog() {
     return join(this.root, 'server.log');
+  }
+
+  get settingsFile() {
+    return join(this.root, 'settings.json');
   }
 }

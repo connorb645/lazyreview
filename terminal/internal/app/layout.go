@@ -42,7 +42,7 @@ func lay(width, height, focus, driving int, mode screenMode, wants [sideCount + 
 	l.main = rect{x: side, w: width - side, h: h}
 	first := min(wants[reviewPanel]+2, max(3, h/4))
 	l.sides[reviewPanel] = rect{w: side, h: first}
-	heights := shared(h-first, driving-filesPanel, [3]int{wants[filesPanel] + 2, wants[notesPanel] + 2, wants[diagramPanel] + 2})
+	heights := shared(h-first, driving-filesPanel, []int{wants[filesPanel] + 2, wants[notesPanel] + 2, wants[diagramPanel] + 2}, 6)
 	y := first
 	for i, n := range heights {
 		l.sides[filesPanel+i] = rect{y: y, w: side, h: n}
@@ -51,17 +51,38 @@ func lay(width, height, focus, driving int, mode screenMode, wants [sideCount + 
 	return l
 }
 
-func shared(rest, grow int, wants [3]int) [3]int {
-	var out [3]int
-	fair := rest / 3
-	if fair < 6 {
+func shared(rest, grow int, wants []int, fold int) []int {
+	out := make([]int, len(wants))
+	if len(out) == 0 {
+		return out
+	}
+	if grow < 0 || grow >= len(out) {
+		grow = 0
+	}
+	order := append([]int{grow}, others(len(out), grow)...)
+	total := 0
+	for _, w := range wants {
+		total += w
+	}
+	if total <= rest {
+		copy(out, wants)
+		spread := rest - total
 		for i := range out {
-			out[i] = 3
+			out[i] += spread / len(out)
 		}
-		if grow < 0 || grow > 2 {
-			grow = 0
+		out[len(out)-1] += spread % len(out)
+		return out
+	}
+	fair := rest / len(out)
+	if fair < fold {
+		squashed := 3
+		if rest-squashed*(len(out)-1) < squashed {
+			squashed = 1
 		}
-		out[grow] = rest - 6
+		for i := range out {
+			out[i] = squashed
+		}
+		out[grow] = rest - squashed*(len(out)-1)
 		return out
 	}
 	left := rest
@@ -69,18 +90,24 @@ func shared(rest, grow int, wants [3]int) [3]int {
 		out[i] = max(3, min(wants[i], fair))
 		left -= out[i]
 	}
-	order := []int{0, 1, 2}
-	if grow >= 0 && grow < 3 {
-		order = append([]int{grow}, append(order[:grow:grow], order[grow+1:]...)...)
-	}
 	for _, i := range order {
 		more := min(left, max(0, wants[i]-out[i]))
 		out[i] += more
 		left -= more
 	}
 	for i := range out {
-		out[i] += left / 3
+		out[i] += left / len(out)
 	}
-	out[order[0]] += left % 3
+	out[grow] += left % len(out)
+	return out
+}
+
+func others(n, but int) []int {
+	var out []int
+	for i := 0; i < n; i++ {
+		if i != but {
+			out = append(out, i)
+		}
+	}
 	return out
 }

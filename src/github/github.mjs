@@ -5,11 +5,13 @@
  * that account's token given to each call, so the account gh has active for
  * everything else on the machine is never changed; without one, it answers as
  * gh's active account. Every call has a time limit, and a failure throws an
- * error saying what GitHub refused.
+ * error saying what GitHub refused, or that the host could not be reached.
  */
 import { execFile } from 'node:child_process';
 
 const TIMEOUT = 60_000;
+const UNREACHABLE = /^error connecting to /;
+const SEARCH_PAGES = 10;
 const THREADS = `query($owner: String!, $name: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
@@ -56,6 +58,7 @@ export class GitHub {
       ...(method === 'GET' ? [] : ['-X', method]), path, ...(payload === undefined ? [] : ['--input', '-'])];
     const done = await this.#run(args, { input: payload === undefined ? undefined : JSON.stringify(payload), env: await this.environment() });
     if (done.timedOut) throw new Error(`GitHub did not answer ${method} ${path} in time; nothing changed`);
+    if (done.code !== 0 && UNREACHABLE.test(done.stderr)) throw new Error(`could not reach ${this.#host}: ${done.stderr.trim().split('\n')[0]}`);
     if (done.code !== 0) throw new Error(`GitHub refused ${method} ${path}: ${(done.stderr || done.stdout).trim()}`);
     if (!done.stdout.trim()) return null;
     try {
@@ -76,6 +79,24 @@ export class GitHub {
 
   pull(repo, number) {
     return this.api(`repos/${repo}/pulls/${number}`);
+  }
+
+  /** Every open pull request of the repository. */
+  openPulls(repo) {
+    return this.#pages(`repos/${repo}/pulls?state=open`);
+  }
+
+  /**
+   * Every issue and pull request a search finds, such as `is:pr is:open
+   * author:@me`, as GitHub's search gives them, up to the 1,000 it gives.
+   */
+  async search(query) {
+    const out = [];
+    for (let page = 1; ; page++) {
+      const found = await this.api(`search/issues?${new URLSearchParams({ q: query, per_page: '100', page: String(page) })}`);
+      out.push(...found.items);
+      if (found.items.length < 100 || page === SEARCH_PAGES) return out;
+    }
   }
 
   repository(repo) {

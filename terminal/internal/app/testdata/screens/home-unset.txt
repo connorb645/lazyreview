@@ -1,0 +1,30 @@
+╭─Pull requests──────────────────────────────────╮╭─[0]─Accounts───────────────────────────────────╮
+│ No accounts are set                            ││                                                │
+│                                                ││ No GitHub accounts are set, so there is        │
+│                                                ││ nothing to list yet. Name them in              │
+│                                                ││ ~/.review-desk/settings.json:                  │
+│                                                ││                                                │
+│                                                ││   {"accounts": [                               │
+│                                                ││     {"login": "your-login"},                   │
+│                                                ││     {"login": "your-work-login",               │
+│                                                ││      "teams": [                                │
+│                                                ││        {"name": "your-org/your-team",          │
+│                                                ││         "since": "2026-10-01"}                 │
+│                                                ││      ]}                                        │
+│                                                ││   ]}                                           │
+│                                                ││                                                │
+│                                                ││ Each account is read by its own token, so each │
+│                                                ││ must be signed in to gh. A review asked of a   │
+│                                                ││ team counts as asked of you, for pull requests │
+│                                                ││ opened on or after its since date. R reads the │
+│                                                ││ settings again.                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+╰────────────────────────────────────────────────╯╰────────────────────────────────────────────────╯
+ Read again: R | Quit: :q | Keys: Space ?

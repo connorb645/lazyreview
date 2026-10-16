@@ -9,19 +9,19 @@
 │                               ││ ▾ Queued comments                                               │
 │                               ││   No comments queued.                                           │
 │                               ││   Approved with 1 comment, 15 Oct, 12:00:                       │
-│                               ││   https://github.com/octo/widgets/pull/30#pullrequestreview-8   │
-│                   ╭─Sent to GitHub───────────────────────────────────────────╮                   │
-╰───────────────────│ Approved with 1 comment:                                 │                   │
-╭─[3]─Notes─────────│ https://github.com/octo/widgets/pull/30#pullrequestrevie │                   │
-│ Nothing queued or │ w-8                                                      │                   │
+╰────────────────────────1 of 3─╯│   https://github.com/octo/widgets/pull/30#pullrequestreview-8   │
+╭─[3]─Notes─────────╭─Sent to GitHub───────────────────────────────────────────╮                   │
+│ Nothing queued or │ Approved with 1 comment:                                 │                   │
+│                   │ https://github.com/octo/widgets/pull/30#pullrequestrevie │                   │
+│                   │ w-8                                                      │                   │
 │                   ╰──────────────────────────────────────────────────────────╯                   │
-│                               ││                                                                 │
-│                               ││                                                                 │
 │                               ││                                                                 │
 ╰────────────────────────0 of 0─╯│                                                                 │
 ╭─[4]─Diagram───────────────────╮│                                                                 │
 │ Components                    ││                                                                 │
 │ ■ docs                        ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │

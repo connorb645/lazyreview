@@ -10,7 +10,10 @@
  * " after <cursor>" for a later page;
  * `calls()` reads back each call as {method, path, body}; `done()` removes
  * the folder. `gh auth token` answers with a token named for the account, and
- * a route with no answer fails as GitHub's 404 does.
+ * a route with no answer fails as GitHub's 404 does. A route may be kept to
+ * one account's calls by its token, as {"token-sam GET user": body}, or
+ * {"token-sam *": body} for every call that account makes; an answer of
+ * {"$fail": text} makes gh fail, saying `text`.
  *
  * Like GitHub, it refuses a review whose comment is not on a line of its
  * pull request's diff, as the files route gives it, or whose range leaves
@@ -45,8 +48,12 @@ if (method === 'POST' && review && body && body.comments) {
   const refused = body.comments.map(c => refusal(files, c)).filter(Boolean);
   if (refused.length) { process.stderr.write('gh: Unprocessable Entity (HTTP 422)\\n' + refused.join('\\n') + '\\n'); process.exit(1); }
 }
-if (!(key in routes)) { process.stderr.write('HTTP 404: Not Found (fake gh has no ' + key + ')\\n'); process.exit(1); }
-process.stdout.write(JSON.stringify(routes[key]));
+const token = process.env.GH_TOKEN || '';
+const route = [token + ' ' + key, token + ' *', key].find(k => k in routes);
+if (route === undefined) { process.stderr.write('HTTP 404: Not Found (fake gh has no ' + key + ')\\n'); process.exit(1); }
+const answer = routes[route];
+if (answer && typeof answer === 'object' && '$fail' in answer) { process.stderr.write(answer.$fail + '\\n'); process.exit(1); }
+process.stdout.write(JSON.stringify(answer));
 
 function places(patch) {
   const at = { RIGHT: {}, LEFT: {} };

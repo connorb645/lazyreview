@@ -9,6 +9,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
+const nonBreakingHyphen = "\u2011"
+
 var (
 	inlineSVG  = regexp.MustCompile(`(?is)<svg\b.*?</svg>`)
 	fencedCode = regexp.MustCompile("(?s)```.*?```")
@@ -58,7 +60,8 @@ func wrap(text string, width int) []string {
 	}
 	var out []string
 	for _, paragraph := range strings.Split(text, "\n") {
-		out = append(out, strings.Split(ansi.Wrap(paragraph, width, " "), "\n")...)
+		wrapped := ansi.Wrap(strings.ReplaceAll(paragraph, "-", nonBreakingHyphen), width, " ")
+		out = append(out, strings.Split(strings.ReplaceAll(wrapped, nonBreakingHyphen, "-"), "\n")...)
 	}
 	return out
 }

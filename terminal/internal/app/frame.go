@@ -7,13 +7,14 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
-// View draws the screen: the four panels on the left, the main panel on the
-// right, any popup over them, and a bar of the keys that matter here.
+// View draws the screen: the panels on the left, the main panel on the
+// right, any popup over them, and a bar of the keys that matter here. The
+// home screen has a panel on the left for each repository; a review has its
+// four.
 func (a App) View() string {
 	if a.width == 0 || a.height == 0 {
 		return ""
 	}
-	l := a.layout()
 	rows := make([]string, max(0, a.height-1))
 	place := func(r rect, lines []string) {
 		for i, line := range lines {
@@ -22,13 +23,26 @@ func (a App) View() string {
 			}
 		}
 	}
-	for n := reviewPanel; n <= sideCount; n++ {
-		if r := l.sides[n]; r.shown() {
-			place(r, a.sideBox(n, r, a.focus == n && !a.popped()))
+	if a.screen == screenHome {
+		l := a.homeLayout()
+		for i, r := range l.panels {
+			if r.w > 2 && r.h > 0 {
+				place(r, a.homePanelBox(i, r, a.home.focus == i && !a.popped()))
+			}
 		}
-	}
-	if r := l.main; r.shown() {
-		place(r, a.mainBox(r, a.focus == mainPanel && !a.popped()))
+		if r := l.main; r.shown() {
+			place(r, a.homeMainBox(r))
+		}
+	} else {
+		l := a.layout()
+		for n := reviewPanel; n <= sideCount; n++ {
+			if r := l.sides[n]; r.w > 2 && r.h > 0 {
+				place(r, a.sideBox(n, r, a.focus == n && !a.popped()))
+			}
+		}
+		if r := l.main; r.shown() {
+			place(r, a.mainBox(r, a.focus == mainPanel && !a.popped()))
+		}
 	}
 	for i := range rows {
 		rows[i] = fit(rows[i], a.width)
@@ -45,12 +59,16 @@ func (a App) popped() bool {
 }
 
 func (a App) sideBox(n int, r rect, focused bool) []string {
-	s, in := a.sides[n], r.inner()
+	content, place := sideContent(a.sides[n], r.inner(), focused, a.p)
+	return framed(content, extent{}, r.w, r.h, panelTitle(n, panelNames[n]), a.tabs(n, r.inner().w), place, focused, a.p)
+}
+
+func sideContent(s sidePanel, in rect, focused bool, p palette) ([]string, string) {
 	var content []string
 	for i := s.top; i < s.top+in.h && i < len(s.rows); i++ {
 		line := sideLine(s.rows[i], in.w)
 		if i == s.cursor && !s.rows[i].heading {
-			line = a.p.highlight(line, in.w, focused)
+			line = p.highlight(line, in.w, focused)
 		}
 		content = append(content, line)
 	}
@@ -63,7 +81,7 @@ func (a App) sideBox(n int, r rect, focused bool) []string {
 			}
 		}
 	}
-	return framed(content, extent{}, r.w, r.h, panelTitle(n, panelNames[n]), a.tabs(n, in.w), fmt.Sprintf("%d of %d", at, total), focused, a.p)
+	return content, fmt.Sprintf("%d of %d", at, total)
 }
 
 func sideLine(row sideRow, width int) string {
@@ -205,6 +223,8 @@ func (a App) barLine() string {
 		right = style.Render(ansi.Truncate(a.notice, max(10, a.width*2/3), "…"))
 	case a.keys.Typed() != "":
 		right = p.Accent.Render(a.keys.Typed())
+	case a.homeStatus() != "":
+		right = p.Muted.Render(ansi.Truncate(a.homeStatus(), max(10, a.width*2/3), "…"))
 	}
 	hints := a.hints()
 	room := a.width - ansi.StringWidth(right) - 3
@@ -242,6 +262,8 @@ func (a App) hints() [][2]string {
 		return [][2]string{{"j k", "Move"}, {"Enter", "Go"}, {"Esc", "Close"}}
 	case a.menu != nil:
 		return [][2]string{{"Esc", "Close"}}
+	case a.screen == screenHome:
+		return a.homeHints()
 	case a.review == nil:
 		return [][2]string{{"R", "Try again"}, {":q", "Quit"}}
 	case a.screen == screenDiagram && a.dg.labels != nil:

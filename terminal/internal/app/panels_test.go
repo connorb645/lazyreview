@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/ansi"
 )
 
 func selectedKey(a App, n int) string {
@@ -217,5 +218,20 @@ func TestAJumpGivesTheMainPanelTheKeys(t *testing.T) {
 	a = press(t, a, "ctrl+o")
 	if a.focus != mainPanel || a.screen != screenReview || a.driving != reviewPanel {
 		t.Fatalf("Ctrl-o goes back to the Review view with its keys: panel %d, screen %d", a.focus, a.screen)
+	}
+}
+
+func TestOnAShortScreenThePanelsFoldToStripsAndEveryRowKeepsItsWidth(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/30", 100, 12)
+	lines := strings.Split(a.View(), "\n")
+	for i, l := range lines {
+		if w := ansi.StringWidth(l); w != 100 {
+			t.Fatalf("row %d is %d wide: %q", i, w, l)
+		}
+	}
+	for _, title := range []string{"──[3]─Notes", "──[4]─Diagram"} {
+		if !strings.Contains(a.View(), title) {
+			t.Fatalf("no strip %q on a short screen", title)
+		}
 	}
 }

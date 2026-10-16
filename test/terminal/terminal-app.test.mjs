@@ -46,6 +46,8 @@ test('the terminal app is built the first time it runs, and again only when its 
     await app.launch({ serverFile: '/home/server.json', review: 'github.com/octo/widgets/30', env: process.env });
     assert.equal(f.builds.length, 2);
     assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), '--server-file /home/server.json github.com/octo/widgets/30\n');
+    await app.launch({ serverFile: '/home/server.json', review: null, env: process.env });
+    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), '--server-file /home/server.json\n', 'with no review, it opens on the home screen');
   } finally {
     f.done();
   }

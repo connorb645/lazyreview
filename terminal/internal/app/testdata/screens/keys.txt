@@ -17,11 +17,11 @@
 ╭─│ Space ?        lists the keys of this panel                                                  │ │
 │ │ R :refresh     loads the review again: from GitHub, or a branch from its repository          │ │
 │ │ Space v        the Review view                                                               │ │
+│ │ Space h        the home screen: the open pull requests of your accounts                      │ │
 │ │ Space m        the diagram                                                                   │ │
-│ │ Space f        finds a file, type or component by name                                       │ │
-│ │ gx             opens the pull request, or the thread at the cursor, on GitHub                │…│
-│ │ gX             opens this place in the web app                                               │ │
-╰─╰──────────────────────────────────────────────────────────────────────────────────────1 of 19─╯ │
+│ │ Space f        finds a file, type or component by name                                       │…│
+│ │ gx             opens the pull request, or the thread at the cursor, on GitHub                │ │
+╰─╰──────────────────────────────────────────────────────────────────────────────────────1 of 20─╯ │
 ╭─[4]─Diagram───────────────────╮│ A comment goes on the pull request that last changed its line,  │
 │ Components                    ││ shown as → #number.                                             │
 │ ■ widgets                     ││                                                                 │

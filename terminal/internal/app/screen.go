@@ -3,7 +3,7 @@ package app
 type screen int
 
 const (
-	screenReviews screen = iota
+	screenHome screen = iota
 	screenReview
 	screenDiff
 	screenDiagram

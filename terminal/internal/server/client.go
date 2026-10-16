@@ -23,6 +23,8 @@ const (
 	changeWait  = 60 * time.Second
 	askWait     = 200 * time.Second
 	refreshWait = 120 * time.Second
+	pullsWait   = 180 * time.Second
+	loadWait    = 20 * time.Minute
 )
 
 // Client talks to the Review Desk server. It reads the server's address and
@@ -52,13 +54,13 @@ func (c *Client) Address() (string, error) {
 // conversations, the threads on GitHub and its written review.
 func (c *Client) State(id string) (State, error) {
 	var state State
-	return state, c.get(ReviewPath(id, ""), nil, &state)
+	return state, c.get(ReviewPath(id, ""), nil, readWait, &state)
 }
 
 // Page reads what a review draws: its build, its model and its layout.
 func (c *Client) Page(id string) (Page, error) {
 	var page Page
-	return page, c.get(ReviewPath(id, "/page"), nil, &page)
+	return page, c.get(ReviewPath(id, "/page"), nil, readWait, &page)
 }
 
 // File reads one file of a review ready to draw, for the page build the app
@@ -66,7 +68,7 @@ func (c *Client) Page(id string) (Page, error) {
 // whole text.
 func (c *Client) File(id, path, build string) (File, error) {
 	var file File
-	return file, c.get(ReviewPath(id, "/file"), url.Values{"path": {path}, "build": {build}}, &file)
+	return file, c.get(ReviewPath(id, "/file"), url.Values{"path": {path}, "build": {build}}, readWait, &file)
 }
 
 // Where says where a comment on lines as the app shows them would go, for
@@ -82,7 +84,7 @@ func (c *Client) Where(id string, at Lines, pull int, build string) (Where, erro
 		query.Set("pull", strconv.Itoa(pull))
 	}
 	var where Where
-	return where, c.get(ReviewPath(id, "/where"), query, &where)
+	return where, c.get(ReviewPath(id, "/where"), query, readWait, &where)
 }
 
 // Queue queues a comment on lines as the app shows them, and returns the
@@ -148,6 +150,25 @@ func (c *Client) Post(id string, pull int, action, set, build string) (string, S
 func (c *Client) Refresh(id string) ([]string, error) {
 	var answer struct{ Notes []string }
 	return answer.Notes, c.change(http.MethodPost, ReviewPath(id, "/refresh"), nil, map[string]any{}, refreshWait, &answer)
+}
+
+// Pulls reads the open pull requests that involve the accounts in the
+// settings file, as GitHub has them now.
+func (c *Client) Pulls() (Pulls, error) {
+	var pulls Pulls
+	return pulls, c.get("/api/pulls", nil, pullsWait, &pulls)
+}
+
+// Load loads pull requests from GitHub into a review, a stack bottom
+// first, as the GitHub account named, and returns the review's id and the
+// server's notes on what it found.
+func (c *Client) Load(links []string, account string) (string, []string, error) {
+	var answer struct {
+		ID    string
+		Notes []string
+	}
+	err := c.change(http.MethodPost, "/api/load", nil, map[string]any{"links": links, "account": account}, loadWait, &answer)
+	return answer.ID, answer.Notes, err
 }
 
 // Events sends each change notice of a review to notices, the first naming
@@ -225,7 +246,7 @@ func (c *Client) record() (Record, error) {
 	return record, nil
 }
 
-func (c *Client) get(path string, query url.Values, into any) error {
+func (c *Client) get(path string, query url.Values, wait time.Duration, into any) error {
 	record, err := c.record()
 	if err != nil {
 		return err
@@ -234,7 +255,7 @@ func (c *Client) get(path string, query url.Values, into any) error {
 	if len(query) > 0 {
 		address += "?" + query.Encode()
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), readWait)
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
 	defer cancel()
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
 	if err != nil {

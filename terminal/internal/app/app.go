@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -21,10 +22,11 @@ import (
 
 const doubleClick = 400 * time.Millisecond
 
-// App is the terminal app's state: what the main panel shows, which panel
-// has the keys, what the server gave it, where each cursor is, and what has
-// been typed toward a key sequence. Each key press is Update, which returns
-// the next App.
+// App is the terminal app's state: the home screen of open pull requests,
+// the review open, if any, what the main panel shows, which panel has the
+// keys, what the server gave it, where each cursor is, and what has been
+// typed toward a key sequence. Each key press is Update, which returns the
+// next App.
 type App struct {
 	opts       Options
 	p          palette
@@ -32,6 +34,8 @@ type App struct {
 	width      int
 	height     int
 	screen     screen
+	home       homeView
+	opening    string
 	focus      int
 	driving    int
 	sides      [sideCount + 1]sidePanel
@@ -69,13 +73,17 @@ type App struct {
 	liveFor    string
 }
 
-// New returns the app, which opens on the review opts names.
+// New returns the app, which opens on the review opts names, or with none on
+// the home screen.
 func New(opts Options) App {
 	if opts.Now == nil {
 		opts.Now = time.Now
 	}
 	if opts.Location == nil {
 		opts.Location = time.Local
+	}
+	if opts.Home == "" {
+		opts.Home, _ = os.UserHomeDir()
 	}
 	if opts.Open == nil {
 		opts.Open = openInBrowser
@@ -90,13 +98,22 @@ func New(opts Options) App {
 		opts.Listen = listen
 	}
 	p := newPalette(opts.Dark)
-	return App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: true, screen: screenReview, focus: reviewPanel, driving: reviewPanel,
-		rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}, tree: map[string]bool{}}
+	a := App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: opts.Review != "", screen: screenReview, opening: opts.Review,
+		focus: reviewPanel, driving: reviewPanel, rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}, tree: map[string]bool{}}
+	if opts.Review == "" {
+		a.screen, a.home.reading = screenHome, true
+	}
+	a.home = a.home.rebuilt(p)
+	return a
 }
 
-// Init asks the server for the review to open.
+// Init asks the server for the review to open, or for the home screen's
+// open pull requests.
 func (a App) Init() tea.Cmd {
-	return loadReview(a.opts.Server, a.opts.Review)
+	if a.opening == "" {
+		return readPulls(a.opts.Server)
+	}
+	return loadReview(a.opts.Server, a.opening)
 }
 
 // Update takes one message, such as a key, a click, or an answer from the
@@ -106,14 +123,23 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		a.width, a.height = msg.Width, msg.Height
 		return a.relaid(), nil
+	case pullsRead:
+		return a.afterPulls(msg)
+	case pullsLoaded:
+		return a.afterLoaded(msg)
 	case reviewLoaded:
+		if msg.id != a.opening {
+			return a, nil
+		}
 		a.loading = false
 		if msg.err != nil {
 			a.failed = msg.err.Error()
 			return a.say(msg.err.Error(), true), nil
 		}
 		a.review, a.failed = &msg.data, ""
-		a.screen = screenReview
+		if a.screen != screenHome {
+			a.screen = screenReview
+		}
 		a.files, a.diff, a.filter = map[string]server.File{}, diffView{}, 0
 		a.dg = newDiagramView(levelAt(msg.data.page, diagramPlace{level: "components"}), "")
 		var listening tea.Cmd
@@ -233,6 +259,9 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (a App) bindings() keys.Bindings {
+	if a.screen == screenHome {
+		return homeKeys
+	}
 	if a.focus != mainPanel {
 		return everyView.With(sideKeys).With(sidePanelKeys[a.focus])
 	}
@@ -268,12 +297,18 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 		a.mode = (a.mode + screenMode(by)) % screenModes
 		return a.relaid(), nil
 	case "review":
-		if a.review == nil {
+		switch {
+		case a.review == nil && a.screen == screenHome:
+			return a.say("No review is open yet: Enter opens one", true), nil
+		case a.review == nil:
 			return a.say("the review is not open yet; R tries again", true), nil
+		case a.screen != screenHome:
+			a = a.leave()
 		}
-		a = a.leave()
 		a.screen, a.focus, a.driving = screenReview, mainPanel, reviewPanel
 		return a.relaid(), nil
+	case "home":
+		return a.goHome()
 	case "diagram":
 		return a.openDiagram(), nil
 	case "finder":
@@ -290,6 +325,9 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 		return a.openGitHub()
 	case "web":
 		return a.openWeb()
+	}
+	if a.screen == screenHome {
+		return a.homeAction(action, count)
 	}
 	if a.review == nil {
 		return a, nil
@@ -310,6 +348,8 @@ func (a App) closed() App {
 	switch {
 	case a.menu != nil:
 		a.menu = nil
+	case a.screen == screenHome:
+		return a.say("ZZ or :q quits", false)
 	case a.screen == screenDiff && a.diff.selecting:
 		a.diff.selecting = false
 	case a.focus == mainPanel && a.review != nil:
@@ -388,6 +428,10 @@ func (a App) reviewAction(action string, count, h int) (tea.Model, tea.Cmd) {
 func (a App) openGitHub() (tea.Model, tea.Cmd) {
 	address := ""
 	switch {
+	case a.screen == screenHome:
+		if _, _, m, ok := a.home.pull(); ok {
+			address = m.URL
+		}
 	case a.review == nil:
 	case a.focus != mainPanel:
 		if row, ok := a.sides[a.focus].selected(); ok {
@@ -402,7 +446,7 @@ func (a App) openGitHub() (tea.Model, tea.Cmd) {
 			address = v.items[v.cursor].url
 		}
 	}
-	if address == "" && a.review != nil && len(a.review.state.Members) > 0 {
+	if address == "" && a.screen != screenHome && a.review != nil && len(a.review.state.Members) > 0 {
 		address = a.review.state.Members[0].URL
 	}
 	if address == "" {
@@ -438,13 +482,17 @@ func (a App) showKeys() App {
 	if a.focus != mainPanel {
 		rows = sideHelp[a.focus]
 	}
+	heading, every, everyRows := a.panelName(), "Every panel", everyViewHelp
+	if a.screen == screenHome {
+		heading, rows, every, everyRows = "Home", homeHelp, "Marks", homeMarks
+	}
 	pn := menu{title: "Keys"}
-	pn.rows = append(pn.rows, menuRow{heading: a.panelName()})
+	pn.rows = append(pn.rows, menuRow{heading: heading})
 	for _, r := range rows {
 		pn.rows = append(pn.rows, menuRow{left: r.keys, right: r.words})
 	}
-	pn.rows = append(pn.rows, menuRow{heading: "Every panel"})
-	for _, r := range everyViewHelp {
+	pn.rows = append(pn.rows, menuRow{heading: every})
+	for _, r := range everyRows {
 		pn.rows = append(pn.rows, menuRow{left: r.keys, right: r.words})
 	}
 	pn = pn.first()
@@ -509,6 +557,9 @@ func (a App) command(typed string) (tea.Model, tea.Cmd) {
 }
 
 func (a App) relaid() App {
+	if a.screen == screenHome {
+		return a.homeRelaid()
+	}
 	if a.width == 0 || a.review == nil {
 		return a
 	}
@@ -526,9 +577,12 @@ func (a App) relaid() App {
 }
 
 func (a App) refresh() (tea.Model, tea.Cmd) {
+	if a.screen == screenHome {
+		return a.readHome()
+	}
 	if a.review == nil {
 		a.loading, a.failed = true, ""
-		return a.say("Opening the review again…", false), loadReview(a.opts.Server, a.opts.Review)
+		return a.say("Opening the review again…", false), loadReview(a.opts.Server, a.opening)
 	}
 	cmd := reloadReview(a.opts.Server, a.review.id, true)
 	if a.liveFor == "" {
@@ -580,13 +634,13 @@ func loadReview(c *server.Client, id string) tea.Cmd {
 	return func() tea.Msg {
 		state, err := c.State(id)
 		if err != nil {
-			return reviewLoaded{err: fmt.Errorf("could not open %s: %w", id, err)}
+			return reviewLoaded{id: id, err: fmt.Errorf("could not open %s: %w", id, err)}
 		}
 		page, err := c.Page(id)
 		if err != nil {
-			return reviewLoaded{err: fmt.Errorf("could not open %s: %w", id, err)}
+			return reviewLoaded{id: id, err: fmt.Errorf("could not open %s: %w", id, err)}
 		}
-		return reviewLoaded{data: reviewData{id: id, state: state, page: page}}
+		return reviewLoaded{id: id, data: reviewData{id: id, state: state, page: page}}
 	}
 }
 

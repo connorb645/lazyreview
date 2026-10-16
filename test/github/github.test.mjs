@@ -25,3 +25,21 @@ test('review threads are read from GitHub\'s GraphQL API page by page, and its e
   const refused = new GitHub({ run: async () => ({ code: 0, stdout: JSON.stringify({ errors: [{ message: 'Resource not accessible by integration' }] }), stderr: '', timedOut: false }) });
   await assert.rejects(refused.reviewThreads('octo/widgets', 30), { message: 'GitHub refused the review threads of octo/widgets#30: Resource not accessible by integration' });
 });
+
+test('a search is read page by page, up to the thousand results GitHub gives', async () => {
+  const asked = [];
+  const items = n => Array.from({ length: n }, (_, i) => ({ number: i + 1 }));
+  const gh = new GitHub({ run: async args => {
+    asked.push(args[1]);
+    return { code: 0, stdout: JSON.stringify({ items: items(asked.length < 3 ? 100 : 7) }), stderr: '', timedOut: false };
+  } });
+  assert.equal((await gh.search('is:pr author:@me')).length, 207);
+  assert.deepEqual(asked, [1, 2, 3].map(page => `search/issues?q=is%3Apr+author%3A%40me&per_page=100&page=${page}`));
+  const full = new GitHub({ run: async () => ({ code: 0, stdout: JSON.stringify({ items: items(100) }), stderr: '', timedOut: false }) });
+  assert.equal((await full.search('is:pr')).length, 1000);
+});
+
+test('a host gh cannot reach is named as unreachable, not as refusing', async () => {
+  const gh = new GitHub({ run: async () => ({ code: 1, stdout: '', stderr: 'error connecting to api.github.com\ncheck your internet connection or https://githubstatus.com\n', timedOut: false }) });
+  await assert.rejects(gh.login(), { message: 'could not reach github.com: error connecting to api.github.com' });
+});

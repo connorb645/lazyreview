@@ -22,17 +22,17 @@
 │                               ││   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
 │                               ││                                                                 │
 │                               ││ ▾ Queued comments                                               │
-│                               ││ A comment goes on the pull request that last changed its line,  │
-╰───────────────────────1 of 10─╯│ shown as → #number.                                             │
-╭─[3]─Notes─────────────────────╮│                                                                 │
-│ Queued                      2 ││  #21  Add search to the catalog                                 │
-│ 1 MemoryCatalog.swift:8-… #21 ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
-│ 2 Basket.swift:9-11       #22 ││     │     func add(_ item: Item) {                              │
-│ Claude                      1 ││     │         stored.append(item)                               │
-│ Basket.swift:7 Could this be …││     │     }                                                     │
-│ On GitHub                   2 ││     Keep the order items came in.                               │
-│ sam MemoryCatalog.swift:9     ││                                                                 │
-│ sam Basket.swift:7   resolved ││  #22  Add a basket that uses search                             │
+╰───────────────────────1 of 10─╯│ A comment goes on the pull request that last changed its line,  │
+╭─[3]─Notes─────────────────────╮│ shown as → #number.                                             │
+│ Queued                      2 ││                                                                 │
+│ 1 MemoryCatalog.swift:8-… #21 ││  #21  Add search to the catalog                                 │
+│ 2 Basket.swift:9-11       #22 ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
+│ Claude                      1 ││     │     func add(_ item: Item) {                              │
+│ Basket.swift:7 Could this be …││     │         stored.append(item)                               │
+│ On GitHub                   2 ││     │     }                                                     │
+│ sam MemoryCatalog.swift:9     ││     Keep the order items came in.                               │
+│ sam Basket.swift:7   resolved ││                                                                 │
+│                               ││  #22  Add a basket that uses search                             │
 │                               ││   2 → #22 Sources/Basket/Basket.swift, removed line 9 to line 11│
 │                               ││     │         0                                                 │
 │                               ││     │         1                                                 │
@@ -41,12 +41,12 @@
 │                               ││ ▾ On GitHub                                                     │
 │                               ││ 2 review threads, 1 unresolved, as GitHub had them when this    │
 │                               ││ review was loaded.                                              │
-│                               ││   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment    │
-╰────────────────────────1 of 5─╯│     Should this keep the order items were added in?             │
-╭─[4]─Diagram───────────────────╮│   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved │
-│ Components                    ││     Could the search be passed in?                              │
-│ ■ widgets                     ││                                                                 │
-│ ■ Unchanged code              ││ ▾ Conversations                                                 │
+╰────────────────────────1 of 5─╯│   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment    │
+╭─[4]─Diagram───────────────────╮│     Should this keep the order items were added in?             │
+│ Components                    ││   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved │
+│ ■ widgets                     ││     Could the search be passed in?                              │
+│ ■ Unchanged code              ││                                                                 │
+│                               ││ ▾ Conversations                                                 │
 │                               ││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
 │                               ││     Could this be passed in?                                    │
 │                               ││     It returns early when the list is empty.                    │

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { request } from 'node:http';
@@ -11,6 +11,8 @@ import { ThreadService } from '../../src/ask/thread-service.mjs';
 import { Claude } from '../../src/ask/claude.mjs';
 import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 import { PullRef } from '../../src/github/pull-ref.mjs';
+import { OpenPulls } from '../../src/home/open-pulls.mjs';
+import { SETTINGS, homeRoutes } from '../support/home-routes.mjs';
 
 const RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal', 'testdata', 'record.json');
 const STACK = 'github.com/octo/widgets/21';
@@ -23,6 +25,9 @@ const thread = (id, path, line, login, body, extra = {}) => ({
 });
 
 const TOKEN = 'record-token';
+const UNREACHABLE = { $fail: 'error connecting to api.github.com\ncheck your internet connection or https://githubstatus.com' };
+// The data home the answers name, in place of the throwaway one, so the same review gives the same record.
+const STAND_IN_HOME = '/home/reviewer/.review-desk';
 
 // Sends a request as the terminal app does, a change carrying the token and its fields as JSON.
 function send(address, method, path, body = null) {
@@ -50,7 +55,9 @@ function key(method, path, body = null) {
 
 const where = (base, given) => `${base}/where?${new URLSearchParams(given)}`;
 
-// A stack with comments queued, a conversation, threads on GitHub and a written review, and a single pull request with Markdown.
+// A stack with comments queued, a conversation, threads on GitHub and a written review, and a single pull request with Markdown;
+// and the home screen's open pull requests as GitHub gives them, as it fails to, and with no accounts set, with the stack
+// loaded and the single pull request not yet, as a load from the home screen finds it.
 async function recordAnswers() {
   const w = workbench();
   const fake = fakeClaude();
@@ -67,13 +74,31 @@ async function recordAnswers() {
     };
     w.routes({ reviews });
     await w.loader.load({ links: [w.link(21), w.link(22)], context: true });
-    await w.loader.load({ links: [w.link(30)] });
     let tick = 0;
     const now = () => new Date(Date.UTC(2026, 9, 15, 13, 0, tick++)).toISOString();
     const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }), now });
-    const server = new AppServer({ store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, token: TOKEN, port: 0 });
+    const server = new AppServer({
+      store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, pulls: new OpenPulls({ store: w.store }), token: TOKEN, port: 0,
+    });
     const address = await server.listen();
     try {
+      const answers = {};
+      const home = async (variant, settings, extra) => {
+        if (settings) writeFileSync(w.home.settingsFile, JSON.stringify(settings));
+        else rmSync(w.home.settingsFile, { force: true });
+        w.routes({ reviews, extra });
+        const answer = await send(address, 'GET', '/api/pulls');
+        assert.equal(answer.status, 200, variant);
+        answers[`GET /api/pulls${variant}`] = { ...answer, body: { ...answer.body, settings: answer.body.settings.replace(w.home.root, STAND_IN_HOME) } };
+      };
+      await home('', SETTINGS, homeRoutes());
+      await home('#one repository', { accounts: [SETTINGS.accounts[1]] }, homeRoutes());
+      await home('#none', { accounts: [{ login: 'reviewer' }] }, { 'token-reviewer *': { total_count: 0, items: [] } });
+      await home('#one unreachable', SETTINGS, { ...homeRoutes(), 'token-reviewer-home *': UNREACHABLE });
+      await home('#unreachable', SETTINGS, { 'token-reviewer *': UNREACHABLE, 'token-reviewer-home *': UNREACHABLE });
+      await home('#no settings', null, {});
+      w.routes({ reviews });
+      await w.loader.load({ links: [w.link(30)] });
       const stack = new PullRef('github.com', 'octo/widgets', 21);
       const build = w.store.pageBuild(stack);
       await w.queue.add(stack, { build, path: 'Sources/Catalog/MemoryCatalog.swift', start_line: 8, line: 10, side: 'RIGHT', body: 'Keep the order items came in.' });
@@ -100,7 +125,6 @@ async function recordAnswers() {
         where(base, { path: 'Sources/Catalog/Catalog.swift', side: 'RIGHT', line: 1, build }),
         where(base, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 7, build }),
       );
-      const answers = {};
       for (const path of paths) {
         const answer = await send(address, 'GET', path);
         assert.equal(answer.status, 200, path);
@@ -135,7 +159,11 @@ async function recordAnswers() {
         const path = where(one, { ...given, build: oneBuild });
         answers[key('GET', path)] = await send(address, 'GET', path);
       }
-      changes.push(['POST', `${one}/refresh`, {}]);
+      changes.push(
+        ['POST', `${one}/refresh`, {}],
+        ['POST', '/api/load', { links: [w.link(30)], account: 'reviewer' }],
+        ['POST', '/api/load', { links: ['https://github.com/octo/gadgets/pull/7'], account: 'reviewer' }],
+      );
       for (const [method, path, body] of changes) answers[key(method, path, body)] = await send(address, method, path, body);
       return answers;
     } finally {

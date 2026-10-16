@@ -87,7 +87,7 @@ test('one command loads a pull request, starts the app, and prints where to open
   }
 });
 
-test('the terminal app opens on the review a link names, loading a pull request no review holds yet', async () => {
+test('the terminal app opens on the review a link names, loading a pull request no review holds yet, and with none on the home screen', async () => {
   const w = workbench();
   const port = await freePort();
   const env = { ...w.env, REVIEW_DESK_PORT: String(port) };
@@ -103,6 +103,8 @@ test('the terminal app opens on the review a link names, loading a pull request 
     await open(w.link(30));
     assert.deepEqual(said, ['loading https://github.com/octo/widgets/pull/30…'], 'a review already loaded opens as it is');
     assert.deepEqual(opened, ['github.com/octo/widgets/30', 'github.com/octo/widgets/30', 'github.com/octo/widgets/30']);
+    await command(['terminal'], { env, bin: BIN, say: line => said.push(line), terminal });
+    assert.equal(opened.at(-1), null, 'with no link, the app opens on the home screen');
   } finally {
     await run(['stop'], env);
     w.done();
@@ -182,7 +184,7 @@ test('the command explains itself, and names what was wrong', async () => {
   assert.match((await run(['load', '--head', 'feature'], process.env)).stderr, /^review-desk: --head needs --repo\n/);
   assert.match((await run(['load', 'octo/widgets#1', '--repo', '.', '--base', 'a', '--head', 'b'], process.env)).stderr, /^review-desk: load takes pull requests or --repo, not both\n/);
   assert.match((await run(['load', '--repo', '.', '--base', 'a', '--head', 'b', '--account', 'me'], process.env)).stderr, /^review-desk: --account is for pull requests/);
-  assert.match((await run(['terminal'], process.env)).stderr, /^review-desk: terminal needs a link: the address load printed, or a pull request link\n\nusage:/);
+  assert.match((await run(['terminal', 'octo/widgets#1', 'octo/widgets#2'], process.env)).stderr, /^review-desk: terminal takes 1 argument\n\nusage:/);
   assert.match((await run(['frobnicate'], process.env)).stderr, /unknown command "frobnicate"/);
   assert.match((await run(['load', 'x', '--colour'], process.env)).stderr, /unknown option --colour for load/);
 });

@@ -6,8 +6,10 @@
  * loading before the terminal app opens, and `terminal` is the terminal app
  * to launch. `serve` keeps running until it is stopped, and `terminal` until
  * the terminal app quits. Every other command returns once done; `load` and
- * `terminal` start the app in the background first when it is not running,
- * and `terminal` loads a pull request link that no review holds yet.
+ * `terminal` start the app in the background first when it is not running.
+ * `terminal` with a link opens that review, loading a pull request link
+ * that no review holds yet, and with none the home screen of open pull
+ * requests.
  * The server records its address and a token in server.json, which only its
  * owner can read; a client such as the terminal app sends the token with
  * each change. `load` reads pull requests
@@ -32,6 +34,7 @@ import { PullRef } from '../github/pull-ref.mjs';
 import { readWrittenReview, checkWrittenReview } from '../review/written-review.mjs';
 import { reviewRef } from '../review/review-ref.mjs';
 import { TerminalApp } from '../terminal/terminal-app.mjs';
+import { OpenPulls } from '../home/open-pulls.mjs';
 
 export async function run(argv, { env = process.env, bin, say = () => {}, terminal = new TerminalApp() }) {
   const options = parseArguments(argv);
@@ -80,7 +83,7 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
         : `${reviewAddress(address, ref)}  ${changeName(review)}  ${review.title}`));
     }
     case 'terminal': {
-      const review = await reviewToOpen(options.positional[0], { store, home, say });
+      const review = options.positional.length ? await reviewToOpen(options.positional[0], { store, home, say }) : null;
       if (!(await running(home))) await start({ home, bin, env });
       await terminal.launch({ serverFile: home.serverFile, review, env });
       return [];
@@ -107,6 +110,7 @@ async function serve({ settings, home, store }) {
     branches: new BranchLoader({ store }),
     queue: new QueueService({ store }),
     threads: new ThreadService({ store, claude: new Claude({ ...settings.claude, folder: home.root }) }),
+    pulls: new OpenPulls({ store }),
     token,
     port: settings.port,
   });
