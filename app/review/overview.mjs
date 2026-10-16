@@ -2,14 +2,16 @@
  * The Review view: the pull request, or the stack, at the top; the written
  * review when one is attached; the Queued comments with the review buttons;
  * and every conversation with Claude. Beside it, the way to the diagram, each
- * pull request of a stack, the components, and what is on the page.
+ * pull request of a stack, the components, and what is on the page. A
+ * branch's review shows the branch at the top and its conversations, with no
+ * queue and no buttons: it is read only.
  *
  * createOverview(ctx) returns render(message), which draws the view from
  * ctx.state again, with `message` saying what the last action did.
  */
 import { esc, fmt, plural, short, when } from '../lib/text.mjs';
 import { trustedMarkdown } from '../lib/markdown.mjs';
-import { send, reviewPath } from '../lib/api.mjs';
+import { send, reviewPath, reviewAddress } from '../lib/api.mjs';
 
 export function createOverview(ctx) {
   const { files, contextFiles, totals, model } = ctx.data;
@@ -59,6 +61,14 @@ export function createOverview(ctx) {
       '</header>';
   }
 
+  function branchHeader(state) {
+    return '<header class="pr-head">' +
+      '<p class="pr-kicker">Branch <b>' + esc(state.head.ref) + '</b> in <b>' + esc(state.repo) + '</b>, with no pull request yet</p>' +
+      '<h2 class="pr-title">' + esc(state.title) + '</h2>' +
+      '<p class="pr-meta"><span>Base <b>' + esc(state.base.ref) + '</b></span><span>Head <b>' + esc(short(state.head.sha)) + '</b></span>' + changeTotals('') + '</p>' +
+      '</header>';
+  }
+
   function movedNote(moved) {
     const list = (moved.stack || []).map(p => '#' + p);
     return '<p class="moved-note">This review moved: ' + (list.length ? esc(list[0]) + ' to ' + esc(list[list.length - 1]) : 'its pull request') +
@@ -74,6 +84,9 @@ export function createOverview(ctx) {
   }
 
   function sectionsHTML(written) {
+    if (!ctx.state.queue) {
+      return '<section class="rv-sec" id="rv-none"><p class="rv-quiet">This branch has no pull request yet, so its review is read only. The diagram and the diffs hold the change; select a line number in a diff to ask Claude about it.</p></section>';
+    }
     if (!written) {
       return '<section class="rv-sec" id="rv-none"><p class="rv-quiet">No written review is attached. The diagram and the diffs hold the change; select a line number in a diff to ask Claude about it or to queue a comment.</p></section>';
     }
@@ -135,17 +148,18 @@ export function createOverview(ctx) {
     const state = ctx.state;
     const written = state.written;
     const title = (written && written.title) || state.title;
+    const branch = state.kind === 'branch';
     body.innerHTML = (state.moved ? movedNote(state.moved) : '') +
-      (pulls.members.length ? stackHeader(title) : pullHeader(state.members[0])) +
+      (branch ? branchHeader(state) : pulls.members.length ? stackHeader(title) : pullHeader(state.members[0])) +
       (state.notes && state.notes.length ? '<div class="load-notes">' + state.notes.map(n => '<p class="warn-line">' + esc(n) + '</p>').join('') + '</div>' : '') +
       sectionsHTML(written) +
-      '<section id="queued-comments"></section>' +
+      (state.queue ? '<section id="queued-comments"></section>' : '') +
       conversationsHTML();
     decorate(body);
-    ctx.queuePanel.mount(document.getElementById('queued-comments'), message);
+    if (state.queue) ctx.queuePanel.mount(document.getElementById('queued-comments'), message);
 
     const shared = sharedPrefix(pulls.members.map(m => m.title));
-    const toc = (written ? written.sections.map(s => ['rv-' + s.id, s.title]) : []).concat([['queued-comments', 'Queued comments']])
+    const toc = (written ? written.sections.map(s => ['rv-' + s.id, s.title]) : []).concat(state.queue ? [['queued-comments', 'Queued comments']] : [])
       .concat(state.threads.length ? [['conversations', 'Conversations']] : []);
     side.innerHTML =
       '<div class="side-open"><button class="back" data-go="map">Open the diagram &rarr;</button></div>' +
@@ -154,11 +168,11 @@ export function createOverview(ctx) {
       '<div><p class="rail-h">The change</p><ul class="comp-list">' + model.components.map(c =>
         '<li><button class="comp-item" data-comp="' + esc(c.id) + '">' + ctx.diagram.swatch(c, 'swatch') +
         '<span class="t">' + esc(c.title) + '</span><span class="n">' + ctx.diagram.countWords(c, true) + '</span></button></li>').join('') + '</ul></div>' +
-      '<div class="toc-block"><p class="rail-h">On this page</p><ul class="toc">' + toc.map(([id, name]) =>
-        '<li><a href="#' + esc(id) + '" data-section="' + esc(id) + '">' + esc(name) + '</a></li>').join('') + '</ul></div>' +
+      (toc.length ? '<div class="toc-block"><p class="rail-h">On this page</p><ul class="toc">' + toc.map(([id, name]) =>
+        '<li><a href="#' + esc(id) + '" data-section="' + esc(id) + '">' + esc(name) + '</a></li>').join('') + '</ul></div>' : '') +
       '<div class="side-tools"><p class="rail-h">This review</p>' +
       '<p class="side-line">Loaded ' + esc(when(state.loaded_at)) + (state.account ? ' as <b>' + esc(state.account) + '</b>' : '') + '</p>' +
-      (state.moved ? '' : '<button class="btn" data-refresh>Load again from GitHub</button><p class="side-line" data-refresh-status aria-live="polite"></p>') +
+      (state.moved ? '' : '<button class="btn" data-refresh>' + (branch ? 'Load the branch again' : 'Load again from GitHub') + '</button><p class="side-line" data-refresh-status aria-live="polite"></p>') +
       '<p class="side-line"><a href="/">Every review</a></p></div>';
   }
 
@@ -188,11 +202,11 @@ export function createOverview(ctx) {
     if (refresh) {
       const status = side.querySelector('[data-refresh-status]');
       refresh.disabled = true;
-      status.textContent = 'Fetching the pull request' + (pulls.members.length ? 's' : '') + ' and drawing them again…';
+      status.textContent = ctx.state.kind === 'branch' ? 'Reading the branch and drawing it again…' : 'Fetching the pull request' + (pulls.members.length ? 's' : '') + ' and drawing them again…';
       try {
         const done = await send('POST', reviewPath(ctx.state.id, '/refresh'));
         if (done.id === ctx.state.id) location.reload();
-        else location.assign('/review/' + done.id + location.hash);
+        else location.assign(reviewAddress(done.id) + location.hash);
       } catch (error) {
         refresh.disabled = false;
         status.textContent = error.message;

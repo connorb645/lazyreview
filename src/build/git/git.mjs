@@ -38,6 +38,17 @@ export class Git {
     }
   }
 
+  /** The branch a ref names, such as feature/search for HEAD on it, or null when it names no branch. */
+  branchOf(ref) {
+    const name = this.#text(['rev-parse', '--verify', '--quiet', '--symbolic-full-name', ref], { allowExit: [1] }).trim();
+    return name.startsWith('refs/heads/') ? name.slice('refs/heads/'.length) : null;
+  }
+
+  /** The absolute path of the git folder every worktree of this repository shares. */
+  sharedFolder() {
+    return this.#text(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim();
+  }
+
   mergeBase(a, b) {
     return this.#text(['merge-base', a, b]).trim();
   }

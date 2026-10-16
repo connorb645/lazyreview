@@ -13,6 +13,12 @@ export const USAGE = `usage: review-desk <command> [options]
       --config <file>    JSON naming the components and packages to draw
       --context          also draw the unchanged code the change touches
       --no-context       stop drawing it, for a review loaded with it
+  load --repo <folder> --base <ref> --head <branch>
+                         load a branch with no pull request, read only, as
+                         its diff from base would show; loading the same
+                         branch again refreshes it
+      --title <text>     name the review; the branch's name otherwise
+      --config, --context and --no-context work as above
   attach <pull link> <file>
                          attach a written review, in Markdown, to the review
                          holding that pull request
@@ -23,7 +29,7 @@ export const USAGE = `usage: review-desk <command> [options]
   help                   show this`;
 
 const COMMANDS = {
-  load: { min: 1, valued: ['--account', '--config'], flags: ['--context', '--no-context'] },
+  load: { valued: ['--account', '--config', '--repo', '--base', '--head', '--title'], flags: ['--context', '--no-context'], check: checkLoad },
   attach: { min: 2, max: 2 },
   list: { max: 0 },
   serve: { max: 0 },
@@ -50,9 +56,22 @@ export function parseArguments(argv) {
     if (a.startsWith('--')) fail(`unknown option ${a} for ${command}`);
     options.positional.push(a);
   }
-  if (spec.min && options.positional.length < spec.min) fail(`${command} needs ${spec.min === 1 ? 'a pull request' : `${spec.min} arguments`}`);
+  if (spec.min && options.positional.length < spec.min) fail(`${command} needs ${spec.min} arguments`);
   if (spec.max !== undefined && options.positional.length > spec.max) fail(`${command} takes ${spec.max || 'no'} argument${spec.max === 1 ? '' : 's'}`);
+  if (spec.check) spec.check(options, fail);
   return options;
+}
+
+function checkLoad(options, fail) {
+  if (options.repo === undefined) {
+    const stray = ['--base', '--head', '--title'].find(option => options[name(option)] !== undefined);
+    if (stray) fail(`${stray} needs --repo`);
+    if (!options.positional.length) fail('load needs a pull request, or --repo with --base and --head');
+    return;
+  }
+  if (options.positional.length) fail('load takes pull requests or --repo, not both');
+  if (options.account !== undefined) fail('--account is for pull requests; a branch loads from its own repository');
+  for (const option of ['--base', '--head']) if (options[name(option)] === undefined) fail(`--repo needs ${option}`);
 }
 
 function name(option) {

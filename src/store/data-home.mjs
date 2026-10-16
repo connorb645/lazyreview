@@ -2,7 +2,8 @@
  * Where Review Desk keeps its files, under one folder, the data home:
  *
  *   clones/<host>/<owner>/<repo>.git          a bare clone per repository
- *   reviews/<host>/<owner>/<repo>/<pull>/     one folder per review
+ *   reviews/<host>/<owner>/<repo>/<pull>/     one folder per pull request review
+ *   reviews/local/<repo key>/<branch>/        one folder per branch review
  *   server.json, server.log                   the running app, while it runs
  *
  * DataHome only names paths. It reads and writes nothing.
@@ -25,9 +26,14 @@ export class DataHome {
     return join(this.root, 'reviews');
   }
 
-  /** The folder of the review a PullRef's id names. */
+  /** The folder of the review a PullRef's or a BranchRef's id names. */
   review(ref) {
-    return new ReviewFolder(join(this.reviews, ref.host, ...ref.repo.split('/'), String(ref.pull)));
+    return new ReviewFolder(join(this.reviews, ...ref.id.split('/')));
+  }
+
+  /** The folder holding every branch review. */
+  get branchReviews() {
+    return join(this.reviews, 'local');
   }
 
   /** The folder holding every review of one repository. */

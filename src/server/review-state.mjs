@@ -4,7 +4,9 @@
  * reviewState(store, ref) returns the review's pull requests, its queue as
  * the buttons need it, its conversations and its written review, or null
  * when there is no review `ref`. A written review is marked `stale` when it
- * read another head than the review now shows.
+ * read another head than the review now shows. A branch review gives its
+ * branch, its base and its conversations, with `queue` null: it takes no
+ * comments and sends nothing.
  */
 import { queueView } from '../queue/queue-rules.mjs';
 import { readWrittenReview } from '../review/written-review.mjs';
@@ -12,6 +14,12 @@ import { readWrittenReview } from '../review/written-review.mjs';
 export function reviewState(store, ref) {
   const review = store.read(ref);
   if (!review) return null;
+  if (review.kind === 'branch') {
+    return {
+      id: review.id, kind: review.kind, repo: review.repo, path: review.path, title: review.title, base: review.base, head: review.head,
+      context: review.context, loaded_at: review.loaded_at, notes: review.notes, moved: null, queue: null, threads: store.threads(ref), written: null,
+    };
+  }
   const text = store.readWritten(ref);
   let written = null;
   if (text) {
@@ -32,6 +40,9 @@ export function reviewState(store, ref) {
 
 /** One line per review, for the list of every review kept. */
 export function reviewSummary({ ref, review }) {
+  if (review.kind === 'branch') {
+    return { id: ref.id, kind: review.kind, repo: review.repo, title: review.title, loaded_at: review.loaded_at, moved: null, branch: review.head.ref, base: review.base.ref, queued: 0 };
+  }
   return {
     id: ref.id, repo: review.repo, title: review.title, loaded_at: review.loaded_at, moved: review.moved,
     members: review.members.map(summary),

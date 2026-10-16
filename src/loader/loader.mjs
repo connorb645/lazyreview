@@ -16,18 +16,16 @@
  * is written or none, and it returns {ref, review, counts, notes}: `counts`
  * of the files, lines, components and types it drew.
  */
-import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
-import { join, dirname } from 'node:path';
 import { PullRef } from '../github/pull-ref.mjs';
 import { GitHub } from '../github/github.mjs';
 import { Git } from '../build/git/git.mjs';
 import { readConfig } from '../build/config/config.mjs';
 import { buildPage } from '../build/page-builder.mjs';
+import { pullsSubject } from '../build/page/heading.mjs';
+import { defaultElk } from '../build/layout/elk.mjs';
 import { regroup } from '../queue/regroup.mjs';
 
 const DESCRIPTION = 2000;
-const VENDOR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'vendor');
 
 export class Loader {
   #store;
@@ -77,6 +75,7 @@ export class Loader {
       members: found.map(f => ({ pull: f.number, head: f.head.sha })),
       baseBranch: bottom.base.ref,
       title: found.length === 1 ? bottom.title : `Stack #${pulls[0]} to #${pulls[pulls.length - 1]}`,
+      subject: pullsSubject(pulls),
       config: checked,
       context: settled.context,
       rootTitle: repo.split('/')[1],
@@ -110,7 +109,7 @@ export class Loader {
           ...(settled.config !== undefined ? [[folder.config, JSON.stringify(settled.config, null, 2) + '\n']] : []),
           ...grouped.moved.map(m => this.#store.recordWrite(m.ref, m.review)),
         ],
-        result: { ref: anchor, review, counts: counts(built.page.model), notes: [...built.notes, ...grouped.notes] },
+        result: { ref: anchor, review, counts: built.counts, notes: [...built.notes, ...grouped.notes] },
       };
     });
   }
@@ -168,22 +167,7 @@ function checkChained(found, repo) {
   if (problems.length) throw new Error(`these are not a stack, bottom first: ${problems.join('; ')}`);
 }
 
-function counts(model) {
-  return {
-    files: model.files.length,
-    adds: model.files.reduce((n, f) => n + f.adds, 0),
-    dels: model.files.reduce((n, f) => n + f.dels, 0),
-    components: model.components.length,
-    types: model.nodes.filter(n => n.kind !== 'artifact').length,
-  };
-}
-
 function stateOf(pull) {
   if (pull.merged_at) return { state: 'merged', ended_at: pull.merged_at };
   return { state: pull.state, ended_at: pull.closed_at || null };
-}
-
-function defaultElk() {
-  const ELK = createRequire(import.meta.url)(join(VENDOR, 'elk-0.9.3.bundled.js'));
-  return new ELK();
 }

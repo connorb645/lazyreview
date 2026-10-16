@@ -71,6 +71,33 @@ test('one command loads a pull request, starts the app, and prints where to open
   }
 });
 
+test('one command loads a branch with no pull request, and prints the address that opens it', async () => {
+  const w = workbench();
+  const port = await freePort();
+  const env = { ...w.env, REVIEW_DESK_PORT: String(port) };
+  try {
+    const loaded = await run(['load', '--repo', w.repo.work, '--base', 'main', '--head', 'fix/wording', '--title', 'Wording'], env);
+    assert.equal(loaded.code, 0, loaded.stderr);
+    const [summary, open, ...rest] = loaded.stdout.split('\n');
+    assert.equal(summary, 'loaded fix/wording against main: 1 file +1 -1, 1 component, 0 types');
+    assert.match(open, new RegExp(`^open http://127\\.0\\.0\\.1:${port}/review/local/work-[0-9a-f]{8}/fix~wording$`));
+    assert.deepEqual(rest, ['']);
+    const address = open.slice('open '.length);
+    const page = await fetch(address);
+    assert.equal(page.status, 200);
+    const state = await fetch(address.replace('/review/', '/api/reviews/'));
+    assert.equal((await state.json()).title, 'Wording');
+
+    const again = await run(['load', '--repo', w.repo.work, '--base', 'main', '--head', 'fix/wording'], env);
+    assert.equal(again.stdout.split('\n')[1], open, 'the same branch loads into the same review');
+    const listed = await run(['list'], env);
+    assert.equal(listed.stdout, `${address}  fix/wording against main  Wording\n`);
+  } finally {
+    await run(['stop'], env);
+    w.done();
+  }
+});
+
 test('the first load starts the app even when the disk is slow to fill the app\'s record', async () => {
   const w = workbench();
   const port = await freePort();
@@ -112,7 +139,11 @@ test('the command explains itself, and names what was wrong', async () => {
   assert.match(help.stdout, /^usage: review-desk <command> \[options\]/);
   const wrong = await run(['load'], process.env);
   assert.equal(wrong.code, 1);
-  assert.match(wrong.stderr, /^review-desk: load needs a pull request\n\nusage:/);
+  assert.match(wrong.stderr, /^review-desk: load needs a pull request, or --repo with --base and --head\n\nusage:/);
+  assert.match((await run(['load', '--repo', '.', '--base', 'main'], process.env)).stderr, /^review-desk: --repo needs --head\n/);
+  assert.match((await run(['load', '--head', 'feature'], process.env)).stderr, /^review-desk: --head needs --repo\n/);
+  assert.match((await run(['load', 'octo/widgets#1', '--repo', '.', '--base', 'a', '--head', 'b'], process.env)).stderr, /^review-desk: load takes pull requests or --repo, not both\n/);
+  assert.match((await run(['load', '--repo', '.', '--base', 'a', '--head', 'b', '--account', 'me'], process.env)).stderr, /^review-desk: --account is for pull requests/);
   assert.match((await run(['frobnicate'], process.env)).stderr, /unknown command "frobnicate"/);
   assert.match((await run(['load', 'x', '--colour'], process.env)).stderr, /unknown option --colour for load/);
 });

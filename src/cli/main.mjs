@@ -4,7 +4,8 @@
  * run(argv, {env, bin}) does what the command line asks and returns the lines
  * to print. `serve` keeps running until it is stopped. Every other command
  * returns once done; `load` starts the app in the background first when it
- * is not running, so its address is ready to open.
+ * is not running, so its address is ready to open. `load` reads pull requests
+ * from GitHub, or with --repo a branch from a repository on this machine.
  */
 import { readFileSync, rmSync, mkdirSync } from 'node:fs';
 import { parseArguments, USAGE } from './arguments.mjs';
@@ -14,6 +15,7 @@ import { ReviewStore } from '../store/review-store.mjs';
 import { writeWhole, readJSON } from '../store/whole-file.mjs';
 import { Clones } from '../clone/clones.mjs';
 import { Loader } from '../loader/loader.mjs';
+import { BranchLoader } from '../loader/branch-loader.mjs';
 import { QueueService } from '../queue/queue-service.mjs';
 import { ThreadService } from '../ask/thread-service.mjs';
 import { Claude } from '../ask/claude.mjs';
@@ -32,19 +34,18 @@ export async function run(argv, { env = process.env, bin }) {
 
   switch (options.command) {
     case 'load': {
-      const loader = new Loader({ store, clones: new Clones(home) });
-      const loaded = await loader.load({
-        links: options.positional,
+      const drawing = {
         config: options.config ? readConfigFile(options.config) : undefined,
         context: options.context ? true : options.noContext ? false : undefined,
-        account: options.account,
-      });
+      };
+      const loaded = options.repo !== undefined
+        ? await new BranchLoader({ store }).load({ repo: options.repo, base: options.base, head: options.head, title: options.title, ...drawing })
+        : await new Loader({ store, clones: new Clones(home) }).load({ links: options.positional, account: options.account, ...drawing });
       const address = (await running(home)) || (await start({ home, bin, env }));
       const c = loaded.counts;
-      const pulls = loaded.review.members.map(m => `#${m.pull}`).join(', ');
       return [
-        `loaded ${pulls}: ${c.files} file${c.files === 1 ? '' : 's'} +${c.adds} -${c.dels}, ${c.components} component${c.components === 1 ? '' : 's'}, ${c.types} type${c.types === 1 ? '' : 's'}`,
-        `open ${address}/review/${loaded.ref.id}`,
+        `loaded ${changeName(loaded.review)}: ${c.files} file${c.files === 1 ? '' : 's'} +${c.adds} -${c.dels}, ${c.components} component${c.components === 1 ? '' : 's'}, ${c.types} type${c.types === 1 ? '' : 's'}`,
+        `open ${reviewAddress(address, loaded.ref)}`,
         ...loaded.notes.map(n => `note: ${n}`),
       ];
     }
@@ -59,16 +60,15 @@ export async function run(argv, { env = process.env, bin }) {
         return { files: [[home.review(found.ref).written, text]], result: null };
       });
       const address = await running(home);
-      return [`attached to ${found.ref.id}${address ? `; open ${address}/review/${found.ref.id}` : ''}`];
+      return [`attached to ${found.ref.id}${address ? `; open ${reviewAddress(address, found.ref)}` : ''}`];
     }
     case 'list': {
       const address = (await running(home)) || 'http://127.0.0.1:' + settings.port;
       const reviews = store.list();
       if (!reviews.length) return ['no reviews yet; load one with review-desk load <pull link>'];
-      return reviews.map(({ ref, review }) => {
-        const pulls = review.members.map(m => `#${m.pull}`).join(', ');
-        return review.moved ? `${ref.id}  moved to ${review.moved.to}` : `${address}/review/${ref.id}  ${pulls}  ${review.title}`;
-      });
+      return reviews.map(({ ref, review }) => (review.moved
+        ? `${ref.id}  moved to ${review.moved.to}`
+        : `${reviewAddress(address, ref)}  ${changeName(review)}  ${review.title}`));
     }
     case 'start': {
       const address = (await running(home)) || (await start({ home, bin, env }));
@@ -88,6 +88,7 @@ async function serve({ settings, home, store }) {
   const server = new AppServer({
     store,
     loader: new Loader({ store, clones: new Clones(home) }),
+    branches: new BranchLoader({ store }),
     queue: new QueueService({ store }),
     threads: new ThreadService({ store, claude: new Claude({ ...settings.claude, folder: home.root }) }),
     port: settings.port,
@@ -108,6 +109,14 @@ async function serve({ settings, home, store }) {
   process.once('SIGINT', shut);
   process.once('SIGTERM', shut);
   return [`Review Desk is running at ${address}`];
+}
+
+function changeName(review) {
+  return review.kind === 'branch' ? `${review.head.ref} against ${review.base.ref}` : review.members.map(m => `#${m.pull}`).join(', ');
+}
+
+function reviewAddress(address, ref) {
+  return `${address}/review/${ref.id.split('/').map(encodeURIComponent).join('/')}`;
 }
 
 function readConfigFile(path) {

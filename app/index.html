@@ -47,7 +47,7 @@
 <section id="home-view" hidden>
   <div class="home-wrap">
     <h2>Reviews</h2>
-    <p class="home-sub">The pull requests and stacks loaded here, newest first.</p>
+    <p class="home-sub">The pull requests, stacks and branches loaded here, newest first.</p>
     <ul class="home-list" id="home-list"></ul>
     <div class="home-how">
       <p class="rail-h">Loading a review</p>
@@ -55,6 +55,8 @@
       <pre><code>review-desk load https://github.com/owner/repo/pull/12</code></pre>
       <p>A stack is every pull request, bottom first:</p>
       <pre><code>review-desk load &lt;bottom&gt; &lt;next&gt; &lt;top&gt;</code></pre>
+      <p>A branch with no pull request yet loads from its repository, read only:</p>
+      <pre><code>review-desk load --repo &lt;folder&gt; --base main --head &lt;branch&gt;</code></pre>
     </div>
   </div>
 </section>

@@ -1,10 +1,12 @@
 /**
  * The app's web server, for this machine only.
  *
- * new AppServer({store, loader, queue, threads, port}) serves the app at
- * http://127.0.0.1:<port>/, each review at /review/<review id>, and the JSON
- * the app reads and changes reviews through under /api. listen() resolves
- * once it is listening, with its address; close() stops it.
+ * new AppServer({store, loader, branches, queue, threads, port}) serves the
+ * app at http://127.0.0.1:<port>/, each review at /review/<review id>, and
+ * the JSON the app reads and changes reviews through under /api. `loader`
+ * loads pull requests again and `branches` branches. A branch review takes
+ * no comments: only a pull request's review has a queue to change or post.
+ * listen() resolves once it is listening, with its address; close() stops it.
  *
  * It answers only requests addressed to this machine by name, so a page from
  * elsewhere cannot reach it through a name it controls, and it takes a change
@@ -13,25 +15,29 @@
 import { createServer } from 'node:http';
 import { createReadStream, readFileSync } from 'node:fs';
 import { PullRef } from '../github/pull-ref.mjs';
+import { BranchRef } from '../local/branch-ref.mjs';
 import { reviewState, reviewSummary } from './review-state.mjs';
 import { staticFile, PAGE } from './static-files.mjs';
 
-const REVIEW = '([^/]+)/([^/]+)/([^/]+)/(\\d+)';
+const PULL = '([^/]+/[^/]+/[^/]+/\\d+)';
+const REVIEW = '(local/[^/]+/[^/]+|[^/]+/[^/]+/[^/]+/\\d+)';
 const BODY_LIMIT = 1 << 20;
 const PAGE_SECURITY = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
 export class AppServer {
   #store;
   #loader;
+  #branches;
   #queue;
   #threads;
   #port;
   #server = null;
   #routes;
 
-  constructor({ store, loader, queue, threads, port }) {
+  constructor({ store, loader, branches, queue, threads, port }) {
     this.#store = store;
     this.#loader = loader;
+    this.#branches = branches;
     this.#queue = queue;
     this.#threads = threads;
     this.#port = port;
@@ -41,25 +47,25 @@ export class AppServer {
       ['GET', new RegExp(`^/api/reviews/${REVIEW}$`), ref => this.#state(ref)],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}/page$`), ref => this.#page(ref)],
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/refresh$`), async ref => {
-        const loaded = await this.#loader.refresh(ref);
+        const loaded = await (ref instanceof BranchRef ? this.#branches : this.#loader).refresh(ref);
         return { id: loaded.ref.id, notes: loaded.notes };
       }],
-      ['POST', new RegExp(`^/api/reviews/${REVIEW}/comments$`), async (ref, body) => {
+      ['POST', new RegExp(`^/api/reviews/${PULL}/comments$`), async (ref, body) => {
         const done = await this.#queue.add(ref, {
           path: text(body.path), line: whole(body.line), side: side(body.side), start_line: body.start_line ? whole(body.start_line) : null,
           body: text(body.body), code: typeof body.code === 'string' ? body.code : '', pull: body.pull ? whole(body.pull) : null,
         });
         return { comment: done.comment, pull: done.pull, state: this.#state(ref) };
       }],
-      ['PATCH', new RegExp(`^/api/reviews/${REVIEW}/comments/(\\d+)$`), async (ref, body, id) => {
+      ['PATCH', new RegExp(`^/api/reviews/${PULL}/comments/(\\d+)$`), async (ref, body, id) => {
         await this.#queue.edit(ref, Number(id), text(body.body));
         return { state: this.#state(ref) };
       }],
-      ['DELETE', new RegExp(`^/api/reviews/${REVIEW}/comments/(\\d+)$`), async (ref, body, id) => {
+      ['DELETE', new RegExp(`^/api/reviews/${PULL}/comments/(\\d+)$`), async (ref, body, id) => {
         await this.#queue.drop(ref, Number(id));
         return { state: this.#state(ref) };
       }],
-      ['POST', new RegExp(`^/api/reviews/${REVIEW}/post$`), async (ref, body) => {
+      ['POST', new RegExp(`^/api/reviews/${PULL}/post$`), async (ref, body) => {
         const done = await this.#queue.post(ref, { pull: whole(body.pull), action: text(body.action), set: text(body.set) });
         return { message: done.message, review: done.review, state: this.#state(ref) };
       }],
@@ -115,10 +121,10 @@ export class AppServer {
     const route = this.#routes.find(([method, pattern]) => method === request.method && pattern.test(path));
     if (!route) return send(response, 404, { error: `nothing at ${request.method} ${path}` });
     const match = route[1].exec(path).slice(1);
-    const ref = match.length >= 4 ? new PullRef(match[0], `${match[1]}/${match[2]}`, Number(match[3])) : null;
     try {
+      const ref = match.length ? reviewRef(match[0]) : null;
       const body = request.method === 'GET' || request.method === 'DELETE' ? {} : await readBody(request);
-      const answer = await route[2](...(ref ? [ref, body, ...match.slice(4)] : [body]));
+      const answer = await route[2](...(ref ? [ref, body, ...match.slice(1)] : [body]));
       if (typeof answer === 'string') return sendRaw(response, 200, answer);
       if (answer === null || answer === undefined) return send(response, 404, { error: 'no such review' });
       return send(response, 200, answer);
@@ -134,6 +140,12 @@ export class AppServer {
   #page(ref) {
     return this.#store.readPage(ref);
   }
+}
+
+function reviewRef(id) {
+  const parts = id.split('/').map(decodeURIComponent);
+  if (parts[0] === 'local' && parts.length === 3) return BranchRef.parse(parts.join('/'));
+  return new PullRef(parts[0], `${parts[1]}/${parts[2]}`, Number(parts[3]));
 }
 
 function text(value) {

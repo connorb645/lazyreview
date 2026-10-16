@@ -5,15 +5,16 @@
  * questionFor({review, page, thread}) is pure. It takes the review, the page
  * data and the conversation, whose last message is the question, and returns
  * {system, prompt}: the instructions, and the message itself. The message
- * holds the pull request's title and description, the file's part of the
- * diff around the lines asked about, the file's text around them (all of it
- * when the file is short), and the conversation so far.
+ * holds the pull request's title and description, or a branch's name and its
+ * base, the file's part of the diff around the lines asked about, the file's
+ * text around them (all of it when the file is short), and the conversation
+ * so far.
  */
 const WHOLE_FILE = 400;
 const AROUND = 80;
 
 export const SYSTEM = [
-  'You help someone review a pull request.',
+  'You help someone review a change to code.',
   'You see one file of it: the part of the diff around the lines they ask about, the code around those lines, and their question.',
   'Answer in plain words and short sentences, and only what they asked.',
   'Say so when the code you were shown is not enough to be sure.',
@@ -39,6 +40,7 @@ export function questionFor({ review, page, thread }) {
 }
 
 function about(review, owner) {
+  if (review.kind === 'branch') return branch(review);
   if (review.members.length === 1) return describe(review.members[0]);
   const list = review.members.map(m => `#${m.pull}: ${m.title}`).join('\n');
   return `A stack of pull requests, bottom first, reviewed together:\n${list}${owner ? `\n\n${describe(owner)}` : ''}`;
@@ -48,7 +50,13 @@ function describe(member) {
   return `Pull request #${member.pull}: ${member.title}${member.description ? `\n\nIts description:\n${member.description}` : ''}`;
 }
 
+function branch(review) {
+  const named = review.title !== review.head.ref ? `: ${review.title}` : '';
+  return `Branch ${review.head.ref}${named}. It has no pull request yet, and its diff is against ${review.base.ref}.`;
+}
+
 function ownerOf(review, page, thread) {
+  if (review.kind === 'branch') return null;
   if (review.members.length === 1) return review.members[0];
   const entry = page.stack?.lines[thread.path]?.[thread.side]?.[String(thread.line)];
   return Array.isArray(entry) ? review.members.find(m => m.pull === entry[0]) || null : null;

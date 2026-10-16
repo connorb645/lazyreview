@@ -8,6 +8,7 @@ import { join, dirname } from 'node:path';
 import { readHunkLines, towardOld, towardNew } from '../../src/build/stack/hunk-lines.mjs';
 import { lineEntry } from '../../src/build/stack/line-map.mjs';
 import { buildPage } from '../../src/build/page-builder.mjs';
+import { pullsSubject } from '../../src/build/page/heading.mjs';
 import { readConfig } from '../../src/build/config/config.mjs';
 import { Git } from '../../src/build/git/git.mjs';
 
@@ -69,7 +70,7 @@ function stackRepo() {
 async function build(repo, heads) {
   const git = new Git(repo);
   const built = await buildPage({
-    git, base: git.resolve('main'), members: heads.map((head, i) => ({ pull: 101 + i, head })), baseBranch: 'main', title: 'Stack',
+    git, base: git.resolve('main'), members: heads.map((head, i) => ({ pull: 101 + i, head })), baseBranch: 'main', title: 'Stack', subject: pullsSubject(heads.map((_, i) => 101 + i)),
     config: readConfig(undefined), context: false, rootTitle: 'r', elk: new ELK(),
   });
   const map = { head: built.page.model.heading.head, members: built.page.stack.members, lines: built.page.stack.lines };

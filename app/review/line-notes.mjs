@@ -11,7 +11,8 @@
  *
  * From the composer, Ask Claude starts a conversation on the lines and
  * Queue comment queues the text for the pull request. A conversation takes
- * follow-up questions, and any answer can be taken as the comment's text.
+ * follow-up questions, and any answer can be taken as the comment's text. A
+ * branch's review has no queue, so there only Ask Claude is offered.
  */
 import { esc, plural } from '../lib/text.mjs';
 import { send, reviewPath } from '../lib/api.mjs';
@@ -26,6 +27,7 @@ export function createLineNotes(ctx) {
   function queuedOn(path) {
     const out = [];
     const q = ctx.state.queue;
+    if (!q) return out;
     q.members.concat(q.earlier).forEach(m => m.comments.forEach(c => {
       const at = c.shown || c;
       if (at.path === path) out.push({ member: m, comment: c, side: at.side, line: at.line, start_line: at.start_line });
@@ -49,7 +51,7 @@ export function createLineNotes(ctx) {
     if (m.from === 'you') return '<div class="msg you"><p class="who">You</p><div class="msg-body plain">' + esc(m.text) + '</div></div>';
     if (m.error) return '<div class="msg claude failed"><p class="who">Claude</p><div class="msg-body">No answer: ' + esc(m.error) + '</div></div>';
     return '<div class="msg claude"><p class="who">Claude</p><div class="msg-body md">' + safeMarkdown(m.text) + '</div>' +
-      '<button type="button" class="nbtn quiet small" data-act="use">Use as comment</button></div>';
+      (ctx.state.queue ? '<button type="button" class="nbtn quiet small" data-act="use">Use as comment</button>' : '') + '</div>';
   }
 
   function threadHTML(t) {
@@ -58,7 +60,7 @@ export function createLineNotes(ctx) {
       '<p class="thread-head">Conversation on ' + esc(linesWords(t)) + '</p>' +
       t.messages.map(m => messageHTML(m)).join('') +
       (waiting ? '<p class="thinking">Claude is reading the file and the diff&hellip;</p>' : '') +
-      '<div class="reply">' + textArea('Ask a follow-up, or write a comment for the pull request') +
+      '<div class="reply">' + textArea(ctx.state.queue ? 'Ask a follow-up, or write a comment for the pull request' : 'Ask a follow-up') +
       actions(false) + '</div></div>';
   }
 
@@ -81,12 +83,13 @@ export function createLineNotes(ctx) {
   function actions(queueOff) {
     return '<div class="note-actions">' +
       '<button type="button" class="nbtn primary" data-act="ask">Ask Claude</button>' +
-      '<button type="button" class="nbtn" data-act="queue"' + (queueOff ? ' disabled title="' + esc(queueOff) + '"' : '') + '>Queue comment</button>' +
+      (ctx.state.queue ? '<button type="button" class="nbtn" data-act="queue"' + (queueOff ? ' disabled title="' + esc(queueOff) + '"' : '') + '>Queue comment</button>' : '') +
       '<span class="note-status" aria-live="polite"></span></div>';
   }
 
   // Where a comment on the composer's lines would go, or why none can.
   function destination(c) {
+    if (!ctx.state.queue) return { words: '' };
     if (ctx.state.moved) return { off: 'This review moved, so nothing can be queued here.' };
     if (!ctx.data.files[c.path]) return { off: 'This file is not in the change, so a comment cannot go on it. Ask about it instead.' };
     if (!ctx.pulls.members.length) {
@@ -110,7 +113,7 @@ export function createLineNotes(ctx) {
     return '<div class="composer">' +
       '<p class="composer-where"><b>' + esc(linesWords(c)) + '</b>' + (to.words ? ' &middot; ' + esc(to.words) : '') +
       (to.off ? ' &middot; ' + esc(to.off) : '') + ' <span class="hint-inline">Shift-select another line number for a range.</span></p>' + choose +
-      textArea('Ask Claude about these lines, or write a comment for the pull request', c.text) +
+      textArea(ctx.state.queue ? 'Ask Claude about these lines, or write a comment for the pull request' : 'Ask Claude about these lines', c.text) +
       actions(to.off) + '<button type="button" class="nbtn quiet close" data-act="cancel" aria-label="Close">Cancel</button></div>';
   }
 

@@ -12,6 +12,7 @@ import { dirname, join } from 'node:path';
 import { withLocks } from './file-lock.mjs';
 import { writeWhole, readText, readJSON } from './whole-file.mjs';
 import { PullRef } from '../github/pull-ref.mjs';
+import { BranchRef } from '../local/branch-ref.mjs';
 
 export class ReviewStore {
   #home;
@@ -58,10 +59,18 @@ export class ReviewStore {
       .sort((a, b) => a.id - b.id);
   }
 
-  /** Every review kept, each {ref, review}, newest load first. */
+  /** Every review kept, of pull requests and of branches, each {ref, review}, newest load first. */
   list() {
     const out = [];
+    for (const repoKey of folders(this.#home.branchReviews)) {
+      for (const branch of folders(join(this.#home.branchReviews, repoKey))) {
+        const ref = BranchRef.parse(`local/${repoKey}/${branch}`);
+        const review = this.read(ref);
+        if (review) out.push({ ref, review });
+      }
+    }
     for (const host of folders(this.#home.reviews)) {
+      if (join(this.#home.reviews, host) === this.#home.branchReviews) continue;
       for (const owner of folders(join(this.#home.reviews, host))) {
         for (const name of folders(join(this.#home.reviews, host, owner))) {
           out.push(...this.#reviewsIn(host, `${owner}/${name}`));

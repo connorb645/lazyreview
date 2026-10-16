@@ -20,6 +20,11 @@ export function reviewPath(id, rest = '') {
   return '/api/reviews/' + id.split('/').map(encodeURIComponent).join('/') + rest;
 }
 
+/** The address of a review's page in the app, from its id. */
+export function reviewAddress(id) {
+  return '/review/' + id.split('/').map(encodeURIComponent).join('/');
+}
+
 async function answer(response) {
   let body = null;
   try {

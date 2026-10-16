@@ -6,6 +6,7 @@ import { fakeClaude } from '../support/fake-claude.mjs';
 import { AppServer } from '../../src/server/app-server.mjs';
 import { ThreadService } from '../../src/ask/thread-service.mjs';
 import { Claude } from '../../src/ask/claude.mjs';
+import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 
 function call(address, method, path, { body, headers = {} } = {}) {
   const url = new URL(path, address);
@@ -27,13 +28,14 @@ async function started() {
   const w = workbench();
   const fake = fakeClaude();
   await w.loader.load({ links: [w.link(30)] });
+  const branches = new BranchLoader({ store: w.store });
   const server = new AppServer({
-    store: w.store, loader: w.loader, queue: w.queue,
+    store: w.store, loader: w.loader, branches, queue: w.queue,
     threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), port: 0,
   });
   const address = await server.listen();
   const own = { Origin: address, 'Content-Type': 'application/json' };
-  return { w, fake, server, address, own, done: async () => { await server.close(); fake.done(); w.done(); } };
+  return { w, fake, server, branches, address, own, done: async () => { await server.close(); fake.done(); w.done(); } };
 }
 
 test('the app\'s pages and files are served with a policy that loads nothing from elsewhere', async () => {
@@ -124,6 +126,39 @@ test('the API asks Claude about a line and keeps the conversation', async () => 
     const replied = await call(s.address, 'POST', `${base}/threads/1/messages`, { body: { text: 'Sure?' }, headers: s.own });
     assert.equal(replied.json.thread.messages.length, 4);
     assert.equal((await call(s.address, 'GET', base)).json.threads.length, 1);
+  } finally {
+    await s.done();
+  }
+});
+
+test('a branch review is served read only: its state, its page and its conversations, but no queue', async () => {
+  const s = await started();
+  try {
+    const loaded = await s.branches.load({ repo: s.w.repo.work, base: 'main', head: 'fix/wording', title: 'Wording' });
+    const base = '/api/reviews/' + loaded.ref.id.split('/').map(encodeURIComponent).join('/');
+    const page = await call(s.address, 'GET', '/review/' + loaded.ref.id);
+    assert.equal(page.status, 200);
+    const state = (await call(s.address, 'GET', base)).json;
+    assert.deepEqual([state.kind, state.title, state.head.ref, state.base.ref, state.queue], ['branch', 'Wording', 'fix/wording', 'main', null]);
+    assert.deepEqual(Object.keys((await call(s.address, 'GET', `${base}/page`)).json.diff), ['docs/guide.md']);
+    const listed = (await call(s.address, 'GET', '/api/reviews')).json.find(r => r.id === loaded.ref.id);
+    assert.deepEqual([listed.kind, listed.branch, listed.base, listed.queued], ['branch', 'fix/wording', 'main', 0]);
+
+    const comment = { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?' };
+    assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: s.own })).status, 404);
+    assert.equal((await call(s.address, 'POST', `${base}/post`, { body: { pull: 1, action: 'comment', set: 'x' }, headers: s.own })).status, 404);
+
+    const asked = await call(s.address, 'POST', `${base}/threads`, { body: { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: 'Every?' }, headers: s.own });
+    assert.deepEqual(asked.json.thread.messages.map(m => m.from), ['you', 'claude']);
+    assert.match(s.fake.asked()[0].prompt, /^Branch fix\/wording: Wording\. It has no pull request yet, and its diff is against main\.\n\nFile: docs\/guide\.md \(changed\)/);
+
+    s.w.repo.commit('fix/wording', { 'docs/guide.md': '# Guide\n\nThe catalog lists every single item.\n\n- Browse\n- Search\n' }, 'Again');
+    s.w.repo.checkout('main');
+    const refreshed = await call(s.address, 'POST', `${base}/refresh`, { body: {}, headers: s.own });
+    assert.equal(refreshed.json.id, loaded.ref.id);
+    const after = (await call(s.address, 'GET', base)).json;
+    assert.equal(after.head.sha, s.w.repo.sha('fix/wording'));
+    assert.equal(after.threads.length, 1, 'loading again keeps the conversations');
   } finally {
     await s.done();
   }

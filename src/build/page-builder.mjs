@@ -3,16 +3,19 @@
  * layout, the diff split per file, the whole text of changed files, the code
  * of unchanged context, and for a stack, where a comment on each line goes.
  *
- * buildPage({git, base, members, baseBranch, title, config, context, rootTitle, elk})
+ * buildPage({git, base, members, baseBranch, title, subject, config, context, rootTitle, elk})
  * reads the change from the merge base of `base` and the top member's head to
- * that head, as a pull request shows it. `members` are the pull requests,
- * bottom first, each {pull, head}; one member is a single pull request, more
- * are a stack, each based on the one below. It only reads the repository.
+ * that head, as a pull request shows it. `members` are the heads to read,
+ * bottom first, each {pull, head}; one member is a single pull request or a
+ * branch, more are a stack of pull requests, each based on the one below.
+ * `subject` names the change in the line under the title, as heading.mjs
+ * gives it. It only reads the repository.
  *
- * It returns {page, starts, notes}: `page` is the data the app renders,
- * `starts` the commit each member's own diff starts from, bottom first, and
- * `notes` lines worth telling the person who loaded it, such as a file whose
- * whole text was left out for its size.
+ * It returns {page, starts, counts, notes}: `page` is the data the app
+ * renders, `starts` the commit each member's own diff starts from, bottom
+ * first, `counts` the files, added and removed lines, components and types
+ * it drew, and `notes` lines worth telling the person who loaded it, such as
+ * a file whose whole text was left out for its size.
  */
 import { readDiff } from './diff/diff-reader.mjs';
 import { readChangedTypes } from './model/changed-types.mjs';
@@ -20,13 +23,13 @@ import { chooseContext } from './model/context-selection.mjs';
 import { buildModel } from './model/model.mjs';
 import { findContextCandidates, findContextExtensions } from './context/context-finder.mjs';
 import { layoutModel } from './layout/layout.mjs';
-import { describePulls } from './page/heading.mjs';
+import { describeChange } from './page/heading.mjs';
 import { readStackSteps } from './stack/stack-reader.mjs';
 import { mapStackLines } from './stack/line-map.mjs';
 import { nodePulls } from './stack/node-pulls.mjs';
 import { changedTexts, lines } from './page/whole-texts.mjs';
 
-export async function buildPage({ git, base, members, baseBranch, title, config, context, rootTitle, elk }) {
+export async function buildPage({ git, base, members, baseBranch, title, subject, config, context, rootTitle, elk }) {
   const pulls = members.map(m => m.pull);
   const top = members[members.length - 1];
   const diff = readDiff(git, { base, head: top.head, exact: false });
@@ -57,7 +60,7 @@ export async function buildPage({ git, base, members, baseBranch, title, config,
     title: config.title || title,
     context: config.summary
       ? [[config.summary, false]]
-      : describePulls({ pulls, base: baseBranch, headCommit: diff.headCommit, mergeBase: diff.mergeBase, commits: git.commitCount(diff.mergeBase, diff.headCommit) }),
+      : describeChange({ subject, base: baseBranch, headCommit: diff.headCommit, mergeBase: diff.mergeBase, commits: git.commitCount(diff.mergeBase, diff.headCommit) }),
     head: diff.headCommit,
     base: diff.mergeBase,
   };
@@ -80,10 +83,20 @@ export async function buildPage({ git, base, members, baseBranch, title, config,
     ...(whole.left.length ? [`whole text left out for ${count(whole.left.length, 'large file')}, which show their diff only: ${whole.left.join(', ')}`] : []),
     ...(stacked ? stacked.warnings : []),
   ];
-  return { page, starts: stacked ? stacked.steps.map(s => s.start) : [diff.mergeBase], notes };
+  return { page, starts: stacked ? stacked.steps.map(s => s.start) : [diff.mergeBase], counts: counts(model), notes };
 }
 
 function readStacked(git, diff, members, pulls) {
   const read = readStackSteps(git, { combinedBase: diff.mergeBase, baseCommit: diff.baseCommit, top: diff.headCommit, members });
   return { ...read, mapped: mapStackLines(read.steps, diff.chunks, pulls) };
+}
+
+function counts(model) {
+  return {
+    files: model.files.length,
+    adds: model.files.reduce((n, f) => n + f.adds, 0),
+    dels: model.files.reduce((n, f) => n + f.dels, 0),
+    components: model.components.length,
+    types: model.nodes.filter(n => n.kind !== 'artifact').length,
+  };
 }

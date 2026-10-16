@@ -1,10 +1,10 @@
 # Review Desk
 
 A web app, run on your own machine, for reviewing a pull request or a stack of
-them. One command loads a pull request from its address; the app then shows a
-clickable class diagram of the change, every diff, the comments you queue, and
-the buttons that send your review to GitHub. Ask Claude about any line and the
-answer appears beside it.
+them, or a branch that has no pull request yet. One command loads a pull
+request from its address; the app then shows a clickable class diagram of the
+change, every diff, the comments you queue, and the buttons that send your
+review to GitHub. Ask Claude about any line and the answer appears beside it.
 
 Nothing is built per review: the command writes the data, and the app, built
 once, draws it. An agent loading a review spends only the tokens of one command.
@@ -65,7 +65,11 @@ address it prints:
     bin/review-desk load <pull request address>...
 
 That is the whole job. Comments, questions and the review itself happen in the
-app. An agent that has written a review of the change can attach it, and the
+app. A change with no pull request yet is one command too:
+
+    bin/review-desk load --repo <folder> --base <ref> --head <branch>
+
+An agent that has written a review of a pull request can attach it, and the
 app then opens on it:
 
     bin/review-desk attach <pull request address> review.md
@@ -82,6 +86,28 @@ and `[Guessing]` show as tags, and `#13` as that pull request's colour.
     ---
     ## What this changes and why
     ...
+
+## Load a branch with no pull request
+
+A branch about to be pushed, or any branch, loads straight from its
+repository on this machine, as its pull request would show it: from where it
+leaves the base to its head.
+
+    bin/review-desk load --repo ~/code/widgets --base main --head feature/search
+
+It prints what it loaded and where to open it:
+
+    loaded feature/search against main: 6 files +210 -14, 2 components, 5 types
+    open http://127.0.0.1:4747/review/local/widgets-1a2b3c4d/feature~search
+
+The review is kept by repository and branch, so loading the same branch again,
+from any worktree of the repository, refreshes it in place, as does **Load the
+branch again** in the app. `--head` names a branch, or `HEAD` on one. It gets
+the same diagram and diffs, and Ask Claude, but it is read only: it has no
+queue and no buttons, since there is no pull request to post to. `--title
+<text>` names it, where the branch's name is the default; `--config`,
+`--context` and `--no-context` work as for a pull request. The review keeps
+each of them.
 
 ## Using the app
 
@@ -136,8 +162,10 @@ mistake named.
 Everything lives under `~/.review-desk`: a bare clone of each repository, and
 one folder per review holding its record (`review.json`: the pull requests,
 the queue and the reviews sent), the drawn page (`page.json`), any config and
-written review, and one file per conversation. Settings come from the
-environment:
+written review, and one file per conversation. A branch's review lives under
+`reviews/local/`, its record holding the branch, its base and the folder it
+was read from; it is read from the repository itself, with no clone. Settings
+come from the environment:
 
 | Variable | Meaning | Default |
 | --- | --- | --- |
@@ -152,7 +180,8 @@ takes changes only as JSON from its own pages.
 ## Code
 
 - `bin/review-desk` is the command; `src/cli` reads it.
-- `src/loader` loads a review; `src/build` reads the diff, the types and the
+- `src/loader` loads a review, of pull requests or of a branch; `src/local`
+  names a branch's review; `src/build` reads the diff, the types and the
   stack, and lays out the diagram with ELK (`vendor/`).
 - `src/queue` holds the queue's rules and the one way a review is posted.
 - `src/ask` asks Claude; `src/server` serves the app and its JSON.

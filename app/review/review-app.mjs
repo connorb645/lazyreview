@@ -124,7 +124,7 @@ export async function openReview(id) {
     flash.timer = setTimeout(() => { toast.hidden = true; }, 6000);
   }
   function countQueued() {
-    const n = ctx.state.queue.members.reduce((k, m) => k + m.comments.length, 0);
+    const n = ctx.state.queue ? ctx.state.queue.members.reduce((k, m) => k + m.comments.length, 0) : 0;
     const badge = viewsNav.querySelector('.vcount');
     badge.textContent = n ? String(n) : '';
     badge.hidden = !n;
