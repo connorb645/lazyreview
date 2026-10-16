@@ -28,16 +28,12 @@ func (a App) queueMember(pull int) (server.QueueMember, bool) {
 	return server.QueueMember{}, false
 }
 
-func (a App) openPosting() App {
+func (a App) openPosting(pull int) App {
 	if a.review == nil || a.review.state.Queue == nil {
 		return a.say("only a pull request's review has a queue to post", true)
 	}
 	if a.review.state.Queue.Moved != nil {
 		return a.say("this review moved, so nothing can be sent from here", true)
-	}
-	pull := 0
-	if v := a.rv.view; v.cursor < len(v.items) {
-		pull = v.items[v.cursor].pull
 	}
 	if members := a.review.state.Queue.Members; pull == 0 && len(members) == 1 {
 		pull = members[0].Pull
@@ -104,53 +100,53 @@ func (a App) afterPost(msg posted) App {
 	} else {
 		a = a.withState(msg.state)
 	}
-	pn := panel{title: title}
-	for _, l := range wrap(strings.ToUpper(words[:1])+words[1:], a.width-6) {
-		pn.rows = append(pn.rows, panelRow{right: l})
-	}
-	a.panel = &pn
+	pn := menu{title: title, rows: []menuRow{{right: strings.ToUpper(words[:1]) + words[1:]}}}
+	a.menu = &pn
 	return a.say(notice, msg.err != nil)
 }
 
-func (a App) postingLines(width int) []string {
+func (a App) popupWidth() int {
+	return min(a.width-4, max(a.width*3/5, 60))
+}
+
+func (a App) postingBox() []string {
 	p, pn := a.p, *a.posting
 	m, _ := a.queueMember(pn.pull)
-	inner := width - 4
-	frame := func(text string) string {
-		return p.Muted.Render("│ ") + fit(text, inner) + p.Muted.Render(" │")
-	}
-	out := []string{p.Muted.Render("╭" + strings.Repeat("─", width-2) + "╮"), frame(p.Bold.Render(fmt.Sprintf("Post to %s#%d", a.review.state.Queue.Repo, pn.pull)))}
+	w := a.popupWidth()
+	inner := w - 2
+	var out []string
 	for i, action := range pn.actions {
 		label := postLabels[action]
 		if action != "approve" {
 			label += fmt.Sprintf(" (%d)", len(m.Comments))
 		}
-		mark, style := "  ", p.Ink
+		row := " " + p.Key.Render(fmt.Sprintf("%d", i+1)) + "  " + p.Ink.Render(label)
 		if i == pn.choice {
-			mark, style = p.Accent.Render("▸ "), p.Bold
+			row = p.highlight(row, inner, !pn.confirming)
 		}
-		out = append(out, frame(mark+p.Key.Render(fmt.Sprintf("%d", i+1))+"  "+style.Render(label)))
+		out = append(out, row)
 	}
-	if !pn.confirming {
-		return append(out, p.Muted.Render("╰"+strings.Repeat("─", width-2)+"╯"))
-	}
-	action := pn.actions[pn.choice]
-	out = append(out, p.Muted.Render("├"+strings.Repeat("─", width-2)+"┤"))
-	for _, l := range wrap(m.Sets[action].Words, inner) {
-		out = append(out, frame(p.Ink.Render(l)))
-	}
-	if action != "approve" {
-		place := 0
-		for _, c := range m.Comments {
-			place = max(place, ansi.StringWidth(commentPlace(c)))
+	footer := fmt.Sprintf("%d of %d", pn.choice+1, len(pn.actions))
+	if pn.confirming {
+		action := pn.actions[pn.choice]
+		out = append(out, p.Border.Render(strings.Repeat("─", inner)))
+		for _, l := range wrap(m.Sets[action].Words, inner-2) {
+			out = append(out, " "+p.Ink.Render(l))
 		}
-		for i, c := range m.Comments {
-			first, _, _ := strings.Cut(c.Body, "\n")
-			text := fmt.Sprintf("%3d  %-*s  %s", i+1, place, commentPlace(c), first)
-			out = append(out, frame(p.Ink.Render(text)))
+		if action != "approve" {
+			place := 0
+			for _, c := range m.Comments {
+				place = max(place, ansi.StringWidth(commentPlace(c)))
+			}
+			out = append(out, "")
+			for i, c := range m.Comments {
+				first, _, _ := strings.Cut(c.Body, "\n")
+				out = append(out, " "+p.Muted.Render(fmt.Sprintf("%2d  %-*s", i+1, place, commentPlace(c)))+"  "+p.Ink.Render(first))
+			}
 		}
+		footer = ""
 	}
-	return append(out, p.Muted.Render("╰"+strings.Repeat("─", width-2)+"╯"))
+	return framed(out, w, len(out)+2, fmt.Sprintf("Post to %s#%d", a.review.state.Queue.Repo, pn.pull), "", footer, true, p)
 }
 
 func commentPlace(c server.Comment) string {
@@ -160,7 +156,7 @@ func commentPlace(c server.Comment) string {
 func (a App) postingHints() [][2]string {
 	pn := a.posting
 	if pn.confirming {
-		return [][2]string{{"y", "yes, " + strings.ToLower(postLabels[pn.actions[pn.choice]])}, {"n", "cancel"}}
+		return [][2]string{{"y", "Yes, " + strings.ToLower(postLabels[pn.actions[pn.choice]])}, {"n", "Cancel"}}
 	}
-	return [][2]string{{"j k 1 2 3", "choose"}, {"Enter", "shows what it sends"}, {"Esc", "cancel"}}
+	return [][2]string{{"j k 1 2 3", "Choose"}, {"Enter", "Show what it sends"}, {"Esc", "Cancel"}}
 }

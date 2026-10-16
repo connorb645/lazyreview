@@ -10,7 +10,7 @@ import (
 func TestTheReviewViewOfAStack(t *testing.T) {
 	a, visited := opened(t, "github.com/octo/widgets/21", 100, 60)
 	screenIs(t, a, "review-stack")
-	a = press(t, a, "]", "]", "]", "]")
+	a = press(t, a, "0", "]", "]", "]", "]")
 	if got := a.rv.sectionAt(); got != "queue" {
 		t.Fatalf("]] twice from the top stopped in %q", got)
 	}
@@ -41,10 +41,11 @@ func TestTheReviewViewOfAStack(t *testing.T) {
 func TestTheReviewViewOfAPullRequestScrollsToTheCursor(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 80, 14)
 	screenIs(t, a, "review-single")
-	a = press(t, a, "G")
+	a = press(t, a, "0", "G")
 	screenIs(t, a, "review-single-end")
 	bottom := a.rv.view.top
-	a = send(t, a, tea.MouseMsg{Action: tea.MouseActionPress, Button: tea.MouseButtonWheelUp})
+	main := a.layout().main.inner()
+	a = send(t, a, tea.MouseMsg{X: main.x + 2, Y: main.y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonWheelUp})
 	if a.rv.view.top >= bottom {
 		t.Fatalf("the wheel did not scroll up from %d", bottom)
 	}

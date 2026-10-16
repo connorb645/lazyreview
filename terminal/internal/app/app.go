@@ -1,4 +1,4 @@
-// Package app is the terminal app: the screens and the keys, drawn from what
+// Package app is the terminal app: the panels and the keys, drawn from what
 // the Review Desk server answers. It decides nothing the web app also needs.
 package app
 
@@ -21,9 +21,10 @@ import (
 
 const doubleClick = 400 * time.Millisecond
 
-// App is the terminal app's state: which screen it shows, what the server
-// gave it, where the cursor is, and what has been typed toward a key
-// sequence. Each key press is Update, which returns the next App.
+// App is the terminal app's state: what the main panel shows, which panel
+// has the keys, what the server gave it, where each cursor is, and what has
+// been typed toward a key sequence. Each key press is Update, which returns
+// the next App.
 type App struct {
 	opts       Options
 	p          palette
@@ -31,8 +32,13 @@ type App struct {
 	width      int
 	height     int
 	screen     screen
-	reviews    reviewsList
+	focus      int
+	driving    int
+	sides      [sideCount + 1]sidePanel
+	tree       map[string]bool
+	mode       screenMode
 	review     *reviewData
+	failed     string
 	rv         reviewView
 	diff       diffView
 	dg         diagramView
@@ -44,7 +50,7 @@ type App struct {
 	jumpAt     int
 	searchBack bool
 	keys       keys.Reader
-	panel      *panel
+	menu       *menu
 	prompt     textinput.Model
 	prompting  string
 	notice     string
@@ -63,8 +69,7 @@ type App struct {
 	liveFor    string
 }
 
-// New returns the app, which opens on the review opts names, or on the list
-// of reviews.
+// New returns the app, which opens on the review opts names.
 func New(opts Options) App {
 	if opts.Now == nil {
 		opts.Now = time.Now
@@ -85,19 +90,13 @@ func New(opts Options) App {
 		opts.Listen = listen
 	}
 	p := newPalette(opts.Dark)
-	a := App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: true, rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}}
-	if opts.Review != "" {
-		a.screen = screenReview
-	}
-	return a
+	return App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: true, screen: screenReview, focus: reviewPanel, driving: reviewPanel,
+		rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}, tree: map[string]bool{}}
 }
 
-// Init asks the server for the review to open, or for the list of reviews.
+// Init asks the server for the review to open.
 func (a App) Init() tea.Cmd {
-	if a.opts.Review != "" {
-		return loadReview(a.opts.Server, a.opts.Review)
-	}
-	return loadReviews(a.opts.Server)
+	return loadReview(a.opts.Server, a.opts.Review)
 }
 
 // Update takes one message, such as a key, a click, or an answer from the
@@ -107,21 +106,16 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		a.width, a.height = msg.Width, msg.Height
 		return a.relaid(), nil
-	case reviewsLoaded:
-		a.loading = false
-		if msg.err != nil {
-			return a.say(msg.err.Error(), true), nil
-		}
-		a.reviews.reviews = msg.reviews
-		return a.relaid(), nil
 	case reviewLoaded:
 		a.loading = false
 		if msg.err != nil {
+			a.failed = msg.err.Error()
 			return a.say(msg.err.Error(), true), nil
 		}
-		a.review = &msg.data
+		a.review, a.failed = &msg.data, ""
 		a.screen = screenReview
-		a.files, a.diff, a.dg, a.filter = map[string]server.File{}, diffView{}, diagramView{}, 0
+		a.files, a.diff, a.filter = map[string]server.File{}, diffView{}, 0
+		a.dg = newDiagramView(levelAt(msg.data.page, diagramPlace{level: "components"}), "")
 		var listening tea.Cmd
 		a, listening = a.listenTo(msg.data.id)
 		return a.relaid(), listening
@@ -140,7 +134,11 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		a.files = files
 		a.diff.files = files
-		return a.openPlace(msg.component, msg.place)
+		if a.focus != mainPanel {
+			return a.followed()
+		}
+		next, cmd := a.openPlace(msg.component, msg.place)
+		return next.(App).mirrored(), cmd
 	case edited:
 		return a.afterEditing(msg)
 	case changed:
@@ -191,29 +189,29 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	if a.posting != nil {
 		return a.postingKey(name)
 	}
-	if a.panel != nil && a.panel.finding {
+	if a.menu != nil && a.menu.finding {
 		return a.finderKey(msg)
 	}
 	if a.screen == screenDiagram && a.dg.labels != nil {
-		return a.labelKey(name), nil
+		return a.labelKey(name).mirrored(), nil
 	}
-	if a.panel != nil {
+	if a.menu != nil {
 		switch name {
 		case "enter":
 			return a.openRow()
 		case "j", "down":
-			moved := a.panel.move(1, a.panelRows())
-			a.panel = &moved
+			moved := a.menu.move(1, a.menuRows())
+			a.menu = &moved
 			return a, nil
 		case "k", "up":
-			moved := a.panel.move(-1, a.panelRows())
-			a.panel = &moved
+			moved := a.menu.move(-1, a.menuRows())
+			a.menu = &moved
 			return a, nil
 		case "q", "esc":
-			a.panel = nil
+			a.menu = nil
 			return a, nil
 		}
-		a.panel = nil
+		a.menu = nil
 	}
 	var res keys.Result
 	a.keys, res = a.keys.Read(name, a.bindings())
@@ -225,27 +223,30 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 	next, cmd := a.do(res.Action, res.Count, res.Counted)
 	if after, ok := next.(App); ok {
+		after = after.mirrored()
 		if where := after.whereNow(); where != nil {
 			return after, tea.Batch(cmd, where)
 		}
+		return after, cmd
 	}
 	return next, cmd
 }
 
 func (a App) bindings() keys.Bindings {
+	if a.focus != mainPanel {
+		return everyView.With(sideKeys).With(sidePanelKeys[a.focus])
+	}
 	switch a.screen {
-	case screenReview:
-		return everyView.With(reviewKeys)
 	case screenDiff:
 		return everyView.With(diffKeys)
 	case screenDiagram:
 		return everyView.With(diagramKeys)
 	}
-	return everyView.With(listKeys)
+	return everyView.With(reviewKeys)
 }
 
 func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
-	h := a.bodyHeight()
+	h := a.mainHeight()
 	switch action {
 	case "quit":
 		return a, tea.Quit
@@ -256,18 +257,22 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 	case "keys":
 		return a.showKeys(), nil
 	case "close":
-		a.panel, a.diff.selecting = nil, false
-		return a, nil
-	case "reviews":
-		a = a.leave()
-		a.screen, a.loading = screenReviews, true
-		return a.relaid(), loadReviews(a.opts.Server)
+		return a.closed(), nil
+	case "focus main", "focus review", "focus files", "focus notes", "focus diagram":
+		return a.focusOn(map[string]int{"focus main": mainPanel, "focus review": reviewPanel, "focus files": filesPanel, "focus notes": notesPanel, "focus diagram": diagramPanel}[action])
+	case "bigger", "smaller":
+		by := 1
+		if action == "smaller" {
+			by = int(screenModes) - 1
+		}
+		a.mode = (a.mode + screenMode(by)) % screenModes
+		return a.relaid(), nil
 	case "review":
 		if a.review == nil {
-			return a.say("no review is open; Enter on one opens it", true), nil
+			return a.say("the review is not open yet; R tries again", true), nil
 		}
 		a = a.leave()
-		a.screen = screenReview
+		a.screen, a.focus, a.driving = screenReview, mainPanel, reviewPanel
 		return a.relaid(), nil
 	case "diagram":
 		return a.openDiagram(), nil
@@ -286,9 +291,13 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 	case "web":
 		return a.openWeb()
 	}
+	if a.review == nil {
+		return a, nil
+	}
+	if a.focus != mainPanel {
+		return a.sideAction(action, count)
+	}
 	switch a.screen {
-	case screenReviews:
-		return a.listAction(action, count, h)
 	case screenDiff:
 		return a.diffAction(action, count, counted, h)
 	case screenDiagram:
@@ -297,33 +306,22 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 	return a.reviewAction(action, count, h)
 }
 
-func (a App) listAction(action string, count, h int) (tea.Model, tea.Cmd) {
-	v := a.reviews.view
-	switch action {
-	case "down":
-		a.reviews.view = v.move(count, h)
-	case "up":
-		a.reviews.view = v.move(-count, h)
-	case "top":
-		a.reviews.view = v.to(0, h)
-	case "bottom":
-		a.reviews.view = v.to(len(v.items)-1, h)
-	case "open":
-		return a.openReview()
-	case "next match", "previous match":
-		i := a.reviews.match(action == "previous match")
-		if i < 0 {
-			return a.say(fmt.Sprintf("no review holds %q", a.reviews.query), true), nil
-		}
-		a.reviews.view = v.to(i, h)
+func (a App) closed() App {
+	switch {
+	case a.menu != nil:
+		a.menu = nil
+	case a.screen == screenDiff && a.diff.selecting:
+		a.diff.selecting = false
+	case a.focus == mainPanel && a.review != nil:
+		a.focus = a.driving
+		return a.relaid()
+	default:
+		return a.say("ZZ or :q quits", false)
 	}
-	return a, nil
+	return a
 }
 
 func (a App) reviewAction(action string, count, h int) (tea.Model, tea.Cmd) {
-	if a.review == nil {
-		return a, nil
-	}
 	v := a.rv.view
 	switch action {
 	case "down":
@@ -346,9 +344,14 @@ func (a App) reviewAction(action string, count, h int) (tea.Model, tea.Cmd) {
 			return a.reviewAction("fold", 1, h)
 		case it.kind == "component":
 			a = a.leave()
+			a.driving = filesPanel
 			return a.openPlace(it.component, nil)
 		case it.place != nil:
 			a = a.leave()
+			a.driving = filesPanel
+			if it.kind == "comment" || it.kind == "thread" || it.kind == "conversation" {
+				a.driving = notesPanel
+			}
 			return a.openPlace(a.componentOf(it.place.Path), it.place)
 		}
 	case "edit":
@@ -356,7 +359,11 @@ func (a App) reviewAction(action string, count, h int) (tea.Model, tea.Cmd) {
 	case "drop":
 		return a.dropQueued(), nil
 	case "post":
-		return a.openPosting(), nil
+		pull := 0
+		if v.cursor < len(v.items) {
+			pull = v.items[v.cursor].pull
+		}
+		return a.openPosting(pull), nil
 	case "fold":
 		id := a.rv.sectionAt()
 		if id == "" {
@@ -378,44 +385,25 @@ func (a App) reviewAction(action string, count, h int) (tea.Model, tea.Cmd) {
 	return a, nil
 }
 
-func (a App) openReview() (tea.Model, tea.Cmd) {
-	v := a.reviews.view
-	if v.cursor >= len(v.items) {
-		return a, nil
-	}
-	id := v.items[v.cursor].section
-	if a.review != nil && a.review.id == id {
-		a.screen = screenReview
-		return a.relaid(), nil
-	}
-	a.loading = true
-	a.screen = screenReview
-	a.review = nil
-	a.rv = reviewView{folded: map[string]bool{}}
-	return a, loadReview(a.opts.Server, id)
-}
-
 func (a App) openGitHub() (tea.Model, tea.Cmd) {
 	address := ""
 	switch {
-	case a.screen == screenReviews:
-		if v := a.reviews.view; v.cursor < len(v.items) {
-			address = v.items[v.cursor].url
+	case a.review == nil:
+	case a.focus != mainPanel:
+		if row, ok := a.sides[a.focus].selected(); ok {
+			address = row.it.url
 		}
-	case a.review != nil && a.screen == screenDiff:
+	case a.screen == screenDiff:
 		if n, _, ok := a.noteAt(); ok && n.kind == "thread" && len(n.thread.Comments) > 0 {
 			address = n.thread.Comments[0].URL
 		}
-		if address == "" && len(a.review.state.Members) > 0 {
-			address = a.review.state.Members[0].URL
-		}
-	case a.review != nil:
+	case a.screen == screenReview:
 		if v := a.rv.view; v.cursor < len(v.items) {
 			address = v.items[v.cursor].url
 		}
-		if address == "" && len(a.review.state.Members) > 0 {
-			address = a.review.state.Members[0].URL
-		}
+	}
+	if address == "" && a.review != nil && len(a.review.state.Members) > 0 {
+		address = a.review.state.Members[0].URL
 	}
 	if address == "" {
 		return a.say("this has no pull request on GitHub", true), nil
@@ -446,13 +434,21 @@ func (a App) opened(address string) (tea.Model, tea.Cmd) {
 }
 
 func (a App) showKeys() App {
-	rows := map[screen][]helpRow{screenReviews: listHelp, screenReview: reviewHelp, screenDiff: diffHelp, screenDiagram: diagramHelp}[a.screen]
-	rows = append(rows, everyViewHelp...)
-	pn := panel{title: "Keys of this view"}
-	for _, r := range rows {
-		pn.rows = append(pn.rows, panelRow{left: r.keys, right: r.words})
+	rows := map[screen][]helpRow{screenReview: reviewHelp, screenDiff: diffHelp, screenDiagram: diagramHelp}[a.screen]
+	if a.focus != mainPanel {
+		rows = sideHelp[a.focus]
 	}
-	a.panel = &pn
+	pn := menu{title: "Keys"}
+	pn.rows = append(pn.rows, menuRow{heading: a.panelName()})
+	for _, r := range rows {
+		pn.rows = append(pn.rows, menuRow{left: r.keys, right: r.words})
+	}
+	pn.rows = append(pn.rows, menuRow{heading: "Every panel"})
+	for _, r := range everyViewHelp {
+		pn.rows = append(pn.rows, menuRow{left: r.keys, right: r.words})
+	}
+	pn = pn.first()
+	a.menu = &pn
 	return a
 }
 
@@ -475,15 +471,14 @@ func (a App) promptKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		kind := a.prompting
 		a.prompting = ""
 		switch {
-		case kind == "/" && a.screen == screenReviews:
-			a.reviews.query = typed
-			return a.listAction("next match", 1, a.bodyHeight())
 		case a.screen == screenDiagram && (kind == "/" || kind == "?"):
 			a.dg.query = typed
-			return a.findBox(a.searchBack)
+			next, cmd := a.findBox(a.searchBack)
+			return next.(App).mirrored(), cmd
 		case kind == "/" || kind == "?":
 			a.diff.query = typed
-			return a.matchNext(a.searchBack)
+			next, cmd := a.matchNext(a.searchBack)
+			return next.(App).mirrored(), cmd
 		}
 		return a.command(typed)
 	}
@@ -501,9 +496,11 @@ func (a App) command(typed string) (tea.Model, tea.Cmd) {
 	case "refresh":
 		return a.refresh()
 	}
-	if n, err := strconv.Atoi(typed); err == nil && a.screen == screenDiff {
+	if n, err := strconv.Atoi(typed); err == nil && a.screen == screenDiff && a.review != nil {
 		a = a.leave()
-		return a.toLine(n)
+		a.focus = mainPanel
+		next, cmd := a.toLine(n)
+		return next.(App).mirrored(), cmd
 	}
 	if arg, ok := strings.CutPrefix(typed, "pull "); ok {
 		return a.pullCommand(strings.TrimSpace(arg)), nil
@@ -511,107 +508,27 @@ func (a App) command(typed string) (tea.Model, tea.Cmd) {
 	return a.say("not a command: :"+typed, true), nil
 }
 
-func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
-	h := a.bodyHeight()
-	if msg.Action != tea.MouseActionPress {
-		return a, nil
-	}
-	switch msg.Button {
-	case tea.MouseButtonWheelUp, tea.MouseButtonWheelDown:
-		by := 3
-		if msg.Button == tea.MouseButtonWheelUp {
-			by = -3
-		}
-		switch a.screen {
-		case screenReview:
-			a.rv.view = a.rv.view.scroll(by, h)
-		case screenDiff:
-			a.diff = a.diff.scroll(by, h)
-		case screenDiagram:
-			a.dg = a.dg.scrolled(*a.review, 0, by, a.width, h, a.filter)
-		default:
-			a.reviews.view = a.reviews.view.scroll(by, h)
-		}
-		return a, nil
-	case tea.MouseButtonWheelLeft, tea.MouseButtonWheelRight:
-		if a.screen == screenDiagram {
-			by := 6
-			if msg.Button == tea.MouseButtonWheelLeft {
-				by = -6
-			}
-			a.dg = a.dg.scrolled(*a.review, by, 0, a.width, h, a.filter)
-		}
-		return a, nil
-	case tea.MouseButtonLeft:
-		y := msg.Y - 1
-		if y < 0 || y >= h {
-			return a, nil
-		}
-		now := a.opts.Now()
-		double := y == a.clickedY && now.Sub(a.clickedAt) < doubleClick
-		a.clickedAt, a.clickedY = now, y
-		switch a.screen {
-		case screenDiagram:
-			if i := a.dg.boxAt(*a.review, msg.X, y, a.filter); i >= 0 {
-				a.dg.focus = i
-				a = a.diagramShown()
-				if double {
-					return a.stepIn()
-				}
-			}
-			return a, nil
-		case screenDiff:
-			if i := a.diff.rowAt(y); i >= 0 {
-				a.diff = a.diff.to(i, h)
-				if double {
-					return a.diffAction("open", 1, false, h)
-				}
-			}
-			return a, nil
-		case screenReview:
-			if i := a.rv.view.at(y); i >= 0 {
-				a.rv.view = a.rv.view.to(i, h)
-				if double {
-					return a.reviewAction("open", 1, h)
-				}
-			}
-			return a, nil
-		}
-		if i := a.reviews.view.at(y); i >= 0 {
-			a.reviews.view = a.reviews.view.to(i, h)
-			if double {
-				return a.openReview()
-			}
-		}
-	}
-	return a, nil
-}
-
 func (a App) relaid() App {
-	if a.width == 0 {
+	if a.width == 0 || a.review == nil {
 		return a
 	}
-	h := a.bodyHeight()
-	if a.screen == screenDiagram && a.review != nil {
-		return a.diagramShown()
-	}
-	if a.screen == screenDiff && a.review != nil && a.diff.files != nil {
-		a.diff.width = a.width
+	a = a.sidesBuilt()
+	h := a.mainHeight()
+	switch {
+	case a.screen == screenDiagram:
+		a = a.diagramShown()
+	case a.screen == screenDiff && a.diff.files != nil:
+		a.diff.width = a.mainWidth()
 		a.diff = a.diff.rebuilt(*a.review, a.filter, h)
-		return a
 	}
-	if (a.screen == screenReview || a.screen == screenDiff) && a.review != nil {
-		a.rv = a.rv.rebuilt(*a.review, a.width, h, a.p, a.md, a.opts.Location)
-		return a
-	}
-	lines, items := a.reviews.build(a.width, a.p, a.opts.Location)
-	a.reviews.view = a.reviews.view.reset(lines, items, sameItem, h)
-	return a
+	a.rv = a.rv.rebuilt(*a.review, a.mainWidth(), h, a.p, a.md, a.opts.Location)
+	return a.mirrored()
 }
 
 func (a App) refresh() (tea.Model, tea.Cmd) {
 	if a.review == nil {
-		return a.say("no review is open; Enter on one opens it", true), nil
+		a.loading, a.failed = true, ""
+		return a.say("Opening the review again…", false), loadReview(a.opts.Server, a.opts.Review)
 	}
 	cmd := reloadReview(a.opts.Server, a.review.id, true)
 	if a.liveFor == "" {
@@ -627,19 +544,36 @@ func (a App) say(notice string, bad bool) App {
 	return a
 }
 
-func (a App) bodyHeight() int {
-	return max(1, a.height-3)
-}
-
-func (a App) panelRows() int {
-	return max(1, min(a.bodyHeight()*2/3, 20)-3)
-}
-
-func loadReviews(c *server.Client) tea.Cmd {
-	return func() tea.Msg {
-		reviews, err := c.Reviews()
-		return reviewsLoaded{reviews: reviews, err: err}
+func (a App) layout() layout {
+	var wants [sideCount + 1]int
+	for n := reviewPanel; n <= sideCount; n++ {
+		wants[n] = max(1, len(a.sides[n].rows))
 	}
+	return lay(a.width, a.height, a.focus, a.driving, a.mode, wants)
+}
+
+func (a App) mainRect() rect {
+	if r := a.layout().main; r.shown() {
+		return r.inner()
+	}
+	a.focus = mainPanel
+	return a.layout().main.inner()
+}
+
+func (a App) mainHeight() int {
+	return max(1, a.mainRect().h)
+}
+
+func (a App) mainWidth() int {
+	return max(1, a.mainRect().w)
+}
+
+func (a App) sideHeight(n int) int {
+	return max(1, a.layout().sides[n].inner().h)
+}
+
+func (a App) menuRows() int {
+	return max(1, min(a.height*2/3, 24)-2)
 }
 
 func loadReview(c *server.Client, id string) tea.Cmd {

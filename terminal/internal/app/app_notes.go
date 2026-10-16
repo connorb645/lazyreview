@@ -185,7 +185,12 @@ func (a App) queuedAt() (server.Comment, int, bool) {
 	if n, _, ok := a.noteAt(); ok && n.kind == "queued" {
 		id = n.comment.ID
 	}
-	if a.screen == screenReview && a.rv.view.cursor < len(a.rv.view.items) {
+	switch {
+	case a.focus == notesPanel:
+		if row, ok := a.sides[notesPanel].selected(); ok && row.it.kind == "comment" {
+			id = row.it.comment
+		}
+	case a.focus == mainPanel && a.screen == screenReview && a.rv.view.cursor < len(a.rv.view.items):
 		if it := a.rv.view.items[a.rv.view.cursor]; it.kind == "comment" {
 			id = it.comment
 		}
@@ -395,11 +400,11 @@ func (a App) afterCheck(msg checked) (tea.Model, tea.Cmd) {
 		return a.say(msg.where.Refused, true), nil
 	case len(msg.where.Choose) > 0:
 		pending := msg.e
-		pn := panel{title: msg.where.Words}
+		pn := menu{title: msg.where.Words}
 		for _, c := range msg.where.Choose {
-			pn.rows = append(pn.rows, panelRow{left: fmt.Sprintf("#%d", c.Pull), right: fmt.Sprintf("%s, line %d", c.Path, c.Line), open: &item{kind: "choose", pull: c.Pull}})
+			pn.rows = append(pn.rows, menuRow{left: fmt.Sprintf("#%d", c.Pull), right: fmt.Sprintf("%s, line %d", c.Path, c.Line), open: &item{kind: "choose", pull: c.Pull}})
 		}
-		a.panel, a.choosing = &pn, &pending
+		a.menu, a.choosing = &pn, &pending
 		return a.say("", false), nil
 	}
 	e := msg.e

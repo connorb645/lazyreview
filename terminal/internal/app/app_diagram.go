@@ -18,13 +18,11 @@ func (a App) openDiagram() App {
 	if a.review == nil {
 		return a.say("no review is open; Enter on one opens it", true)
 	}
+	a.focus, a.driving = mainPanel, diagramPanel
 	if a.screen == screenDiagram {
 		return a
 	}
 	a = a.leave()
-	if a.dg.level.Kind == "" {
-		return a.showBox(diagramPlace{level: "components"})
-	}
 	a.screen = screenDiagram
 	return a.diagramShown()
 }
@@ -37,7 +35,7 @@ func (a App) showBox(at diagramPlace) App {
 }
 
 func (a App) diagramShown() App {
-	a.dg = a.dg.shownIn(*a.review, a.width, a.bodyHeight(), a.filter)
+	a.dg = a.dg.shownIn(*a.review, a.mainWidth(), a.mainHeight(), a.filter)
 	return a
 }
 
@@ -231,13 +229,13 @@ func boxOf(n server.Node) diagramPlace {
 	return diagramPlace{level: "types", component: n.Component, pkg: n.Package, box: box}
 }
 
-func (a App) linkRows(out, in bool) []panelRow {
+func (a App) linkRows(out, in bool) []menuRow {
 	card, ok := a.dg.card()
 	if !ok {
 		return nil
 	}
 	l := a.dg.level
-	var outs, ins []panelRow
+	var outs, ins []menuRow
 	for _, link := range l.Links {
 		other, way := link.To, "out"
 		switch {
@@ -260,7 +258,7 @@ func (a App) linkRows(out, in bool) []panelRow {
 		if way == "in" {
 			from, to = name, a.boxName(card.ID)
 		}
-		row := panelRow{left: way, right: from + " ─ " + link.Words + " ─▶ " + to + place, open: &item{kind: "box", box: &at}}
+		row := menuRow{left: way, right: from + " ─ " + link.Words + " ─▶ " + to + place, open: &item{kind: "box", box: &at}}
 		if way == "out" {
 			outs = append(outs, row)
 		} else {
@@ -293,7 +291,7 @@ func (a App) linksPanel(out, in bool, none string) App {
 	if !out {
 		title = "What links to " + a.boxName(card.ID)
 	}
-	a.panel = &panel{title: title, rows: rows}
+	a.menu = &menu{title: title, rows: rows}
 	return a
 }
 
@@ -310,20 +308,20 @@ func (a App) follow() (tea.Model, tea.Cmd) {
 		a = a.leave()
 		return a.showBox(*rows[0].open.box), nil
 	}
-	a.panel = &panel{title: a.boxName(card.ID) + " links to", rows: rows}
+	a.menu = &menu{title: a.boxName(card.ID) + " links to", rows: rows}
 	return a, nil
 }
 
 func (a App) membersPanel(card diagram.Card) App {
-	pn := panel{title: card.Title + " · " + plural(len(card.Members), "member")}
+	pn := menu{title: card.Title + " · " + plural(len(card.Members), "member")}
 	for _, id := range card.Members {
 		n, ok := nodeOf(a.review.page, id)
 		if !ok {
 			continue
 		}
-		pn.rows = append(pn.rows, panelRow{left: n.Name, right: path.Base(n.File) + "  " + diagram.StateWord(n.State), open: &item{kind: "line", place: nodePlace(n)}})
+		pn.rows = append(pn.rows, menuRow{left: n.Name, right: path.Base(n.File) + "  " + diagram.StateWord(n.State), open: &item{kind: "line", place: nodePlace(n)}})
 	}
-	a.panel = &pn
+	a.menu = &pn
 	return a
 }
 
@@ -353,16 +351,16 @@ func (a App) propertiesPanel() App {
 		typeWidth = max(typeWidth, len([]rune(p.Type)))
 		lineWidth = max(lineWidth, len(fmt.Sprintf("line %d", p.Line)))
 	}
-	pn := panel{title: n.Name + " · " + plural(len(n.Properties), "property")}
+	pn := menu{title: n.Name + " · " + plural(len(n.Properties), "property")}
 	for _, p := range n.Properties {
 		inferred := ""
 		if p.Inferred {
 			inferred = "inferred"
 		}
 		right := fmt.Sprintf("%-*s  %-8s  %-*s  %s", typeWidth, p.Type, inferred, lineWidth, fmt.Sprintf("line %d", p.Line), holds[p.Name])
-		pn.rows = append(pn.rows, panelRow{left: p.Name, right: strings.TrimRight(right, " "), open: &item{kind: "line", place: &server.Lines{Path: n.File, Side: "RIGHT", Line: p.Line}}})
+		pn.rows = append(pn.rows, menuRow{left: p.Name, right: strings.TrimRight(right, " "), open: &item{kind: "line", place: &server.Lines{Path: n.File, Side: "RIGHT", Line: p.Line}}})
 	}
-	a.panel = &pn
+	a.menu = &pn
 	return a
 }
 
@@ -427,12 +425,12 @@ func (a App) showType() (tea.Model, tea.Cmd) {
 	}
 	sort.SliceStable(types, func(i, j int) bool { return types[i].Line < types[j].Line })
 	if r.kind == "file" {
-		pn := panel{title: "Types in " + path.Base(r.path)}
+		pn := menu{title: "Types in " + path.Base(r.path)}
 		for _, n := range types {
 			at := boxOf(n)
-			pn.rows = append(pn.rows, panelRow{left: n.Name, right: fmt.Sprintf("%s · line %d", n.Kind, n.Line), open: &item{kind: "box", box: &at}})
+			pn.rows = append(pn.rows, menuRow{left: n.Name, right: fmt.Sprintf("%s · line %d", n.Kind, n.Line), open: &item{kind: "box", box: &at}})
 		}
-		a.panel = &pn
+		a.menu = &pn
 		return a, nil
 	}
 	_, line, ok := r.at()
@@ -482,13 +480,13 @@ func (a App) boxWords() string {
 }
 
 func (a App) diagramTitle() string {
-	p, l := a.p, a.dg.level
-	out := " " + p.Bold.Render("Diagram")
+	l := a.dg.level
+	out := "Diagram"
 	if l.Component != "" {
-		out += p.Muted.Render(" › ") + p.Ink.Render(componentTitle(*a.review, l.Component))
+		out += " · " + componentTitle(*a.review, l.Component)
 	}
 	if l.Kind == "types" {
-		out += p.Muted.Render(" › ") + p.Ink.Render(packageTitle(a.review.page, l.Component, l.Package))
+		out += " › " + packageTitle(a.review.page, l.Component, l.Package)
 	}
 	return out
 }
@@ -511,13 +509,13 @@ func (a App) diagramHints() [][2]string {
 	card, _ := a.dg.card()
 	switch card.Kind {
 	case "type", "file":
-		return [][2]string{{"Enter", "diff"}, {"gd", "follow"}, {"Space l", "links"}, {"Space p", "properties"}, {"-", "out"}, {"Space ?", "keys"}}
+		return [][2]string{{"Enter", "Diff"}, {"gd", "Follow"}, {"Space l", "Links"}, {"Space p", "Properties"}, {"-", "Out"}}
 	case "group":
-		return [][2]string{{"Enter", "members"}, {"gd", "follow"}, {"Space l", "links"}, {"-", "out"}, {"Space ?", "keys"}}
+		return [][2]string{{"Enter", "Members"}, {"gd", "Follow"}, {"Space l", "Links"}, {"-", "Out"}}
 	}
-	out := "out"
+	out := "Out"
 	if a.dg.level.Kind == "components" {
 		out = "Review view"
 	}
-	return [][2]string{{"h j k l", "move"}, {"Enter", "in"}, {"Space d", "diff"}, {"/", "find"}, {"f", "labels"}, {"-", out}, {"Space ?", "keys"}}
+	return [][2]string{{"h j k l", "Move"}, {"Enter", "In"}, {"Space d", "Diff"}, {"/", "Find"}, {"f", "Labels"}, {"-", out}}
 }

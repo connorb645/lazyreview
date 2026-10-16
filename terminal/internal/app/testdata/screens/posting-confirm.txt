@@ -1,30 +1,30 @@
- Fix the guide wording › Review
- Pull request #30 by alex
- Fix the guide wording
- Base main · Head 058ff259 · 2 files +18 −1
-
- No written review is attached. The diagram and the diffs hold the change.
-
-▌▾ Queued comments
-   1 docs/guide.md, line 3
-     │ The catalog lists every item.
-     Every item, or every item shown?
-
- ▾ The change
-   ■ docs  2 files +18 −1
-
-
-
-
-╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Post to octo/widgets#30                                                                          │
-│   1  Add Comments (1)                                                                            │
-│ ▸ 2  Approve With Comments (1)                                                                   │
-│   3  Approve                                                                                     │
-├──────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ You approve octo/widgets#30, and this comment goes with the approval under your name, exactly as │
-│ shown.                                                                                           │
-│   1  guide.md, line 3  Every item, or every item shown?                                          │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  Review · Queued comments
- y yes, approve with comments   n cancel
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│ #30 Fix the guide wording     ││ Pull request #30 by alex                                        │
+╰────────────────────────1 of 1─╯│ Fix the guide wording                                           │
+╭─[2]─Files─────────────────────╮│ Base main · Head 058ff259 · 2 files +18 −1                      │
+│ ▾ ■ docs               +18 −1 ││                                                                 │
+│   A basket.md                 ││ No written review is attached. The diagram and the diffs hold   │
+│   M guide.md                  ││ the change.                                                     │
+│                               ││                                                                 │
+│                               ││ ▾ Queued comments                                               │
+│                   ╭─Post to octo/widgets#30──────────────────────────────────╮                   │
+│                   │ 1  Add Comments (1)                                      │                   │
+│                   │ 2  Approve With Comments (1)                             │                   │
+╰───────────────────│ 3  Approve                                               │                   │
+╭─[3]─Notes─────────│──────────────────────────────────────────────────────────│                   │
+│ Queued            │ You approve octo/widgets#30, and this comment goes with  │                   │
+│ 1 guide.md:3      │ the approval under your name, exactly as shown.          │                   │
+│                   │                                                          │                   │
+│                   │  1  guide.md, line 3  Every item, or every item shown?   │                   │
+│                   ╰──────────────────────────────────────────────────────────╯                   │
+│                               ││                                                                 │
+╰────────────────────────1 of 1─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ docs                        ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 1─╯╰─────────────────────────────────────────────────────────────────╯
+ Yes, approve with comments: y | Cancel: n

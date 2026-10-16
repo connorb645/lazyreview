@@ -3,15 +3,27 @@ package app
 import "review-desk/terminal/internal/keys"
 
 var everyView = keys.Bindings{
-	":": "command", "space ?": "keys", "g h": "reviews", "space v": "review", "g x": "github", "g X": "web",
+	":": "command", "space ?": "keys", "space v": "review", "g x": "github", "g X": "web",
 	"q": "close", "esc": "close", "Z Z": "quit", "ctrl+c": "quit",
 	"] p": "next pull", "[ p": "previous pull", "ctrl+o": "jump back", "tab": "jump forward",
 	"space m": "diagram", "space f": "finder", "R": "refresh",
+	"0": "focus main", "+": "bigger", "_": "smaller",
 }
 
-var listKeys = keys.Bindings{
+var sideKeys = keys.Bindings{
 	"j": "down", "down": "down", "k": "up", "up": "up", "g g": "top", "G": "bottom", "enter": "open",
-	"/": "find", "n": "next match", "N": "previous match",
+	"1": "focus review", "2": "focus files", "3": "focus notes", "4": "focus diagram",
+}
+
+var sidePanelKeys = [sideCount + 1]keys.Bindings{
+	reviewPanel: {"P": "post"},
+	filesPanel:  {"z a": "toggle fold"},
+	notesPanel:  {"e": "edit", "d d": "drop", "P": "post"},
+	diagramPanel: {
+		"w": "next box", "b": "previous box", "-": "back",
+		"g d": "follow", "g r": "references", "/": "search", "?": "search back", "n": "next match", "N": "previous match",
+		"f": "labels", "space l": "links", "space p": "properties", "space d": "box diff", "space a": "all links",
+	},
 }
 
 var reviewKeys = keys.Bindings{
@@ -38,25 +50,54 @@ var diagramKeys = keys.Bindings{
 }
 
 var everyViewHelp = []helpRow{
+	{"1 2 3 4", "the Review, Files, Notes or Diagram panel, from a panel on the left"},
+	{"0", "the main panel, on the right"},
+	{"Esc", "closes the top popup; with none, back to the panel on the left that the main panel shows"},
+	{"+ _", "a bigger or smaller main panel: half the screen, then the whole of it"},
 	{":", "the command line: :q quits, :q! quits and drops drafts"},
-	{"Space ?", "lists the keys of this view"},
+	{"Space ?", "lists the keys of this panel"},
 	{"R :refresh", "loads the review again: from GitHub, or a branch from its repository"},
 	{"Space v", "the Review view"},
 	{"Space m", "the diagram"},
 	{"Space f", "finds a file, type or component by name"},
-	{"gh", "every review"},
 	{"gx", "opens the pull request, or the thread at the cursor, on GitHub"},
 	{"gX", "opens this place in the web app"},
 	{"]p [p", "the next or previous pull request filter on a stack: All, then each one"},
 	{"Ctrl-o Ctrl-i", "back and forward through jumps"},
-	{"q Esc", "closes the top panel or list"},
+	{"q", "closes the top popup"},
 	{"ZZ", "quits, as :q does"},
 }
 
-var listHelp = []helpRow{
-	{"j k gg G", "move"},
-	{"Enter", "opens the review"},
-	{"/ n N", "find"},
+var sideHelp = [sideCount + 1][]helpRow{
+	reviewPanel: {
+		{"j k gg G", "the next, previous, first or last pull request"},
+		{"Enter", "the Review view, in the main panel"},
+		{"P", "post: the actions offered for this pull request"},
+	},
+	filesPanel: {
+		{"j k gg G", "the next, previous, first or last file; the main panel shows its diff"},
+		{"Enter", "on a file, its diff in the main panel; on a component or a folder, folds it"},
+		{"za", "folds or unfolds a component or a folder"},
+	},
+	notesPanel: {
+		{"j k gg G", "the next, previous, first or last note; the main panel shows it in its diff"},
+		{"Enter", "the note in its diff, in the main panel"},
+		{"e dd", "edit or drop the queued comment"},
+		{"P", "post: the actions offered for the comment's pull request"},
+	},
+	diagramPanel: {
+		{"j k w b gg G", "the next, previous, first or last box, in reading order"},
+		{"Enter", "steps in; on a type, opens its diff; on a group, lists its members"},
+		{"-", "steps out"},
+		{"gd", "follows a link of the box"},
+		{"gr", "lists the boxes that link to it"},
+		{"/ ? n N", "find a type or file, forward or back"},
+		{"f then a label", "jumps to the box with that label"},
+		{"Space l", "lists the box's links, in and out"},
+		{"Space p", "lists its properties"},
+		{"Space d", "opens its diff"},
+		{"Space a", "draws every link faintly, or stops"},
+	},
 }
 
 var reviewHelp = []helpRow{
@@ -110,6 +151,6 @@ var diagramHelp = []helpRow{
 }
 
 var leaderWords = map[string]string{
-	"keys": "keys", "review": "Review view", "split": "split", "wrap": "wrap", "whole": "whole file", "rendered": "rendered",
-	"diagram": "diagram", "finder": "find", "links": "links", "properties": "properties", "box diff": "diff", "all links": "every link",
+	"keys": "Keys", "review": "Review view", "split": "Split", "wrap": "Wrap", "whole": "Whole file", "rendered": "Rendered",
+	"diagram": "Diagram", "finder": "Find", "links": "Links", "properties": "Properties", "box diff": "Diff", "all links": "Every link",
 }

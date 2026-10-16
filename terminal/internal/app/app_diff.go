@@ -31,7 +31,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 	}
 	if a.diff.component != component || a.diff.files == nil {
 		a.diff = newDiffView(component, a.files, a.opts.Location, a.md)
-		a.diff.width = a.width
+		a.diff.width = a.mainWidth()
 	}
 	a.screen = screenDiff
 	a.diff = a.diff.copied()
@@ -39,11 +39,11 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 		a.diff.folded[place.Path] = false
 		a.diff = a.withRunOpen(place.Path, place.Side, place.Line)
 	}
-	a.diff = a.diff.rebuilt(*a.review, a.filter, a.bodyHeight())
+	a.diff = a.diff.rebuilt(*a.review, a.filter, a.mainHeight())
 	if place != nil {
-		a.diff = a.diff.find(*place).placed(a.bodyHeight())
+		a.diff = a.diff.find(*place).placed(a.mainHeight())
 	} else {
-		a.diff = a.diff.to(0, a.bodyHeight())
+		a.diff = a.diff.to(0, a.mainHeight())
 	}
 	return a, nil
 }
@@ -237,9 +237,9 @@ func (a App) fold(action string) App {
 	if r.kind == "notehead" || r.kind == "notetext" {
 		n, _ := noteOf(*a.review, r.path, r.key)
 		v.notes[r.key] = action == "open fold" || action == "toggle fold" && !v.noteOpen(n)
-		a.diff = v.rebuilt(*a.review, a.filter, a.bodyHeight())
+		a.diff = v.rebuilt(*a.review, a.filter, a.mainHeight())
 		if i := a.diff.first(func(row diffRow) bool { return row.kind == "notehead" && row.key == r.key }); i >= 0 {
-			a.diff = a.diff.to(i, a.bodyHeight())
+			a.diff = a.diff.to(i, a.mainHeight())
 		}
 		return a
 	}
@@ -254,13 +254,13 @@ func (a App) fold(action string) App {
 	default:
 		v.folded[r.path] = action != "open fold" && !(action == "toggle fold" && v.folded[r.path])
 	}
-	a.diff = v.rebuilt(*a.review, a.filter, a.bodyHeight())
+	a.diff = v.rebuilt(*a.review, a.filter, a.mainHeight())
 	switch {
 	case r.kind != "file" && v.folded[r.path]:
-		a.diff = a.diff.find(server.Lines{Path: r.path, Side: "file:"}).shown(a.bodyHeight())
+		a.diff = a.diff.find(server.Lines{Path: r.path, Side: "file:"}).shown(a.mainHeight())
 	case run:
 		if i := a.diff.first(func(row diffRow) bool { return row.key == r.key && row.kind != "hunk" }); i >= 0 {
-			a.diff = a.diff.to(i, a.bodyHeight())
+			a.diff = a.diff.to(i, a.mainHeight())
 		}
 	}
 	return a
@@ -274,11 +274,11 @@ func (a App) toLine(n int) (tea.Model, tea.Cmd) {
 	a.diff = a.diff.copied()
 	a.diff.folded[path] = false
 	a.diff = a.withRunOpen(path, "RIGHT", n)
-	a.diff = a.diff.rebuilt(*a.review, a.filter, a.bodyHeight())
+	a.diff = a.diff.rebuilt(*a.review, a.filter, a.mainHeight())
 	for i, r := range a.diff.rows {
 		if side, line, ok := r.at(); ok && r.path == path && (line == n && side == "RIGHT" || sameLine(r, server.Lines{Side: "RIGHT", Line: n})) {
 			a.diff.cursor = i
-			a.diff = a.diff.placed(a.bodyHeight())
+			a.diff = a.diff.placed(a.mainHeight())
 			return a, nil
 		}
 	}
@@ -292,7 +292,7 @@ func (a App) matchNext(back bool) (tea.Model, tea.Cmd) {
 	}
 	if i := a.diff.next(back, func(r diffRow) bool { return matches(r, query) }); i >= 0 {
 		a = a.leave()
-		a.diff = a.diff.to(i, a.bodyHeight())
+		a.diff = a.diff.to(i, a.mainHeight())
 		return a, nil
 	}
 	return a.say(fmt.Sprintf("no more of %q", query), true), nil
@@ -317,10 +317,7 @@ func (a App) filterBy(by int) App {
 
 func (a App) setFilter(pull int) App {
 	a.filter = pull
-	if a.screen == screenDiff {
-		a.diff = a.diff.rebuilt(*a.review, a.filter, a.bodyHeight())
-	}
-	return a
+	return a.relaid()
 }
 
 func (a App) pullCommand(arg string) App {
@@ -371,15 +368,20 @@ func (a App) jumpBy(back bool) (tea.Model, tea.Cmd) {
 		a.jumpAt++
 	}
 	j := a.jumps[a.jumpAt]
+	a.focus = mainPanel
 	switch j.screen {
 	case screenDiff:
 		a.screen = screenDiff
+		if a.driving != notesPanel {
+			a.driving = filesPanel
+		}
 		return a.openPlace(j.component, j.place)
 	case screenReview:
-		a.screen = screenReview
-		a.rv.view = a.rv.view.to(j.item, a.bodyHeight())
+		a.screen, a.driving = screenReview, reviewPanel
+		a.rv.view = a.rv.view.to(j.item, a.mainHeight())
 		return a.relaid(), nil
 	case screenDiagram:
+		a.driving = diagramPanel
 		return a.showBox(*j.box), nil
 	}
 	a.screen = j.screen

@@ -7,196 +7,274 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
-// View draws the screen: a title line, the view, a status line and a line
-// of key hints.
+// View draws the screen: the four panels on the left, the main panel on the
+// right, any popup over them, and a bar of the keys that matter here.
 func (a App) View() string {
 	if a.width == 0 || a.height == 0 {
 		return ""
 	}
-	out := []string{a.titleLine()}
-	out = append(out, a.bodyLines()...)
-	out = append(out, a.statusLine(), a.hintLine())
-	return strings.Join(out, "\n")
-}
-
-func (a App) titleLine() string {
-	p := a.p
-	left, right := " "+p.Bold.Render("Every review"), p.Muted.Render(plural(len(a.reviews.reviews), "review")+" ")
-	d := a.review
-	switch {
-	case a.screen == screenReviews:
-	case d == nil:
-		left, right = " "+p.Bold.Render("Review"), ""
-	case a.screen == screenDiagram:
-		left, right = a.diagramTitle(), a.filterPills()
-	case a.screen == screenDiff:
-		left, right = " "+p.Bold.Render(componentTitle(*d, a.diff.component)), a.filterPills()
-		if path := a.diff.file(); path != "" {
-			left += p.Muted.Render(" › ") + p.Ink.Render(path)
+	l := a.layout()
+	rows := make([]string, max(0, a.height-1))
+	place := func(r rect, lines []string) {
+		for i, line := range lines {
+			if y := r.y + i; y >= 0 && y < len(rows) {
+				rows[y] += line
+			}
 		}
-	default:
-		title := d.state.Title
-		if d.state.Written != nil && d.state.Written.Title != "" {
-			title = d.state.Written.Title
-		}
-		left, right = " "+p.Bold.Render(title)+p.Muted.Render(" › Review"), a.filterPills()
 	}
-	return spread(left, right, a.width)
+	for n := reviewPanel; n <= sideCount; n++ {
+		if r := l.sides[n]; r.shown() {
+			place(r, a.sideBox(n, r, a.focus == n && !a.popped()))
+		}
+	}
+	if r := l.main; r.shown() {
+		place(r, a.mainBox(r, a.focus == mainPanel && !a.popped()))
+	}
+	for i := range rows {
+		rows[i] = fit(rows[i], a.width)
+	}
+	if box := a.popup(); len(box) > 0 {
+		w := ansi.StringWidth(box[0])
+		rows = overlay(rows, box, max(0, (a.width-w)/2), max(0, (len(rows)-len(box))/2), a.p)
+	}
+	return strings.Join(append(rows, a.barLine()), "\n")
 }
 
-func (a App) filterPills() string {
-	p := a.p
-	if a.review == nil || a.review.page.Stack == nil {
+func (a App) popped() bool {
+	return a.menu != nil || a.posting != nil || a.confirming != nil
+}
+
+func (a App) sideBox(n int, r rect, focused bool) []string {
+	s, in := a.sides[n], r.inner()
+	var content []string
+	for i := s.top; i < s.top+in.h && i < len(s.rows); i++ {
+		line := sideLine(s.rows[i], in.w)
+		if i == s.cursor && !s.rows[i].heading {
+			line = a.p.highlight(line, in.w, focused)
+		}
+		content = append(content, line)
+	}
+	at, total := 0, 0
+	for i, row := range s.rows {
+		if !row.heading {
+			total++
+			if i <= s.cursor {
+				at = total
+			}
+		}
+	}
+	return framed(content, r.w, r.h, panelTitle(n, panelNames[n]), a.tabs(n, in.w), fmt.Sprintf("%d of %d", at, total), focused, a.p)
+}
+
+func sideLine(row sideRow, width int) string {
+	right := row.right
+	if right != "" {
+		right = " " + right + " "
+	}
+	room := max(1, width-1-ansi.StringWidth(right))
+	return " " + fit(ansi.Truncate(row.text, room, "…"), room) + right
+}
+
+func (a App) tabs(n, width int) string {
+	if n != reviewPanel || a.review == nil || a.review.page.Stack == nil {
 		return ""
 	}
-	pills := []string{p.Muted.Render("All")}
-	if a.filter == 0 {
-		pills[0] = p.Bold.Render("[All]")
+	p := a.p
+	tab := func(name string, on bool) string {
+		if on {
+			return p.Accent.Bold(true).Render(name)
+		}
+		return p.Muted.Render(name)
 	}
+	names := []string{"All"}
 	for _, m := range a.review.state.Members {
-		pill := fmt.Sprintf("#%d", m.Pull)
-		if a.filter == m.Pull {
-			pill = "[" + pill + "]"
-		}
-		pills = append(pills, p.pull(m.Color).Render(pill))
+		names = append(names, fmt.Sprintf("#%d", m.Pull))
 	}
-	return strings.Join(pills, "  ") + " "
-}
-
-func componentTitle(d reviewData, id string) string {
-	for _, c := range d.page.Model.Components {
-		if c.ID == id {
-			return c.Title
+	var all []string
+	active := ""
+	for i, name := range names {
+		on := (i == 0 && a.filter == 0) || name == fmt.Sprintf("#%d", a.filter)
+		all = append(all, tab(name, on))
+		if on {
+			active = tab(name, true)
 		}
 	}
-	return id
-}
-
-func (a App) bodyLines() []string {
-	h := a.bodyHeight()
-	view := a.reviews.view
-	if a.screen == screenReview {
-		view = a.rv.view
-	}
-	var out []string
-	switch {
-	case a.loading:
-		out = append(out, "", " "+a.p.Muted.Render("Loading…"))
-	case a.screen != screenReviews && a.review == nil:
-		out = append(out, "", " "+a.p.Muted.Render("No review is open. gh lists every review."))
-	case a.screen == screenDiff:
-		out = diffLines(*a.review, a.diff, h, a.filter, a.p)
-	case a.screen == screenDiagram && len(a.dg.level.Cards) == 0:
-		out = append(out, "", " "+a.p.Muted.Render("Nothing to draw: this change has no parts the diagram knows."))
-	case a.screen == screenDiagram:
-		out = a.dg.lines(*a.review, a.width, h, a.filter, a.styles)
-	default:
-		for i := view.top; i < view.top+h && i < len(view.lines); i++ {
-			l := view.lines[i]
-			text := l.text
-			if l.item >= 0 && l.item == view.cursor {
-				text = a.p.Accent.Render("▌") + strings.TrimPrefix(text, " ")
-			}
-			out = append(out, text)
-		}
-	}
-	for len(out) < h {
-		out = append(out, "")
-	}
-	for i := range out {
-		out[i] = fit(out[i], a.width)
-	}
-	if a.panel != nil {
-		drawn := a.panel.lines(a.width, min(h, a.panelRows()+3), a.p)
-		copy(out[h-len(drawn):], drawn)
-	}
-	if a.posting != nil {
-		drawn := a.postingLines(a.width)
-		if len(drawn) > h {
-			drawn = drawn[len(drawn)-h:]
-		}
-		copy(out[h-len(drawn):], drawn)
+	sep := p.Border.Render(" - ")
+	out := sep + strings.Join(all, sep)
+	if ansi.StringWidth(out)+ansi.StringWidth(panelTitle(n, panelNames[n]))+3 > width {
+		return sep + active
 	}
 	return out
 }
 
-func (a App) statusLine() string {
+func (a App) mainBox(r rect, focused bool) []string {
+	p, in := a.p, r.inner()
+	var content []string
+	switch {
+	case a.loading:
+		content = []string{"", " " + p.Muted.Render("Loading…")}
+	case a.review == nil:
+		content = []string{"", " " + p.Bad.Render(a.failed), "", " " + p.Muted.Render("R tries again; :q quits.")}
+	case a.screen == screenDiff:
+		content = diffLines(*a.review, a.diff, in.h, a.filter, a.p, focused)
+	case a.screen == screenDiagram && len(a.dg.level.Cards) == 0:
+		content = []string{"", " " + p.Muted.Render("Nothing to draw: this change has no parts the diagram knows.")}
+	case a.screen == screenDiagram:
+		content = a.dg.lines(*a.review, in.w, in.h, a.filter, a.styles)
+	default:
+		v := a.rv.view
+		for i := v.top; i < v.top+in.h && i < len(v.lines); i++ {
+			l := v.lines[i]
+			text := l.text
+			if l.item >= 0 && l.item == v.cursor && a.focus == mainPanel {
+				text = p.highlight(text, in.w, focused)
+			}
+			content = append(content, text)
+		}
+	}
+	return framed(content, r.w, r.h, a.mainTitle(), "", a.placeWords(), focused, a.p)
+}
+
+func (a App) mainTitle() string {
+	title := panelTitle(mainPanel, "Review")
+	d := a.review
+	switch {
+	case d == nil:
+	case a.screen == screenDiagram:
+		title = panelTitle(mainPanel, a.diagramTitle())
+	case a.screen == screenDiff:
+		title = panelTitle(mainPanel, "Diff · "+componentTitle(*d, a.diff.component))
+		if path := a.diff.file(); path != "" {
+			title += " › " + path
+		}
+	}
+	return title
+}
+
+func (a App) placeWords() string {
+	if a.review == nil {
+		return ""
+	}
+	switch a.screen {
+	case screenDiff:
+		if a.diff.selecting {
+			return "VISUAL · " + a.selectionWords()
+		}
+		return a.diffPlace()
+	case screenDiagram:
+		return a.boxWords()
+	}
+	if v := a.rv.view; v.cursor < len(v.items) && a.focus == mainPanel {
+		return itemWords(v.items[v.cursor])
+	}
+	return ""
+}
+
+func (a App) popup() []string {
+	switch {
+	case a.confirming != nil:
+		c := a.confirming
+		w := min(a.width-4, 56)
+		body := wrap(fmt.Sprintf("Drop queued comment %d on #%d? Its text is gone once dropped.", c.comment, c.pull), w-4)
+		for i, l := range body {
+			body[i] = " " + a.p.Ink.Render(l)
+		}
+		return framed(body, w, len(body)+2, fmt.Sprintf("Drop comment %d", c.comment), "", "y drop · any other key keeps it", true, a.p)
+	case a.posting != nil:
+		return a.postingBox()
+	case a.menu != nil:
+		return a.menu.box(a.width, min(a.height-3, a.menuRows()+2), a.p)
+	}
+	return nil
+}
+
+func (a App) barLine() string {
 	p := a.p
 	if a.prompting != "" {
-		return fit(a.prompt.View(), a.width)
+		return fit(" "+a.prompt.View(), a.width)
 	}
-	if c := a.confirming; c != nil {
-		return p.Bar.Render(fit(" "+p.Warn.Render(fmt.Sprintf("Drop queued comment %d on #%d? y drops it, any other key keeps it.", c.comment, c.pull)), a.width))
-	}
-	place := "every review"
-	switch a.screen {
-	case screenReview:
-		place = "Review"
-		if a.review != nil && a.rv.view.cursor < len(a.rv.view.items) {
-			if words := itemWords(a.rv.view.items[a.rv.view.cursor]); words != "" {
-				place += " · " + words
-			}
-		}
-	case screenDiff:
-		place = a.diffPlace()
-	case screenDiagram:
-		if a.review != nil {
-			place = a.boxWords()
-		}
-	}
-	mode := "NORMAL"
-	if a.screen == screenDiff && a.diff.selecting {
-		mode, place = "VISUAL", a.selectionWords()
-	}
-	left := " " + p.Key.Render(mode) + "  " + p.Muted.Render(place)
-	right := p.Muted.Render(a.keys.Typed()) + " "
-	if a.notice != "" {
+	right := ""
+	switch {
+	case a.notice != "":
 		style := p.Ink
 		if a.bad {
 			style = p.Bad
 		}
-		right = style.Render(ansi.Truncate(a.notice, max(10, a.width-20), "…")) + " "
-		left = ansi.Truncate(left, max(0, a.width-ansi.StringWidth(right)-1), "…")
+		right = style.Render(ansi.Truncate(a.notice, max(10, a.width*2/3), "…"))
+	case a.keys.Typed() != "":
+		right = p.Accent.Render(a.keys.Typed())
 	}
-	return p.Bar.Render(spread(left, right, a.width))
+	hints := a.hints()
+	room := a.width - ansi.StringWidth(right) - 3
+	sep := p.Faint.Render(" | ")
+	parts := make([]string, len(hints))
+	for i, h := range hints {
+		parts[i] = p.Muted.Render(h[1]+": ") + p.Accent.Render(h[0])
+	}
+	for len(parts) > 1 && ansi.StringWidth(strings.Join(parts, sep)) > room {
+		parts = append(parts[:len(parts)-2], parts[len(parts)-1])
+	}
+	left := " " + ansi.Truncate(strings.Join(parts, sep), max(0, room), "…")
+	if right != "" {
+		right += " "
+	}
+	return spread(left, right, a.width)
 }
 
-func (a App) hintLine() string {
-	p := a.p
-	var hints [][2]string
+func (a App) hints() [][2]string {
+	keysHint := [2]string{"Space ?", "Keys"}
 	switch {
+	case a.confirming != nil:
+		return [][2]string{{"y", "Drop"}, {"any other key", "Keep"}}
 	case a.posting != nil:
-		hints = a.postingHints()
+		return a.postingHints()
 	case a.keys.Pending() == "space":
+		var hints [][2]string
 		for _, k := range a.bindings().After("space") {
 			hints = append(hints, [2]string{"Space " + k[0], leaderWords[k[1]]})
 		}
-	case a.panel != nil && a.panel.finding:
-		hints = [][2]string{{"type", "narrow"}, {"Ctrl-n Ctrl-p", "move"}, {"Enter", "go"}, {"Esc", "close"}}
-	case a.panel != nil && len(a.panel.rows) > 0 && a.panel.rows[0].open != nil:
-		hints = [][2]string{{"j k", "move"}, {"Enter", "go"}, {"q", "close"}}
-	case a.panel != nil:
-		hints = [][2]string{{"j k", "move"}, {"q", "close"}}
+		return hints
+	case a.menu != nil && a.menu.finding:
+		return [][2]string{{"type", "Narrow"}, {"Ctrl-n Ctrl-p", "Move"}, {"Enter", "Go"}, {"Esc", "Close"}}
+	case a.menu != nil && a.menu.choosing():
+		return [][2]string{{"j k", "Move"}, {"Enter", "Go"}, {"Esc", "Close"}}
+	case a.menu != nil:
+		return [][2]string{{"Esc", "Close"}}
+	case a.review == nil:
+		return [][2]string{{"R", "Try again"}, {":q", "Quit"}}
 	case a.screen == screenDiagram && a.dg.labels != nil:
-		hints = [][2]string{{"a label", "jumps to its box"}, {"Esc", "stop"}}
-	case a.screen == screenDiagram:
-		hints = a.diagramHints()
-	case a.screen == screenReview && a.rv.view.cursor < len(a.rv.view.items) && a.rv.view.items[a.rv.view.cursor].pull != 0:
-		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"P", "post"}, {"e dd", "edit, drop"}, {"]] [[", "sections"}, {"Space ?", "keys"}}
-	case a.screen == screenReview:
-		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"]] [[", "sections"}, {"za", "fold"}, {"gh", "every review"}, {"Space ?", "keys"}, {":q", "quit"}}
-	case a.screen == screenDiff && a.diff.selecting:
-		hints = [][2]string{{"c", "comment"}, {"a", "ask Claude"}, {"o", "other end"}, {"Esc", "stop"}}
-	case a.screen == screenDiff:
-		hints = a.diffHints()
+		return [][2]string{{"a label", "Jump to its box"}, {"Esc", "Stop"}}
+	}
+	var hints [][2]string
+	switch a.focus {
+	case reviewPanel:
+		hints = [][2]string{{"Enter", "Review"}, {"P", "Post"}, {"gx", "GitHub"}, {"2 3 4", "Files, notes, diagram"}}
+	case filesPanel:
+		hints = [][2]string{{"Enter", "Diff"}, {"za", "Fold"}, {"]p [p", "Pull request"}, {"1 3 4", "Panels"}}
+	case notesPanel:
+		hints = [][2]string{{"Enter", "Open"}, {"e", "Edit"}, {"dd", "Drop"}, {"P", "Post"}, {"1 2 4", "Panels"}}
+	case diagramPanel:
+		hints = [][2]string{{"Enter", "In"}, {"-", "Out"}, {"gd", "Follow"}, {"Space l", "Links"}, {"/", "Find"}, {"1 2 3", "Panels"}}
 	default:
-		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"/", "find"}, {"Space ?", "keys"}, {":q", "quit"}}
+		hints = a.mainHints()
 	}
-	var parts []string
-	for _, h := range hints {
-		parts = append(parts, p.Key.Render(h[0])+" "+p.Muted.Render(h[1]))
+	return append(hints, keysHint)
+}
+
+func (a App) mainHints() [][2]string {
+	switch a.screen {
+	case screenDiagram:
+		return append(a.diagramHints(), [2]string{"Esc", "List"})
+	case screenDiff:
+		if a.diff.selecting {
+			return [][2]string{{"c", "Comment"}, {"a", "Ask Claude"}, {"o", "Other end"}, {"Esc", "Stop"}}
+		}
+		return append(a.diffHints(), [2]string{"Esc", "List"})
 	}
-	return fit(" "+strings.Join(parts, "   "), a.width)
+	if v := a.rv.view; v.cursor < len(v.items) && v.items[v.cursor].pull != 0 {
+		return [][2]string{{"j k", "Move"}, {"Enter", "Open"}, {"P", "Post"}, {"e dd", "Edit, drop"}, {"]] [[", "Sections"}, {"Esc", "List"}}
+	}
+	return [][2]string{{"j k", "Move"}, {"Enter", "Open"}, {"]] [[", "Sections"}, {"za", "Fold"}, {"Esc", "List"}}
 }
 
 func (a App) selectionWords() string {
@@ -215,15 +293,15 @@ func (a App) diffHints() [][2]string {
 	if n, r, ok := a.noteAt(); ok {
 		switch {
 		case n.kind == "queued":
-			return [][2]string{{"e", "edit"}, {"dd", "drop"}, {"za", "fold"}, {"]n [n", "notes"}, {"-", "back"}}
+			return [][2]string{{"e", "Edit"}, {"dd", "Drop"}, {"za", "Fold"}, {"]n [n", "Notes"}, {"-", "Back"}}
 		case n.kind == "conversation" && r.part == "claude":
-			return [][2]string{{"c", "comment with this answer"}, {"a", "follow-up"}, {"za", "fold"}, {"]n [n", "notes"}}
+			return [][2]string{{"c", "Comment with this answer"}, {"a", "Follow-up"}, {"za", "Fold"}, {"]n [n", "Notes"}}
 		case n.kind == "conversation":
-			return [][2]string{{"a", "follow-up"}, {"za", "fold"}, {"]n [n", "notes"}, {"-", "back"}}
+			return [][2]string{{"a", "Follow-up"}, {"za", "Fold"}, {"]n [n", "Notes"}, {"-", "Back"}}
 		}
-		return [][2]string{{"za", "fold"}, {"gx", "on GitHub"}, {"]n [n", "notes"}, {"-", "back"}}
+		return [][2]string{{"za", "Fold"}, {"gx", "On GitHub"}, {"]n [n", "Notes"}, {"-", "Back"}}
 	}
-	return [][2]string{{"j k", "move"}, {"]c [c", "hunks"}, {"V", "select"}, {"c", "comment"}, {"a", "ask Claude"}, {"/", "search"}, {"-", "back"}, {"Space ?", "keys"}}
+	return [][2]string{{"j k", "Move"}, {"]c [c", "Hunks"}, {"V", "Select"}, {"c", "Comment"}, {"a", "Ask Claude"}, {"/", "Search"}, {"-", "Back"}}
 }
 
 func spread(left, right string, width int) string {
@@ -276,4 +354,13 @@ func itemWords(it item) string {
 		return it.title
 	}
 	return ""
+}
+
+func componentTitle(d reviewData, id string) string {
+	for _, c := range d.page.Model.Components {
+		if c.ID == id {
+			return c.Title
+		}
+	}
+	return id
 }

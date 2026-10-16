@@ -1,9 +1,11 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/ansi"
 
 	"review-desk/terminal/internal/server"
 )
@@ -69,7 +71,7 @@ func TestTheFocusedBoxListsItsLinksAndProperties(t *testing.T) {
 	screenIs(t, a, "diagram-links")
 	a = press(t, a, "j", "enter")
 	focusedOn(t, a, "Search")
-	if a.panel != nil {
+	if a.menu != nil {
 		t.Fatal("going to a link's other end closes the list")
 	}
 	a = press(t, a, "k", "space", "p")
@@ -112,8 +114,8 @@ func TestEnterOpensATypesDiffAndDashComesBack(t *testing.T) {
 	}
 	focusedOn(t, a, "Basket")
 	a = press(t, a, "g", "d")
-	if a.screen != screenDiagram || a.panel == nil || len(a.panel.rows) != 2 {
-		t.Fatalf("Basket links to two types, so gd lists them: %+v", a.panel)
+	if a.screen != screenDiagram || a.menu == nil || len(a.menu.rows) != 2 {
+		t.Fatalf("Basket links to two types, so gd lists them: %+v", a.menu)
 	}
 }
 
@@ -124,8 +126,8 @@ func TestGdInTheDiffShowsTheTypeAtTheCursor(t *testing.T) {
 		t.Fatalf("the finder opens a file at its header: %v %s", a.screen, cursorAt(a))
 	}
 	a = press(t, a, "g", "d")
-	if a.panel == nil || a.panel.title != "Types in Search.swift" {
-		t.Fatalf("gd on a file's header lists its types: %+v", a.panel)
+	if a.menu == nil || a.menu.title != "Types in Search.swift" {
+		t.Fatalf("gd on a file's header lists its types: %+v", a.menu)
 	}
 	a = press(t, a, "esc", "]", "c", "g", "d")
 	if a.screen != screenDiagram {
@@ -142,8 +144,8 @@ func TestTheFinderNarrowsAsItIsTyped(t *testing.T) {
 	}
 	screenIs(t, a, "finder")
 	a = send(t, a, tea.KeyMsg{Type: tea.KeyBackspace})
-	if a.panel.query != "bas" {
-		t.Fatalf("Backspace takes back a letter: %q", a.panel.query)
+	if a.menu.query != "bas" {
+		t.Fatalf("Backspace takes back a letter: %q", a.menu.query)
 	}
 	a = send(t, a, tea.KeyMsg{Type: tea.KeyEnter})
 	if a.screen != screenDiagram {
@@ -169,8 +171,22 @@ func TestLabelsJumpToABox(t *testing.T) {
 
 func TestAClickFocusesABox(t *testing.T) {
 	a := onDiagram(t)
-	a = send(t, a, tea.MouseMsg{X: 5, Y: 13, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
+	x, y := drawnAt(t, a, "Basket.swift")
+	a = send(t, a, tea.MouseMsg{X: x, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
 	focusedOn(t, a, "Basket")
+}
+
+func drawnAt(t *testing.T, a App, text string) (int, int) {
+	t.Helper()
+	main := a.layout().main.inner()
+	for y, line := range strings.Split(a.View(), "\n") {
+		inside := ansi.TruncateLeft(line, main.x, "")
+		if x := strings.Index(inside, text); x >= 0 && y >= main.y && y < main.y+main.h {
+			return main.x + ansi.StringWidth(inside[:x]), y
+		}
+	}
+	t.Fatalf("%q is not drawn in the main panel", text)
+	return 0, 0
 }
 
 func TestThePullRequestFilterDimsTheTypesItLeavesOut(t *testing.T) {
@@ -236,7 +252,7 @@ func standIn() reviewData {
 func standInApp(width, height int) App {
 	a := New(Options{Dark: true})
 	d := standIn()
-	a.review, a.loading, a.width, a.height = &d, false, width, height
+	a.review, a.loading, a.width, a.height, a.focus = &d, false, width, height, mainPanel
 	return a
 }
 

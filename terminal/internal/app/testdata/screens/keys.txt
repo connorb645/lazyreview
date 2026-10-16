@@ -1,0 +1,30 @@
+╭─[1]─Review - All - #21 - #22──╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│ #21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       │
+│ #22 Add a basket that uses se…││ reviewed together                                               │
+╰────────────────────────1 of 2─╯│ Search, then a basket                                           │
+╭─╭─Keys─────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Review                                                                                       │ │
+│ │▌j k gg G       the next, previous, first or last pull request                                │ │
+│ │ Enter          the Review view, in the main panel                                            │1│
+│ │ P              post: the actions offered for this pull request                               │ │
+│ │ Every panel                                                                                  │ │
+│ │ 1 2 3 4        the Review, Files, Notes or Diagram panel, from a panel on the left           │ │
+│ │ 0              the main panel, on the right                                                  │ │
+│ │ Esc            closes the top popup; with none, back to the panel on the left that the main  │ │
+│ │                panel shows                                                                   │ │
+│ │ + _            a bigger or smaller main panel: half the screen, then the whole of it         │ │
+╰─│ :              the command line: :q quits, :q! quits and drops drafts                        │ │
+╭─│ Space ?        lists the keys of this panel                                                  │ │
+│ │ R :refresh     loads the review again: from GitHub, or a branch from its repository          │ │
+│ │ Space v        the Review view                                                               │ │
+│ │ Space m        the diagram                                                                   │ │
+│ │ Space f        finds a file, type or component by name                                       │…│
+│ │ gx             opens the pull request, or the thread at the cursor, on GitHub                │ │
+│ │ gX             opens this place in the web app                                               │ │
+╰─╰──────────────────────────────────────────────────────────────────────────────────────1 of 19─╯ │
+╭─[4]─Diagram───────────────────╮│ shown as → #number.                                             │
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││  #21  Add search to the catalog                                 │
+│ ■ Unchanged code              ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
+╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
+ Move: j k | Go: Enter | Close: Esc

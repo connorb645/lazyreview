@@ -130,6 +130,22 @@ func (v diffView) placed(height int) diffView {
 	return v
 }
 
+func (v diffView) atTop(height int) diffView {
+	v.top = v.cursor
+	for v.top > 0 && rowsBelow(v, v.top-1) <= height {
+		v.top--
+	}
+	return v
+}
+
+func rowsBelow(v diffView, from int) int {
+	n := 0
+	for i := from; i < len(v.rows); i++ {
+		n += rowHeight(v.rows[i], v)
+	}
+	return n
+}
+
 func (v diffView) shown(height int) diffView {
 	if v.cursor < v.top {
 		v.top = v.cursor

@@ -21,8 +21,8 @@ func TestPostingShowsWhatItSendsThenSendsIt(t *testing.T) {
 		t.Fatal("n goes back to the choice")
 	}
 	a = press(t, a, "2", "enter", "y")
-	if a.posting != nil || a.bad || a.panel == nil || a.panel.rows[0].right != "Approved with 1 comment: https://github.com/octo/widgets/pull/30#pullrequestreview-8" {
-		t.Fatalf("the answer: %q %+v", a.notice, a.panel)
+	if a.posting != nil || a.bad || a.menu == nil || a.menu.rows[0].right != "Approved with 1 comment: https://github.com/octo/widgets/pull/30#pullrequestreview-8" {
+		t.Fatalf("the answer: %q %+v", a.notice, a.menu)
 	}
 	screenIs(t, a, "posting-sent")
 	if m, _ := a.queueMember(30); len(m.Comments) != 0 || len(m.Posted) != 1 {
@@ -44,8 +44,8 @@ func TestAPostTheServerRefusesSaysWhy(t *testing.T) {
 	state.Queue = &queue
 	a = a.withState(state)
 	a = press(t, a, "P", "1", "enter", "y")
-	if !a.bad || a.panel == nil || a.panel.title != "Nothing was posted" || a.panel.rows[0].right != `The page showed set stale0000000, but "comment" now gives set 43028caa56d9; nothing was posted` {
-		t.Fatalf("the answer: %q %+v", a.notice, a.panel)
+	if !a.bad || a.menu == nil || a.menu.title != "Nothing was posted" || a.menu.rows[0].right != `The page showed set stale0000000, but "comment" now gives set 43028caa56d9; nothing was posted` {
+		t.Fatalf("the answer: %q %+v", a.notice, a.menu)
 	}
 }
 

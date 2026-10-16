@@ -111,7 +111,7 @@ func TestARefusedEditKeepsItsTextAndSavesOverTheNewVersion(t *testing.T) {
 	queue.Members[0].Comments[0].Body = ""
 	state.Queue = &queue
 	a = a.withState(state)
-	a = press(t, a, "]", "]")
+	a = press(t, a, "0", "]", "]")
 	for a.rv.view.items[a.rv.view.cursor].kind != "comment" {
 		a = press(t, a, "j")
 	}
@@ -199,8 +199,8 @@ func TestALineSeveralPullRequestsShowAsksWhichFirst(t *testing.T) {
 	a := onBasket(t)
 	e := editing{purpose: "comment", at: server.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 2}, key: "comment", about: []string{"A comment on Sources/Basket/Basket.swift, line 2."}}
 	a = send(t, a, checked{e: e, where: server.Where{Words: "Choose the pull request it goes on.", Choose: []server.Choice{{Pull: 21, Path: "Sources/Basket/Basket.swift", Line: 2}, {Pull: 22, Path: "Sources/Basket/Basket.swift", Line: 2}}}})
-	if a.panel == nil || len(a.panel.rows) != 2 || a.panel.title != "Choose the pull request it goes on." {
-		t.Fatalf("the choice: %+v", a.panel)
+	if a.menu == nil || len(a.menu.rows) != 2 || a.menu.title != "Choose the pull request it goes on." {
+		t.Fatalf("the choice: %+v", a.menu)
 	}
 	a = press(t, a, "j", "enter")
 	if !strings.Contains(a.notice, "pull=22") {

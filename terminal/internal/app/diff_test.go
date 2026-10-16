@@ -17,7 +17,7 @@ func cursorAt(a App) string {
 func openedOnComment(t *testing.T) App {
 	t.Helper()
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
-	a = press(t, a, "]", "]", "]", "]", "j", "j", "enter")
+	a = press(t, a, "0", "]", "]", "]", "]", "j", "j", "enter")
 	if a.screen != screenDiff {
 		t.Fatalf("Enter on a queued comment did not open its diff: %q", a.notice)
 	}
@@ -150,6 +150,6 @@ func TestThePullRequestFilterDimsWhatItLeavesOut(t *testing.T) {
 
 func TestAMarkdownFileOfAPullRequest(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 90, 30)
-	a = press(t, a, "G", "enter", "space", "w")
+	a = press(t, a, "0", "G", "enter", "space", "w")
 	screenIs(t, a, "diff-single")
 }

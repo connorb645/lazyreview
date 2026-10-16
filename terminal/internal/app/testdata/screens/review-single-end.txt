@@ -1,14 +1,14 @@
- Fix the guide wording › Review
- Base main · Head 058ff259 · 2 files +18 −1
-
- No written review is attached. The diagram and the diffs hold the change.
-
- ▾ Queued comments
-   1 docs/guide.md, line 3
-     │ The catalog lists every item.
-     Every item, or every item shown?
-
- ▾ The change
-▌  ■ docs  2 files +18 −1
- NORMAL  Review · docs
- j k move   Enter open   ]] [[ sections   za fold   gh every review   Space ? k…
+╭─[1]─Review─────────────╮╭─[0]─Review─────────────────────────────────────────╮
+│ #30 Fix the guide word…││                                                    │
+╰─────────────────1 of 1─╯│ No written review is attached. The diagram and the │
+╭─[2]─Files──────────────╮│ diffs hold the change.                             │
+│ ▾ ■ docs        +18 −1 ││                                                    │
+│   A basket.md          ││ ▾ Queued comments                                  │
+╰─────────────────1 of 3─╯│   1 docs/guide.md, line 3                          │
+╭─[3]─Notes──────────────╮│     │ The catalog lists every item.                │
+│ 1 guide.md:3           ││     Every item, or every item shown?               │
+╰─────────────────1 of 1─╯│                                                    │
+╭─[4]─Diagram────────────╮│ ▾ The change                                       │
+│ ■ docs                 ││▌  ■ docs  2 files +18 −1                           │
+╰─────────────────1 of 1─╯╰───────────────────────────────────────────────docs─╯
+ Move: j k | Open: Enter | Sections: ]] [[ | Fold: za | Keys: Space ?

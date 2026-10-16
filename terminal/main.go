@@ -27,10 +27,10 @@ func editor() string {
 func main() {
 	serverFile := flag.String("server-file", "", "the Review Desk server's own record, server.json, holding its address and token")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: review-desk-terminal --server-file <server.json> [<review id>]")
+		fmt.Fprintln(os.Stderr, "usage: review-desk-terminal --server-file <server.json> <review id>")
 	}
 	flag.Parse()
-	if *serverFile == "" || flag.NArg() > 1 {
+	if *serverFile == "" || flag.NArg() != 1 {
 		flag.Usage()
 		os.Exit(2)
 	}

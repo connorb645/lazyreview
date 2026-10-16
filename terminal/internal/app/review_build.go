@@ -5,6 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
+
 	"review-desk/terminal/internal/server"
 )
 
@@ -20,6 +23,12 @@ type builder struct {
 func (b *builder) text(texts ...string) {
 	for _, t := range texts {
 		b.lines = append(b.lines, line{text: t, item: -1})
+	}
+}
+
+func (b *builder) prose(indent string, style lipgloss.Style, text string) {
+	for _, l := range wrap(text, b.width-len(indent)-1) {
+		b.text(indent + style.Render(l))
 	}
 }
 
@@ -50,7 +59,8 @@ func buildReview(d reviewData, folded map[string]bool, width int, p palette, md 
 	}
 	if w := d.state.Written; w != nil {
 		if w.Stale {
-			b.text("", " "+p.Warn.Render(fmt.Sprintf("This written review read head %s; the pull request has moved on since, so it may not match the diff.", short(w.Head))))
+			b.text("")
+			b.prose(" ", p.Warn, fmt.Sprintf("This written review read head %s; the pull request has moved on since, so it may not match the diff.", short(w.Head)))
 		}
 		for _, s := range w.Sections {
 			s := s
@@ -65,9 +75,11 @@ func buildReview(d reviewData, folded map[string]bool, width int, p palette, md 
 			})
 		}
 	} else if d.state.Queue != nil {
-		b.text("", " "+p.Muted.Render("No written review is attached. The diagram and the diffs hold the change."))
+		b.text("")
+		b.prose(" ", p.Muted, "No written review is attached. The diagram and the diffs hold the change.")
 	} else {
-		b.text("", " "+p.Muted.Render("This branch has no pull request yet, so its review is read only."))
+		b.text("")
+		b.prose(" ", p.Muted, "This branch has no pull request yet, so its review is read only.")
 	}
 	if q := d.state.Queue; q != nil {
 		count := 0
@@ -84,7 +96,7 @@ func buildReview(d reviewData, folded map[string]bool, width int, p palette, md 
 			}
 		}
 		section("github", "On GitHub", plural(len(d.state.GitHub), "thread"), func() {
-			b.text(" " + p.Muted.Render(fmt.Sprintf("%s, %d unresolved, as GitHub had them when this review was loaded.", plural(len(d.state.GitHub), "review thread"), open)))
+			b.prose(" ", p.Muted, fmt.Sprintf("%s, %d unresolved, as GitHub had them when this review was loaded.", plural(len(d.state.GitHub), "review thread"), open))
 			for _, t := range d.state.GitHub {
 				githubLines(b, d, t)
 			}
@@ -114,23 +126,31 @@ func reviewHeader(b *builder, d reviewData) {
 	totals := changeTotals(p, d.page.Model.Files)
 	switch {
 	case s.Kind == "branch":
-		b.text(" "+p.Muted.Render(fmt.Sprintf("Branch %s in %s, with no pull request yet", s.Head.Ref, s.Repo)), " "+p.Bold.Render(title),
-			" "+p.Muted.Render(fmt.Sprintf("Base %s · Head %s · ", s.Base.Ref, short(s.Head.Sha)))+totals)
+		b.prose(" ", p.Muted, fmt.Sprintf("Branch %s in %s, with no pull request yet", s.Head.Ref, s.Repo))
+		b.prose(" ", p.Bold, title)
+		b.text(" " + p.Muted.Render(fmt.Sprintf("Base %s · Head %s · ", s.Base.Ref, short(s.Head.Sha))) + totals)
 	case d.page.Stack != nil:
-		b.text(" "+p.Muted.Render(fmt.Sprintf("A stack of %d pull requests, each built on the one before, reviewed together", len(s.Members))), " "+p.Bold.Render(title))
+		b.prose(" ", p.Muted, fmt.Sprintf("A stack of %d pull requests, each built on the one before, reviewed together", len(s.Members)))
+		b.prose(" ", p.Bold, title)
 		for _, m := range s.Members {
 			own := stackMember(d.page.Stack, m.Pull)
-			meta := fmt.Sprintf("  by %s · on %s · head %s · %s ", m.Author, m.Base, short(m.Head), plural(own.Files, "file"))
+			meta := fmt.Sprintf("by %s · on %s · head %s · %s ", m.Author, m.Base, short(m.Head), plural(own.Files, "file"))
 			state := ""
 			if m.State != "" && m.State != "open" {
 				state = p.Del.Render(" · " + m.State)
 			}
-			b.text("  " + p.pull(m.Color).Render(fmt.Sprintf("#%d", m.Pull)) + "  " + p.Ink.Render(m.Title) + p.Muted.Render(meta) + p.Add.Render(fmt.Sprintf("+%d", own.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", own.Dels)) + state)
+			head := "  " + p.pull(m.Color).Render(fmt.Sprintf("#%d", m.Pull)) + "  " + p.Ink.Render(m.Title)
+			tail := p.Muted.Render(meta) + p.Add.Render(fmt.Sprintf("+%d", own.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", own.Dels)) + state
+			if ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {
+				b.text(head + "  " + tail)
+				continue
+			}
+			b.text(head, "       "+tail)
 		}
 		top := s.Members[len(s.Members)-1]
 		b.text(" " + p.Muted.Render(fmt.Sprintf("Base %s · Head %s · Combined: ", s.Base.Ref, short(top.Head))) + totals)
 		for _, w := range d.page.Stack.Warnings {
-			b.text(" " + p.Warn.Render(w))
+			b.prose(" ", p.Warn, w)
 		}
 	default:
 		m := s.Members[0]
@@ -138,11 +158,12 @@ func reviewHeader(b *builder, d reviewData) {
 		if m.State != "" && m.State != "open" {
 			state = " · " + m.State
 		}
-		b.text(" "+p.Muted.Render(fmt.Sprintf("Pull request #%d by %s%s", m.Pull, m.Author, state)), " "+p.Bold.Render(title),
-			" "+p.Muted.Render(fmt.Sprintf("Base %s · Head %s · ", m.Base, short(m.Head)))+totals)
+		b.text(" " + p.Muted.Render(fmt.Sprintf("Pull request #%d by %s%s", m.Pull, m.Author, state)))
+		b.prose(" ", p.Bold, title)
+		b.text(" " + p.Muted.Render(fmt.Sprintf("Base %s · Head %s · ", m.Base, short(m.Head))) + totals)
 	}
 	if s.Moved != nil {
-		b.text(" " + p.Warn.Render(fmt.Sprintf("This review moved: its pull requests are reviewed together on %s. Its queued comments moved there, and nothing can be sent from here.", s.Moved.To)))
+		b.prose(" ", p.Warn, fmt.Sprintf("This review moved: its pull requests are reviewed together on %s. Its queued comments moved there, and nothing can be sent from here.", s.Moved.To))
 	}
 	for _, n := range s.Notes {
 		for _, l := range wrap(n, b.width-2) {
@@ -154,12 +175,12 @@ func reviewHeader(b *builder, d reviewData) {
 func queueLines(b *builder, d reviewData, loc *time.Location) {
 	p, q := b.p, d.state.Queue
 	if q.Moved != nil {
-		b.text(" " + p.Muted.Render("This review moved to "+q.Moved.To+". Its queued comments moved there."))
+		b.prose(" ", p.Muted, "This review moved to "+q.Moved.To+". Its queued comments moved there.")
 		return
 	}
 	stacked := d.page.Stack != nil
 	if stacked {
-		b.text(" " + p.Muted.Render("A comment goes on the pull request that last changed its line, shown as → #number."))
+		b.prose(" ", p.Muted, "A comment goes on the pull request that last changed its line, shown as → #number.")
 	}
 	groups := append(append([]server.QueueMember{}, q.Members...), q.Earlier...)
 	for i, m := range groups {
@@ -181,13 +202,13 @@ func queueLines(b *builder, d reviewData, loc *time.Location) {
 			if m.EndedAt != nil {
 				at = " on " + when(*m.EndedAt, loc)
 			}
-			b.text("   " + p.Muted.Render(fmt.Sprintf("#%d was %s%s. Nothing can be sent to it.", m.Pull, m.State, at)))
+			b.prose("   ", p.Muted, fmt.Sprintf("#%d was %s%s. Nothing can be sent to it.", m.Pull, m.State, at))
 		case left:
-			b.text("   " + p.Muted.Render(fmt.Sprintf("#%d left this stack. Nothing can be sent to it from here.", m.Pull)))
+			b.prose("   ", p.Muted, fmt.Sprintf("#%d left this stack. Nothing can be sent to it from here.", m.Pull))
 		}
 		for _, posted := range m.Posted {
 			what := map[string]string{"comment": "Posted " + plural(posted.Count, "comment"), "approve-with-comments": "Approved with " + plural(posted.Count, "comment"), "approve": "Approved"}[posted.Action]
-			b.text("   " + p.Muted.Render(fmt.Sprintf("%s, %s: %s", what, when(posted.At, loc), posted.Review)))
+			b.prose("   ", p.Muted, fmt.Sprintf("%s, %s: %s", what, when(posted.At, loc), posted.Review))
 		}
 	}
 }

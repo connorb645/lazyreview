@@ -86,7 +86,7 @@ async function recordAnswers() {
         result: null,
       }));
 
-      const paths = ['/api/reviews'];
+      const paths = [];
       for (const id of [STACK, SINGLE]) {
         const base = `/api/reviews/${id}`;
         const page = (await send(address, 'GET', `${base}/page`)).body;

@@ -170,38 +170,58 @@ machine the first time it runs and again whenever its code changes; building
 it needs Go 1.24 or later, and its libraries are vendored, so the build
 reaches no network.
 
-`Space ?` lists the keys of the view you are in. A count goes before a move,
-such as `5j` or `3]c`.
+The screen is laid out as in Lazygit. Four panels run down the left: 1
+Review, the pull requests; 2 Files, the changed files by component and
+folder; 3 Notes, the queued comments, conversations with Claude and threads on
+GitHub; and 4 Diagram, the boxes of the level shown. The main panel, 0, on the
+right shows what is selected on the left: the Review view, a file's diff, a
+note in its diff, or the diagram. `Enter` gives the main panel the keys and
+`Esc` gives them back. The bar at the bottom lists the keys that matter where
+you are, and `Space ?` lists them all. A count goes before a move in the main
+panel, such as `5j` or `3]c`.
 
-Every view:
+Every panel:
 
 | Key | Does |
 | --- | --- |
+| `1` `2` `3` `4` | from a panel on the left: the Review, Files, Notes or Diagram panel |
+| `0` | the main panel |
+| `Esc` | closes a popup, or gives the keys back to the panel on the left |
+| `+` `_` | makes the panel with the keys bigger or smaller: half the screen, then the whole of it |
 | `Space v` | the Review view |
 | `Space m` | the diagram |
 | `Space f` | finds a file, type or component as you type; `Ctrl-n` `Ctrl-p` move, `Enter` goes there |
-| `gh` | every review |
 | `R` `:refresh` | loads the review again: from GitHub, or a branch from its repository |
 | `]p` `[p` | the next or previous pull request filter on a stack |
 | `Ctrl-o` `Ctrl-i` | back and forward through jumps |
 | `gx` `gX` | opens the pull request on GitHub, or this place in the web app |
-| `q` `Esc` | closes a list |
+| `q` | closes a popup |
 | `:q` `ZZ` | quit |
 
-Every review and the Review view:
+The panels on the left:
+
+| Key | Does |
+| --- | --- |
+| `j` `k` `gg` `G` | move; the main panel follows |
+| `Enter` | gives the main panel the keys; in Files, on a component or a folder, folds it; in Diagram, steps in |
+| `P` | in Review and Notes, posts for the pull request selected |
+| `e` `dd` | in Notes, edits or drops the queued comment |
+| `za` | in Files, folds a component or a folder |
+| `-` and the diagram's keys | in Diagram, as in the diagram below, with `j` `k` in reading order |
+
+The Review view, in the main panel:
 
 | Key | Does |
 | --- | --- |
 | `j` `k` `gg` `G` | move |
-| `Enter` | opens the review, or the item at the cursor in its diff |
-| `]]` `[[` | the next or previous section of the Review view |
+| `Enter` | opens the item at the cursor in its diff |
+| `]]` `[[` | the next or previous section |
 | `za` | folds or unfolds a section |
 | `e` `dd` | edits or drops the queued comment at the cursor |
 | `P` | posts: the actions offered for the pull request at the cursor, then exactly what one sends, then `y` |
-| `/` `n` `N` | find a review |
 
-The diagram shows the components, then the packages of one, then the types of
-one package, as rows of boxes:
+The diagram, in the main panel, shows the components, then the packages of
+one, then the types of one package, as rows of boxes:
 
 | Key | Does |
 | --- | --- |
@@ -215,7 +235,7 @@ one package, as rows of boxes:
 | `Space d` | opens the box's diff |
 | `Space a` | draws every link faintly, or stops |
 
-The diff shows one component's files:
+The diff, in the main panel, shows one component's files:
 
 | Key | Does |
 | --- | --- |
@@ -243,8 +263,8 @@ A comment, a question or an edit is written in your own editor: the first of
 `REVIEW_DESK_EDITOR`, `VISUAL` and `EDITOR` that is set, or `vi`, as git
 chooses. Write above the cut line and save; what is below it says where the
 comment goes and is never sent. Saving with no text sends nothing. When the
-server refuses a comment, the status line says why and `c` or `e` opens your
-text again.
+server refuses a comment, the bar at the bottom says why and `c` or `e` opens
+your text again.
 
 The server writes a token into `server.json` at each start, which only its
 owner can read, and the terminal app sends it with each change.

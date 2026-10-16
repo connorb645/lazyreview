@@ -1,30 +1,30 @@
- docs › docs/guide.md
-  ▾ docs/basket.md  new  +6 −0
-   @@ -0,0 +1,6 @@
-          1 + # Basket
-          2 +
-          3 + A basket keeps its prices until checkout.
-          4 +
-          5 + 1. Add an item
-          6 + 2. Remove an item
-▌ ▾ docs/guide.md  changed  rendered  +12 −1
-        1  │ # Guide
-       -3 ▌│ The catalog lists items.
-        3 ▌│ The catalog lists every item.
-              ▾ Queued 1 → #30 · line 3                                             e edit  dd drop
-                Every item, or every item shown?
-        5  │ • Browse
-        6  │ • Search
-        7 ▌│ • Keep a basket
-        9 ▌│ ## Steps
-       11 ▌│ 1. Open the catalog.
-       12 ▌│ 2. Pick an item.
-       13 ▌│ 3. Add it to the basket.
-    15-17 ▌│   let basket = Basket(catalog: catalog)
-
-
-
-
-
- NORMAL  file header
- j k move   ]c [c hunks   V select   c comment   a ask Claude   / search   - back   Space ? keys
+╭─[1]─Review────────────────────╮╭─[0]─Diff · docs › docs/guide.md─────────────────────────────────╮
+│ #30 Fix the guide wording     ││  ▾ docs/basket.md  new  +6 −0                                   │
+╰────────────────────────1 of 1─╯│   @@ -0,0 +1,6 @@                                               │
+╭─[2]─Files─────────────────────╮│          1 + # Basket                                           │
+│ ▾ ■ docs               +18 −1 ││          2 +                                                    │
+│   A basket.md                 ││          3 + A basket keeps its prices until checkout.          │
+│   M guide.md                  ││          4 +                                                    │
+│                               ││          5 + 1. Add an item                                     │
+│                               ││          6 + 2. Remove an item                                  │
+│                               ││▌ ▾ docs/guide.md  changed  rendered  +12 −1                     │
+│                               ││        1  │ # Guide                                             │
+│                               ││       -3 ▌│ The catalog lists items.                            │
+╰────────────────────────3 of 3─╯│        3 ▌│ The catalog lists every item.                       │
+╭─[3]─Notes─────────────────────╮│              ▾ Queued 1 → #30 · line 3          e edit  dd drop │
+│ Queued                      1 ││                Every item, or every item shown?                 │
+│ 1 guide.md:3                  ││        5  │ • Browse                                            │
+│                               ││        6  │ • Search                                            │
+│                               ││        7 ▌│ • Keep a basket                                     │
+│                               ││        9 ▌│ ## Steps                                            │
+│                               ││       11 ▌│ 1. Open the catalog.                                │
+╰────────────────────────1 of 1─╯│       12 ▌│ 2. Pick an item.                                    │
+╭─[4]─Diagram───────────────────╮│       13 ▌│ 3. Add it to the basket.                            │
+│ Components                    ││    15-17 ▌│   let basket = Basket(catalog: catalog)             │
+│ ■ docs                        ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 1─╯╰─────────────────────────────────────────────────────file header─╯
+ Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Search: / | Keys: Space ?

@@ -1,40 +1,40 @@
- Diagram › Core › Model
-
-  ╭─────────────────────╮                ╭──────────────────────╮                ╭─────────────────────╮
-  │ Order               ├───────────────▶│ Ledger               │                │ Clock               │
-  │ Order.swift changed │◀───────────────┤ Ledger.swift changed │                │ Clock.swift changed │
-  ╰──────────┬──────────╯                ╰──────────────────────╯                ╰───────┬─────▲───────╯
-             │                                                                           │     │
-             ╰─────────────╮                                                             │     │
-        ticks ╭────────────┼─────────────────────────────────────────────────────────────╯     │
-              │            │                                             ╭─────────────────────╯
-              │            │                                             │
-  ╭───────────▼──────────╮ │              ╭──────────────────────╮       │
-  │ Pricer               ├─┼─────────────▶│ Refunds              │       │
-  │ Pricer.swift changed │ │              │ a group of 2 changed │       │
-  ╰──────────────────────╯ │              ╰──────────────────────╯       │
-                           │                                             │
-  conforms to ╭────────────╯                                             │
-              │                                        ╭─────────────────╯
-              │                                        │
-  ┏━━━━━━━━━━━▼━━━━━━━━━━━┓                ╭───────────┴───────────╮
-  ┃ Invoice               ┃                │ Receipt               │
-  ┃ Invoice.swift changed ┃                │ Receipt.swift changed │
-  ┗━━━━━━━━━━━━━━━━━━━━━━━┛                ╰───────────────────────╯
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- NORMAL  Invoice · class · Sources/Core/Invoice.swift · changed
- Enter diff   gd follow   Space l links   Space p properties   - out   Space ? keys
+╭─[1]─Review───────────────────────╮╭─[0]─Diagram · Core › Model─────────────────────────────────────────────╮
+│                                  ││                                                                        │
+╰───────────────────────────0 of 0─╯│  ╭─────────────────────╮                ╭──────────────────────╮       │
+╭─[2]─Files────────────────────────╮│  │ Order               ├───────────────▶│ Ledger               │       │
+│                                  ││  │ Order.swift changed │◀───────────────┤ Ledger.swift changed │       │
+│                                  ││  ╰──────────┬──────────╯                ╰──────────────────────╯       │
+│                                  ││             │                                                          │
+│                                  ││             ╰─────────────╮                                            │
+│                                  ││        ticks ╭────────────┼────────────────────────────────────────────│
+│                                  ││              │            │                                            │
+│                                  ││              │            │                                            │
+│                                  ││  ╭───────────▼──────────╮ │              ╭──────────────────────╮      │
+│                                  ││  │ Pricer               ├─┼─────────────▶│ Refunds              │      │
+╰───────────────────────────0 of 0─╯│  │ Pricer.swift changed │ │              │ a group of 2 changed │      │
+╭─[3]─Notes────────────────────────╮│  ╰──────────────────────╯ │              ╰──────────────────────╯      │
+│ Nothing queued or asked yet      ││                           │                                            │
+│                                  ││  conforms to ╭────────────╯                                            │
+│                                  ││              │                                        ╭────────────────│
+│                                  ││              │                                        │                │
+│                                  ││  ┏━━━━━━━━━━━▼━━━━━━━━━━━┓                ╭───────────┴───────────╮    │
+│                                  ││  ┃ Invoice               ┃                │ Receipt               │    │
+│                                  ││  ┃ Invoice.swift changed ┃                │ Receipt.swift changed │    │
+╰───────────────────────────0 of 0─╯│  ┗━━━━━━━━━━━━━━━━━━━━━━━┛                ╰───────────────────────╯    │
+╭─[4]─Diagram──────────────────────╮│                                                                        │
+│ Core › Model                     ││                                                                        │
+│ Order                    changed ││                                                                        │
+│ Ledger                   changed ││                                                                        │
+│ Clock                    changed ││                                                                        │
+│ Pricer                   changed ││                                                                        │
+│ Refunds                  changed ││                                                                        │
+│ Invoice                  changed ││                                                                        │
+│ Receipt                  changed ││                                                                        │
+│                                  ││                                                                        │
+│                                  ││                                                                        │
+│                                  ││                                                                        │
+│                                  ││                                                                        │
+│                                  ││                                                                        │
+│                                  ││                                                                        │
+╰───────────────────────────6 of 7─╯╰─────────────────Invoice · class · Sources/Core/Invoice.swift · changed─╯
+ Diff: Enter | Follow: gd | Links: Space l | Properties: Space p | Out: - | List: Esc | Keys: Space ?

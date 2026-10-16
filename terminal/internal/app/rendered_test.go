@@ -65,7 +65,7 @@ func TestAWrittenReviewsDiagramIsSaidNotDrawn(t *testing.T) {
 	for _, l := range a.rv.view.lines {
 		text = append(text, stripped(l.text))
 	}
-	got := strings.Join(text, "\n")
+	got := strings.Join(strings.Fields(strings.Join(text, " ")), " ")
 	if strings.Contains(got, "<svg") || !strings.Contains(got, "A diagram is here that a terminal cannot draw. gX opens this review in the web app.") {
 		t.Fatalf("the section reads:\n%s", got)
 	}

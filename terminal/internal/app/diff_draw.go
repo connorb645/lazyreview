@@ -14,10 +14,16 @@ const gutter = 14
 
 var badges = map[string]string{"A": "new", "D": "deleted", "R": "renamed", "M": "changed", "": "unchanged"}
 
-func diffLines(d reviewData, v diffView, height, filter int, p palette) []string {
+func diffLines(d reviewData, v diffView, height, filter int, p palette, active bool) []string {
 	var out []string
 	for i := v.top; i < len(v.rows) && len(out) < height; i++ {
-		out = append(out, drawRow(d, v, i, filter, p)...)
+		lines := drawRow(d, v, i, filter, p, active)
+		if !p.plain && (i == v.cursor || v.selecting && i >= min(v.anchor, v.cursor) && i <= max(v.anchor, v.cursor)) {
+			for j := range lines {
+				lines[j] = p.highlight(lines[j], v.width, active)
+			}
+		}
+		out = append(out, lines...)
 	}
 	if len(out) > height {
 		out = out[:height]
@@ -25,14 +31,15 @@ func diffLines(d reviewData, v diffView, height, filter int, p palette) []string
 	return out
 }
 
-func drawRow(d reviewData, v diffView, i, filter int, p palette) []string {
+func drawRow(d reviewData, v diffView, i, filter int, p palette, active bool) []string {
 	r := v.rows[i]
 	mark := " "
 	switch {
-	case i == v.cursor:
-		mark = p.Accent.Render("▌")
+	case !p.plain:
+	case i == v.cursor && active:
+		mark = "▌"
 	case v.selecting && i >= min(v.anchor, v.cursor) && i <= max(v.anchor, v.cursor):
-		mark = p.Accent.Render("┃")
+		mark = "┃"
 	}
 	switch r.kind {
 	case "notehead", "notetext":

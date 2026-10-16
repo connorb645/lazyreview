@@ -1,14 +1,14 @@
- Diagram › Core › Model
-            │ a group of 2 changed │
-            ╰──────────────────────╯
-
-
-                         ╭──────────────
-                         │
-             ┏━━━━━━━━━━━┷━━━━━━━━━━━┓
-             ┃ Receipt               ┃
-             ┃ Receipt.swift changed ┃
-             ┗━━━━━━━━━━━━━━━━━━━━━━━┛
-
- NORMAL  Receipt · class · Sources/Core…
- Enter diff   gd follow   Space l links…
+╭─[0]─Diagram · Core › Model───────────╮
+│          │ a group of 2 changed │    │
+│          ╰──────────────────────╯    │
+│                                      │
+│                                      │
+│                       ╭──────────────│
+│                       │              │
+│           ┏━━━━━━━━━━━┷━━━━━━━━━━━┓  │
+│           ┃ Receipt               ┃  │
+│           ┃ Receipt.swift changed ┃  │
+│           ┗━━━━━━━━━━━━━━━━━━━━━━━┛  │
+│                                      │
+╰─Receipt · class · Sources/Core/Rece…─╯
+ Diff: Enter | Keys: Space ?

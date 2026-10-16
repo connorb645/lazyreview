@@ -1,60 +1,60 @@
- Search, then a basket › Review                                                     [All]  #21  #22
- A stack of 2 pull requests, each built on the one before, reviewed together
- Search, then a basket
-  #21  Add search to the catalog  by sam · on main · head ec6fb42d · 2 files +11 −0
-  #22  Add a basket that uses search  by sam · on feature/search · head cd3c7027 · 2 files +4 −1
- Base main · Head cd3c7027 · Combined: 4 files +15 −1
-
-▌▾ What this changes
-   #21 adds a search over the catalog in Search.swift:4. #22 gives the basket a search of its
-   own, in Basket.swift:7. [Likely]
-   → Search.swift:4  Sources/Catalog/Search.swift line 4
-   → Basket.swift:7  Sources/Basket/Basket.swift line 7
-
- ▾ Risks
-   MemoryCatalog.swift:9 appends without checking for duplicates. [Guessing]
-   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift line 9
-
- ▾ Queued comments
- A comment goes on the pull request that last changed its line, shown as → #number.
-
-  #21  Add search to the catalog
-   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10
-     │     func add(_ item: Item) {
-     │         stored.append(item)
-     │     }
-     Keep the order items came in.
-
-  #22  Add a basket that uses search
-   2 → #22 Sources/Basket/Basket.swift, removed line 9 to line 11
-     │         0
-     │         1
-     Why one?
-
- ▾ On GitHub
- 2 review threads, 1 unresolved, as GitHub had them when this review was loaded.
-   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment
-     Should this keep the order items were added in?
-   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved
-     Could the search be passed in?
-
- ▾ Conversations
-   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages
-     Could this be passed in?
-     It returns early when the list is empty.
-
- ▾ The change
-   ■ widgets  4 files +15 −1
-   ■ Unchanged code  1 file · unchanged
-
-
-
-
-
-
-
-
-
-
- NORMAL  Review · What this changes
- j k move   Enter open   ]] [[ sections   za fold   gh every review   Space ? keys   :q quit
+╭─[1]─Review - All - #21 - #22──╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│▌#21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       │
+│ #22 Add a basket that uses se…││ reviewed together                                               │
+╰────────────────────────1 of 2─╯│ Search, then a basket                                           │
+╭─[2]─Files─────────────────────╮│  #21  Add search to the catalog                                 │
+│ ▾ ■ widgets            +15 −1 ││       by sam · on main · head ec6fb42d · 2 files +11 −0         │
+│   ▾ Sources/Basket            ││  #22  Add a basket that uses search                             │
+│     M Basket.swift          ● ││       by sam · on feature/search · head cd3c7027 · 2 files +4 −1│
+│   ▾ Sources/Catalog           ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
+│     M MemoryCatalog.swift   ● ││                                                                 │
+│     A Search.swift          ● ││ ▾ What this changes                                             │
+│   ▾ web/src                   ││   #21 adds a search over the catalog in Search.swift:4. #22     │
+│     M cart.ts               ● ││   gives the basket a search of its own, in Basket.swift:7.      │
+│ ▾ ■ Unchanged code  unchanged ││   [Likely]                                                      │
+│   · Catalog.swift             ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
+│                               ││   → Basket.swift:7  Sources/Basket/Basket.swift line 7          │
+│                               ││                                                                 │
+│                               ││ ▾ Risks                                                         │
+│                               ││   MemoryCatalog.swift:9 appends without checking for            │
+│                               ││   duplicates. [Guessing]                                        │
+│                               ││   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
+│                               ││                                                                 │
+│                               ││ ▾ Queued comments                                               │
+│                               ││ A comment goes on the pull request that last changed its line,  │
+│                               ││ shown as → #number.                                             │
+╰───────────────────────1 of 10─╯│                                                                 │
+╭─[3]─Notes─────────────────────╮│  #21  Add search to the catalog                                 │
+│ Queued                      2 ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
+│ 1 MemoryCatalog.swift:8-… #21 ││     │     func add(_ item: Item) {                              │
+│ 2 Basket.swift:9-11       #22 ││     │         stored.append(item)                               │
+│ Claude                      1 ││     │     }                                                     │
+│ Basket.swift:7 Could this be …││     Keep the order items came in.                               │
+│ On GitHub                   2 ││                                                                 │
+│ sam MemoryCatalog.swift:9     ││  #22  Add a basket that uses search                             │
+│ sam Basket.swift:7   resolved ││   2 → #22 Sources/Basket/Basket.swift, removed line 9 to line 11│
+│                               ││     │         0                                                 │
+│                               ││     │         1                                                 │
+│                               ││     Why one?                                                    │
+│                               ││                                                                 │
+│                               ││ ▾ On GitHub                                                     │
+│                               ││ 2 review threads, 1 unresolved, as GitHub had them when this    │
+│                               ││ review was loaded.                                              │
+│                               ││   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment    │
+│                               ││     Should this keep the order items were added in?             │
+╰────────────────────────1 of 5─╯│   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved │
+╭─[4]─Diagram───────────────────╮│     Could the search be passed in?                              │
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││ ▾ Conversations                                                 │
+│ ■ Unchanged code              ││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
+│                               ││     Could this be passed in?                                    │
+│                               ││     It returns early when the list is empty.                    │
+│                               ││                                                                 │
+│                               ││ ▾ The change                                                    │
+│                               ││   ■ widgets  4 files +15 −1                                     │
+│                               ││   ■ Unchanged code  1 file · unchanged                          │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
+ Review: Enter | Post: P | GitHub: gx | Files, notes, diagram: 2 3 4 | Keys: Space ?

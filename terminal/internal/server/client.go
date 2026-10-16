@@ -48,12 +48,6 @@ func (c *Client) Address() (string, error) {
 	return record.Address, nil
 }
 
-// Reviews lists every review the server keeps, newest load first.
-func (c *Client) Reviews() ([]Summary, error) {
-	var reviews []Summary
-	return reviews, c.get("/api/reviews", nil, &reviews)
-}
-
 // State reads a review's state: its pull requests, its queue, its
 // conversations, the threads on GitHub and its written review.
 func (c *Client) State(id string) (State, error) {

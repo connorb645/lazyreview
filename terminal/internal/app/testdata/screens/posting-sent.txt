@@ -1,30 +1,30 @@
- Fix the guide wording › Review
- Pull request #30 by alex
- Fix the guide wording
- Base main · Head 058ff259 · 2 files +18 −1
-
- No written review is attached. The diagram and the diffs hold the change.
-
-▌▾ Queued comments
-   No comments queued.
-   Approved with 1 comment, 15 Oct, 12:00: https://github.com/octo/widgets/pull/30#pullrequestrevie…
-
- ▾ The change
-   ■ docs  2 files +18 −1
-
-
-
-
-
-
-
-
-
-
-
-╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Sent to GitHub                                                                                   │
-│   Approved with 1 comment: https://github.com/octo/widgets/pull/30#pullrequestreview-8           │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
- NORMAL  Review · Queued comments                               Sent; q closes the server's answer.
- j k move   q close
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│ #30 Fix the guide wording     ││ Pull request #30 by alex                                        │
+╰────────────────────────1 of 1─╯│ Fix the guide wording                                           │
+╭─[2]─Files─────────────────────╮│ Base main · Head 058ff259 · 2 files +18 −1                      │
+│ ▾ ■ docs               +18 −1 ││                                                                 │
+│   A basket.md                 ││ No written review is attached. The diagram and the diffs hold   │
+│   M guide.md                  ││ the change.                                                     │
+│                               ││                                                                 │
+│                               ││ ▾ Queued comments                                               │
+│                               ││   No comments queued.                                           │
+│                               ││   Approved with 1 comment, 15 Oct, 12:00:                       │
+│                               ││   https://github.com/octo/widgets/pull/30#pullrequestreview-8   │
+│                   ╭─Sent to GitHub───────────────────────────────────────────╮                   │
+╰───────────────────│ Approved with 1 comment:                                 │                   │
+╭─[3]─Notes─────────│ https://github.com/octo/widgets/pull/30#pullrequestrevie │                   │
+│ Nothing queued or │ w-8                                                      │                   │
+│                   ╰──────────────────────────────────────────────────────────╯                   │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────0 of 0─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ docs                        ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 1─╯╰─────────────────────────────────────────────────────────────────╯
+ Close: Esc                                                     Sent; q closes the server's answer.

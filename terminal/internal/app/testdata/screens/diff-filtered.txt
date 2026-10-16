@@ -1,30 +1,30 @@
- widgets › Sources/Catalog/MemoryCatalog.swift                                      All  [#21]  #22
-▌▎       10 +     }
-              ▾ Queued 1 → #21 · lines 8-10                                         e edit  dd drop
-                Keep the order items came in.
-     7   11   }
-  ▾ Sources/Catalog/Search.swift  new  #21  +7 −0
-   @@ -0,0 +1,7 @@
- ▎        1 + struct Search {
- ▎        2 +     let catalog: Catalog
- ▎        3 +
- ▎        4 +     func find(_ text: String) -> [Item] {
- ▎        5 +         catalog.items().filter { $0.name.contains(text) }
- ▎        6 +     }
- ▎        7 + }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- NORMAL  line 10 · Changed in #21. A comment here goes on #21, line 10.
- j k move   ]c [c hunks   V select   c comment   a ask Claude   / search   - back   Space ? keys
+╭─[1]─Review - All - #21 - #22──╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
+│ #21 Add search to the catalog ││▌▎       10 +     }                                              │
+│ #22 Add a basket that uses se…││              ▾ Queued 1 → #21 · lines 8-10      e edit  dd drop │
+╰────────────────────────1 of 2─╯│                Keep the order items came in.                    │
+╭─[2]─Files─────────────────────╮│     7   11   }                                                  │
+│ ▾ ■ widgets            +11 −0 ││  ▾ Sources/Catalog/Search.swift  new  #21  +7 −0                │
+│   M MemoryCatalog.swift     ● ││   @@ -0,0 +1,7 @@                                               │
+│   A Search.swift            ● ││ ▎        1 + struct Search {                                    │
+│ ▾ ■ Unchanged code  unchanged ││ ▎        2 +     let catalog: Catalog                           │
+│   · Catalog.swift             ││ ▎        3 +                                                    │
+│                               ││ ▎        4 +     func find(_ text: String) -> [Item] {          │
+╰────────────────────────2 of 5─╯│ ▎        5 +         catalog.items().filter { $0.name.contains(…│
+╭─[3]─Notes─────────────────────╮│ ▎        6 +     }                                              │
+│ Queued                      2 ││ ▎        7 + }                                                  │
+│ 1 MemoryCatalog.swift:8-… #21 ││                                                                 │
+│ 2 Basket.swift:9-11       #22 ││                                                                 │
+│ Claude                      1 ││                                                                 │
+│ Basket.swift:7 Could this be …││                                                                 │
+│ On GitHub                   2 ││                                                                 │
+│ sam MemoryCatalog.swift:9     ││                                                                 │
+│ sam Basket.swift:7   resolved ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 5─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 2─╯╰──line 10 · Changed in #21. A comment here goes on #21, line 10.─╯
+ Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Search: / | Keys: Space ?
