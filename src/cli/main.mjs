@@ -1,10 +1,13 @@
 /**
  * The review-desk command.
  *
- * run(argv, {env, bin}) does what the command line asks and returns the lines
- * to print. `serve` keeps running until it is stopped, and `terminal` until
+ * run(argv, {env, bin, say, terminal}) does what the command line asks and
+ * returns the lines to print; `say` prints a line at once, such as what is
+ * loading before the terminal app opens, and `terminal` is the terminal app
+ * to launch. `serve` keeps running until it is stopped, and `terminal` until
  * the terminal app quits. Every other command returns once done; `load` and
- * `terminal` start the app in the background first when it is not running.
+ * `terminal` start the app in the background first when it is not running,
+ * and `terminal` loads a pull request link that no review holds yet.
  * The server records its address and a token in server.json, which only its
  * owner can read; a client such as the terminal app sends the token with
  * each change. `load` reads pull requests
@@ -30,7 +33,7 @@ import { readWrittenReview, checkWrittenReview } from '../review/written-review.
 import { reviewRef } from '../review/review-ref.mjs';
 import { TerminalApp } from '../terminal/terminal-app.mjs';
 
-export async function run(argv, { env = process.env, bin }) {
+export async function run(argv, { env = process.env, bin, say = () => {}, terminal = new TerminalApp() }) {
   const options = parseArguments(argv);
   if (options.command === 'help') return [USAGE];
   const settings = readSettings(env);
@@ -77,9 +80,9 @@ export async function run(argv, { env = process.env, bin }) {
         : `${reviewAddress(address, ref)}  ${changeName(review)}  ${review.title}`));
     }
     case 'terminal': {
-      const review = options.positional[0] ? reviewNamed(options.positional[0], store) : null;
+      const review = await reviewToOpen(options.positional[0], { store, home, say });
       if (!(await running(home))) await start({ home, bin, env });
-      await new TerminalApp().launch({ serverFile: home.serverFile, review, env });
+      await terminal.launch({ serverFile: home.serverFile, review, env });
       return [];
     }
     case 'start': {
@@ -133,14 +136,17 @@ function reviewAddress(address, ref) {
   return `${address}/review/${ref.id.split('/').map(encodeURIComponent).join('/')}`;
 }
 
-// The id of the review a review id, its address in the app, or a pull request link names.
-function reviewNamed(text, store) {
-  const address = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/review\/(.+?)\/*$/.exec(text);
-  if (address) return reviewNamed(address[1].split('/').map(decodeURIComponent).join('/'), store);
+async function reviewToOpen(text, { store, home, say }) {
+  const address = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/review\/([^?#]+?)\/*(?:[?#].*)?$/.exec(text);
+  if (address) return reviewToOpen(address[1].split('/').map(decodeURIComponent).join('/'), { store, home, say });
   if (/^https?:\/\//.test(text)) {
-    const found = store.find(PullRef.parse(text));
-    if (!found) throw new Error(`${text} is not loaded; load it first`);
-    return found.ref.id;
+    const ref = PullRef.parse(text);
+    const found = store.find(ref);
+    if (found) return found.ref.id;
+    say(`loading ${ref.url}…`);
+    const loaded = await new Loader({ store, clones: new Clones(home) }).load({ links: [text] });
+    for (const note of loaded.notes) say(`note: ${note}`);
+    return loaded.ref.id;
   }
   const ref = reviewRef(text);
   if (!store.read(ref)) throw new Error(`there is no review ${text}; review-desk list shows every review`);

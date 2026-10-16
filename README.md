@@ -158,15 +158,17 @@ each of them.
 The same reviews open in a terminal app with Vim keys, a second client of the
 same server. Both apps can be open on one review at once.
 
-    bin/review-desk terminal                       # pick from every review
-    bin/review-desk terminal github.com/owner/repo/12
+    bin/review-desk terminal http://127.0.0.1:4747/review/github.com/owner/repo/12
     bin/review-desk terminal https://github.com/owner/repo/pull/12
 
-It takes a review id, the address `load` printed, or a pull request link of a
-review already loaded. It starts the server when it is not running, as `load`
-does. The app is a Go program in `terminal/`, built on this machine the first
-time it runs and again whenever its code changes; building it needs Go 1.24 or
-later, and its libraries are vendored, so the build reaches no network.
+It takes one link: the address `load` printed, or a pull request link. A pull
+request that no review holds yet is loaded first, as `load` loads it, so one
+command opens it. A review id, such as `github.com/owner/repo/12`, works too.
+With no link, it prints how to use it. It starts the server when it is not
+running, as `load` does. The app is a Go program in `terminal/`, built on this
+machine the first time it runs and again whenever its code changes; building
+it needs Go 1.24 or later, and its libraries are vendored, so the build
+reaches no network.
 
 `Space ?` lists the keys of the view you are in. A count goes before a move,
 such as `5j` or `3]c`.

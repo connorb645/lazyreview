@@ -43,9 +43,9 @@ test('the terminal app is built the first time it runs, and again only when its 
     assert.equal(app.stale(), false, 'a test and a library\'s own file do not go into the program');
     later(join(f.root, 'internal', 'view.go'));
     assert.equal(app.stale(), true);
-    await app.launch({ serverFile: '/home/server.json', review: null, env: process.env });
+    await app.launch({ serverFile: '/home/server.json', review: 'github.com/octo/widgets/30', env: process.env });
     assert.equal(f.builds.length, 2);
-    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), '--server-file /home/server.json\n', 'with no review named, it opens on the list');
+    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), '--server-file /home/server.json github.com/octo/widgets/30\n');
   } finally {
     f.done();
   }
@@ -55,9 +55,9 @@ test('the terminal app says how to get Go when it cannot be built', async () => 
   const f = folder();
   try {
     const missing = new TerminalApp({ folder: f.root, run: async () => ({ code: 'ENOENT', stderr: '' }) });
-    await assert.rejects(missing.launch({ serverFile: 's', review: null, env: process.env }), /built with Go 1\.24 or later, and go is not on the PATH/);
+    await assert.rejects(missing.launch({ serverFile: 's', review: 'github.com/octo/widgets/30', env: process.env }), /built with Go 1\.24 or later, and go is not on the PATH/);
     const broken = new TerminalApp({ folder: f.root, run: async () => ({ code: 1, stderr: 'main.go:1: syntax error\n' }) });
-    await assert.rejects(broken.launch({ serverFile: 's', review: null, env: process.env }), /could not build the terminal app: main\.go:1: syntax error/);
+    await assert.rejects(broken.launch({ serverFile: 's', review: 'github.com/octo/widgets/30', env: process.env }), /could not build the terminal app: main\.go:1: syntax error/);
   } finally {
     f.done();
   }

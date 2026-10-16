@@ -11,6 +11,7 @@ import { workbench } from '../support/workbench.mjs';
 import { notices } from '../support/notices.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { fakeGh } from '../support/fake-gh.mjs';
+import { run as command } from '../../src/cli/main.mjs';
 
 const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'review-desk');
 const SLOW_DISK = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '..', 'support', 'slow-disk.mjs')).href;
@@ -51,7 +52,9 @@ test('one command loads a pull request, starts the app, and prints where to open
     assert.match(stack.stdout, /^loaded #21, #22: 4 files \+\d+ -\d+, \d+ components?, \d+ types?\nopen http:\/\/127\.0\.0\.1:\d+\/review\/github\.com\/octo\/widgets\/21\n$/);
 
     assert.match((await run(['terminal', 'github.com/octo/widgets/99'], env)).stderr, /^review-desk: there is no review github\.com\/octo\/widgets\/99; review-desk list shows every review\n/);
-    assert.match((await run(['terminal', 'https://github.com/octo/widgets/pull/99'], env)).stderr, /^review-desk: https:\/\/github\.com\/octo\/widgets\/pull\/99 is not loaded; load it first\n/);
+    const missing = await run(['terminal', 'https://github.com/octo/widgets/pull/99'], env);
+    assert.equal(missing.stdout, 'loading https://github.com/octo/widgets/pull/99…\n', 'a pull request no review holds is loaded first');
+    assert.match(missing.stderr, /^review-desk: .*pulls\/99/);
     assert.match((await run(['terminal', 'widgets'], env)).stderr, /^review-desk: "widgets" is not a review id/);
     const listed = await run(['list'], env);
     assert.equal(listed.stdout.trim().split('\n').length, 2);
@@ -80,6 +83,28 @@ test('one command loads a pull request, starts the app, and prints where to open
   } finally {
     await run(['stop'], env);
     fake.done();
+    w.done();
+  }
+});
+
+test('the terminal app opens on the review a link names, loading a pull request no review holds yet', async () => {
+  const w = workbench();
+  const port = await freePort();
+  const env = { ...w.env, REVIEW_DESK_PORT: String(port) };
+  const said = [];
+  const opened = [];
+  const terminal = { launch: async ({ review }) => { opened.push(review); } };
+  const open = link => command(['terminal', link], { env, bin: BIN, say: line => said.push(line), terminal });
+  try {
+    await open(w.link(30));
+    assert.deepEqual(said, ['loading https://github.com/octo/widgets/pull/30…']);
+    assert.deepEqual(opened, ['github.com/octo/widgets/30']);
+    await open(`http://127.0.0.1:${port}/review/github.com/octo/widgets/30#review`);
+    await open(w.link(30));
+    assert.deepEqual(said, ['loading https://github.com/octo/widgets/pull/30…'], 'a review already loaded opens as it is');
+    assert.deepEqual(opened, ['github.com/octo/widgets/30', 'github.com/octo/widgets/30', 'github.com/octo/widgets/30']);
+  } finally {
+    await run(['stop'], env);
     w.done();
   }
 });
@@ -157,6 +182,7 @@ test('the command explains itself, and names what was wrong', async () => {
   assert.match((await run(['load', '--head', 'feature'], process.env)).stderr, /^review-desk: --head needs --repo\n/);
   assert.match((await run(['load', 'octo/widgets#1', '--repo', '.', '--base', 'a', '--head', 'b'], process.env)).stderr, /^review-desk: load takes pull requests or --repo, not both\n/);
   assert.match((await run(['load', '--repo', '.', '--base', 'a', '--head', 'b', '--account', 'me'], process.env)).stderr, /^review-desk: --account is for pull requests/);
+  assert.match((await run(['terminal'], process.env)).stderr, /^review-desk: terminal needs a link: the address load printed, or a pull request link\n\nusage:/);
   assert.match((await run(['frobnicate'], process.env)).stderr, /unknown command "frobnicate"/);
   assert.match((await run(['load', 'x', '--colour'], process.env)).stderr, /unknown option --colour for load/);
 });
