@@ -2,7 +2,7 @@
  * One file of a review's page, ready to draw.
  *
  * fileView(page, path) is pure. It returns null for a path the page does not
- * draw, and otherwise {path, hunks, gaps, whole}:
+ * draw, and otherwise {path, hunks, gaps, whole, rendered}:
  *
  *   hunks  the file's diff, hunk by hunk, each {header, old_start, old_count,
  *          new_start, new_count, rows}, each row {kind, old, new, text,
@@ -16,21 +16,28 @@
  *          each of its lines is old line `delta` further on; only a changed
  *          file whose whole text the page kept has them
  *   whole  the file's whole text at the head, as lines, or null
+ *   rendered
+ *          for a Markdown file with a diff, its Rendered view as
+ *          markdownBlocks gives it, {blocks, partial}; otherwise null
  *
  * An unchanged file of the context has no hunks and no gaps, only its text.
  */
 import { readHunks } from './diff-hunks.mjs';
 import { wholeText } from './page-text.mjs';
+import { markdownBlocks } from './markdown-blocks.mjs';
 import { lineEntry } from '../build/stack/line-map.mjs';
+
+const MARKDOWN = /\.(md|markdown)$/i;
 
 export function fileView(page, path) {
   const file = page.model.files.find(f => f.path === path);
   if (!file) {
-    return page.model.contextFiles.some(f => f.path === path) ? { path, hunks: [], gaps: [], whole: wholeText(page, path) } : null;
+    return page.model.contextFiles.some(f => f.path === path) ? { path, hunks: [], gaps: [], whole: wholeText(page, path), rendered: null } : null;
   }
   const hunks = readHunks(page.diff[path]).map(hunk => ({ ...hunk, rows: hunk.rows.map(row => ({ ...row, ...mark(page.stack, path, row) })) }));
   const whole = wholeText(page, path);
-  return { path, hunks, gaps: file.status === 'M' || file.status === 'R' ? gaps(hunks, whole) : [], whole };
+  const rendered = MARKDOWN.test(path) && hunks.length ? markdownBlocks(file, { hunks, whole }) : null;
+  return { path, hunks, gaps: file.status === 'M' || file.status === 'R' ? gaps(hunks, whole) : [], whole, rendered };
 }
 
 function mark(stack, path, row) {

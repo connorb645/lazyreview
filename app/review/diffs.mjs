@@ -13,7 +13,7 @@
  */
 import { esc, fmt, plural, baseName, breakable, short } from '../lib/text.mjs';
 import { getJSON, reviewPath } from '../lib/api.mjs';
-import { render as renderMarkdownDiff, renderParts } from '../lib/markdown-diff.mjs';
+import { drawRendered } from '../lib/rendered-markdown.mjs';
 
 const GUTTERS = 104;
 
@@ -146,25 +146,6 @@ export function createDiffs(ctx) {
         linenoTd(i + 1, m, '', 'R:' + (i + 1)) + '<td class="code">' + esc(s) + '</td></tr>';
     }).join('') + '</tbody></table>';
   }
-  function hunkSide(h, keep) {
-    return h.rows.filter(r => r.kind === 'same' || r.kind === keep).map(r => r.text);
-  }
-  function canRenderMd(f) { return /\.(md|markdown)$/i.test(f.path) && f.hunks.length > 0; }
-  function renderMd(f, meta) {
-    if (meta.status === 'A') return renderMarkdownDiff(null, hunkSide(f.hunks[0], 'add').join('\n'));
-    if (meta.status === 'D') return renderMarkdownDiff(hunkSide(f.hunks[0], 'del').join('\n'), null);
-    if (f.whole) {
-      let before = [], next = 1;
-      f.hunks.forEach(h => {
-        const first = h.new_count === 0 ? h.new_start + 1 : h.new_start;
-        before = before.concat(f.whole.slice(next - 1, first - 1), hunkSide(h, 'del'));
-        next = first + h.new_count;
-      });
-      return renderMarkdownDiff(before.concat(f.whole.slice(next - 1)).join('\n'), f.whole.join('\n'));
-    }
-    return renderParts(f.hunks.map(h => ({ before: hunkSide(h, 'del').join('\n'), after: hunkSide(h, 'add').join('\n'), oldStart: h.old_start, newStart: h.new_start })));
-  }
-
   function fileBody(path) {
     const f = drawn[path];
     if (contextFiles[path]) {
@@ -181,7 +162,7 @@ export function createDiffs(ctx) {
       return '<div class="diffwrap">' + wholeHTML(f.whole || [], added) + '</div>';
     }
     if (mode === 'rendered') {
-      return '<div class="mdview"><p class="md-hint">' + (ctx.state.queue ? 'Select a passage to comment on it or ask Claude about it.' : 'Select a passage to ask Claude about it.') + '</p>' + renderMd(f, meta) + '</div>';
+      return '<div class="mdview"><p class="md-hint">' + (ctx.state.queue ? 'Select a passage to comment on it or ask Claude about it.' : 'Select a passage to ask Claude about it.') + '</p>' + drawRendered(f.rendered, meta.status) + '</div>';
     }
     const split = viewMode === 'split';
     return '<div class="diffwrap"><table class="difftable' + (split ? ' splittable' : '') + '">' +
@@ -207,7 +188,7 @@ export function createDiffs(ctx) {
       const from = meta.status === 'R' && meta.oldPath ? '<span class="from">from ' + breakable(meta.oldPath) + '</span>' : '';
       let buttons = '';
       if (!meta.binary && f.hunks.length && f.whole) buttons += '<button class="fbtn" data-mode="whole" aria-pressed="' + (mode === 'whole') + '">Whole file</button>';
-      if (canRenderMd(f)) buttons += '<button class="fbtn" data-mode="rendered" aria-pressed="' + (mode === 'rendered') + '">Rendered</button>';
+      if (f.rendered) buttons += '<button class="fbtn" data-mode="rendered" aria-pressed="' + (mode === 'rendered') + '">Rendered</button>';
       const counts = ctx.filter.pull && meta.byPull ? meta.byPull[ctx.filter.pull] || [0, 0] : [meta.adds, meta.dels];
       head = badge + pulls.pullPills(meta.pulls) + from + chipsFor(path) + buttons + ctx.notes.countBadge(path) +
         '<span class="fstats"' + (ctx.filter.pull ? ' title="#' + ctx.filter.pull + '&rsquo;s lines; the file changes +' + fmt(meta.adds) + ' &minus;' + fmt(meta.dels) + ' in all"' : '') + '>' +

@@ -40,6 +40,9 @@ test('a file of a single pull request has rows with no owner, and a page is pars
     assert.equal(w.store.readPage(ref(30)), read, 'the same build is read once');
     assert.ok(Object.isFrozen(read.page.model.files[0]));
     assert.ok(fileView(read.page, 'docs/guide.md').hunks[0].rows.every(r => r.owner === null && r.words === null));
+    const { rendered } = fileView(read.page, 'docs/guide.md');
+    assert.deepEqual(rendered.blocks.filter(b => b.state !== 'same').map(b => [b.state, b.side, b.start_line, b.markdown]),
+      [['del', 'LEFT', 3, 'The catalog lists items.'], ['add', 'RIGHT', 3, 'The catalog lists every item.']], 'a Markdown file comes with its Rendered view');
   } finally {
     w.done();
   }

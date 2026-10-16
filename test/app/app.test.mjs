@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'app');
 globalThis.window = { marked: createRequire(import.meta.url)('../../vendor/marked-12.0.2.min.js') };
-const { render, renderParts } = await import('../../app/lib/markdown-diff.mjs');
+const { drawRendered } = await import('../../app/lib/rendered-markdown.mjs');
 const { safeMarkdown } = await import('../../app/lib/markdown.mjs');
 const { indexPage } = await import('../../app/review/review-data.mjs');
 const { breakable, plural } = await import('../../app/lib/text.mjs');
@@ -23,30 +23,16 @@ test('every module of the app parses', () => {
   for (const file of files) execFileSync(process.execPath, ['--check', file]);
 });
 
-test('the Rendered view marks each added or removed block, and a changed list item by item', () => {
-  const html = render('# Guide\n\nOne.\n\n- a\n- b\n', '# Guide\n\nOne.\n\nTwo.\n\n- a\n- c\n');
-  assert.match(html, /<div class="mdx-block mdx-add" title="Added"[^>]*><p>Two\.<\/p>/);
-  assert.match(html, /mdx-del" title="Removed"[^>]*><ul>\n<li>b<\/li>/);
-  assert.match(html, /mdx-add" title="Added"[^>]*><ul>\n<li>c<\/li>/);
-  assert.match(render(null, '# New'), /New file\./);
-  assert.match(renderParts([{ before: 'a', after: 'b', oldStart: 1, newStart: 1 }]), /Only the changed parts/);
-});
-
-test('each block and list item of the Rendered view names the source lines it was read from', () => {
-  const before = '# Guide\n\nOne\nline.\n\n- a\n- b\n\n```\ncode\n```\n';
-  const after = '# Guide\n\nOne\nline.\n\nTwo.\n\n- a\n- c\n\n```\ncode\n```\n';
-  const html = render(before, after);
-  const lines = text => (new RegExp('<div class="mdx-block[^"]*"(?: title="[^"]*")? ([^>]*)>(?:<[^>]+>\\n?)*' + text).exec(html) || [])[1];
-  assert.equal(lines('Guide'), 'data-side="RIGHT" data-from="1" data-to="1" data-text="1" data-left-from="1" data-left-to="1"');
-  assert.equal(lines('One\nline'), 'data-side="RIGHT" data-from="3" data-to="4" data-text="3" data-left-from="3" data-left-to="4"', 'a paragraph keeps its line breaks, so a sentence in it maps to its own line');
-  assert.equal(lines('Two'), 'data-side="RIGHT" data-from="6" data-to="6" data-text="6"');
-  assert.equal(lines('a<'), 'data-side="RIGHT" data-from="8" data-to="8" data-text="8" data-left-from="6" data-left-to="6"');
-  assert.equal(lines('b<'), 'data-side="LEFT" data-from="7" data-to="7" data-text="7"', 'a removed block names its lines before the change');
-  assert.equal(lines('c<'), 'data-side="RIGHT" data-from="9" data-to="9" data-text="9"');
-  assert.equal(lines('code'), 'data-side="RIGHT" data-from="11" data-to="13" data-text="12" data-left-from="9" data-left-to="11"', 'a fenced block\'s text starts after its fence');
-  assert.match(render('[x]: https://example.com\n\nOld.\n', '[x]: https://example.com\n\nNew.\n'), /data-side="RIGHT" data-from="3" data-to="3" data-text="3"><p>New\./, 'a link definition, which draws nothing, still counts its lines');
-  assert.match(renderParts([{ before: 'Old.', after: 'New.', oldStart: 40, newStart: 42 }]), /data-side="LEFT" data-from="40"[\s\S]*data-side="RIGHT" data-from="42"/);
-  assert.match(render(null, 'First.\n\nSecond.\n'), /<div class="mdx-block" data-side="RIGHT" data-from="3" data-to="3" data-text="3"><p>Second\./);
+test('the Rendered view draws the server\'s blocks, each marked and naming its source lines, and a list\'s items together', () => {
+  const block = (state, markdown, start_line, extra = {}) => ({ state, markdown, side: state === 'del' ? 'LEFT' : 'RIGHT', start_line, line: start_line, text_line: start_line, left: null, list: null, ...extra });
+  const html = drawRendered({ partial: false, blocks: [block('same', '# Guide', 1, { left: { start_line: 1, line: 1 } }), block('add', 'Two.', 6), block('same', '- a', 8, { list: 0 }), block('del', '- b', 7, { list: 0 })] }, 'M');
+  assert.match(html, /^<div class="mdx"><p class="mdx-note">Marked:/);
+  assert.match(html, /<div class="mdx-block mdx-same" data-side="RIGHT" data-from="1" data-to="1" data-text="1" data-left-from="1" data-left-to="1"><h1>Guide<\/h1>/);
+  assert.match(html, /<div class="mdx-block mdx-add" title="Added" data-side="RIGHT" data-from="6" data-to="6" data-text="6"><p>Two\.<\/p>/);
+  assert.match(html, /<div class="mdx-list"><div class="mdx-block mdx-same"[^>]*><ul>\n<li>a<\/li>[\s\S]*mdx-del" title="Removed" data-side="LEFT"[^>]*><ul>\n<li>b<\/li>\n<\/ul>\n<\/div><\/div>/);
+  assert.match(drawRendered({ partial: false, blocks: [block('add', 'Second.', 3)] }, 'A'), /New file\.<\/p><div class="mdx-block" data-side="RIGHT" data-from="3"/, 'an added file is drawn plain');
+  assert.match(drawRendered({ partial: true, blocks: [block('add', 'a', 1, { part: 0 }), block('add', 'b', 9, { part: 1 })] }, 'M'), /Only the changed parts[\s\S]*a<\/p>\n<\/div><p class="mdx-gap">/);
+  assert.match(drawRendered({ partial: false, blocks: [block('same', 'a', 1)] }, 'M'), /does not alter how the file reads/);
 });
 
 test('Markdown from outside the app shows raw HTML as text and keeps only safe links', () => {
