@@ -16,6 +16,7 @@ import { createDiffs } from './diffs.mjs';
 import { createLineNotes } from './line-notes.mjs';
 import { createQueuePanel } from './queue-panel.mjs';
 import { createOverview } from './overview.mjs';
+import { createRefresh } from './refresh.mjs';
 
 export async function openReview(id) {
   const [state, page] = await Promise.all([getJSON(reviewPath(id)), getJSON(reviewPath(id, '/page'))]);
@@ -149,6 +150,7 @@ export async function openReview(id) {
   ctx.overview = createOverview(ctx);
   ctx.overview.render();
   countQueued();
+  const refresh = createRefresh(ctx);
 
   /* ---------- routing ---------- */
   function show(route) {
@@ -206,5 +208,6 @@ export async function openReview(id) {
   });
 
   show(location.hash.slice(1));
+  refresh.restore();
   return ctx;
 }

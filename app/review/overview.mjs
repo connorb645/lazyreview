@@ -11,7 +11,6 @@
  */
 import { esc, fmt, plural, short, when } from '../lib/text.mjs';
 import { trustedMarkdown } from '../lib/markdown.mjs';
-import { send, reviewPath, reviewAddress } from '../lib/api.mjs';
 
 export function createOverview(ctx) {
   const { files, contextFiles, totals, model } = ctx.data;
@@ -172,11 +171,10 @@ export function createOverview(ctx) {
         '<li><a href="#' + esc(id) + '" data-section="' + esc(id) + '">' + esc(name) + '</a></li>').join('') + '</ul></div>' : '') +
       '<div class="side-tools"><p class="rail-h">This review</p>' +
       '<p class="side-line">Loaded ' + esc(when(state.loaded_at)) + (state.account ? ' as <b>' + esc(state.account) + '</b>' : '') + '</p>' +
-      (state.moved ? '' : '<button class="btn" data-refresh>' + (branch ? 'Load the branch again' : 'Load again from GitHub') + '</button><p class="side-line" data-refresh-status aria-live="polite"></p>') +
       '<p class="side-line"><a href="/">Every review</a></p></div>';
   }
 
-  view.addEventListener('click', async e => {
+  view.addEventListener('click', e => {
     const go = e.target.closest('[data-go-file]');
     if (go) {
       e.preventDefault();
@@ -197,22 +195,7 @@ export function createOverview(ctx) {
     if (item) { ctx.open.component(item.getAttribute('data-comp')); return; }
     const sidePull = e.target.closest('.side-pull');
     if (sidePull) { ctx.setPullFilter(+sidePull.getAttribute('data-pull')); ctx.go('#map'); return; }
-    if (e.target.closest('[data-go="map"]')) { ctx.go('#map'); return; }
-    const refresh = e.target.closest('[data-refresh]');
-    if (refresh) {
-      const status = side.querySelector('[data-refresh-status]');
-      refresh.disabled = true;
-      status.textContent = ctx.state.kind === 'branch' ? 'Reading the branch and drawing it again…' : 'Fetching the pull request' + (pulls.members.length ? 's' : '') + ' and drawing them again…';
-      try {
-        const done = await send('POST', reviewPath(ctx.state.id, '/refresh'));
-        if (done.id === ctx.state.id) location.reload();
-        else location.assign(reviewAddress(done.id) + location.hash);
-      } catch (error) {
-        refresh.disabled = false;
-        status.textContent = error.message;
-        status.classList.add('bad');
-      }
-    }
+    if (e.target.closest('[data-go="map"]')) ctx.go('#map');
   });
 
   return { render };
