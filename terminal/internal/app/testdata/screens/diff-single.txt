@@ -13,6 +13,8 @@
      2    2
      3      - The catalog lists items.
           3 + The catalog lists every item.
+              ▾ Queued 1 → #30 · line 3                                   e edit  dd drop
+                Every item, or every item shown?
      4    4
      5    5   - Browse
      6    6   - Search
@@ -24,7 +26,5 @@
          12 + 1. Pick an item.
          13 + 1. Add it to the basket.
          14 +
-         15 + ```swift
-         16 + let basket = Basket(catalog: catalog)
  NORMAL  file header
- j k move   ]c [c hunks   ]f [f files   za fold   / search   - back   Space ? keys
+ j k move   ]c [c hunks   V select   c comment   a ask Claude   / search   - back   Space…

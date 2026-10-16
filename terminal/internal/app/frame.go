@@ -119,6 +119,9 @@ func (a App) statusLine() string {
 	if a.prompting != "" {
 		return fit(a.prompt.View(), a.width)
 	}
+	if c := a.confirming; c != nil {
+		return p.Bar.Render(fit(" "+p.Warn.Render(fmt.Sprintf("Drop queued comment %d on #%d? y drops it, any other key keeps it.", c.comment, c.pull)), a.width))
+	}
 	place := "every review"
 	switch a.screen {
 	case screenReview:
@@ -135,14 +138,19 @@ func (a App) statusLine() string {
 			place = a.boxWords()
 		}
 	}
-	left := " " + p.Key.Render("NORMAL") + "  " + p.Muted.Render(place)
+	mode := "NORMAL"
+	if a.screen == screenDiff && a.diff.selecting {
+		mode, place = "VISUAL", a.selectionWords()
+	}
+	left := " " + p.Key.Render(mode) + "  " + p.Muted.Render(place)
 	right := p.Muted.Render(a.keys.Typed()) + " "
 	if a.notice != "" {
 		style := p.Ink
 		if a.bad {
 			style = p.Bad
 		}
-		right = style.Render(a.notice) + " "
+		right = style.Render(ansi.Truncate(a.notice, max(10, a.width-20), "…")) + " "
+		left = ansi.Truncate(left, max(0, a.width-ansi.StringWidth(right)-1), "…")
 	}
 	return p.Bar.Render(spread(left, right, a.width))
 }
@@ -167,8 +175,10 @@ func (a App) hintLine() string {
 		hints = a.diagramHints()
 	case a.screen == screenReview:
 		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"]] [[", "sections"}, {"za", "fold"}, {"gh", "every review"}, {"Space ?", "keys"}, {":q", "quit"}}
+	case a.screen == screenDiff && a.diff.selecting:
+		hints = [][2]string{{"c", "comment"}, {"a", "ask Claude"}, {"o", "other end"}, {"Esc", "stop"}}
 	case a.screen == screenDiff:
-		hints = [][2]string{{"j k", "move"}, {"]c [c", "hunks"}, {"]f [f", "files"}, {"za", "fold"}, {"/", "search"}, {"-", "back"}, {"Space ?", "keys"}}
+		hints = a.diffHints()
 	default:
 		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"/", "find"}, {"Space ?", "keys"}, {":q", "quit"}}
 	}
@@ -177,6 +187,33 @@ func (a App) hintLine() string {
 		parts = append(parts, p.Key.Render(h[0])+" "+p.Muted.Render(h[1]))
 	}
 	return fit(" "+strings.Join(parts, "   "), a.width)
+}
+
+func (a App) selectionWords() string {
+	at, _, ok := a.selected()
+	if !ok {
+		return "a selection stays in one file"
+	}
+	words := linesWords(at.Side, at.Line, at.StartLine, at.StartSide)
+	if a.where.key == linesKey(at) && a.where.words != "" {
+		return words + " · " + a.where.words
+	}
+	return words
+}
+
+func (a App) diffHints() [][2]string {
+	if n, r, ok := a.noteAt(); ok {
+		switch {
+		case n.kind == "queued":
+			return [][2]string{{"e", "edit"}, {"dd", "drop"}, {"za", "fold"}, {"]n [n", "notes"}, {"-", "back"}}
+		case n.kind == "conversation" && r.part == "claude":
+			return [][2]string{{"c", "comment with this answer"}, {"a", "follow-up"}, {"za", "fold"}, {"]n [n", "notes"}}
+		case n.kind == "conversation":
+			return [][2]string{{"a", "follow-up"}, {"za", "fold"}, {"]n [n", "notes"}, {"-", "back"}}
+		}
+		return [][2]string{{"za", "fold"}, {"gx", "on GitHub"}, {"]n [n", "notes"}, {"-", "back"}}
+	}
+	return [][2]string{{"j k", "move"}, {"]c [c", "hunks"}, {"V", "select"}, {"c", "comment"}, {"a", "ask Claude"}, {"/", "search"}, {"-", "back"}, {"Space ?", "keys"}}
 }
 
 // spread puts left at the start of a line width cells wide and right at its end.
@@ -196,6 +233,9 @@ func (a App) diffPlace() string {
 		return ""
 	}
 	r := v.rows[v.cursor]
+	if n, ok := noteOf(*a.review, r.path, r.key); ok && (r.kind == "notehead" || r.kind == "notetext") {
+		return noteWords(n)
+	}
 	side, line, ok := r.at()
 	if !ok {
 		return map[string]string{"file": "file header", "hunk": "hunk header", "gap": "unchanged lines", "note": ""}[r.kind]

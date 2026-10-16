@@ -1,11 +1,14 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -26,30 +29,43 @@ func TestMain(m *testing.M) {
 }
 
 // served starts a stand-in for the server that gives the answers the Node
-// tests recorded from a real one, and returns a client of it.
+// tests recorded from a real one, and returns a client of it. Like the
+// server, it takes a change only with the token.
 func served(t *testing.T) *server.Client {
 	t.Helper()
 	text, err := os.ReadFile(filepath.Join("..", "..", "testdata", "record.json"))
 	if err != nil {
 		t.Fatalf("could not read the recorded answers: %v", err)
 	}
-	var answers map[string]json.RawMessage
+	var answers map[string]struct {
+		Status int             `json:"status"`
+		Body   json.RawMessage `json:"body"`
+	}
 	if err := json.Unmarshal(text, &answers); err != nil {
 		t.Fatalf("could not read the recorded answers: %v", err)
 	}
 	stand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method != http.MethodGet && r.Header.Get("Authorization") != "Bearer test-token" {
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = w.Write([]byte(`{"error":"changes come only from the app's own pages, or a client with its token"}`))
+			return
+		}
 		key := r.Method + " " + r.URL.EscapedPath()
 		if q := r.URL.Query(); len(q) > 0 {
 			key += "?" + q.Encode()
 		}
+		if r.Method == http.MethodPost || r.Method == http.MethodPatch {
+			key += " " + sortedFields(t, r.Body)
+		}
 		answer, ok := answers[key]
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
-			_, _ = w.Write([]byte(`{"error":"nothing recorded at ` + key + `"}`))
+			_, _ = w.Write([]byte(`{"error":"nothing recorded at ` + strings.ReplaceAll(key, `"`, `'`) + `"}`))
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(answer)
+		w.WriteHeader(answer.Status)
+		_, _ = w.Write(answer.Body)
 	}))
 	t.Cleanup(stand.Close)
 	file := filepath.Join(t.TempDir(), "server.json")
@@ -60,16 +76,34 @@ func served(t *testing.T) *server.Client {
 	return server.NewClient(file)
 }
 
+// sortedFields is a change's JSON fields with their keys sorted, as the record keys them.
+func sortedFields(t *testing.T, body io.Reader) string {
+	var fields map[string]any
+	if err := json.NewDecoder(body).Decode(&fields); err != nil {
+		t.Errorf("a change sent no JSON: %v", err)
+	}
+	var out bytes.Buffer
+	enc := json.NewEncoder(&out)
+	enc.SetEscapeHTML(false)
+	_ = enc.Encode(fields)
+	return strings.TrimSpace(out.String())
+}
+
 // opened is the app on the stand-in server, sized, with everything it asked for at the start answered.
-func opened(t *testing.T, review string, width, height int) (App, *[]string) {
+func opened(t *testing.T, review string, width, height int, set ...func(*Options)) (App, *[]string) {
 	t.Helper()
 	var visited []string
-	a := New(Options{
+	opts := Options{
 		Server: served(t), Review: review, Dark: true,
 		Open:     func(address string) error { visited = append(visited, address); return nil },
 		Now:      func() time.Time { return time.Date(2026, 10, 15, 14, 0, 0, 0, time.UTC) },
 		Location: time.UTC,
-	})
+		Exec:     func(cmd *exec.Cmd, done tea.ExecCallback) tea.Cmd { return func() tea.Msg { return done(cmd.Run()) } },
+	}
+	for _, s := range set {
+		s(&opts)
+	}
+	a := New(opts)
 	a = drive(t, a, a.Init())
 	a = send(t, a, tea.WindowSizeMsg{Width: width, Height: height})
 	return a, &visited
@@ -104,6 +138,20 @@ func drive(t *testing.T, a App, cmd tea.Cmd) App {
 		}
 	}
 	return a
+}
+
+// writer is an editor that writes text above the file's cut line, and
+// keeps a copy of the file as it was given, at the path it returns.
+func writer(t *testing.T, text string) (func(*Options), string) {
+	t.Helper()
+	dir := t.TempDir()
+	seen := filepath.Join(dir, "seen.md")
+	script := filepath.Join(dir, "editor")
+	body := "#!/bin/sh\ncp \"$1\" " + seen + "\n{ printf '%s\\n' '" + text + "'; cat \"$1\"; } > \"$1.new\" && mv \"$1.new\" \"$1\"\n"
+	if err := os.WriteFile(script, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	return func(o *Options) { o.Editor = script }, seen
 }
 
 // press types keys, each named as the app names keys, such as "j", "space" or "enter".

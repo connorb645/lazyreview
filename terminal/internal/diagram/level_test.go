@@ -15,12 +15,12 @@ func recordedPage(t *testing.T) server.Page {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var answers map[string]json.RawMessage
+	var answers map[string]struct{ Body json.RawMessage }
 	if err := json.Unmarshal(text, &answers); err != nil {
 		t.Fatal(err)
 	}
 	var page server.Page
-	if err := json.Unmarshal(answers["GET /api/reviews/github.com/octo/widgets/21/page"], &page); err != nil {
+	if err := json.Unmarshal(answers["GET /api/reviews/github.com/octo/widgets/21/page"].Body, &page); err != nil {
 		t.Fatal(err)
 	}
 	return page

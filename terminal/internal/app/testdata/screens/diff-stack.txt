@@ -1,7 +1,4 @@
  widgets › Sources/Catalog/MemoryCatalog.swift                                      [All]  #21  #22
-    11   13   }
-  ▾ Sources/Catalog/MemoryCatalog.swift  changed  #21  +4 −0
-   ··· 3 unchanged lines ···  zo
    @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {
      4    4       func items() -> [Item] {
      5    5           stored
@@ -9,7 +6,10 @@
  ▎        7 +
  ▎        8 +     func add(_ item: Item) {
  ▎        9 +         stored.append(item)
+              ▸ sam · 1 comment                                                       gx GitHub  za
 ▌▎       10 +     }
+              ▾ Queued 1 → #21 · lines 8-10                                         e edit  dd drop
+                Keep the order items came in.
      7   11   }
   ▾ Sources/Catalog/Search.swift  new  #21  +7 −0
    @@ -0,0 +1,7 @@
@@ -27,4 +27,4 @@
      2    3     return prices.reduce((a, b) => a + b, 0);
      3    4   }
  NORMAL  line 10 · Changed in #21. A comment here goes on #21, line 10.
- j k move   ]c [c hunks   ]f [f files   za fold   / search   - back   Space ? keys
+ j k move   ]c [c hunks   V select   c comment   a ask Claude   / search   - back   Space ? keys

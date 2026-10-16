@@ -29,10 +29,15 @@ func diffLines(d reviewData, v diffView, height, filter int, p palette) []string
 func drawRow(d reviewData, v diffView, i, filter int, p palette) []string {
 	r := v.rows[i]
 	mark := " "
-	if i == v.cursor {
+	switch {
+	case i == v.cursor:
 		mark = p.Accent.Render("▌")
+	case v.selecting && i >= min(v.anchor, v.cursor) && i <= max(v.anchor, v.cursor):
+		mark = p.Accent.Render("┃")
 	}
 	switch r.kind {
+	case "notehead", "notetext":
+		return []string{mark + noteLine(d, v, r, p)}
 	case "file":
 		return []string{mark + fileHeader(d, v, r, p)}
 	case "hunk":
@@ -46,6 +51,24 @@ func drawRow(d reviewData, v diffView, i, filter int, p palette) []string {
 		return splitRow(d, v, r, mark, filter, p)
 	}
 	return unifiedRow(d, v, r, mark, filter, p)
+}
+
+func noteLine(d reviewData, v diffView, r diffRow, p palette) string {
+	indent := strings.Repeat(" ", gutter-1)
+	n, ok := noteOf(d, r.path, r.key)
+	if !ok {
+		return ""
+	}
+	if r.kind == "notehead" {
+		head, keys := noteHead(d, n, v.noteOpen(n))
+		style := map[string]lipgloss.Style{"queued": p.Accent, "conversation": p.Bold, "thread": p.Bold}[n.kind]
+		if n.kind == "queued" {
+			style = p.pull(memberColor(d.state, n.pull))
+		}
+		return spread(indent+style.Render(head), p.Key.Render(keys)+" ", v.width-1)
+	}
+	style := map[string]lipgloss.Style{"body": p.Ink, "you": p.Bold, "claude": p.Ink, "error": p.Bad, "stale": p.Warn, "author": p.Muted, "waiting": p.Muted}[r.part]
+	return indent + "  " + style.Render(r.text)
 }
 
 func fileHeader(d reviewData, v diffView, r diffRow, p palette) string {

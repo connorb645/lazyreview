@@ -3,6 +3,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,11 +12,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-const readWait = 20 * time.Second
+const (
+	readWait   = 20 * time.Second
+	changeWait = 60 * time.Second
+	askWait    = 200 * time.Second
+)
 
 // Client talks to the Review Desk server. It reads the server's address and
 // token from the server's own record at each call, so a server started again
@@ -67,6 +73,75 @@ func (c *Client) File(id, path, build string) (File, error) {
 	return file, c.get(ReviewPath(id, "/file"), url.Values{"path": {path}, "build": {build}}, &file)
 }
 
+// Where says where a comment on lines as the app shows them would go, for
+// the page build the app drew from; pull names one pull request of a stack
+// where several can take it, or is 0.
+func (c *Client) Where(id string, at Lines, pull int, build string) (Where, error) {
+	query := url.Values{"path": {at.Path}, "side": {at.Side}, "line": {strconv.Itoa(at.Line)}, "build": {build}}
+	if at.StartLine != 0 {
+		query.Set("start_line", strconv.Itoa(at.StartLine))
+		query.Set("start_side", at.StartSide)
+	}
+	if pull != 0 {
+		query.Set("pull", strconv.Itoa(pull))
+	}
+	var where Where
+	return where, c.get(ReviewPath(id, "/where"), query, &where)
+}
+
+// Queue queues a comment on lines as the app shows them, and returns the
+// state as it then stands.
+func (c *Client) Queue(id string, at Lines, pull int, body, build string) (State, error) {
+	fields := linesFields(at)
+	fields["body"], fields["build"] = body, build
+	if pull != 0 {
+		fields["pull"] = pull
+	}
+	var answer struct{ State State }
+	return answer.State, c.change(http.MethodPost, ReviewPath(id, "/comments"), nil, fields, changeWait, &answer)
+}
+
+// Edit replaces a queued comment's text, naming the version it was shown
+// at, and returns the state as it then stands.
+func (c *Client) Edit(id string, comment int, body, version, build string) (State, error) {
+	var answer struct{ State State }
+	fields := map[string]any{"body": body, "version": version, "build": build}
+	return answer.State, c.change(http.MethodPatch, ReviewPath(id, fmt.Sprintf("/comments/%d", comment)), nil, fields, changeWait, &answer)
+}
+
+// Drop drops a queued comment, naming the version it was shown at, and
+// returns the state as it then stands.
+func (c *Client) Drop(id string, comment int, version, build string) (State, error) {
+	var answer struct{ State State }
+	query := url.Values{"version": {version}, "build": {build}}
+	return answer.State, c.change(http.MethodDelete, ReviewPath(id, fmt.Sprintf("/comments/%d", comment)), query, nil, changeWait, &answer)
+}
+
+// Ask starts a conversation with Claude on lines as the app shows them, and
+// returns it once Claude has answered, or said why not.
+func (c *Client) Ask(id string, at Lines, text, build string) (Conversation, error) {
+	fields := linesFields(at)
+	fields["text"], fields["build"] = text, build
+	var answer struct{ Thread Conversation }
+	return answer.Thread, c.change(http.MethodPost, ReviewPath(id, "/threads"), nil, fields, askWait, &answer)
+}
+
+// Reply asks a follow-up in a conversation, and returns it once Claude has
+// answered, or said why not.
+func (c *Client) Reply(id string, conversation int, text, build string) (Conversation, error) {
+	var answer struct{ Thread Conversation }
+	fields := map[string]any{"text": text, "build": build}
+	return answer.Thread, c.change(http.MethodPost, ReviewPath(id, fmt.Sprintf("/threads/%d/messages", conversation)), nil, fields, askWait, &answer)
+}
+
+func linesFields(at Lines) map[string]any {
+	fields := map[string]any{"path": at.Path, "side": at.Side, "line": at.Line}
+	if at.StartLine != 0 {
+		fields["start_line"], fields["start_side"] = at.StartLine, at.StartSide
+	}
+	return fields
+}
+
 // ReviewPath is the address of a review's part of the API, from its id.
 func ReviewPath(id, rest string) string {
 	parts := strings.Split(id, "/")
@@ -107,6 +182,37 @@ func (c *Client) get(path string, query url.Values, into any) error {
 		return fmt.Errorf("could not ask the server for %s: %w", path, err)
 	}
 	request.Header.Set("Accept", "application/json")
+	return c.do(request, into)
+}
+
+func (c *Client) change(method, path string, query url.Values, fields map[string]any, wait time.Duration, into any) error {
+	record, err := c.record()
+	if err != nil {
+		return err
+	}
+	address := record.Address + path
+	if len(query) > 0 {
+		address += "?" + query.Encode()
+	}
+	var body io.Reader
+	if fields != nil {
+		text, err := json.Marshal(fields)
+		if err != nil {
+			return fmt.Errorf("could not write the change to %s: %w", path, err)
+		}
+		body = bytes.NewReader(text)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, method, address, body)
+	if err != nil {
+		return fmt.Errorf("could not send the change to %s: %w", path, err)
+	}
+	request.Header.Set("Accept", "application/json")
+	request.Header.Set("Authorization", "Bearer "+record.Token)
+	if fields != nil {
+		request.Header.Set("Content-Type", "application/json")
+	}
 	return c.do(request, into)
 }
 

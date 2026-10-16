@@ -17,6 +17,7 @@ var listKeys = keys.Bindings{
 var reviewKeys = keys.Bindings{
 	"j": "down", "down": "down", "k": "up", "up": "up", "g g": "top", "G": "bottom",
 	"] ]": "next section", "[ [": "previous section", "z a": "fold", "enter": "open",
+	"e": "edit", "d d": "drop",
 }
 
 var diffKeys = keys.Bindings{
@@ -25,6 +26,8 @@ var diffKeys = keys.Bindings{
 	"/": "search", "?": "search back", "n": "next match", "N": "previous match",
 	"z a": "toggle fold", "z o": "open fold", "z c": "close fold", "z R": "open folds", "z M": "close folds",
 	"enter": "open", "-": "back", "space s": "split", "space w": "wrap", "space o": "whole", "g d": "show type",
+	"] n": "next note", "[ n": "previous note", "V": "select", "o": "other end",
+	"c": "comment", "a": "ask", "e": "edit", "d d": "drop",
 }
 
 var diagramKeys = keys.Bindings{
@@ -61,6 +64,7 @@ var reviewHelp = []helpRow{
 	{"gg G", "the first or last item"},
 	{"Enter", "opens the item in its diff; a component opens its diff"},
 	{"za", "folds or unfolds a section"},
+	{"e dd", "edit or drop the queued comment"},
 }
 
 var diffHelp = []helpRow{
@@ -69,10 +73,16 @@ var diffHelp = []helpRow{
 	{"gg G {n}G", "the top, the bottom, or line n of this file"},
 	{"]c [c", "the next or previous hunk"},
 	{"]f [f", "the next or previous file"},
+	{"]n [n", "the next or previous note: a queued comment, a conversation or a colleague's thread"},
 	{"/ ? n N", "search the text, forward or back"},
-	{"za zo zc", "toggle, open or close the fold at the cursor: a file or a run of unchanged lines"},
+	{"za zo zc", "toggle, open or close the fold at the cursor: a file, a run of unchanged lines or a note"},
 	{"zR zM", "open every fold, close every fold"},
 	{"Enter", "on a file's header, toggles the file"},
+	{"V", "selects lines; o goes to the other end; Esc stops"},
+	{"c", "comments on the line or the selection; on Claude's answer, uses it as the comment"},
+	{"a", "asks Claude about the line or the selection; in a conversation, asks a follow-up"},
+	{"e", "edits the queued comment at the cursor"},
+	{"dd", "drops the queued comment at the cursor, after y confirms"},
 	{"gd", "shows the type at the cursor on the diagram; on a file's header, lists its types"},
 	{"-", "goes back to the diagram or the Review view"},
 	{"Space s", "split or unified"},

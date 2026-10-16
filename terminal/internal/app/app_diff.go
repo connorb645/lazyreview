@@ -32,7 +32,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 		return a, loadFiles(a.opts.Server, a.review.id, a.review.page.Build, component, missing, place)
 	}
 	if a.diff.component != component || a.diff.files == nil {
-		a.diff = newDiffView(component, a.files)
+		a.diff = newDiffView(component, a.files, a.opts.Location)
 		a.diff.width = a.width
 	}
 	a.screen = screenDiff
@@ -114,6 +114,13 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 			}
 		}
 		a.diff = v
+	case "next note", "previous note":
+		for ; count > 0; count-- {
+			if i := v.next(action == "previous note", func(r diffRow) bool { return r.kind == "notehead" }); i >= 0 {
+				v = v.to(i, h)
+			}
+		}
+		a.diff = v
 	case "next file", "previous file":
 		for ; count > 0; count-- {
 			if i := v.next(action == "previous file", func(r diffRow) bool { return r.kind == "file" }); i >= 0 {
@@ -132,6 +139,9 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		v = v.copied()
 		for _, f := range diffFiles(*a.review, v.component, a.filter) {
 			v.folded[f.Path] = action == "close folds"
+			for _, n := range notesOf(*a.review, f.Path) {
+				v.notes[n.key] = action == "open folds"
+			}
 			for _, g := range v.files[f.Path].Gaps {
 				if action == "open folds" {
 					v.opened[fmt.Sprintf("%s:%d", f.Path, g.Before)] = true
@@ -156,6 +166,24 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		a.diff = v.rebuilt(*a.review, a.filter, h)
 	case "show type":
 		return a.showType()
+	case "comment":
+		return a.comment()
+	case "ask":
+		return a.askClaude()
+	case "edit":
+		return a.editQueued()
+	case "drop":
+		return a.dropQueued(), nil
+	case "select":
+		if _, _, ok := v.rows[min(v.cursor, len(v.rows)-1)].at(); !ok || len(v.rows) == 0 {
+			return a.say("V starts a selection on a line", true), nil
+		}
+		a.diff.selecting, a.diff.anchor = true, v.cursor
+	case "other end":
+		if v.selecting {
+			a.diff.anchor, a.diff.cursor = v.cursor, v.anchor
+			a.diff = a.diff.shown(h)
+		}
 	case "whole":
 		path := v.file()
 		entry := fileEntry(*a.review, path)
@@ -195,6 +223,15 @@ func (a App) fold(action string) App {
 		return a
 	}
 	r := v.rows[v.cursor]
+	if r.kind == "notehead" || r.kind == "notetext" {
+		n, _ := noteOf(*a.review, r.path, r.key)
+		v.notes[r.key] = action == "open fold" || action == "toggle fold" && !v.noteOpen(n)
+		a.diff = v.rebuilt(*a.review, a.filter, a.bodyHeight())
+		if i := a.diff.first(func(row diffRow) bool { return row.kind == "notehead" && row.key == r.key }); i >= 0 {
+			a.diff = a.diff.to(i, a.bodyHeight())
+		}
+		return a
+	}
 	run := r.key != "" && r.kind != "hunk"
 	switch {
 	case run && r.kind == "gap":
@@ -230,7 +267,8 @@ func (a App) toLine(n int) (tea.Model, tea.Cmd) {
 	a.diff = a.diff.rebuilt(*a.review, a.filter, a.bodyHeight())
 	for i, r := range a.diff.rows {
 		if side, line, ok := r.at(); ok && r.path == path && (line == n && side == "RIGHT" || sameLine(r, server.Lines{Side: "RIGHT", Line: n})) {
-			a.diff = a.diff.to(i, a.bodyHeight())
+			a.diff.cursor = i
+			a.diff = a.diff.placed(a.bodyHeight())
 			return a, nil
 		}
 	}

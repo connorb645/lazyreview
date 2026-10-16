@@ -15,6 +15,15 @@ import (
 	"review-desk/terminal/internal/server"
 )
 
+func editor() string {
+	for _, name := range []string{"REVIEW_DESK_EDITOR", "VISUAL", "EDITOR"} {
+		if command := os.Getenv(name); command != "" {
+			return command
+		}
+	}
+	return "vi"
+}
+
 func main() {
 	serverFile := flag.String("server-file", "", "the Review Desk server's own record, server.json, holding its address and token")
 	flag.Usage = func() {
@@ -25,7 +34,7 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
-	opts := app.Options{Server: server.NewClient(*serverFile), Review: flag.Arg(0), Dark: lipgloss.HasDarkBackground()}
+	opts := app.Options{Server: server.NewClient(*serverFile), Review: flag.Arg(0), Dark: lipgloss.HasDarkBackground(), Editor: editor()}
 	program := tea.NewProgram(app.New(opts), tea.WithAltScreen(), tea.WithMouseCellMotion())
 	if _, err := program.Run(); err != nil {
 		fmt.Fprintln(os.Stderr, "review-desk terminal:", err)

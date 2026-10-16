@@ -70,6 +70,11 @@ func (a App) openRow() (tea.Model, tea.Cmd) {
 	}
 	it := *pn.rows[pn.cursor].open
 	a.panel = nil
+	if it.kind == "choose" && a.choosing != nil {
+		e := *a.choosing
+		e.pull, a.choosing = it.pull, nil
+		return a, checkWhere(a.opts.Server, a.review.id, a.review.page.Build, e)
+	}
 	a = a.leave()
 	switch {
 	case it.box != nil:

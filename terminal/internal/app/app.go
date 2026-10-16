@@ -51,6 +51,10 @@ type App struct {
 	loading    bool
 	clickedAt  time.Time
 	clickedY   int
+	drafts     map[string]string
+	where      whereShown
+	confirming *confirmation
+	choosing   *editing
 }
 
 // New returns the app, which opens on the review opts names, or on the list
@@ -64,6 +68,12 @@ func New(opts Options) App {
 	}
 	if opts.Open == nil {
 		opts.Open = openInBrowser
+	}
+	if opts.Editor == "" {
+		opts.Editor = "vi"
+	}
+	if opts.Exec == nil {
+		opts.Exec = tea.ExecProcess
 	}
 	p := newPalette(opts.Dark)
 	a := App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: true, rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}}
@@ -120,6 +130,20 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.files = files
 		a.diff.files = files
 		return a.openPlace(msg.component, msg.place)
+	case edited:
+		return a.afterEditing(msg)
+	case changed:
+		return a.afterChange(msg)
+	case checked:
+		return a.afterCheck(msg)
+	case whereShown:
+		a.where = msg
+		return a, nil
+	case stateLoaded:
+		if msg.err != nil {
+			return a, nil
+		}
+		return a.withState(msg.state), nil
 	case tea.MouseMsg:
 		return a.mouse(msg)
 	case tea.KeyMsg:
@@ -138,6 +162,9 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a.promptKey(msg)
 	}
 	name := keyName(msg)
+	if a.confirming != nil {
+		return a.confirmKey(name)
+	}
 	if a.panel != nil && a.panel.finding {
 		return a.finderKey(msg)
 	}
@@ -170,7 +197,13 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	if res.Action == "" {
 		return a, nil
 	}
-	return a.do(res.Action, res.Count, res.Counted)
+	next, cmd := a.do(res.Action, res.Count, res.Counted)
+	if after, ok := next.(App); ok {
+		if where := after.whereNow(); where != nil {
+			return after, tea.Batch(cmd, where)
+		}
+	}
+	return next, cmd
 }
 
 func (a App) bindings() keys.Bindings {
@@ -195,7 +228,7 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 	case "keys":
 		return a.showKeys(), nil
 	case "close":
-		a.panel = nil
+		a.panel, a.diff.selecting = nil, false
 		return a, nil
 	case "reviews":
 		a = a.leave()
@@ -290,6 +323,10 @@ func (a App) reviewAction(action string, count, h int) (tea.Model, tea.Cmd) {
 			a = a.leave()
 			return a.openPlace(a.componentOf(it.place.Path), it.place)
 		}
+	case "edit":
+		return a.editQueued()
+	case "drop":
+		return a.dropQueued(), nil
 	case "fold":
 		id := a.rv.sectionAt()
 		if id == "" {
@@ -334,6 +371,13 @@ func (a App) openGitHub() (tea.Model, tea.Cmd) {
 	case a.screen == screenReviews:
 		if v := a.reviews.view; v.cursor < len(v.items) {
 			address = v.items[v.cursor].url
+		}
+	case a.review != nil && a.screen == screenDiff:
+		if n, _, ok := a.noteAt(); ok && n.kind == "thread" && len(n.thread.Comments) > 0 {
+			address = n.thread.Comments[0].URL
+		}
+		if address == "" && len(a.review.state.Members) > 0 {
+			address = a.review.state.Members[0].URL
 		}
 	case a.review != nil:
 		if v := a.rv.view; v.cursor < len(v.items) {

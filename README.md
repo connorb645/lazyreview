@@ -193,6 +193,7 @@ Every review and the Review view:
 | `Enter` | opens the review, or the item at the cursor in its diff |
 | `]]` `[[` | the next or previous section of the Review view |
 | `za` | folds or unfolds a section |
+| `e` `dd` | edits or drops the queued comment at the cursor |
 | `/` `n` `N` | find a review |
 
 The diagram shows the components, then the packages of one, then the types of
@@ -217,11 +218,23 @@ The diff shows one component's files:
 | `j` `k` `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` | move by a line, half a page or a page |
 | `gg` `G` `{n}G` `:{n}` | the top, the bottom, or line n of this file |
 | `]c` `[c` `]f` `[f` | the next or previous hunk or file |
+| `]n` `[n` | the next or previous note: a queued comment, a conversation or a colleague's thread |
 | `/` `?` `n` `N` | search the text |
-| `za` `zo` `zc` `zR` `zM` | fold a file or a run of unchanged lines |
+| `za` `zo` `zc` `zR` `zM` | fold a file, a run of unchanged lines or a note |
+| `V` | selects lines; `o` goes to the other end, `Esc` stops |
+| `c` | comments on the line or the selection; on Claude's answer, uses it |
+| `a` | asks Claude about the line or the selection; in a conversation, asks a follow-up |
+| `e` `dd` | edits or drops the queued comment at the cursor; `dd` asks first |
 | `gd` | shows the type at the cursor on the diagram |
 | `Space s` `Space w` `Space o` | split or unified, wrap, the whole file |
 | `-` | back to where it was opened from |
+
+A comment, a question or an edit is written in your own editor: the first of
+`REVIEW_DESK_EDITOR`, `VISUAL` and `EDITOR` that is set, or `vi`, as git
+chooses. Write above the cut line and save; what is below it says where the
+comment goes and is never sent. Saving with no text sends nothing. When the
+server refuses a comment, the status line says why and `c` or `e` opens your
+text again.
 
 The server writes a token into `server.json` at each start, which only its
 owner can read, and the terminal app sends it with each change.

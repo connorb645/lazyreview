@@ -22,23 +22,33 @@ const thread = (id, path, line, login, body, extra = {}) => ({
   comments: { totalCount: 1, nodes: [{ databaseId: Number(id.slice(1)), author: { login, __typename: 'User' }, body, createdAt: '2026-10-15T10:00:00Z', url: `https://github.com/octo/widgets/pull/21#discussion_r${id.slice(1)}`, diffHunk: '' }] },
 });
 
-function get(address, path) {
+const TOKEN = 'record-token';
+
+// Sends a request as the terminal app does, a change carrying the token and its fields as JSON.
+function send(address, method, path, body = null) {
   const url = new URL(path, address);
+  const headers = { Host: url.host, ...(method === 'GET' ? {} : { Authorization: `Bearer ${TOKEN}` }), ...(body ? { 'Content-Type': 'application/json' } : {}) };
   return new Promise((resolve, reject) => {
-    request({ host: url.hostname, port: url.port, path: url.pathname + url.search, headers: { Host: url.host } }, res => {
+    const req = request({ host: url.hostname, port: url.port, method, path: url.pathname + url.search, headers }, res => {
       const chunks = [];
       res.on('data', c => chunks.push(c));
-      res.on('end', () => resolve({ status: res.statusCode, json: JSON.parse(Buffer.concat(chunks).toString('utf8')) }));
-    }).on('error', reject).end();
+      res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(Buffer.concat(chunks).toString('utf8')) }));
+    });
+    req.on('error', reject);
+    req.end(body ? JSON.stringify(body) : undefined);
   });
 }
 
-// The key the terminal app's tests look an answer up by: the method, the path and the query sorted by name.
-function key(path) {
+// The key the terminal app's tests look an answer up by: the method, the path, the query sorted by
+// name, and a change's fields as JSON with its keys sorted.
+function key(method, path, body = null) {
   const url = new URL(path, 'http://x');
   const query = new URLSearchParams([...url.searchParams].sort(([a], [b]) => a.localeCompare(b)));
-  return `GET ${url.pathname}${[...query].length ? `?${query}` : ''}`;
+  const fields = body ? ` ${JSON.stringify(Object.fromEntries(Object.entries(body).sort(([a], [b]) => a.localeCompare(b))))}` : '';
+  return `${method} ${url.pathname}${[...query].length ? `?${query}` : ''}${fields}`;
 }
+
+const where = (base, given) => `${base}/where?${new URLSearchParams(given)}`;
 
 // A stack with comments queued, a conversation, threads on GitHub and a written review, and a single pull request with Markdown.
 async function recordAnswers() {
@@ -60,7 +70,7 @@ async function recordAnswers() {
     let tick = 0;
     const now = () => new Date(Date.UTC(2026, 9, 15, 13, 0, tick++)).toISOString();
     const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }), now });
-    const server = new AppServer({ store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, port: 0 });
+    const server = new AppServer({ store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, token: TOKEN, port: 0 });
     const address = await server.listen();
     try {
       const stack = new PullRef('github.com', 'octo/widgets', 21);
@@ -78,16 +88,37 @@ async function recordAnswers() {
       const paths = ['/api/reviews'];
       for (const id of [STACK, SINGLE]) {
         const base = `/api/reviews/${id}`;
-        const page = (await get(address, `${base}/page`)).json;
+        const page = (await send(address, 'GET', `${base}/page`)).body;
         paths.push(base, `${base}/page`);
         for (const f of [...page.model.files, ...page.model.contextFiles]) paths.push(`${base}/file?${new URLSearchParams({ path: f.path, build: page.build })}`);
       }
+      const base = `/api/reviews/${STACK}`;
+      paths.push(
+        where(base, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 3, build }),
+        where(base, { path: 'Sources/Catalog/MemoryCatalog.swift', side: 'RIGHT', start_line: 7, start_side: 'RIGHT', line: 9, build }),
+        where(base, { path: 'Sources/Catalog/Catalog.swift', side: 'RIGHT', line: 1, build }),
+        where(base, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 7, build }),
+      );
       const answers = {};
       for (const path of paths) {
-        const answer = await get(address, path);
+        const answer = await send(address, 'GET', path);
         assert.equal(answer.status, 200, path);
-        answers[key(path)] = answer.json;
+        answers[key('GET', path)] = answer;
       }
+      // The changes the terminal app makes, in turn, each answered as the state then stands.
+      const state = (await send(address, 'GET', base)).body;
+      const version = n => state.queue.members.flatMap(m => m.comments).find(c => c.id === n).version;
+      const changes = [
+        ['POST', `${base}/comments`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 3, body: 'Name the search for what it finds.', build }],
+        ['POST', `${base}/comments`, { path: 'Sources/Catalog/MemoryCatalog.swift', side: 'RIGHT', start_line: 7, start_side: 'RIGHT', line: 9, body: 'One add is enough.', build }],
+        ['POST', `${base}/comments`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 7, body: 'It returns early when the list is empty.', build }],
+        ['PATCH', `${base}/comments/1`, { body: 'Keep the order the items came in.', version: 'stale1', build }],
+        ['PATCH', `${base}/comments/1`, { body: 'Keep the order the items came in.', version: version(1), build }],
+        ['DELETE', `${base}/comments/2?${new URLSearchParams({ build, version: version(2) })}`, null],
+        ['POST', `${base}/threads`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 3, text: 'Why keep a search here?', build }],
+        ['POST', `${base}/threads/1/messages`, { text: 'Could it be passed in?', build }],
+      ];
+      for (const [method, path, body] of changes) answers[key(method, path, body)] = await send(address, method, path, body);
       return answers;
     } finally {
       await server.close();

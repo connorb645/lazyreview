@@ -57,7 +57,7 @@ func buildDiff(d reviewData, v diffView, filter int) []diffRow {
 			rows = append(rows, hunkRows(f.Path, file, v)...)
 		}
 	}
-	return rows
+	return withNotes(d, v, rows)
 }
 
 func wholeRows(path string, whole []string, added map[int]*server.Row) []diffRow {

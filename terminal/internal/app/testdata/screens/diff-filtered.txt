@@ -1,5 +1,7 @@
  widgets › Sources/Catalog/MemoryCatalog.swift                                      All  [#21]  #22
 ▌▎       10 +     }
+              ▾ Queued 1 → #21 · lines 8-10                                         e edit  dd drop
+                Keep the order items came in.
      7   11   }
   ▾ Sources/Catalog/Search.swift  new  #21  +7 −0
    @@ -0,0 +1,7 @@
@@ -24,7 +26,5 @@
 
 
 
-
-
  NORMAL  line 10 · Changed in #21. A comment here goes on #21, line 10.
- j k move   ]c [c hunks   ]f [f files   za fold   / search   - back   Space ? keys
+ j k move   ]c [c hunks   V select   c comment   a ask Claude   / search   - back   Space ? keys

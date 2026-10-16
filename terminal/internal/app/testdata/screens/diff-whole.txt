@@ -7,10 +7,18 @@
           5       init(catalog: Catalog) {
           6           self.catalog = catalog
  ▎        7 +         self.search = Search(catalog: catalog)
+              ▾ Claude · 2 messages · line 7                                              a ask  za
+                You: Could this be passed in?
+                Claude: It returns early when the list is empty.
+              ▾ sam · 1 comment · resolved                                            gx GitHub  za
+                sam · 15 Oct, 10:00
+                Could the search be passed in?
           8       }
           9
          10       func total() -> Int {
  ▎       11 +         1
+              ▾ Queued 2 → #22 · removed line 9 to line 11                          e edit  dd drop
+                Why one?
          12       }
          13   }
   ▾ Sources/Catalog/MemoryCatalog.swift  changed  #21  +4 −0
@@ -18,13 +26,5 @@
      2    2       private var stored: [Item] = []
      3    3
    @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {
-     4    4       func items() -> [Item] {
-     5    5           stored
-     6    6       }
- ▎        7 +
- ▎        8 +     func add(_ item: Item) {
- ▎        9 +         stored.append(item)
- ▎       10 +     }
-     7   11   }
  NORMAL  line 3 · Changed in #22. A comment here goes on #22, line 3.
- j k move   ]c [c hunks   ]f [f files   za fold   / search   - back   Space ? keys
+ j k move   ]c [c hunks   V select   c comment   a ask Claude   / search   - back   Space ? keys

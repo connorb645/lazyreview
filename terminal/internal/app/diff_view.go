@@ -2,6 +2,7 @@ package app
 
 import (
 	"strings"
+	"time"
 
 	"review-desk/terminal/internal/server"
 )
@@ -10,6 +11,10 @@ import (
 // whole or as a diff, with runs of unchanged lines opened or not, drawn
 // unified or split, wrapped or cut, and the row the cursor is on.
 type diffView struct {
+	loc       *time.Location
+	notes     map[string]bool
+	selecting bool
+	anchor    int
 	component string
 	files     map[string]server.File
 	folded    map[string]bool
@@ -24,8 +29,8 @@ type diffView struct {
 	width     int
 }
 
-func newDiffView(component string, files map[string]server.File) diffView {
-	return diffView{component: component, files: files, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
+func newDiffView(component string, files map[string]server.File, loc *time.Location) diffView {
+	return diffView{component: component, files: files, loc: loc, notes: map[string]bool{}, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
 }
 
 // rebuilt draws the rows again, keeping the cursor on the same place where it still shows.
@@ -105,10 +110,6 @@ func (v diffView) scroll(by, height int) diffView {
 	return v
 }
 
-// shown moves the first row shown so the cursor's row shows, counting the
-// lines a wrapped row takes.
-// placed shows the cursor a third of the way down a screen height rows
-// high, as a jump does, or as far down as the rows below it leave room for.
 func (v diffView) placed(height int) diffView {
 	used := func(from, to int) int {
 		n := 0
@@ -127,6 +128,8 @@ func (v diffView) placed(height int) diffView {
 	return v
 }
 
+// shown moves the first row shown so the cursor's row shows, counting the
+// lines a wrapped row takes.
 func (v diffView) shown(height int) diffView {
 	if v.cursor < v.top {
 		v.top = v.cursor
@@ -187,7 +190,7 @@ func (v diffView) file() string {
 }
 
 func (v diffView) copied() diffView {
-	v.folded, v.opened, v.whole = copyBools(v.folded), copyBools(v.opened), copyBools(v.whole)
+	v.folded, v.opened, v.whole, v.notes = copyBools(v.folded), copyBools(v.opened), copyBools(v.whole), copyBools(v.notes)
 	return v
 }
 
