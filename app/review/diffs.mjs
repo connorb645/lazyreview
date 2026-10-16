@@ -4,9 +4,9 @@
  * lines between hunks, and a Rendered view of a Markdown file.
  *
  * createDiffs(ctx) returns renderComponent(id) and the controls the other
- * views use: focusFile, focusLine, rerenderFile, hunkAt and current(). Every
- * line number takes a click, which opens a comment or a question on that
- * line through ctx.notes, and ctx.notes.decorate(file) adds the conversations and
+ * views use: focusFile, focusLine, rerenderFile, hunkAt, sourceOf and
+ * current(). Every line number takes a click, which opens a comment or a
+ * question on that line through ctx.notes, and ctx.notes.decorate(file) adds the conversations and
  * queued comments under their lines whenever a file's diff is drawn.
  */
 import { esc, fmt, plural, baseName, breakable, short } from '../lib/text.mjs';
@@ -187,7 +187,7 @@ export function createDiffs(ctx) {
       });
       return renderMarkdownDiff(before.concat(whole.slice(next - 1)).join('\n'), whole.join('\n'));
     }
-    return renderParts(f.hunks.map(h => ({ before: hunkSide(h, 'del').join('\n'), after: hunkSide(h, 'add').join('\n') })));
+    return renderParts(f.hunks.map(h => ({ before: hunkSide(h, 'del').join('\n'), after: hunkSide(h, 'add').join('\n'), oldStart: h.oldStart, newStart: h.newStart })));
   }
 
   function fileBody(path) {
@@ -204,7 +204,9 @@ export function createDiffs(ctx) {
       if (!f.isNew) f.hunks.forEach(h => h.rows.forEach(r => { if (r.t === 'add') added[r.n] = true; }));
       return '<div class="diffwrap">' + wholeHTML(wholeText(f) || [], added, path) + '</div>';
     }
-    if (mode === 'rendered') return '<div class="mdview">' + renderMd(f) + '</div>';
+    if (mode === 'rendered') {
+      return '<div class="mdview"><p class="md-hint">' + (ctx.state.queue ? 'Select a passage to comment on it or ask Claude about it.' : 'Select a passage to ask Claude about it.') + '</p>' + renderMd(f) + '</div>';
+    }
     const split = viewMode === 'split';
     return '<div class="diffwrap"><table class="difftable' + (split ? ' splittable' : '') + '">' +
       (split ? '<colgroup><col class="cnum"><col><col class="cnum"><col></colgroup>' : '') +
@@ -362,6 +364,21 @@ export function createDiffs(ctx) {
     return parsed(path).hunks.findIndex(h => h.rows.some(r => (side === 'LEFT' ? r.t !== 'add' && r.o === line : r.t !== 'del' && r.n === line)));
   }
 
+  function sourceOf(path, n) {
+    if (!files[path]) return '';
+    const startSide = n.start_line ? n.start_side || n.side : n.side;
+    const first = n.start_line || n.line;
+    const on = (r, side, line) => (side === 'LEFT' ? r.t !== 'add' && r.o === line : r.t !== 'del' && r.n === line);
+    const keep = r => r.t !== 'meta' && (startSide !== n.side || (n.side === 'LEFT' ? r.t !== 'add' : r.t !== 'del'));
+    for (const h of parsed(path).hunks) {
+      const i = h.rows.findIndex(r => on(r, startSide, first));
+      const j = h.rows.findIndex(r => on(r, n.side, n.line));
+      if (i >= 0 && j >= i) return h.rows.slice(i, j + 1).filter(keep).map(r => r.s).join('\n');
+    }
+    const whole = startSide === 'RIGHT' && n.side === 'RIGHT' ? wholeText(parsed(path)) : null;
+    return whole ? whole.slice(first - 1, n.line).join('\n') : '';
+  }
+
   function detailsFor(path) {
     const meta = files[path] || contextFiles[path];
     return meta ? document.getElementById('f-' + meta.index) : null;
@@ -462,7 +479,7 @@ export function createDiffs(ctx) {
   });
 
   return {
-    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, parsed, wholeText, hunkAt,
+    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, parsed, wholeText, hunkAt, sourceOf,
     current: () => currentComp,
     forget: () => { currentComp = null; },
     setMode(path, mode) { fileModes[path] = mode; },

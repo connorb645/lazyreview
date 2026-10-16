@@ -17,6 +17,7 @@ import { createLineNotes } from './line-notes.mjs';
 import { createQueuePanel } from './queue-panel.mjs';
 import { createOverview } from './overview.mjs';
 import { createRefresh } from './refresh.mjs';
+import { createPassages } from './passages.mjs';
 
 export async function openReview(id) {
   const [state, page] = await Promise.all([getJSON(reviewPath(id)), getJSON(reviewPath(id, '/page'))]);
@@ -151,6 +152,7 @@ export async function openReview(id) {
   ctx.overview.render();
   countQueued();
   const refresh = createRefresh(ctx);
+  createPassages(ctx);
 
   /* ---------- routing ---------- */
   function show(route) {

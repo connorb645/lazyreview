@@ -650,6 +650,17 @@ tr.expander button:focus-visible { outline-offset: -2px; }
 .split-divider::after { content: ''; position: absolute; left: 4px; top: 0; bottom: 0; width: 1px; background: var(--border); }
 .split-divider:hover::after, .split-divider.active::after { background: var(--accent); width: 2px; }
 .mdview { padding: 16px 28px 28px; max-width: 52rem; font-size: 14.5px; line-height: 1.7; }
+.md-hint { margin: 0 0 .4em; padding-left: 15px; font-size: 12.5px; color: var(--muted); }
+.mdview .md-note > * { margin: 14px 0; }
+.mdview .md-note > .gh-away { margin: 0 0 1.2em; }
+.mdx-block.picked { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--accent) 12%, transparent); border-radius: var(--r-sm); }
+.composer-quote { margin: 0 0 12px; padding: 6px 12px; border-left: 3px solid var(--accent); color: var(--muted); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.passage-pick {
+  position: absolute; z-index: 40; margin: 0; padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  font-size: 13px; font-weight: 700; color: var(--accent-ink); border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent-end)); box-shadow: var(--shadow-pop);
+}
+.passage-pick:hover { filter: brightness(1.08); }
 .mdview code { font-family: var(--mono); font-size: .88em; background: var(--hunk-bg); border-radius: 4px; padding: .1em .35em; }
 .mdview pre { background: var(--hunk-bg); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; }
 .mdview pre code { background: none; padding: 0; font-size: 12.5px; }
@@ -823,12 +834,12 @@ tr.note-row > td > * { position: sticky; left: 18px; width: min(48rem, calc(100c
 .composer-choose { display: block; margin: 0 0 10px; font-size: 13px; color: var(--muted); }
 .composer-choose select { font: inherit; margin-left: 6px; color: var(--ink); background: var(--bg); border: 1px solid var(--border-strong); border-radius: 8px; padding: 3px 8px; }
 .composer .close { position: absolute; top: 12px; right: 12px; }
-.note-row textarea, .edit-box textarea {
+.note-row textarea, .md-note textarea, .edit-box textarea {
   display: block; width: 100%; min-height: 72px; resize: vertical; margin: 0 0 12px; padding: 10px 12px;
   font: 13.5px/1.55 var(--sans); color: var(--ink); background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--r);
 }
-.note-row textarea::placeholder, .edit-box textarea::placeholder { color: var(--muted); }
-.note-row textarea:focus-visible, .edit-box textarea:focus-visible { outline-offset: 0; border-color: transparent; }
+.note-row textarea::placeholder, .md-note textarea::placeholder, .edit-box textarea::placeholder { color: var(--muted); }
+.note-row textarea:focus-visible, .md-note textarea:focus-visible, .edit-box textarea:focus-visible { outline-offset: 0; border-color: transparent; }
 .note-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .note-status { font-size: 13px; color: var(--muted); min-width: 0; }
 .note-status.bad, .side-line.bad { color: var(--del-ink); }

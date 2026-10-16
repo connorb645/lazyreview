@@ -25,11 +25,28 @@ test('every module of the app parses', () => {
 
 test('the Rendered view marks each added or removed block, and a changed list item by item', () => {
   const html = render('# Guide\n\nOne.\n\n- a\n- b\n', '# Guide\n\nOne.\n\nTwo.\n\n- a\n- c\n');
-  assert.match(html, /<div class="mdx-block mdx-add" title="Added"><p>Two\.<\/p>/);
-  assert.match(html, /mdx-del" title="Removed"><ul>\n<li>b<\/li>/);
-  assert.match(html, /mdx-add" title="Added"><ul>\n<li>c<\/li>/);
+  assert.match(html, /<div class="mdx-block mdx-add" title="Added"[^>]*><p>Two\.<\/p>/);
+  assert.match(html, /mdx-del" title="Removed"[^>]*><ul>\n<li>b<\/li>/);
+  assert.match(html, /mdx-add" title="Added"[^>]*><ul>\n<li>c<\/li>/);
   assert.match(render(null, '# New'), /New file\./);
-  assert.match(renderParts([{ before: 'a', after: 'b' }]), /Only the changed parts/);
+  assert.match(renderParts([{ before: 'a', after: 'b', oldStart: 1, newStart: 1 }]), /Only the changed parts/);
+});
+
+test('each block and list item of the Rendered view names the source lines it was read from', () => {
+  const before = '# Guide\n\nOne\nline.\n\n- a\n- b\n\n```\ncode\n```\n';
+  const after = '# Guide\n\nOne\nline.\n\nTwo.\n\n- a\n- c\n\n```\ncode\n```\n';
+  const html = render(before, after);
+  const lines = text => (new RegExp('<div class="mdx-block[^"]*"(?: title="[^"]*")? ([^>]*)>(?:<[^>]+>\\n?)*' + text).exec(html) || [])[1];
+  assert.equal(lines('Guide'), 'data-side="RIGHT" data-from="1" data-to="1" data-text="1" data-left-from="1" data-left-to="1"');
+  assert.equal(lines('One\nline'), 'data-side="RIGHT" data-from="3" data-to="4" data-text="3" data-left-from="3" data-left-to="4"', 'a paragraph keeps its line breaks, so a sentence in it maps to its own line');
+  assert.equal(lines('Two'), 'data-side="RIGHT" data-from="6" data-to="6" data-text="6"');
+  assert.equal(lines('a<'), 'data-side="RIGHT" data-from="8" data-to="8" data-text="8" data-left-from="6" data-left-to="6"');
+  assert.equal(lines('b<'), 'data-side="LEFT" data-from="7" data-to="7" data-text="7"', 'a removed block names its lines before the change');
+  assert.equal(lines('c<'), 'data-side="RIGHT" data-from="9" data-to="9" data-text="9"');
+  assert.equal(lines('code'), 'data-side="RIGHT" data-from="11" data-to="13" data-text="12" data-left-from="9" data-left-to="11"', 'a fenced block\'s text starts after its fence');
+  assert.match(render('[x]: https://example.com\n\nOld.\n', '[x]: https://example.com\n\nNew.\n'), /data-side="RIGHT" data-from="3" data-to="3" data-text="3"><p>New\./, 'a link definition, which draws nothing, still counts its lines');
+  assert.match(renderParts([{ before: 'Old.', after: 'New.', oldStart: 40, newStart: 42 }]), /data-side="LEFT" data-from="40"[\s\S]*data-side="RIGHT" data-from="42"/);
+  assert.match(render(null, 'First.\n\nSecond.\n'), /<div class="mdx-block" data-side="RIGHT" data-from="3" data-to="3" data-text="3"><p>Second\./);
 });
 
 test('Markdown from outside the app shows raw HTML as text and keeps only safe links', () => {
