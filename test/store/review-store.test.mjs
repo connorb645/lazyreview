@@ -42,7 +42,7 @@ test('a review file that is not JSON is named in the error', () => {
     writeFileSync(folder.record, '{"id":');
     writeFileSync(folder.page, '');
     assert.throws(() => s.store.read(a), { message: `could not read ${folder.record}: Unexpected end of JSON input` });
-    assert.throws(() => s.store.readPageData(a), { message: `could not read ${folder.page}: Unexpected end of JSON input` });
+    assert.throws(() => s.store.readPage(a), { message: `could not read ${folder.page}: Unexpected end of JSON input` });
   } finally {
     s.done();
   }

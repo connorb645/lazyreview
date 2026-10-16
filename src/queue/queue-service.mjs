@@ -1,12 +1,16 @@
 /**
  * Changes a review's queue, and sends a review to GitHub from it.
  *
+ * Every change names `build`, the build id of the page its window was drawn
+ * from, and is refused once the review was loaded again since: that
+ * window's line numbers may name other code now.
+ *
  * add(ref, given) queues a comment on a line the app shows, at the line of
  * the pull request that takes it, once GitHub confirms the line is in that
- * pull request's diff and its head has not moved. edit and drop change or
- * remove a queued comment.
+ * pull request's diff and its head has not moved. edit(ref, id, {body,
+ * build}) and drop(ref, id, {build}) change or remove a queued comment.
  *
- * post(ref, {pull, action, set}) is the only way a review reaches GitHub. It
+ * post(ref, {pull, action, set, build}) is the only way a review reaches GitHub. It
  * refuses, and posts nothing, unless the queue still gives exactly the set id
  * the app showed for that action, the pull request is open, its head has not
  * moved, every comment sits on a line of its diff and none is stale, and the
@@ -19,6 +23,7 @@
 import { GitHub } from '../github/github.mjs';
 import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, placeProblem, liveMember, nextId, findComment } from './queue-rules.mjs';
 import { commentTarget } from './comment-target.mjs';
+import { checkBuild } from '../store/page-build.mjs';
 
 export class QueueService {
   #store;
@@ -32,9 +37,9 @@ export class QueueService {
   }
 
   add(ref, given) {
-    return this.#change(ref, async (review, gh) => {
-      const page = this.#store.readPageData(ref);
-      const { pull, target, shown } = commentTarget(review, page && page.stack, given);
+    return this.#change(ref, { build: given.build, refused: 'not queued' }, async (review, gh) => {
+      const { page } = this.#store.readPage(ref);
+      const { pull, target, shown } = commentTarget(review, page.stack, given);
       const member = liveMember(review, pull);
       const problems = bodyProblems(given.body);
       if (problems.length) throw new Error(`not queued: ${problems.join('; ')}`);
@@ -55,10 +60,10 @@ export class QueueService {
     });
   }
 
-  edit(ref, id, body) {
+  edit(ref, id, { body, build }) {
     const problems = bodyProblems(body);
     if (problems.length) return Promise.reject(new Error(`not changed: ${problems.join('; ')}`));
-    return this.#change(ref, async review => {
+    return this.#change(ref, { build, refused: 'not changed' }, async review => {
       const { member, comment } = findComment(review, id);
       liveMember(review, member.pull);
       comment.body = body.trim();
@@ -66,16 +71,16 @@ export class QueueService {
     }, false);
   }
 
-  drop(ref, id) {
-    return this.#change(ref, async review => {
+  drop(ref, id, { build }) {
+    return this.#change(ref, { build, refused: 'not dropped' }, async review => {
       const { member, comment } = findComment(review, id);
       member.comments = member.comments.filter(c => c !== comment);
       return { review, result: { comment, pull: member.pull } };
     }, false);
   }
 
-  post(ref, { pull, action, set }) {
-    return this.#change(ref, async (review, gh) => {
+  post(ref, { pull, action, set, build }) {
+    return this.#change(ref, { build, refused: 'nothing was posted' }, async (review, gh) => {
       if (!ACTIONS[action]) throw new Error(`"${action}" is not an action; nothing was posted`);
       const member = liveMember(review, pull);
       if (!offered(review, member).includes(action)) throw new Error(`"${action}" is not offered for #${pull}; nothing was posted`);
@@ -104,10 +109,11 @@ export class QueueService {
     });
   }
 
-  async #change(ref, work, online = true) {
+  async #change(ref, { build, refused }, work, online = true) {
     return this.#store.change([ref], async () => {
       const review = this.#store.read(ref);
       if (!review) throw new Error(`there is no review ${ref.id}`);
+      checkBuild(this.#store.pageBuild(ref), build, refused);
       const gh = online ? this.#github({ host: review.host, account: review.account }) : null;
       const done = await work(review, gh);
       return { files: [this.#store.recordWrite(ref, done.review)], result: done.result };

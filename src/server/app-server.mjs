@@ -6,6 +6,8 @@
  * the JSON the app reads and changes reviews through under /api. `loader`
  * loads pull requests again and `branches` branches. A branch review takes
  * no comments: only a pull request's review has a queue to change or post.
+ * A review's page comes with its build id, and every change but a refresh
+ * names the build its window was drawn from; a DELETE names it in its query.
  * listen() resolves once it is listening, with its address; close() stops it.
  *
  * It answers only requests addressed to this machine by name, so a page from
@@ -53,30 +55,30 @@ export class AppServer {
       ['POST', new RegExp(`^/api/reviews/${PULL}/comments$`), async (ref, body) => {
         const done = await this.#queue.add(ref, {
           path: text(body.path), line: whole(body.line), side: side(body.side), ...range(body),
-          body: text(body.body), code: typeof body.code === 'string' ? body.code : '', pull: body.pull ? whole(body.pull) : null,
+          body: text(body.body), code: typeof body.code === 'string' ? body.code : '', pull: body.pull ? whole(body.pull) : null, build: build(body),
         });
         return { comment: done.comment, pull: done.pull, state: this.#state(ref) };
       }],
       ['PATCH', new RegExp(`^/api/reviews/${PULL}/comments/(\\d+)$`), async (ref, body, id) => {
-        await this.#queue.edit(ref, Number(id), text(body.body));
+        await this.#queue.edit(ref, Number(id), { body: text(body.body), build: build(body) });
         return { state: this.#state(ref) };
       }],
       ['DELETE', new RegExp(`^/api/reviews/${PULL}/comments/(\\d+)$`), async (ref, body, id) => {
-        await this.#queue.drop(ref, Number(id));
+        await this.#queue.drop(ref, Number(id), { build: build(body) });
         return { state: this.#state(ref) };
       }],
       ['POST', new RegExp(`^/api/reviews/${PULL}/post$`), async (ref, body) => {
-        const done = await this.#queue.post(ref, { pull: whole(body.pull), action: text(body.action), set: text(body.set) });
+        const done = await this.#queue.post(ref, { pull: whole(body.pull), action: text(body.action), set: text(body.set), build: build(body) });
         return { message: done.message, review: done.review, state: this.#state(ref) };
       }],
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/threads$`), async (ref, body) => ({
         thread: await this.#threads.start(ref, {
           path: text(body.path), side: side(body.side), line: whole(body.line), ...range(body),
-          code: typeof body.code === 'string' ? body.code : '', text: text(body.text),
+          code: typeof body.code === 'string' ? body.code : '', text: text(body.text), build: build(body),
         }),
       })],
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/threads/(\\d+)/messages$`), async (ref, body, id) => ({
-        thread: await this.#threads.reply(ref, Number(id), text(body.text)),
+        thread: await this.#threads.reply(ref, Number(id), { text: text(body.text), build: build(body) }),
       })],
     ];
   }
@@ -123,7 +125,7 @@ export class AppServer {
     const match = route[1].exec(path).slice(1);
     try {
       const ref = match.length ? reviewRef(match[0]) : null;
-      const body = request.method === 'GET' || request.method === 'DELETE' ? {} : await readBody(request);
+      const body = request.method === 'GET' ? {} : request.method === 'DELETE' ? Object.fromEntries(url.searchParams) : await readBody(request);
       const answer = await route[2](...(ref ? [ref, body, ...match.slice(1)] : [body]));
       if (typeof answer === 'string') return sendRaw(response, 200, answer);
       if (answer === null || answer === undefined) return send(response, 404, { error: 'no such review' });
@@ -138,7 +140,8 @@ export class AppServer {
   }
 
   #page(ref) {
-    return this.#store.readPage(ref);
+    const read = this.#store.readPage(ref);
+    return read && { build: read.build, ...read.page };
   }
 }
 
@@ -162,6 +165,10 @@ function whole(value) {
 function range(body) {
   if (!body.start_line) return { start_line: null, start_side: null };
   return { start_line: whole(body.start_line), start_side: body.start_side ? side(body.start_side) : side(body.side) };
+}
+
+function build(body) {
+  return typeof body.build === 'string' ? body.build : null;
 }
 
 function side(value) {

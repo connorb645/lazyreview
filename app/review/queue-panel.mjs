@@ -103,7 +103,7 @@ export function createQueuePanel(ctx) {
         yes.disabled = no.disabled = true;
         status.textContent = 'Checking the pull request with GitHub, then sending…';
         try {
-          const done = await send('POST', reviewPath(ctx.state.id, '/post'), { pull: data.pull, action, set: data.sets[action] });
+          const done = await send('POST', reviewPath(ctx.state.id, '/post'), { pull: data.pull, action, set: data.sets[action], build: ctx.data.build });
           ctx.setState(done.state, done.message);
         } catch (error) {
           showButtons();
@@ -221,7 +221,7 @@ export function createQueuePanel(ctx) {
 
   async function drop(id) {
     try {
-      const done = await send('DELETE', reviewPath(ctx.state.id, '/comments/' + id));
+      const done = await send('DELETE', reviewPath(ctx.state.id, '/comments/' + id), { build: ctx.data.build });
       ctx.setState(done.state);
     } catch (error) {
       ctx.flash(error.message);
@@ -246,7 +246,7 @@ export function createQueuePanel(ctx) {
       if (act !== 'save') return;
       box.querySelectorAll('button, textarea').forEach(x => { x.disabled = true; });
       try {
-        const done = await send('PATCH', reviewPath(ctx.state.id, '/comments/' + id), { body: area.value });
+        const done = await send('PATCH', reviewPath(ctx.state.id, '/comments/' + id), { body: area.value, build: ctx.data.build });
         ctx.setState(done.state);
       } catch (error) {
         box.querySelectorAll('button, textarea').forEach(x => { x.disabled = false; });

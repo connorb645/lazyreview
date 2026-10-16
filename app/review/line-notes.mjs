@@ -295,8 +295,8 @@ export function createLineNotes(ctx) {
     busy(box, 'Claude is reading the file and the diff…');
     try {
       const done = threadId
-        ? await send('POST', reviewPath(ctx.state.id, '/threads/' + threadId + '/messages'), { text })
-        : await send('POST', reviewPath(ctx.state.id, '/threads'), { path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, code: anchor.code, text });
+        ? await send('POST', reviewPath(ctx.state.id, '/threads/' + threadId + '/messages'), { text, build: ctx.data.build })
+        : await send('POST', reviewPath(ctx.state.id, '/threads'), { path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, code: anchor.code, text, build: ctx.data.build });
       const others = ctx.state.threads.filter(t => t.id !== done.thread.id);
       if (!threadId) composer = null;
       ctx.setState({ ...ctx.state, threads: others.concat([done.thread]).sort((a, b) => a.id - b.id) });
@@ -309,7 +309,7 @@ export function createLineNotes(ctx) {
     busy(box, 'Checking the line with GitHub…');
     try {
       const done = await send('POST', reviewPath(ctx.state.id, '/comments'), {
-        path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, body: text, code: anchor.code, pull: pull || null,
+        path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, body: text, code: anchor.code, pull: pull || null, build: ctx.data.build,
       });
       if (box.closest('.composer-row')) composer = null;
       else box.querySelector('textarea').value = '';

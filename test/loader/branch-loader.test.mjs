@@ -43,7 +43,7 @@ test('a branch loads from its repository into a read-only review, kept by reposi
     assert.deepEqual(review.base, { ref: 'main', sha: b.repo.sha('main') });
     assert.deepEqual(review.head, { ref: 'feature/search', sha: b.repo.sha('feature/search') });
     assert.equal(review.start, b.repo.sha('main'));
-    const page = b.store.readPageData(loaded.ref);
+    const page = b.store.readPage(loaded.ref).page;
     assert.deepEqual(Object.keys(page.diff), ['src/search.ts']);
     assert.equal(page.stack, null);
     assert.match(page.model.heading.context.map(p => p[0]).join(''), /^Branch feature\/search on main: head [0-9a-f]{8}, merge base [0-9a-f]{8}, 1 commit$/);

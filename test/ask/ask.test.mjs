@@ -74,15 +74,25 @@ test('a conversation keeps the question, then Claude\'s answer, or why there is 
     await w.loader.load({ links: [w.link(30)] });
     const ref = new PullRef('github.com', 'octo/widgets', 30);
     const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) });
-    const thread = await threads.start(ref, { path: 'docs/guide.md', side: 'RIGHT', line: 3, code: 'The catalog lists every item.', text: ' Every? ' });
+    const build = w.store.pageBuild(ref);
+    const thread = await threads.start(ref, { path: 'docs/guide.md', side: 'RIGHT', line: 3, code: 'The catalog lists every item.', text: ' Every? ', build });
     assert.deepEqual(thread.messages.map(m => [m.from, m.text]), [['you', 'Every?'], ['claude', 'It returns early when the list is empty.']]);
     assert.match(fake.asked()[0].prompt, /Pull request #30: Fix the guide wording[\s\S]*File: docs\/guide\.md \(changed\)/);
     fake.answer(null);
-    const again = await threads.reply(ref, thread.id, 'And then?');
+    const again = await threads.reply(ref, thread.id, { text: 'And then?', build });
     assert.match(again.messages[3].error, /could not answer/);
     assert.equal(w.store.threads(ref).length, 1);
-    await assert.rejects(threads.start(ref, { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: '  ' }), /ask something first/);
-    await assert.rejects(threads.reply(ref, 9, 'Hello?'), /there is no conversation 9/);
+    await assert.rejects(threads.start(ref, { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: '  ', build }), /ask something first/);
+    await assert.rejects(threads.reply(ref, 9, { text: 'Hello?', build }), /there is no conversation 9/);
+
+    w.repo.commit('fix/wording', { 'docs/guide.md': '# Guide\n\nRead this first.\n' }, 'Again');
+    w.repo.checkout('main');
+    w.routes();
+    await w.loader.load({ links: [w.link(30)] });
+    const refused = /not asked: the review was loaded again after this window opened/;
+    await assert.rejects(threads.start(ref, { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: 'Why?', build }), refused);
+    await assert.rejects(threads.reply(ref, thread.id, { text: 'Still?', build }), refused);
+    assert.equal(w.store.threads(ref)[0].messages.length, 4, 'a refused question is not kept');
   } finally {
     fake.done();
     w.done();

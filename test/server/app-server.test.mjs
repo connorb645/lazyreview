@@ -11,7 +11,7 @@ import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 function call(address, method, path, { body, headers = {} } = {}) {
   const url = new URL(path, address);
   return new Promise((resolve, reject) => {
-    const req = request({ host: url.hostname, port: url.port, path: url.pathname, method, headers: { Host: url.host, ...headers } }, res => {
+    const req = request({ host: url.hostname, port: url.port, path: url.pathname + url.search, method, headers: { Host: url.host, ...headers } }, res => {
       const chunks = [];
       res.on('data', c => chunks.push(c));
       res.on('end', () => {
@@ -86,17 +86,22 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
     assert.deepEqual(list.map(r => [r.id, r.title, r.queued]), [['github.com/octo/widgets/30', 'Fix the guide wording', 0]]);
     const page = (await call(s.address, 'GET', `${base}/page`)).json;
     assert.deepEqual(Object.keys(page.diff), ['docs/guide.md']);
+    assert.equal(page.build, s.w.store.pageBuild(s.w.store.list()[0].ref), 'the page names its build, which each change names back');
+    const build = page.build;
     assert.equal((await call(s.address, 'GET', '/api/reviews/github.com/octo/widgets/99')).status, 404);
 
-    const added = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?' }, headers: s.own });
+    const unnamed = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?' }, headers: s.own });
+    assert.equal(unnamed.status, 409);
+    assert.match(unnamed.json.error, /does not name the page build/);
+    const added = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?', build }, headers: s.own });
     assert.equal(added.status, 200);
     assert.equal(added.json.state.queue.members[0].comments[0].body, 'Every item?');
-    const refused = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 99, side: 'RIGHT', body: 'x' }, headers: s.own });
+    const refused = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 99, side: 'RIGHT', body: 'x', build }, headers: s.own });
     assert.equal(refused.status, 409);
     assert.match(refused.json.error, /not on a line of the diff/);
-    assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 'x', side: 'UP', body: 'x' }, headers: s.own })).status, 409);
+    assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 'x', side: 'UP', body: 'x', build }, headers: s.own })).status, 409);
 
-    const edited = await call(s.address, 'PATCH', `${base}/comments/1`, { body: { body: 'Every single item?' }, headers: s.own });
+    const edited = await call(s.address, 'PATCH', `${base}/comments/1`, { body: { body: 'Every single item?', build }, headers: s.own });
     assert.equal(edited.json.state.queue.members[0].comments[0].body, 'Every single item?');
 
     s.w.routes({ extra: {
@@ -104,12 +109,13 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
       'GET repos/octo/widgets/pulls/30/comments?per_page=100&page=1': [{ pull_request_review_id: 5 }],
     } });
     const state = (await call(s.address, 'GET', base)).json;
-    const posted = await call(s.address, 'POST', `${base}/post`, { body: { pull: 30, action: 'comment', set: state.queue.members[0].sets.comment }, headers: s.own });
+    const posted = await call(s.address, 'POST', `${base}/post`, { body: { pull: 30, action: 'comment', set: state.queue.members[0].sets.comment, build }, headers: s.own });
     assert.equal(posted.json.message, 'posted 1 comment as one review: https://github.com/octo/widgets/pull/30#r5');
     assert.equal(posted.json.state.queue.members[0].posted.length, 1);
 
-    await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'One more.' }, headers: s.own });
-    const dropped = await call(s.address, 'DELETE', `${base}/comments/2`, { headers: { Origin: s.address } });
+    await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'One more.', build }, headers: s.own });
+    assert.equal((await call(s.address, 'DELETE', `${base}/comments/2`, { headers: { Origin: s.address } })).status, 409);
+    const dropped = await call(s.address, 'DELETE', `${base}/comments/2?build=${build}`, { headers: { Origin: s.address } });
     assert.deepEqual(dropped.json.state.queue.members[0].comments, []);
   } finally {
     await s.done();
@@ -120,10 +126,11 @@ test('the API asks Claude about a line and keeps the conversation', async () => 
   const s = await started();
   const base = '/api/reviews/github.com/octo/widgets/30';
   try {
-    const started = await call(s.address, 'POST', `${base}/threads`, { body: { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: 'Every?' }, headers: s.own });
+    const { build } = (await call(s.address, 'GET', `${base}/page`)).json;
+    const started = await call(s.address, 'POST', `${base}/threads`, { body: { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: 'Every?', build }, headers: s.own });
     assert.equal(started.status, 200);
     assert.deepEqual(started.json.thread.messages.map(m => m.from), ['you', 'claude']);
-    const replied = await call(s.address, 'POST', `${base}/threads/1/messages`, { body: { text: 'Sure?' }, headers: s.own });
+    const replied = await call(s.address, 'POST', `${base}/threads/1/messages`, { body: { text: 'Sure?', build }, headers: s.own });
     assert.equal(replied.json.thread.messages.length, 4);
     assert.equal((await call(s.address, 'GET', base)).json.threads.length, 1);
   } finally {
@@ -136,11 +143,11 @@ test('a branch review is served read only: its state, its page and its conversat
   try {
     const loaded = await s.branches.load({ repo: s.w.repo.work, base: 'main', head: 'fix/wording', title: 'Wording' });
     const base = '/api/reviews/' + loaded.ref.id.split('/').map(encodeURIComponent).join('/');
-    const page = await call(s.address, 'GET', '/review/' + loaded.ref.id);
-    assert.equal(page.status, 200);
+    assert.equal((await call(s.address, 'GET', '/review/' + loaded.ref.id)).status, 200);
     const state = (await call(s.address, 'GET', base)).json;
     assert.deepEqual([state.kind, state.title, state.head.ref, state.base.ref, state.queue], ['branch', 'Wording', 'fix/wording', 'main', null]);
-    assert.deepEqual(Object.keys((await call(s.address, 'GET', `${base}/page`)).json.diff), ['docs/guide.md']);
+    const page = (await call(s.address, 'GET', `${base}/page`)).json;
+    assert.deepEqual(Object.keys(page.diff), ['docs/guide.md']);
     const listed = (await call(s.address, 'GET', '/api/reviews')).json.find(r => r.id === loaded.ref.id);
     assert.deepEqual([listed.kind, listed.branch, listed.base, listed.queued], ['branch', 'fix/wording', 'main', 0]);
 
@@ -148,7 +155,7 @@ test('a branch review is served read only: its state, its page and its conversat
     assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: s.own })).status, 404);
     assert.equal((await call(s.address, 'POST', `${base}/post`, { body: { pull: 1, action: 'comment', set: 'x' }, headers: s.own })).status, 404);
 
-    const asked = await call(s.address, 'POST', `${base}/threads`, { body: { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: 'Every?' }, headers: s.own });
+    const asked = await call(s.address, 'POST', `${base}/threads`, { body: { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: 'Every?', build: page.build }, headers: s.own });
     assert.deepEqual(asked.json.thread.messages.map(m => m.from), ['you', 'claude']);
     assert.match(s.fake.asked()[0].prompt, /^Branch fix\/wording: Wording\. It has no pull request yet, and its diff is against main\.\n\nFile: docs\/guide\.md \(changed\)/);
 

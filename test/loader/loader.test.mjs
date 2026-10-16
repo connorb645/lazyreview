@@ -20,7 +20,7 @@ test('a pull request loads into a review: its record, its page and its clone', a
     assert.deepEqual(review.members.map(m => [m.pull, m.head, m.author, m.base, m.state, m.color, m.comments.length]),
       [[30, w.repo.sha('fix/wording'), 'alex', 'main', 'open', 1, 0]]);
     assert.equal(review.members[0].start, w.repo.sha('main'));
-    const page = JSON.parse(w.store.readPage(ref(30)));
+    const page = w.store.readPage(ref(30)).page;
     assert.equal(page.stack, null);
     assert.deepEqual(Object.keys(page.diff), ['docs/guide.md']);
     assert.match(page.model.heading.context.map(p => p[0]).join(''), /^Pull request #30 on main: head [0-9a-f]{8}, merge base [0-9a-f]{8}, 1 commit$/);
@@ -38,7 +38,7 @@ test('a stack loads bottom first into one review, each pull request in its own c
     const review = w.store.read(ref(21));
     assert.equal(review.title, 'Stack #21 to #22');
     assert.deepEqual(review.members.map(m => [m.pull, m.color, m.start]), [[21, 1, w.repo.sha('main')], [22, 2, w.repo.sha('feature/search')]]);
-    const page = JSON.parse(w.store.readPage(ref(21)));
+    const page = w.store.readPage(ref(21)).page;
     assert.deepEqual(page.stack.members.map(m => m.pull), [21, 22]);
     assert.deepEqual(page.model.files.find(f => f.path === 'Sources/Basket/Basket.swift').pulls, [22]);
     assert.deepEqual(page.stack.lines['Sources/Catalog/MemoryCatalog.swift'].RIGHT['9'], [21, 9]);
@@ -60,12 +60,12 @@ test('a load keeps the review threads on GitHub with the page, each on the line 
       22: { threads: [thread('T3', 'Sources/Basket/Basket.swift', 7, 'sam')] },
     } });
     await w.loader.load({ links: [w.link(21), w.link(22)] });
-    const page = JSON.parse(w.store.readPage(ref(21)));
+    const page = w.store.readPage(ref(21)).page;
     assert.deepEqual(page.threads.map(t => [t.id, t.pull, t.resolved, t.outdated, t.at && t.at.line]), [['T1', 21, false, false, 9], ['T2', 21, true, true, null], ['T3', 22, false, false, 7]]);
 
     w.routes({ extra: { 'POST graphql octo/widgets#30': { errors: [{ message: 'Resource not accessible' }] } } });
     const loaded = await w.loader.load({ links: [w.link(30)] });
-    assert.deepEqual(JSON.parse(w.store.readPage(ref(30))).threads, []);
+    assert.deepEqual(w.store.readPage(ref(30)).page.threads, []);
     assert.deepEqual(loaded.notes, ["#30's review threads on GitHub are not shown, as they could not be read: GitHub refused the review threads of octo/widgets#30: Resource not accessible"]);
     assert.deepEqual(w.store.read(ref(30)).notes, loaded.notes, 'the Review view says so too');
   } finally {
@@ -91,7 +91,7 @@ test('loading again after new commits marks the queued comments stale, and keeps
   const w = workbench();
   try {
     await w.loader.load({ links: [w.link(30)] });
-    await w.queue.add(ref(30), { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item, or every item shown?' });
+    await w.queue.add(ref(30), { build: w.store.pageBuild(ref(30)), path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item, or every item shown?' });
     w.repo.commit('fix/wording', { 'docs/guide.md': '# Guide\n\nThe catalog lists every single item.\n\n- Browse\n- Search\n' }, 'Again');
     w.repo.checkout('main');
     w.routes();
@@ -110,9 +110,9 @@ test('a stack takes in the queues of its pull requests\' own reviews, which then
   const w = workbench();
   try {
     await w.loader.load({ links: [w.link(22)] });
-    await w.queue.add(ref(22), { path: 'Sources/Basket/Basket.swift', line: 7, side: 'RIGHT', body: 'Could this be passed in?' });
+    await w.queue.add(ref(22), { build: w.store.pageBuild(ref(22)), path: 'Sources/Basket/Basket.swift', line: 7, side: 'RIGHT', body: 'Could this be passed in?' });
     await w.loader.load({ links: [w.link(21)] });
-    await w.queue.add(ref(21), { path: 'Sources/Catalog/Search.swift', line: 5, side: 'RIGHT', body: 'Is this case sensitive on purpose?' });
+    await w.queue.add(ref(21), { build: w.store.pageBuild(ref(21)), path: 'Sources/Catalog/Search.swift', line: 5, side: 'RIGHT', body: 'Is this case sensitive on purpose?' });
     const loaded = await w.loader.load({ links: [w.link(21), w.link(22)] });
     assert.equal(loaded.ref.id, 'github.com/octo/widgets/21', 'the stack lives with its lowest pull request that had a review');
     assert.match(loaded.notes.join('\n'), /#22's comment 1 is now 2/);
@@ -132,7 +132,7 @@ test('a pull request leaves a stack only with nothing queued while it is open', 
   const w = workbench();
   try {
     await w.loader.load({ links: [w.link(21), w.link(22)] });
-    await w.queue.add(ref(21), { path: 'Sources/Basket/Basket.swift', line: 7, side: 'RIGHT', body: 'Could this be passed in?' });
+    await w.queue.add(ref(21), { build: w.store.pageBuild(ref(21)), path: 'Sources/Basket/Basket.swift', line: 7, side: 'RIGHT', body: 'Could this be passed in?' });
     await assert.rejects(w.loader.load({ links: [w.link(21)] }), /#22 is still open with 1 queued comment, so it cannot leave the stack/);
     w.routes({ 21: { merged: true, state: 'closed' } });
     const refreshed = await w.loader.refresh(ref(21));
@@ -165,7 +165,7 @@ test('a components config is kept with the review and used again on the next loa
     const config = { components: [{ id: 'catalog', title: 'Catalog', paths: ['Sources/Catalog/'] }] };
     await w.loader.load({ links: [w.link(21)], config, context: true });
     await w.loader.load({ links: [w.link(21)] });
-    const page = JSON.parse(w.store.readPage(ref(21)));
+    const page = w.store.readPage(ref(21)).page;
     assert.deepEqual(page.model.components.map(c => c.title), ['Catalog', 'Unchanged code']);
     assert.equal(w.store.read(ref(21)).context, true, 'the choice of context is kept too');
     assert.deepEqual(JSON.parse(readFileSync(w.home.review(ref(21)).config, 'utf8')), config);

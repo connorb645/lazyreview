@@ -6,7 +6,8 @@
  * was or as it is now, never empty or half written. A failure leaves `path`
  * as it was. readText(path) returns a file's text and readJSON(path) its
  * value, each null when there is no such file; a file that is not JSON
- * throws an error naming it.
+ * throws an error naming it. parseJSON(path, text) reads the value of text
+ * already read from `path`, with the same error.
  */
 import { readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -33,7 +34,10 @@ export function readText(path) {
 
 export function readJSON(path) {
   const text = readText(path);
-  if (text === null) return null;
+  return text === null ? null : parseJSON(path, text);
+}
+
+export function parseJSON(path, text) {
   try {
     return JSON.parse(text);
   } catch (error) {

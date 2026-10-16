@@ -10,7 +10,8 @@
 import { rmSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { withLocks } from './file-lock.mjs';
-import { writeWhole, readText, readJSON } from './whole-file.mjs';
+import { writeWhole, readText, readJSON, parseJSON } from './whole-file.mjs';
+import { pageBuild } from './page-build.mjs';
 import { PullRef } from '../github/pull-ref.mjs';
 import { BranchRef } from '../local/branch-ref.mjs';
 
@@ -30,14 +31,17 @@ export class ReviewStore {
     return readJSON(this.#home.review(ref).record);
   }
 
-  /** The page data of a review, as JSON text, or null. */
+  /** The page data of a review with its build id, as {build, page}, or null. */
   readPage(ref) {
-    return readText(this.#home.review(ref).page);
+    const path = this.#home.review(ref).page;
+    const text = readText(path);
+    return text === null ? null : { build: pageBuild(text), page: parseJSON(path, text) };
   }
 
-  /** The page data of a review, or null. */
-  readPageData(ref) {
-    return readJSON(this.#home.review(ref).page);
+  /** The build id of a review's page, or null when it has none. */
+  pageBuild(ref) {
+    const text = readText(this.#home.review(ref).page);
+    return text === null ? null : pageBuild(text);
   }
 
   readWritten(ref) {
