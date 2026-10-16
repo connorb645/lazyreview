@@ -1,0 +1,30 @@
+ Diagram › widgets › Sources                                                        [All]  #21  #22
+
+  ╭▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀╮
+  │ MemoryCatalog               │
+  │ MemoryCatalog.swift changed │
+  ╰─────────────────────────────╯
+
+
+  ┏━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃ Basket               ┃
+  ┃ Basket.swift changed ┃
+  ┗━━━━━━━━━━━┯━━━━━━━┯━━┛
+              │       └─▶ holds catalog Catalog · in Unchanged code
+              │
+              │ holds search
+              │
+  ╭▀▀▀▀▀▀▀▀▀▀▀▼▀▀▀▀▀▀╮
+  │ «struct» Search  │
+  │ Search.swift new │
+  ╰──────────────────╯
+
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Basket · 2 links                                                                                 │
+│ out  Basket ─ holds catalog ─▶ Catalog · in Unchanged code                                       │
+│ out  Basket ─ holds search ─▶ Search                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+ NORMAL  Basket · class · Sources/Basket/Basket.swift · changed in #22
+ j k move   Enter go   q close

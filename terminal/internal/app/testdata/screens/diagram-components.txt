@@ -1,0 +1,30 @@
+ Diagram                                                                            [All]  #21  #22
+
+  ┏━━━━━━━━━━━━━━━━━┓
+  ┃ widgets         ┃
+  ┃ 4 files +15 −1  ┃
+  ┗━━━━━━━━┯━━━━━━━━┛
+           │
+           │ → 5 links
+           │
+  ╭┄┄┄┄┄┄┄┄▼┄┄┄┄┄┄┄┄┄┄┄┄╮
+  ┆ Unchanged code      ┆
+  ┆ 1 file · unchanged  ┆
+  ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ NORMAL  widgets · component · 4 files +15 −1
+ h j k l move   Enter in   Space d diff   / find   f labels   - Review view   Space ? keys

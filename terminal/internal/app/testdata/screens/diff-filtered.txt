@@ -1,13 +1,4 @@
  widgets › Sources/Catalog/MemoryCatalog.swift                                      All  [#21]  #22
-  ▾ Sources/Catalog/MemoryCatalog.swift  changed  #21  +4 −0
-   ··· 3 unchanged lines ···  zo
-   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {
-     4    4       func items() -> [Item] {
-     5    5           stored
-     6    6       }
- ▎        7 +
- ▎        8 +     func add(_ item: Item) {
- ▎        9 +         stored.append(item)
 ▌▎       10 +     }
      7   11   }
   ▾ Sources/Catalog/Search.swift  new  #21  +7 −0
@@ -19,6 +10,15 @@
  ▎        5 +         catalog.items().filter { $0.name.contains(text) }
  ▎        6 +     }
  ▎        7 + }
+
+
+
+
+
+
+
+
+
 
 
 

@@ -27,6 +27,8 @@ func (a App) titleLine() string {
 	case a.screen == screenReviews:
 	case d == nil:
 		left, right = " "+p.Bold.Render("Review"), ""
+	case a.screen == screenDiagram:
+		left, right = a.diagramTitle(), a.filterPills()
 	case a.screen == screenDiff:
 		left, right = " "+p.Bold.Render(componentTitle(*d, a.diff.component)), a.filterPills()
 		if path := a.diff.file(); path != "" {
@@ -85,6 +87,10 @@ func (a App) bodyLines() []string {
 		out = append(out, "", " "+a.p.Muted.Render("No review is open. gh lists every review."))
 	case a.screen == screenDiff:
 		out = diffLines(*a.review, a.diff, h, a.filter, a.p)
+	case a.screen == screenDiagram && len(a.dg.level.Cards) == 0:
+		out = append(out, "", " "+a.p.Muted.Render("Nothing to draw: this change has no parts the diagram knows."))
+	case a.screen == screenDiagram:
+		out = a.dg.lines(*a.review, a.width, h, a.filter, a.styles)
 	default:
 		for i := view.top; i < view.top+h && i < len(view.lines); i++ {
 			l := view.lines[i]
@@ -124,6 +130,10 @@ func (a App) statusLine() string {
 		}
 	case screenDiff:
 		place = a.diffPlace()
+	case screenDiagram:
+		if a.review != nil {
+			place = a.boxWords()
+		}
 	}
 	left := " " + p.Key.Render("NORMAL") + "  " + p.Muted.Render(place)
 	right := p.Muted.Render(a.keys.Typed()) + " "
@@ -145,8 +155,16 @@ func (a App) hintLine() string {
 		for _, k := range a.bindings().After("space") {
 			hints = append(hints, [2]string{"Space " + k[0], leaderWords[k[1]]})
 		}
+	case a.panel != nil && a.panel.finding:
+		hints = [][2]string{{"type", "narrow"}, {"Ctrl-n Ctrl-p", "move"}, {"Enter", "go"}, {"Esc", "close"}}
+	case a.panel != nil && len(a.panel.rows) > 0 && a.panel.rows[0].open != nil:
+		hints = [][2]string{{"j k", "move"}, {"Enter", "go"}, {"q", "close"}}
 	case a.panel != nil:
 		hints = [][2]string{{"j k", "move"}, {"q", "close"}}
+	case a.screen == screenDiagram && a.dg.labels != nil:
+		hints = [][2]string{{"a label", "jumps to its box"}, {"Esc", "stop"}}
+	case a.screen == screenDiagram:
+		hints = a.diagramHints()
 	case a.screen == screenReview:
 		hints = [][2]string{{"j k", "move"}, {"Enter", "open"}, {"]] [[", "sections"}, {"za", "fold"}, {"gh", "every review"}, {"Space ?", "keys"}, {":q", "quit"}}
 	case a.screen == screenDiff:

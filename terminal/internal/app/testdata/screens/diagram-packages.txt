@@ -1,0 +1,30 @@
+ Diagram › widgets                                                                  [All]  #21  #22
+
+  ┏━━━━━━━━━━━━┓                ╭────────────╮
+  ┃ Sources    ┃                │ web / src  │
+  ┃ 3 types    ┃                │ 1 file     │
+  ┗━━━━━━━━━━━━┛                ╰────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ NORMAL  Sources · package · 3 types
+ h j k l move   Enter in   Space d diff   / find   f labels   - out   Space ? keys

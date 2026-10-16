@@ -107,6 +107,26 @@ func (v diffView) scroll(by, height int) diffView {
 
 // shown moves the first row shown so the cursor's row shows, counting the
 // lines a wrapped row takes.
+// placed shows the cursor a third of the way down a screen height rows
+// high, as a jump does, or as far down as the rows below it leave room for.
+func (v diffView) placed(height int) diffView {
+	used := func(from, to int) int {
+		n := 0
+		for i := from; i <= to && i < len(v.rows); i++ {
+			n += rowHeight(v.rows[i], v)
+		}
+		return n
+	}
+	v.top = v.cursor
+	for v.top > 0 && used(v.top-1, v.cursor-1) < height/3 {
+		v.top--
+	}
+	for v.top > 0 && used(v.top-1, len(v.rows)-1) <= height {
+		v.top--
+	}
+	return v
+}
+
 func (v diffView) shown(height int) diffView {
 	if v.cursor < v.top {
 		v.top = v.cursor

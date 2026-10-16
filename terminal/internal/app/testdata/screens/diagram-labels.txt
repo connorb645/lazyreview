@@ -1,0 +1,30 @@
+ Diagram › widgets › Sources                                                        [All]  #21  #22
+
+  ┏a━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃ MemoryCatalog               ┃
+  ┃ MemoryCatalog.swift changed ┃
+  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━┛
+                             ├─▶ conforms to Catalog · in Unchanged code
+                             └─▶ holds stored Item · in Unchanged code
+
+
+  ╭s▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀╮
+  │ Basket               │
+  │ Basket.swift changed │
+  ╰───────────┬──────────╯
+              │
+              │
+  ╭d▀▀▀▀▀▀▀▀▀▀▼▀▀▀▀▀▀╮
+  │ «struct» Search  │
+  │ Search.swift new │
+  ╰──────────────────╯
+
+
+
+
+
+
+
+
+ NORMAL  MemoryCatalog · class · Sources/Catalog/MemoryCatalog.swift · changed in #21
+ a label jumps to its box   Esc stop

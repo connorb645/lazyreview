@@ -14,11 +14,11 @@
 │ :              the command line: :q quits, :q! quits and drops drafts                            │
 │ Space ?        lists the keys of this view                                                       │
 │ Space v        the Review view                                                                   │
+│ Space m        the diagram                                                                       │
+│ Space f        finds a file, type or component by name                                           │
 │ gh             every review                                                                      │
 │ gx             opens the pull request, or the thread at the cursor, on GitHub                    │
 │ gX             opens this place in the web app                                                   │
-│ ]p [p          the next or previous pull request filter on a stack: All, then each one           │
-│ Ctrl-o Ctrl-i  back and forward through jumps                                                    │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
  NORMAL  every review
  j k move   q close

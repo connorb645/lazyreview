@@ -1,7 +1,6 @@
 package app
 
 import (
-	"strconv"
 	"strings"
 	"testing"
 )
@@ -14,10 +13,6 @@ func cursorAt(a App) string {
 		return r.path + " " + r.kind
 	}
 	return r.path + " " + side + " " + itoa(line)
-}
-
-func itoa(n int) string {
-	return strconv.Itoa(n)
 }
 
 func openedOnComment(t *testing.T) App {

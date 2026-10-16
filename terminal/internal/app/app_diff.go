@@ -43,7 +43,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 	}
 	a.diff = a.diff.rebuilt(*a.review, a.filter, a.bodyHeight())
 	if place != nil {
-		a.diff = a.diff.find(*place).shown(a.bodyHeight())
+		a.diff = a.diff.find(*place).placed(a.bodyHeight())
 	} else {
 		a.diff = a.diff.to(0, a.bodyHeight())
 	}
@@ -154,6 +154,8 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 			v.wrap = !v.wrap
 		}
 		a.diff = v.rebuilt(*a.review, a.filter, h)
+	case "show type":
+		return a.showType()
 	case "whole":
 		path := v.file()
 		entry := fileEntry(*a.review, path)
@@ -291,8 +293,12 @@ func (a App) pullCommand(arg string) App {
 
 func (a App) here() jump {
 	j := jump{screen: a.screen, item: a.rv.view.cursor, component: a.diff.component}
-	if a.screen == screenDiff {
+	switch a.screen {
+	case screenDiff:
 		j.place = a.diff.place()
+	case screenDiagram:
+		at := a.dg.place()
+		j.box = &at
 	}
 	return j
 }
@@ -328,6 +334,8 @@ func (a App) jumpBy(back bool) (tea.Model, tea.Cmd) {
 		a.screen = screenReview
 		a.rv.view = a.rv.view.to(j.item, a.bodyHeight())
 		return a.relaid(), nil
+	case screenDiagram:
+		return a.showBox(*j.box), nil
 	}
 	a.screen = j.screen
 	return a.relaid(), nil

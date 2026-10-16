@@ -1,0 +1,30 @@
+ Diagram › widgets › Sources                                                        [All]  #21  #22
+
+  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃ MemoryCatalog               ┃
+  ┃ MemoryCatalog.swift changed ┃
+  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━┛
+                             ├─▶ conforms to Catalog · in Unchanged code
+                             └─▶ holds stored Item · in Unchanged code
+
+
+  ╭▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀╮
+  │ Basket               │
+  │ Basket.swift changed │
+  ╰───────────┬──────────╯
+              │
+              │
+  ╭▀▀▀▀▀▀▀▀▀▀▀▼▀▀▀▀▀▀╮
+  │ «struct» Search  │
+  │ Search.swift new │
+  ╰──────────────────╯
+
+
+
+
+
+
+
+
+ NORMAL  MemoryCatalog · class · Sources/Catalog/MemoryCatalog.swift · changed in #21
+ Enter diff   gd follow   Space l links   Space p properties   - out   Space ? keys

@@ -1,0 +1,40 @@
+ Diagram › Core › Model
+
+  ╭─────────────────────╮                ╭──────────────────────╮                ╭─────────────────────╮
+  │ Order               ├───────────────▶│ Ledger               │                │ Clock               │
+  │ Order.swift changed │◀───────────────┤ Ledger.swift changed │                │ Clock.swift changed │
+  ╰──────────┬──────────╯                ╰──────────────────────╯                ╰───────┬─────▲───────╯
+             │                                                                           │     │
+             ╰─────────────╮                                                             │     │
+        ticks ╭────────────┼─────────────────────────────────────────────────────────────╯     │
+              │            │                                             ╭─────────────────────╯
+              │            │                                             │
+  ╭───────────▼──────────╮ │              ╭──────────────────────╮       │
+  │ Pricer               ├─┼─────────────▶│ Refunds              │       │
+  │ Pricer.swift changed │ │              │ a group of 2 changed │       │
+  ╰──────────────────────╯ │              ╰──────────────────────╯       │
+                           │                                             │
+  conforms to ╭────────────╯                                             │
+              │                                        ╭─────────────────╯
+              │                                        │
+  ┏━━━━━━━━━━━▼━━━━━━━━━━━┓                ╭───────────┴───────────╮
+  ┃ Invoice               ┃                │ Receipt               │
+  ┃ Invoice.swift changed ┃                │ Receipt.swift changed │
+  ┗━━━━━━━━━━━━━━━━━━━━━━━┛                ╰───────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ NORMAL  Invoice · class · Sources/Core/Invoice.swift · changed
+ Enter diff   gd follow   Space l links   Space p properties   - out   Space ? keys

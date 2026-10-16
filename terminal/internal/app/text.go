@@ -84,6 +84,10 @@ func linesWords(side string, line, startLine int, startSide string) string {
 	return fmt.Sprintf("%ss %d-%d", name(side), startLine, line)
 }
 
+func itoa(n int) string {
+	return fmt.Sprint(n)
+}
+
 func stripped(line string) string {
 	return ansi.Strip(line)
 }

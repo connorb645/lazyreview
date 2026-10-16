@@ -1,0 +1,30 @@
+ Diagram › Unchanged code › Catalog                                                 [All]  #21  #22
+
+  ╭─────────────────────────╮     uses       ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  │ «protocol» Catalog      ├───────────────▶┃ «struct» Item           ┃
+  │ Catalog.swift unchanged │                ┃ Catalog.swift unchanged ┃
+  ╰─────────────────────────╯                ┗━━━━━━━━━━━━━━━━━━━━━━┯━━┛
+                                                                    ├◀─ MemoryCatalog holds stored ·
+                                                                    └◀─ Search uses · in widgets › S
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ What links to Item                                                                               │
+│ in  MemoryCatalog ─ holds stored ─▶ Item · in widgets › Sources                                  │
+│ in  Search ─ uses ─▶ Item · in widgets › Sources                                                 │
+│ in  Catalog ─ uses ─▶ Item                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+ NORMAL  Item · struct · Sources/Catalog/Catalog.swift · unchanged
+ j k move   Enter go   q close

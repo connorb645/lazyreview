@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 
 	"review-desk/terminal/internal/keys"
 	"review-desk/terminal/internal/server"
@@ -33,6 +34,8 @@ type App struct {
 	review     *reviewData
 	rv         reviewView
 	diff       diffView
+	dg         diagramView
+	styles     map[string]lipgloss.Style
 	files      map[string]server.File
 	filter     int
 	cameFrom   screen
@@ -62,7 +65,8 @@ func New(opts Options) App {
 	if opts.Open == nil {
 		opts.Open = openInBrowser
 	}
-	a := App{opts: opts, p: newPalette(opts.Dark), md: newMarkdown(opts.Dark), loading: true, rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}}
+	p := newPalette(opts.Dark)
+	a := App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: true, rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}}
 	if opts.Review != "" {
 		a.screen = screenReview
 	}
@@ -98,7 +102,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		a.review = &msg.data
 		a.screen = screenReview
-		a.files, a.diff, a.filter = map[string]server.File{}, diffView{}, 0
+		a.files, a.diff, a.dg, a.filter = map[string]server.File{}, diffView{}, diagramView{}, 0
 		return a.relaid(), nil
 	case filesLoaded:
 		a.loading = false
@@ -134,8 +138,16 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return a.promptKey(msg)
 	}
 	name := keyName(msg)
+	if a.panel != nil && a.panel.finding {
+		return a.finderKey(msg)
+	}
+	if a.screen == screenDiagram && a.dg.labels != nil {
+		return a.labelKey(name), nil
+	}
 	if a.panel != nil {
 		switch name {
+		case "enter":
+			return a.openRow()
 		case "j", "down":
 			moved := a.panel.move(1, a.panelRows())
 			a.panel = &moved
@@ -148,6 +160,7 @@ func (a App) key(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			a.panel = nil
 			return a, nil
 		}
+		a.panel = nil
 	}
 	var res keys.Result
 	a.keys, res = a.keys.Read(name, a.bindings())
@@ -166,6 +179,8 @@ func (a App) bindings() keys.Bindings {
 		return everyView.With(reviewKeys)
 	case screenDiff:
 		return everyView.With(diffKeys)
+	case screenDiagram:
+		return everyView.With(diagramKeys)
 	}
 	return everyView.With(listKeys)
 }
@@ -193,6 +208,10 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 		a = a.leave()
 		a.screen = screenReview
 		return a.relaid(), nil
+	case "diagram":
+		return a.openDiagram(), nil
+	case "finder":
+		return a.openFinder(), nil
 	case "next pull":
 		return a.filterBy(count), nil
 	case "previous pull":
@@ -211,6 +230,8 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 		return a.listAction(action, count, h)
 	case screenDiff:
 		return a.diffAction(action, count, counted, h)
+	case screenDiagram:
+		return a.diagramAction(action, count)
 	}
 	return a.reviewAction(action, count, h)
 }
@@ -351,7 +372,7 @@ func (a App) opened(address string) (tea.Model, tea.Cmd) {
 }
 
 func (a App) showKeys() App {
-	rows := map[screen][]helpRow{screenReviews: listHelp, screenReview: reviewHelp, screenDiff: diffHelp}[a.screen]
+	rows := map[screen][]helpRow{screenReviews: listHelp, screenReview: reviewHelp, screenDiff: diffHelp, screenDiagram: diagramHelp}[a.screen]
 	rows = append(rows, everyViewHelp...)
 	pn := panel{title: "Keys of this view"}
 	for _, r := range rows {
@@ -383,6 +404,9 @@ func (a App) promptKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case kind == "/" && a.screen == screenReviews:
 			a.reviews.query = typed
 			return a.listAction("next match", 1, a.bodyHeight())
+		case a.screen == screenDiagram && (kind == "/" || kind == "?"):
+			a.dg.query = typed
+			return a.findBox(a.searchBack)
 		case kind == "/" || kind == "?":
 			a.diff.query = typed
 			return a.matchNext(a.searchBack)
@@ -427,8 +451,19 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			a.rv.view = a.rv.view.scroll(by, h)
 		case screenDiff:
 			a.diff = a.diff.scroll(by, h)
+		case screenDiagram:
+			a.dg = a.dg.scrolled(*a.review, 0, by, a.width, h, a.filter)
 		default:
 			a.reviews.view = a.reviews.view.scroll(by, h)
+		}
+		return a, nil
+	case tea.MouseButtonWheelLeft, tea.MouseButtonWheelRight:
+		if a.screen == screenDiagram {
+			by := 6
+			if msg.Button == tea.MouseButtonWheelLeft {
+				by = -6
+			}
+			a.dg = a.dg.scrolled(*a.review, by, 0, a.width, h, a.filter)
 		}
 		return a, nil
 	case tea.MouseButtonLeft:
@@ -440,6 +475,15 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		double := y == a.clickedY && now.Sub(a.clickedAt) < doubleClick
 		a.clickedAt, a.clickedY = now, y
 		switch a.screen {
+		case screenDiagram:
+			if i := a.dg.boxAt(*a.review, msg.X, y, a.filter); i >= 0 {
+				a.dg.focus = i
+				a = a.diagramShown()
+				if double {
+					return a.stepIn()
+				}
+			}
+			return a, nil
 		case screenDiff:
 			if i := a.diff.rowAt(y); i >= 0 {
 				a.diff = a.diff.to(i, h)
@@ -473,6 +517,9 @@ func (a App) relaid() App {
 		return a
 	}
 	h := a.bodyHeight()
+	if a.screen == screenDiagram && a.review != nil {
+		return a.diagramShown()
+	}
 	if a.screen == screenDiff && a.review != nil && a.diff.files != nil {
 		a.diff.width = a.width
 		a.diff = a.diff.rebuilt(*a.review, a.filter, h)

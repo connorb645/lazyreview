@@ -168,19 +168,60 @@ does. The app is a Go program in `terminal/`, built on this machine the first
 time it runs and again whenever its code changes; building it needs Go 1.24 or
 later, and its libraries are vendored, so the build reaches no network.
 
-`Space ?` lists the keys of the view you are in. To begin with:
+`Space ?` lists the keys of the view you are in. A count goes before a move,
+such as `5j` or `3]c`.
+
+Every view:
 
 | Key | Does |
 | --- | --- |
-| `j` `k` `gg` `G` | move, with a count such as `5j` |
-| `Enter` | opens the review at the cursor |
+| `Space v` | the Review view |
+| `Space m` | the diagram |
+| `Space f` | finds a file, type or component as you type; `Ctrl-n` `Ctrl-p` move, `Enter` goes there |
+| `gh` | every review |
+| `]p` `[p` | the next or previous pull request filter on a stack |
+| `Ctrl-o` `Ctrl-i` | back and forward through jumps |
+| `gx` `gX` | opens the pull request on GitHub, or this place in the web app |
+| `q` `Esc` | closes a list |
+| `:q` `ZZ` | quit |
+
+Every review and the Review view:
+
+| Key | Does |
+| --- | --- |
+| `j` `k` `gg` `G` | move |
+| `Enter` | opens the review, or the item at the cursor in its diff |
 | `]]` `[[` | the next or previous section of the Review view |
 | `za` | folds or unfolds a section |
-| `Space v` | the Review view |
-| `gh` | every review |
 | `/` `n` `N` | find a review |
-| `gx` `gX` | opens the pull request on GitHub, or this place in the web app |
-| `:q` `ZZ` | quit |
+
+The diagram shows the components, then the packages of one, then the types of
+one package, as rows of boxes:
+
+| Key | Does |
+| --- | --- |
+| `h` `j` `k` `l` | the nearest box left, down, up or right |
+| `w` `b` `gg` `G` | the next, previous, first or last box |
+| `Enter` `-` | steps in or out; on a type, `Enter` opens its diff |
+| `gd` `gr` | follows a link of the box, or lists what links to it |
+| `/` `?` `n` `N` | finds a type or file at any level |
+| `f` | labels every box; typing a label jumps there |
+| `Space l` `Space p` | lists the box's links, or its properties |
+| `Space d` | opens the box's diff |
+| `Space a` | draws every link faintly, or stops |
+
+The diff shows one component's files:
+
+| Key | Does |
+| --- | --- |
+| `j` `k` `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` | move by a line, half a page or a page |
+| `gg` `G` `{n}G` `:{n}` | the top, the bottom, or line n of this file |
+| `]c` `[c` `]f` `[f` | the next or previous hunk or file |
+| `/` `?` `n` `N` | search the text |
+| `za` `zo` `zc` `zR` `zM` | fold a file or a run of unchanged lines |
+| `gd` | shows the type at the cursor on the diagram |
+| `Space s` `Space w` `Space o` | split or unified, wrap, the whole file |
+| `-` | back to where it was opened from |
 
 The server writes a token into `server.json` at each start, which only its
 owner can read, and the terminal app sends it with each change.
