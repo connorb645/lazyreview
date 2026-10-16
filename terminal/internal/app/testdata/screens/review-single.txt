@@ -1,0 +1,14 @@
+ Fix the guide wording › Review
+ Pull request #30 by alex
+ Fix the guide wording
+ Base main · Head 058ff259 · 2 files +18 −1
+
+ No written review is attached. The diagram and the diffs hold the change.
+
+▌▾ Queued comments
+   1 docs/guide.md, line 3
+     │ The catalog lists every item.
+     Every item, or every item shown?
+
+ NORMAL  Review · Queued comments
+ j k move   ]] [[ sections   za fold   gh every review   Space ? keys   :q quit

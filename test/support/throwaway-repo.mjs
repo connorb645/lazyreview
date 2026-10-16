@@ -7,7 +7,8 @@
  *   origin          the bare origin's path, the address a clone fetches from
  *   commit(branch, files, message)
  *                   writes `files` ({path: text}, null deletes) on `branch`,
- *                   made from the current branch when new, and commits
+ *                   made from the current branch when new, and commits, at
+ *                   a fixed time, so the same files give the same commit
  *   checkout(branch)
  *   sha(ref)        the commit a ref names in the working clone
  *   publish(pulls)  pushes every branch to origin and points
@@ -19,11 +20,14 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, unlinkSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 
+// Every commit is made at one time, so the same files and messages always give the same commits.
+const FIXED_TIME = { GIT_AUTHOR_DATE: '2026-10-15T12:00:00Z', GIT_COMMITTER_DATE: '2026-10-15T12:00:00Z' };
+
 export function throwawayRepo() {
   const root = mkdtempSync(join(tmpdir(), 'review-desk-repo-'));
   const work = join(root, 'work');
   const origin = join(root, 'origin.git');
-  const git = (cwd, ...args) => execFileSync('git', ['-C', cwd, '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { encoding: 'utf8' }).trim();
+  const git = (cwd, ...args) => execFileSync('git', ['-C', cwd, '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { encoding: 'utf8', env: { ...process.env, ...FIXED_TIME } }).trim();
   mkdirSync(work);
   git(work, 'init', '-q', '-b', 'main');
   execFileSync('git', ['init', '-q', '--bare', origin]);

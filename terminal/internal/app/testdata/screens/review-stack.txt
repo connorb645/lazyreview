@@ -1,0 +1,60 @@
+ Search, then a basket › Review                                                            #21  #22
+ A stack of 2 pull requests, each built on the one before, reviewed together
+ Search, then a basket
+  #21  Add search to the catalog  by sam · on main · head ec6fb42d · 2 files +11 −0
+  #22  Add a basket that uses search  by sam · on feature/search · head cd3c7027 · 2 files +4 −1
+ Base main · Head cd3c7027 · Combined: 4 files +15 −1
+
+▌▾ What this changes
+   #21 adds a search over the catalog in Search.swift:4. #22 gives the basket a search of its
+   own, in Basket.swift:7. [Likely]
+   → Search.swift:4  Sources/Catalog/Search.swift line 4
+   → Basket.swift:7  Sources/Basket/Basket.swift line 7
+
+ ▾ Risks
+   MemoryCatalog.swift:9 appends without checking for duplicates. [Guessing]
+   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift line 9
+
+ ▾ Queued comments
+ A comment goes on the pull request that last changed its line, shown as → #number.
+
+  #21  Add search to the catalog
+   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10
+     │     func add(_ item: Item) {
+     │         stored.append(item)
+     │     }
+     Keep the order items came in.
+
+  #22  Add a basket that uses search
+   2 → #22 Sources/Basket/Basket.swift, removed line 9 to line 11
+     │         0
+     │         1
+     Why one?
+
+ ▾ On GitHub
+ 2 review threads, 1 unresolved, as GitHub had them when this review was loaded.
+   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment
+     Should this keep the order items were added in?
+   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved
+     Could the search be passed in?
+
+ ▾ Conversations
+   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages
+     Could this be passed in?
+     It returns early when the list is empty.
+
+ ▾ The change
+   ■ widgets  4 files +15 −1
+   ■ Unchanged code  1 file · unchanged
+
+
+
+
+
+
+
+
+
+
+ NORMAL  Review · What this changes
+ j k move   ]] [[ sections   za fold   gh every review   Space ? keys   :q quit

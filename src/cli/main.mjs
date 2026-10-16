@@ -2,12 +2,16 @@
  * The review-desk command.
  *
  * run(argv, {env, bin}) does what the command line asks and returns the lines
- * to print. `serve` keeps running until it is stopped. Every other command
- * returns once done; `load` starts the app in the background first when it
- * is not running, so its address is ready to open. `load` reads pull requests
+ * to print. `serve` keeps running until it is stopped, and `terminal` until
+ * the terminal app quits. Every other command returns once done; `load` and
+ * `terminal` start the app in the background first when it is not running.
+ * The server records its address and a token in server.json, which only its
+ * owner can read; a client such as the terminal app sends the token with
+ * each change. `load` reads pull requests
  * from GitHub, or with --repo a branch from a repository on this machine.
  */
 import { readFileSync, rmSync, mkdirSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { parseArguments, USAGE } from './arguments.mjs';
 import { readSettings } from '../settings/settings.mjs';
 import { DataHome } from '../store/data-home.mjs';
@@ -23,6 +27,8 @@ import { AppServer } from '../server/app-server.mjs';
 import { running, start, stop } from '../server/server-process.mjs';
 import { PullRef } from '../github/pull-ref.mjs';
 import { readWrittenReview, checkWrittenReview } from '../review/written-review.mjs';
+import { reviewRef } from '../review/review-ref.mjs';
+import { TerminalApp } from '../terminal/terminal-app.mjs';
 
 export async function run(argv, { env = process.env, bin }) {
   const options = parseArguments(argv);
@@ -70,6 +76,12 @@ export async function run(argv, { env = process.env, bin }) {
         ? `${ref.id}  moved to ${review.moved.to}`
         : `${reviewAddress(address, ref)}  ${changeName(review)}  ${review.title}`));
     }
+    case 'terminal': {
+      const review = options.positional[0] ? reviewNamed(options.positional[0], store) : null;
+      if (!(await running(home))) await start({ home, bin, env });
+      await new TerminalApp().launch({ serverFile: home.serverFile, review, env });
+      return [];
+    }
     case 'start': {
       const address = (await running(home)) || (await start({ home, bin, env }));
       return [`running at ${address}`];
@@ -85,16 +97,18 @@ export async function run(argv, { env = process.env, bin }) {
 
 async function serve({ settings, home, store }) {
   if (await running(home)) throw new Error('the app is running already; review-desk stop stops it');
+  const token = randomBytes(32).toString('hex');
   const server = new AppServer({
     store,
     loader: new Loader({ store, clones: new Clones(home) }),
     branches: new BranchLoader({ store }),
     queue: new QueueService({ store }),
     threads: new ThreadService({ store, claude: new Claude({ ...settings.claude, folder: home.root }) }),
+    token,
     port: settings.port,
   });
   const address = await server.listen();
-  writeWhole(home.serverFile, JSON.stringify({ pid: process.pid, address }) + '\n');
+  writeWhole(home.serverFile, JSON.stringify({ pid: process.pid, address, token }) + '\n', { mode: 0o600 });
   const shut = async () => {
     try {
       const recorded = readJSON(home.serverFile);
@@ -117,6 +131,20 @@ function changeName(review) {
 
 function reviewAddress(address, ref) {
   return `${address}/review/${ref.id.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+// The id of the review a review id, its address in the app, or a pull request link names.
+function reviewNamed(text, store) {
+  const address = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/review\/(.+?)\/*$/.exec(text);
+  if (address) return reviewNamed(address[1].split('/').map(decodeURIComponent).join('/'), store);
+  if (/^https?:\/\//.test(text)) {
+    const found = store.find(PullRef.parse(text));
+    if (!found) throw new Error(`${text} is not loaded; load it first`);
+    return found.ref.id;
+  }
+  const ref = reviewRef(text);
+  if (!store.read(ref)) throw new Error(`there is no review ${text}; review-desk list shows every review`);
+  return ref.id;
 }
 
 function readConfigFile(path) {

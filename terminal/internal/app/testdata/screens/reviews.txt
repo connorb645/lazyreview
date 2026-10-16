@@ -1,0 +1,16 @@
+ Every review                                                                             2 reviews
+▌Fix the guide wording
+▌  #30 · octo/widgets · loaded 15 Oct, 12:00 · 1 queued comment
+
+ Stack #21 to #22
+   #21, #22 · octo/widgets · loaded 15 Oct, 12:00 · 2 queued comments
+
+
+
+
+
+
+
+
+ NORMAL  every review
+ j k move   Enter open   / find   Space ? keys   :q quit

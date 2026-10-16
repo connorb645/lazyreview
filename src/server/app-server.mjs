@@ -1,7 +1,7 @@
 /**
  * The app's web server, for this machine only.
  *
- * new AppServer({store, loader, branches, queue, threads, events, port}) serves the
+ * new AppServer({store, loader, branches, queue, threads, events, token, port}) serves the
  * app at http://127.0.0.1:<port>/, each review at /review/<review id>, and
  * the JSON the app reads and changes reviews through under /api. `loader`
  * loads pull requests again and `branches` branches. A branch review takes
@@ -17,12 +17,14 @@
  *
  * It answers only requests addressed to this machine by name, so a page from
  * elsewhere cannot reach it through a name it controls, and it takes a change
- * only from the app's own pages: JSON, sent from its own origin.
+ * only as JSON, from the app's own pages, by their origin, or from a client
+ * carrying `token` as its bearer token, such as the terminal app.
  */
 import { createServer } from 'node:http';
 import { createReadStream, readFileSync } from 'node:fs';
-import { PullRef } from '../github/pull-ref.mjs';
+import { timingSafeEqual } from 'node:crypto';
 import { BranchRef } from '../local/branch-ref.mjs';
+import { reviewRef } from '../review/review-ref.mjs';
 import { reviewState, reviewSummary } from './review-state.mjs';
 import { pageView } from '../review/page-view.mjs';
 import { fileView } from '../review/file-view.mjs';
@@ -48,9 +50,11 @@ export class AppServer {
   #routes;
   #views = new WeakMap();
   #streams = new Set();
+  #token;
 
-  constructor({ store, loader, branches, queue, threads, events = new ReviewEvents({ store }), port }) {
+  constructor({ store, loader, branches, queue, threads, events = new ReviewEvents({ store }), token = null, port }) {
     this.#store = store;
+    this.#token = token;
     this.#events = events;
     this.#loader = loader;
     this.#branches = branches;
@@ -135,7 +139,8 @@ export class AppServer {
 
     if (request.method !== 'GET') {
       const origin = request.headers.origin;
-      if (!origin || !hosts.some(h => origin === `http://${h}`)) return send(response, 403, { error: 'changes come only from the app\'s own pages' });
+      const own = !!origin && hosts.some(h => origin === `http://${h}`);
+      if (!own && !this.#carriesToken(request)) return send(response, 403, { error: 'changes come only from the app\'s own pages, or a client with its token' });
       if (request.method !== 'DELETE' && !String(request.headers['content-type'] || '').startsWith('application/json')) {
         return send(response, 415, { error: 'send JSON' });
       }
@@ -155,6 +160,13 @@ export class AppServer {
     } catch (error) {
       return send(response, 409, { error: error.message });
     }
+  }
+
+  #carriesToken(request) {
+    const given = /^Bearer (\S+)$/.exec(request.headers.authorization || '');
+    if (!this.#token || !given) return false;
+    const a = Buffer.from(given[1]), b = Buffer.from(this.#token);
+    return a.length === b.length && timingSafeEqual(a, b);
   }
 
   #stream(request, response, id) {
@@ -199,12 +211,6 @@ export class AppServer {
     if (!this.#views.has(read)) this.#views.set(read, { page: pageView(read.build, read.page), files: new Map() });
     return this.#views.get(read);
   }
-}
-
-function reviewRef(id) {
-  const parts = id.split('/').map(decodeURIComponent);
-  if (parts[0] === 'local' && parts.length === 3) return BranchRef.parse(parts.join('/'));
-  return new PullRef(parts[0], `${parts[1]}/${parts[2]}`, Number(parts[3]));
 }
 
 function text(value) {

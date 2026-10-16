@@ -23,6 +23,9 @@ export const USAGE = `usage: review-desk <command> [options]
                          attach a written review, in Markdown, to the review
                          holding that pull request
   list                   list every review, with where to open it
+  terminal [<review>]    review in this terminal, with Vim keys: the review
+                         a review id, its address or a pull request link of
+                         it names, or pick one from the list of reviews
   serve                  run the app in this terminal
   start                  run the app in the background
   stop                   stop the app running in the background
@@ -32,6 +35,7 @@ const COMMANDS = {
   load: { valued: ['--account', '--config', '--repo', '--base', '--head', '--title'], flags: ['--context', '--no-context'], check: checkLoad },
   attach: { min: 2, max: 2 },
   list: { max: 0 },
+  terminal: { max: 1 },
   serve: { max: 0 },
   start: { max: 0 },
   stop: { max: 0 },

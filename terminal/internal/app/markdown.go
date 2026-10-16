@@ -1,0 +1,63 @@
+package app
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/glamour/styles"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
+)
+
+// markdown draws Markdown for the terminal with Glamour, in the terminal's
+// own light or dark, or plain where it has no colour, and keeps what it drew
+// for each text and width.
+type markdown struct {
+	style     string
+	renderers map[int]*glamour.TermRenderer
+	drawn     map[string][]string
+}
+
+func newMarkdown(dark bool) *markdown {
+	style := styles.LightStyle
+	switch {
+	case lipgloss.ColorProfile() == termenv.Ascii:
+		style = styles.NoTTYStyle
+	case dark:
+		style = styles.DarkStyle
+	}
+	return &markdown{style: style, renderers: map[int]*glamour.TermRenderer{}, drawn: map[string][]string{}}
+}
+
+func (m *markdown) lines(text string, width int) []string {
+	key := fmt.Sprintf("%d\x00%s", width, text)
+	if drawn, ok := m.drawn[key]; ok {
+		return drawn
+	}
+	renderer, ok := m.renderers[width]
+	if !ok {
+		var err error
+		renderer, err = glamour.NewTermRenderer(glamour.WithStandardStyle(m.style), glamour.WithColorProfile(lipgloss.ColorProfile()), glamour.WithWordWrap(width))
+		if err != nil {
+			return wrap(text, width)
+		}
+		m.renderers[width] = renderer
+	}
+	out, err := renderer.Render(text)
+	if err != nil {
+		return wrap(text, width)
+	}
+	var lines []string
+	for _, l := range strings.Split(out, "\n") {
+		lines = append(lines, strings.TrimRight(l, " "))
+	}
+	for len(lines) > 0 && strings.TrimSpace(stripped(lines[0])) == "" {
+		lines = lines[1:]
+	}
+	for len(lines) > 0 && strings.TrimSpace(stripped(lines[len(lines)-1])) == "" {
+		lines = lines[:len(lines)-1]
+	}
+	m.drawn[key] = lines
+	return lines
+}

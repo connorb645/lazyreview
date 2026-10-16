@@ -25,14 +25,14 @@ function call(address, method, path, { body, headers = {} } = {}) {
   });
 }
 
-async function started() {
+async function started({ token } = {}) {
   const w = workbench();
   const fake = fakeClaude();
   await w.loader.load({ links: [w.link(30)] });
   const branches = new BranchLoader({ store: w.store });
   const server = new AppServer({
     store: w.store, loader: w.loader, branches, queue: w.queue,
-    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), port: 0,
+    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), token, port: 0,
   });
   const address = await server.listen();
   const own = { Origin: address, 'Content-Type': 'application/json' };
@@ -74,6 +74,24 @@ test('the server answers only to its own name, and takes changes only from its o
     assert.equal((await call(s.address, 'POST', '/api/reviews/github.com/octo/widgets/30/comments', { body: comment, headers: { Origin: 'https://attacker.example', 'Content-Type': 'application/json' } })).status, 403);
     assert.equal((await call(s.address, 'POST', '/api/reviews/github.com/octo/widgets/30/comments', { body: comment, headers: { Origin: s.address, 'Content-Type': 'text/plain' } })).status, 415);
     assert.equal(s.w.store.read(s.w.store.list()[0].ref).members[0].comments.length, 0, 'no refused request changed anything');
+  } finally {
+    await s.done();
+  }
+});
+
+test('a client with the server\'s token makes changes from outside the app\'s pages, and one without it cannot', async () => {
+  const s = await started({ token: 'secret-token-1234' });
+  const base = '/api/reviews/github.com/octo/widgets/30';
+  try {
+    const { build } = (await call(s.address, 'GET', `${base}/page`)).json;
+    const comment = { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?', build };
+    const json = { 'Content-Type': 'application/json' };
+    assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: { ...json, Authorization: 'Bearer wrong-token-12345' } })).status, 403);
+    assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: { ...json, Authorization: 'Bearer secret' } })).status, 403);
+    assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: { Authorization: 'Bearer secret-token-1234', 'Content-Type': 'text/plain' } })).status, 415);
+    const added = await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: { ...json, Authorization: 'Bearer secret-token-1234' } });
+    assert.equal(added.status, 200);
+    assert.equal(added.json.comment.body, 'Every item?');
   } finally {
     await s.done();
   }

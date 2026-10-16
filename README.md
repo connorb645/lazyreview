@@ -14,6 +14,7 @@ once, draws it. An agent loading a review spends only the tokens of one command.
 - Node.js 22 or later
 - git, and the GitHub command line `gh`, signed in
 - Claude Code (`claude`), signed in, for questions about a line; the rest works without it
+- Go 1.24 or later, only to build the terminal app
 
 There is nothing to install: the app has no dependencies beyond the two
 libraries and the one font in `vendor/`, and it loads nothing from the network.
@@ -152,6 +153,38 @@ each of them.
   an edit or a drop made on a comment another window changed since is
   refused, showing how the comment now reads.
 
+## Review in a terminal
+
+The same reviews open in a terminal app with Vim keys, a second client of the
+same server. Both apps can be open on one review at once.
+
+    bin/review-desk terminal                       # pick from every review
+    bin/review-desk terminal github.com/owner/repo/12
+    bin/review-desk terminal https://github.com/owner/repo/pull/12
+
+It takes a review id, the address `load` printed, or a pull request link of a
+review already loaded. It starts the server when it is not running, as `load`
+does. The app is a Go program in `terminal/`, built on this machine the first
+time it runs and again whenever its code changes; building it needs Go 1.24 or
+later, and its libraries are vendored, so the build reaches no network.
+
+`Space ?` lists the keys of the view you are in. To begin with:
+
+| Key | Does |
+| --- | --- |
+| `j` `k` `gg` `G` | move, with a count such as `5j` |
+| `Enter` | opens the review at the cursor |
+| `]]` `[[` | the next or previous section of the Review view |
+| `za` | folds or unfolds a section |
+| `Space v` | the Review view |
+| `gh` | every review |
+| `/` `n` `N` | find a review |
+| `gx` `gX` | opens the pull request on GitHub, or this place in the web app |
+| `:q` `ZZ` | quit |
+
+The server writes a token into `server.json` at each start, which only its
+owner can read, and the terminal app sends it with each change.
+
 ## Components and packages
 
 Without a config, files are grouped by folder. A config names the parts:
@@ -207,9 +240,15 @@ takes changes only as JSON from its own pages.
 - `src/queue` holds the queue's rules and the one way a review is posted;
   `src/review` reads a written review and places GitHub's review threads.
 - `src/ask` asks Claude; `src/server` serves the app and its JSON.
+- `terminal/` is the terminal app, in Go with Bubble Tea, Lip Gloss, Bubbles
+  and Glamour; `src/terminal` builds it and runs it.
 - `app/` is the web app, plain JavaScript modules with no build step. Its
   look is one stylesheet, `app/styles.css`, with a dark and a light theme
   that follow the system setting.
 
-Run the tests with `npm test`. They make their own throwaway repositories and
-answer for GitHub and Claude Code with stand-ins, so they reach no network.
+Run the tests with `npm test`, and the terminal app's with `npm run
+test:terminal`. They make their own throwaway repositories and answer for
+GitHub and Claude Code with stand-ins, so they reach no network. The terminal
+app's tests read the server's answers from `terminal/testdata/record.json`,
+which a Node test checks against the server; when the server changes what it
+answers, `REVIEW_DESK_RECORD=1 npm test` writes it again.

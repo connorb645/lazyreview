@@ -1,0 +1,1976 @@
+{
+ "GET /api/reviews": [
+  {
+   "id": "github.com/octo/widgets/30",
+   "repo": "octo/widgets",
+   "title": "Fix the guide wording",
+   "loaded_at": "2026-10-15T12:00:01.000Z",
+   "moved": null,
+   "members": [
+    {
+     "pull": 30,
+     "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+     "title": "Fix the guide wording",
+     "url": "https://github.com/octo/widgets/pull/30",
+     "author": "alex",
+     "base": "main",
+     "state": "open",
+     "ended_at": null,
+     "color": 1
+    }
+   ],
+   "queued": 1
+  },
+  {
+   "id": "github.com/octo/widgets/21",
+   "repo": "octo/widgets",
+   "title": "Stack #21 to #22",
+   "loaded_at": "2026-10-15T12:00:00.000Z",
+   "moved": null,
+   "members": [
+    {
+     "pull": 21,
+     "head": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+     "title": "Add search to the catalog",
+     "url": "https://github.com/octo/widgets/pull/21",
+     "author": "sam",
+     "base": "main",
+     "state": "open",
+     "ended_at": null,
+     "color": 1
+    },
+    {
+     "pull": 22,
+     "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+     "title": "Add a basket that uses search",
+     "url": "https://github.com/octo/widgets/pull/22",
+     "author": "sam",
+     "base": "feature/search",
+     "state": "open",
+     "ended_at": null,
+     "color": 2
+    }
+   ],
+   "queued": 2
+  }
+ ],
+ "GET /api/reviews/github.com/octo/widgets/21": {
+  "id": "github.com/octo/widgets/21",
+  "host": "github.com",
+  "repo": "octo/widgets",
+  "title": "Stack #21 to #22",
+  "me": "reviewer",
+  "account": null,
+  "base": {
+   "ref": "main",
+   "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+  },
+  "context": true,
+  "loaded_at": "2026-10-15T12:00:00.000Z",
+  "notes": [],
+  "moved": null,
+  "members": [
+   {
+    "pull": 21,
+    "head": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+    "title": "Add search to the catalog",
+    "url": "https://github.com/octo/widgets/pull/21",
+    "author": "sam",
+    "base": "main",
+    "state": "open",
+    "ended_at": null,
+    "color": 1
+   },
+   {
+    "pull": 22,
+    "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+    "title": "Add a basket that uses search",
+    "url": "https://github.com/octo/widgets/pull/22",
+    "author": "sam",
+    "base": "feature/search",
+    "state": "open",
+    "ended_at": null,
+    "color": 2
+   }
+  ],
+  "earlier": [],
+  "queue": {
+   "repo": "octo/widgets",
+   "members": [
+    {
+     "pull": 21,
+     "head": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+     "title": "Add search to the catalog",
+     "url": "https://github.com/octo/widgets/pull/21",
+     "author": "sam",
+     "base": "main",
+     "color": 1,
+     "state": "open",
+     "ended_at": null,
+     "sets": {
+      "comment": {
+       "set": "4b648ffcd726",
+       "words": "This comment goes on octo/widgets#21 under your name, exactly as shown."
+      },
+      "approve-with-comments": {
+       "set": "b4ca47fcf17b",
+       "words": "You approve octo/widgets#21, and this comment goes with the approval under your name, exactly as shown."
+      },
+      "approve": {
+       "set": "220a7e960264",
+       "words": "You approve octo/widgets#21 with no comments. The queued 1 comment stays queued, unposted."
+      }
+     },
+     "comments": [
+      {
+       "id": 1,
+       "path": "Sources/Catalog/MemoryCatalog.swift",
+       "line": 10,
+       "side": "RIGHT",
+       "body": "Keep the order items came in.",
+       "code": "    func add(_ item: Item) {\n        stored.append(item)\n    }",
+       "start_line": 8,
+       "start_side": "RIGHT",
+       "shown": {
+        "path": "Sources/Catalog/MemoryCatalog.swift",
+        "line": 10,
+        "side": "RIGHT",
+        "start_line": 8,
+        "start_side": "RIGHT"
+       },
+       "version": "af53367c504f"
+      }
+     ],
+     "posted": []
+    },
+    {
+     "pull": 22,
+     "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+     "title": "Add a basket that uses search",
+     "url": "https://github.com/octo/widgets/pull/22",
+     "author": "sam",
+     "base": "feature/search",
+     "color": 2,
+     "state": "open",
+     "ended_at": null,
+     "sets": {
+      "comment": {
+       "set": "447c97fb741c",
+       "words": "This comment goes on octo/widgets#22 under your name, exactly as shown."
+      },
+      "approve-with-comments": {
+       "set": "36c07877f349",
+       "words": "You approve octo/widgets#22, and this comment goes with the approval under your name, exactly as shown."
+      },
+      "approve": {
+       "set": "d7ddf77b8a01",
+       "words": "You approve octo/widgets#22 with no comments. The queued 1 comment stays queued, unposted."
+      }
+     },
+     "comments": [
+      {
+       "id": 2,
+       "path": "Sources/Basket/Basket.swift",
+       "line": 11,
+       "side": "RIGHT",
+       "body": "Why one?",
+       "code": "        0\n        1",
+       "start_line": 9,
+       "start_side": "LEFT",
+       "shown": {
+        "path": "Sources/Basket/Basket.swift",
+        "line": 11,
+        "side": "RIGHT",
+        "start_line": 9,
+        "start_side": "LEFT"
+       },
+       "version": "4c6cde0aa1ee"
+      }
+     ],
+     "posted": []
+    }
+   ],
+   "earlier": [],
+   "moved": null
+  },
+  "threads": [
+   {
+    "id": 1,
+    "path": "Sources/Basket/Basket.swift",
+    "side": "RIGHT",
+    "line": 7,
+    "created_at": "2026-10-15T13:00:00.000Z",
+    "messages": [
+     {
+      "from": "you",
+      "text": "Could this be passed in?",
+      "at": "2026-10-15T13:00:01.000Z"
+     },
+     {
+      "from": "claude",
+      "text": "It returns early when the list is empty.",
+      "at": "2026-10-15T13:00:02.000Z"
+     }
+    ]
+   }
+  ],
+  "github": [
+   {
+    "id": "T1",
+    "pull": 21,
+    "path": "Sources/Catalog/MemoryCatalog.swift",
+    "side": "RIGHT",
+    "line": 9,
+    "start_line": null,
+    "start_side": null,
+    "original_line": 9,
+    "resolved": false,
+    "resolved_by": null,
+    "outdated": false,
+    "file": false,
+    "comments": [
+     {
+      "id": 1,
+      "author": "sam",
+      "bot": false,
+      "body": "Should this keep the order items were added in?",
+      "at": "2026-10-15T10:00:00Z",
+      "url": "https://github.com/octo/widgets/pull/21#discussion_r1"
+     }
+    ],
+    "more": 0,
+    "hunk": "",
+    "at": {
+     "path": "Sources/Catalog/MemoryCatalog.swift",
+     "side": "RIGHT",
+     "line": 9
+    }
+   },
+   {
+    "id": "T2",
+    "pull": 22,
+    "path": "Sources/Basket/Basket.swift",
+    "side": "RIGHT",
+    "line": 7,
+    "start_line": null,
+    "start_side": null,
+    "original_line": 7,
+    "resolved": true,
+    "resolved_by": "sam",
+    "outdated": false,
+    "file": false,
+    "comments": [
+     {
+      "id": 2,
+      "author": "sam",
+      "bot": false,
+      "body": "Could the search be passed in?",
+      "at": "2026-10-15T10:00:00Z",
+      "url": "https://github.com/octo/widgets/pull/21#discussion_r2"
+     }
+    ],
+    "more": 0,
+    "hunk": "",
+    "at": {
+     "path": "Sources/Basket/Basket.swift",
+     "side": "RIGHT",
+     "line": 7
+    }
+   }
+  ],
+  "written": {
+   "pulls": [
+    21,
+    22
+   ],
+   "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+   "title": "Search, then a basket",
+   "sections": [
+    {
+     "id": "what-this-changes",
+     "title": "What this changes",
+     "markdown": "#21 adds a search over the catalog in `Search.swift:4`. #22 gives the basket a search of its own, in `Basket.swift:7`. [Likely]",
+     "links": [
+      {
+       "text": "Search.swift:4",
+       "path": "Sources/Catalog/Search.swift",
+       "line": 4
+      },
+      {
+       "text": "Basket.swift:7",
+       "path": "Sources/Basket/Basket.swift",
+       "line": 7
+      }
+     ]
+    },
+    {
+     "id": "risks",
+     "title": "Risks",
+     "markdown": "`MemoryCatalog.swift:9` appends without checking for duplicates. [Guessing]",
+     "links": [
+      {
+       "text": "MemoryCatalog.swift:9",
+       "path": "Sources/Catalog/MemoryCatalog.swift",
+       "line": 9
+      }
+     ]
+    }
+   ],
+   "stale": false
+  },
+  "version": "92c77de9802f"
+ },
+ "GET /api/reviews/github.com/octo/widgets/21/page": {
+  "build": "e4f74f751668",
+  "model": {
+   "components": [
+    {
+     "id": "root",
+     "title": "widgets",
+     "description": "",
+     "tag": "Sources/ · web/",
+     "color": "blue",
+     "group": "",
+     "area": null,
+     "context": false,
+     "packages": [
+      {
+       "id": "sources",
+       "title": "Sources",
+       "description": "",
+       "path": "Sources/",
+       "bare": false
+      },
+      {
+       "id": "web-src",
+       "title": "web / src",
+       "description": "",
+       "path": "web/src/",
+       "bare": false
+      }
+     ]
+    },
+    {
+     "id": "context",
+     "title": "Unchanged code",
+     "description": "Code the change uses or plugs into, unchanged, shown for context.",
+     "tag": "Sources/Catalog/",
+     "color": "grey",
+     "group": "",
+     "area": null,
+     "context": true,
+     "packages": [
+      {
+       "id": "top",
+       "title": "Catalog",
+       "description": "",
+       "path": "Sources/Catalog/",
+       "bare": true
+      }
+     ]
+    }
+   ],
+   "areas": [],
+   "files": [
+    {
+     "path": "Sources/Basket/Basket.swift",
+     "oldPath": "Sources/Basket/Basket.swift",
+     "status": "M",
+     "adds": 3,
+     "dels": 1,
+     "binary": false,
+     "collapsed": false,
+     "pulls": [
+      22
+     ],
+     "byPull": {
+      "22": [
+       3,
+       1
+      ]
+     },
+     "index": 0,
+     "component": "root",
+     "package": "sources"
+    },
+    {
+     "path": "Sources/Catalog/MemoryCatalog.swift",
+     "oldPath": "Sources/Catalog/MemoryCatalog.swift",
+     "status": "M",
+     "adds": 4,
+     "dels": 0,
+     "binary": false,
+     "collapsed": false,
+     "pulls": [
+      21
+     ],
+     "byPull": {
+      "21": [
+       4,
+       0
+      ]
+     },
+     "index": 1,
+     "component": "root",
+     "package": "sources"
+    },
+    {
+     "path": "Sources/Catalog/Search.swift",
+     "oldPath": null,
+     "status": "A",
+     "adds": 7,
+     "dels": 0,
+     "binary": false,
+     "collapsed": false,
+     "pulls": [
+      21
+     ],
+     "byPull": {
+      "21": [
+       7,
+       0
+      ]
+     },
+     "index": 2,
+     "component": "root",
+     "package": "sources"
+    },
+    {
+     "path": "web/src/cart.ts",
+     "oldPath": "web/src/cart.ts",
+     "status": "M",
+     "adds": 1,
+     "dels": 0,
+     "binary": false,
+     "collapsed": false,
+     "pulls": [
+      22
+     ],
+     "byPull": {
+      "22": [
+       1,
+       0
+      ]
+     },
+     "index": 3,
+     "component": "root",
+     "package": "web-src"
+    }
+   ],
+   "contextFiles": [
+    {
+     "path": "Sources/Catalog/Catalog.swift",
+     "component": "context",
+     "package": "top",
+     "lines": 7
+    }
+   ],
+   "nodes": [
+    {
+     "id": "Basket",
+     "name": "Basket",
+     "kind": "class",
+     "stereotype": "",
+     "file": "Sources/Basket/Basket.swift",
+     "line": 1,
+     "component": "root",
+     "package": "sources",
+     "state": "changed",
+     "inherits": [],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "pulls": [
+      22
+     ],
+     "properties": [
+      {
+       "name": "catalog",
+       "type": "Catalog",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "search",
+       "type": "Search",
+       "line": 3,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "id": "MemoryCatalog",
+     "name": "MemoryCatalog",
+     "kind": "class",
+     "stereotype": "",
+     "file": "Sources/Catalog/MemoryCatalog.swift",
+     "line": 1,
+     "component": "root",
+     "package": "sources",
+     "state": "changed",
+     "inherits": [
+      "Catalog"
+     ],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "pulls": [
+      21
+     ],
+     "properties": [
+      {
+       "name": "stored",
+       "type": "[Item]",
+       "line": 2,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "id": "Search",
+     "name": "Search",
+     "kind": "struct",
+     "stereotype": "«struct»",
+     "file": "Sources/Catalog/Search.swift",
+     "line": 1,
+     "component": "root",
+     "package": "sources",
+     "state": "new",
+     "inherits": [],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "pulls": [
+      21
+     ],
+     "properties": [
+      {
+       "name": "catalog",
+       "type": "Catalog",
+       "line": 2,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "id": "file:web/src/cart.ts",
+     "name": "cart.ts",
+     "kind": "artifact",
+     "stereotype": "«file»",
+     "file": "web/src/cart.ts",
+     "line": 1,
+     "component": "root",
+     "package": "web-src",
+     "state": "changed",
+     "inherits": [],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "pulls": [
+      22
+     ],
+     "properties": []
+    },
+    {
+     "id": "Catalog",
+     "name": "Catalog",
+     "kind": "protocol",
+     "stereotype": "«protocol»",
+     "file": "Sources/Catalog/Catalog.swift",
+     "line": 1,
+     "component": "context",
+     "package": "top",
+     "state": "context",
+     "inherits": [],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "pulls": [],
+     "properties": []
+    },
+    {
+     "id": "Item",
+     "name": "Item",
+     "kind": "struct",
+     "stereotype": "«struct»",
+     "file": "Sources/Catalog/Catalog.swift",
+     "line": 5,
+     "component": "context",
+     "package": "top",
+     "state": "context",
+     "inherits": [],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "pulls": [],
+     "properties": [
+      {
+       "name": "name",
+       "type": "String",
+       "line": 6,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "edges": [
+    {
+     "source": "Basket",
+     "target": "Catalog",
+     "kind": "has",
+     "label": null,
+     "properties": [
+      "catalog"
+     ],
+     "key": false
+    },
+    {
+     "source": "Basket",
+     "target": "Search",
+     "kind": "has",
+     "label": null,
+     "properties": [
+      "search"
+     ],
+     "key": false
+    },
+    {
+     "source": "MemoryCatalog",
+     "target": "Catalog",
+     "kind": "realize",
+     "label": null,
+     "key": false
+    },
+    {
+     "source": "MemoryCatalog",
+     "target": "Item",
+     "kind": "has",
+     "label": null,
+     "properties": [
+      "stored"
+     ],
+     "key": false
+    },
+    {
+     "source": "Search",
+     "target": "Catalog",
+     "kind": "has",
+     "label": null,
+     "properties": [
+      "catalog"
+     ],
+     "key": false
+    },
+    {
+     "source": "Search",
+     "target": "Item",
+     "kind": "use",
+     "label": null,
+     "key": false
+    },
+    {
+     "source": "Catalog",
+     "target": "Item",
+     "kind": "use",
+     "label": null,
+     "key": false
+    }
+   ],
+   "groups": [],
+   "summary": [
+    {
+     "source": "root",
+     "target": "context",
+     "count": 5,
+     "label": null
+    }
+   ],
+   "heading": {
+    "title": "Stack #21 to #22",
+    "context": [
+     [
+      "Stack ",
+      false
+     ],
+     [
+      "#21",
+      true
+     ],
+     [
+      " to ",
+      false
+     ],
+     [
+      "#22",
+      true
+     ],
+     [
+      " on ",
+      false
+     ],
+     [
+      "main",
+      true
+     ],
+     [
+      ": head ",
+      false
+     ],
+     [
+      "cd3c7027",
+      true
+     ],
+     [
+      ", merge base ",
+      false
+     ],
+     [
+      "ec30a03f",
+      true
+     ],
+     [
+      ", 2 commits",
+      false
+     ]
+    ],
+    "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+    "base": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+   }
+  },
+  "layout": {
+   "w": 1062,
+   "h": 1278,
+   "areas": {},
+   "components": {
+    "root": {
+     "x": 266,
+     "y": 170,
+     "w": 530,
+     "h": 482
+    },
+    "context": {
+     "x": 80,
+     "y": 952,
+     "w": 902,
+     "h": 246
+    }
+   },
+   "boxes": {
+    "pkg:root:sources": {
+     "x": 302,
+     "y": 290,
+     "w": 188,
+     "h": 326
+    },
+    "Basket": {
+     "x": 320,
+     "y": 434,
+     "w": 120,
+     "h": 62
+    },
+    "MemoryCatalog": {
+     "x": 320,
+     "y": 346,
+     "w": 152,
+     "h": 62
+    },
+    "Search": {
+     "x": 320,
+     "y": 536,
+     "w": 120,
+     "h": 62
+    },
+    "pkg:root:web-src": {
+     "x": 560,
+     "y": 290,
+     "w": 200,
+     "h": 120
+    },
+    "file:web/src/cart.ts": {
+     "x": 600,
+     "y": 346,
+     "w": 120,
+     "h": 46
+    },
+    "pkg:context:top": {
+     "x": 383,
+     "y": 1072,
+     "w": 296,
+     "h": 90
+    },
+    "Catalog": {
+     "x": 401,
+     "y": 1082,
+     "w": 120,
+     "h": 62
+    },
+    "Item": {
+     "x": 541,
+     "y": 1082,
+     "w": 120,
+     "h": 62
+    }
+   },
+   "routes": [
+    {
+     "source": "Basket",
+     "target": "Search",
+     "kind": "has",
+     "label": null,
+     "key": false,
+     "points": [
+      [
+       380,
+       496
+      ],
+      [
+       380,
+       536
+      ]
+     ],
+     "labelAt": null
+    }
+   ],
+   "pkgArrows": [],
+   "summaries": [
+    {
+     "source": "root",
+     "target": "context",
+     "both": false,
+     "lines": [
+      "→ 5 links"
+     ],
+     "points": [
+      [
+       531,
+       660
+      ],
+      [
+       531,
+       938
+      ]
+     ],
+     "labelAt": [
+      616.5,
+      799
+     ]
+    }
+   ],
+   "farTitle": {
+    "size": 150,
+    "overhang": 200
+   }
+  },
+  "stack": {
+   "members": [
+    {
+     "pull": 21,
+     "head": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+     "start": "ec30a03f5f35ca87815c1688954702bbe71b7d44",
+     "files": 2,
+     "commits": 1,
+     "adds": 11,
+     "dels": 0
+    },
+    {
+     "pull": 22,
+     "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+     "start": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+     "files": 2,
+     "commits": 1,
+     "adds": 4,
+     "dels": 1
+    }
+   ],
+   "warnings": []
+  }
+ },
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FBasket%2FBasket.swift": {
+  "path": "Sources/Basket/Basket.swift",
+  "hunks": [
+   {
+    "header": "@@ -1,11 +1,13 @@",
+    "old_start": 1,
+    "old_count": 11,
+    "new_start": 1,
+    "new_count": 13,
+    "rows": [
+     {
+      "kind": "same",
+      "old": 1,
+      "new": 1,
+      "text": "final class Basket {",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 1."
+     },
+     {
+      "kind": "same",
+      "old": 2,
+      "new": 2,
+      "text": "    let catalog: Catalog",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 2."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 3,
+      "text": "    let search: Search",
+      "owner": 22,
+      "words": "Changed in #22. A comment here goes on #22, line 3."
+     },
+     {
+      "kind": "same",
+      "old": 3,
+      "new": 4,
+      "text": "",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 4."
+     },
+     {
+      "kind": "same",
+      "old": 4,
+      "new": 5,
+      "text": "    init(catalog: Catalog) {",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 5."
+     },
+     {
+      "kind": "same",
+      "old": 5,
+      "new": 6,
+      "text": "        self.catalog = catalog",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 6."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 7,
+      "text": "        self.search = Search(catalog: catalog)",
+      "owner": 22,
+      "words": "Changed in #22. A comment here goes on #22, line 7."
+     },
+     {
+      "kind": "same",
+      "old": 6,
+      "new": 8,
+      "text": "    }",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 8."
+     },
+     {
+      "kind": "same",
+      "old": 7,
+      "new": 9,
+      "text": "",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 9."
+     },
+     {
+      "kind": "same",
+      "old": 8,
+      "new": 10,
+      "text": "    func total() -> Int {",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 10."
+     },
+     {
+      "kind": "del",
+      "old": 9,
+      "new": null,
+      "text": "        0",
+      "owner": 22,
+      "words": "Changed in #22. A comment here goes on #22, line 9."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 11,
+      "text": "        1",
+      "owner": 22,
+      "words": "Changed in #22. A comment here goes on #22, line 11."
+     },
+     {
+      "kind": "same",
+      "old": 10,
+      "new": 12,
+      "text": "    }",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 12."
+     },
+     {
+      "kind": "same",
+      "old": 11,
+      "new": 13,
+      "text": "}",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 13."
+     }
+    ]
+   }
+  ],
+  "gaps": [],
+  "whole": [
+   "final class Basket {",
+   "    let catalog: Catalog",
+   "    let search: Search",
+   "",
+   "    init(catalog: Catalog) {",
+   "        self.catalog = catalog",
+   "        self.search = Search(catalog: catalog)",
+   "    }",
+   "",
+   "    func total() -> Int {",
+   "        1",
+   "    }",
+   "}"
+  ],
+  "rendered": null
+ },
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FCatalog%2FMemoryCatalog.swift": {
+  "path": "Sources/Catalog/MemoryCatalog.swift",
+  "hunks": [
+   {
+    "header": "@@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {",
+    "old_start": 4,
+    "old_count": 4,
+    "new_start": 4,
+    "new_count": 8,
+    "rows": [
+     {
+      "kind": "same",
+      "old": 4,
+      "new": 4,
+      "text": "    func items() -> [Item] {",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #21, line 4."
+     },
+     {
+      "kind": "same",
+      "old": 5,
+      "new": 5,
+      "text": "        stored",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #21, line 5."
+     },
+     {
+      "kind": "same",
+      "old": 6,
+      "new": 6,
+      "text": "    }",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #21, line 6."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 7,
+      "text": "",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 7."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 8,
+      "text": "    func add(_ item: Item) {",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 8."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 9,
+      "text": "        stored.append(item)",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 9."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 10,
+      "text": "    }",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 10."
+     },
+     {
+      "kind": "same",
+      "old": 7,
+      "new": 11,
+      "text": "}",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #21, line 11."
+     }
+    ]
+   }
+  ],
+  "gaps": [
+   {
+    "before": 0,
+    "from": 1,
+    "to": 3,
+    "delta": 0
+   }
+  ],
+  "whole": [
+   "final class MemoryCatalog: Catalog {",
+   "    private var stored: [Item] = []",
+   "",
+   "    func items() -> [Item] {",
+   "        stored",
+   "    }",
+   "",
+   "    func add(_ item: Item) {",
+   "        stored.append(item)",
+   "    }",
+   "}"
+  ],
+  "rendered": null
+ },
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FCatalog%2FSearch.swift": {
+  "path": "Sources/Catalog/Search.swift",
+  "hunks": [
+   {
+    "header": "@@ -0,0 +1,7 @@",
+    "old_start": 0,
+    "old_count": 0,
+    "new_start": 1,
+    "new_count": 7,
+    "rows": [
+     {
+      "kind": "add",
+      "old": null,
+      "new": 1,
+      "text": "struct Search {",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 1."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 2,
+      "text": "    let catalog: Catalog",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 2."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 3,
+      "text": "",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 3."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 4,
+      "text": "    func find(_ text: String) -> [Item] {",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 4."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 5,
+      "text": "        catalog.items().filter { $0.name.contains(text) }",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 5."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 6,
+      "text": "    }",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 6."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 7,
+      "text": "}",
+      "owner": 21,
+      "words": "Changed in #21. A comment here goes on #21, line 7."
+     }
+    ]
+   }
+  ],
+  "gaps": [],
+  "whole": [
+   "struct Search {",
+   "    let catalog: Catalog",
+   "",
+   "    func find(_ text: String) -> [Item] {",
+   "        catalog.items().filter { $0.name.contains(text) }",
+   "    }",
+   "}"
+  ],
+  "rendered": null
+ },
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=web%2Fsrc%2Fcart.ts": {
+  "path": "web/src/cart.ts",
+  "hunks": [
+   {
+    "header": "@@ -1,3 +1,4 @@",
+    "old_start": 1,
+    "old_count": 3,
+    "new_start": 1,
+    "new_count": 4,
+    "rows": [
+     {
+      "kind": "same",
+      "old": 1,
+      "new": 1,
+      "text": "export function cartTotal(prices: number[]): number {",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 1."
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 2,
+      "text": "  if (!prices.length) return 0;",
+      "owner": 22,
+      "words": "Changed in #22. A comment here goes on #22, line 2."
+     },
+     {
+      "kind": "same",
+      "old": 2,
+      "new": 3,
+      "text": "  return prices.reduce((a, b) => a + b, 0);",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 3."
+     },
+     {
+      "kind": "same",
+      "old": 3,
+      "new": 4,
+      "text": "}",
+      "owner": null,
+      "words": "Unchanged. A comment here goes on #22, line 4."
+     }
+    ]
+   }
+  ],
+  "gaps": [],
+  "whole": [
+   "export function cartTotal(prices: number[]): number {",
+   "  if (!prices.length) return 0;",
+   "  return prices.reduce((a, b) => a + b, 0);",
+   "}"
+  ],
+  "rendered": null
+ },
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FCatalog%2FCatalog.swift": {
+  "path": "Sources/Catalog/Catalog.swift",
+  "hunks": [],
+  "gaps": [],
+  "whole": [
+   "protocol Catalog {",
+   "    func items() -> [Item]",
+   "}",
+   "",
+   "struct Item {",
+   "    let name: String",
+   "}"
+  ],
+  "rendered": null
+ },
+ "GET /api/reviews/github.com/octo/widgets/30": {
+  "id": "github.com/octo/widgets/30",
+  "host": "github.com",
+  "repo": "octo/widgets",
+  "title": "Fix the guide wording",
+  "me": "reviewer",
+  "account": null,
+  "base": {
+   "ref": "main",
+   "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+  },
+  "context": false,
+  "loaded_at": "2026-10-15T12:00:01.000Z",
+  "notes": [],
+  "moved": null,
+  "members": [
+   {
+    "pull": 30,
+    "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+    "title": "Fix the guide wording",
+    "url": "https://github.com/octo/widgets/pull/30",
+    "author": "alex",
+    "base": "main",
+    "state": "open",
+    "ended_at": null,
+    "color": 1
+   }
+  ],
+  "earlier": [],
+  "queue": {
+   "repo": "octo/widgets",
+   "members": [
+    {
+     "pull": 30,
+     "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+     "title": "Fix the guide wording",
+     "url": "https://github.com/octo/widgets/pull/30",
+     "author": "alex",
+     "base": "main",
+     "color": 1,
+     "state": "open",
+     "ended_at": null,
+     "sets": {
+      "comment": {
+       "set": "43028caa56d9",
+       "words": "This comment goes on octo/widgets#30 under your name, exactly as shown."
+      },
+      "approve-with-comments": {
+       "set": "2a11c02816a5",
+       "words": "You approve octo/widgets#30, and this comment goes with the approval under your name, exactly as shown."
+      },
+      "approve": {
+       "set": "a6feecc25af5",
+       "words": "You approve octo/widgets#30 with no comments. The queued 1 comment stays queued, unposted."
+      }
+     },
+     "comments": [
+      {
+       "id": 1,
+       "path": "docs/guide.md",
+       "line": 3,
+       "side": "RIGHT",
+       "body": "Every item, or every item shown?",
+       "code": "The catalog lists every item.",
+       "version": "55d6d75d43f5"
+      }
+     ],
+     "posted": []
+    }
+   ],
+   "earlier": [],
+   "moved": null
+  },
+  "threads": [],
+  "github": [],
+  "written": null,
+  "version": "5c7fc722da2f"
+ },
+ "GET /api/reviews/github.com/octo/widgets/30/page": {
+  "build": "bba6e9d7be03",
+  "model": {
+   "components": [
+    {
+     "id": "docs",
+     "title": "docs",
+     "description": "",
+     "tag": "docs/",
+     "color": "blue",
+     "group": "",
+     "area": null,
+     "context": false,
+     "packages": [
+      {
+       "id": "top",
+       "title": "docs",
+       "description": "",
+       "path": "docs/",
+       "bare": true
+      }
+     ]
+    }
+   ],
+   "areas": [],
+   "files": [
+    {
+     "path": "docs/basket.md",
+     "oldPath": null,
+     "status": "A",
+     "adds": 6,
+     "dels": 0,
+     "binary": false,
+     "collapsed": false,
+     "index": 0,
+     "component": "docs",
+     "package": "top"
+    },
+    {
+     "path": "docs/guide.md",
+     "oldPath": "docs/guide.md",
+     "status": "M",
+     "adds": 12,
+     "dels": 1,
+     "binary": false,
+     "collapsed": false,
+     "index": 1,
+     "component": "docs",
+     "package": "top"
+    }
+   ],
+   "contextFiles": [],
+   "nodes": [
+    {
+     "id": "file:docs/basket.md",
+     "name": "basket.md",
+     "kind": "artifact",
+     "stereotype": "«file»",
+     "file": "docs/basket.md",
+     "line": 1,
+     "component": "docs",
+     "package": "top",
+     "state": "new",
+     "inherits": [],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "properties": []
+    },
+    {
+     "id": "file:docs/guide.md",
+     "name": "guide.md",
+     "kind": "artifact",
+     "stereotype": "«file»",
+     "file": "docs/guide.md",
+     "line": 1,
+     "component": "docs",
+     "package": "top",
+     "state": "changed",
+     "inherits": [],
+     "nested": [],
+     "extends": [],
+     "extFiles": [],
+     "view": false,
+     "test": false,
+     "group": null,
+     "properties": []
+    }
+   ],
+   "edges": [],
+   "groups": [],
+   "summary": [],
+   "heading": {
+    "title": "Fix the guide wording",
+    "context": [
+     [
+      "Pull request ",
+      false
+     ],
+     [
+      "#30",
+      true
+     ],
+     [
+      " on ",
+      false
+     ],
+     [
+      "main",
+      true
+     ],
+     [
+      ": head ",
+      false
+     ],
+     [
+      "058ff259",
+      true
+     ],
+     [
+      ", merge base ",
+      false
+     ],
+     [
+      "ec30a03f",
+      true
+     ],
+     [
+      ", 2 commits",
+      false
+     ]
+    ],
+    "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+    "base": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+   }
+  },
+  "layout": {
+   "w": 620,
+   "h": 546,
+   "areas": {},
+   "components": {
+    "docs": {
+     "x": 80,
+     "y": 170,
+     "w": 460,
+     "h": 296
+    }
+   },
+   "boxes": {
+    "pkg:docs:top": {
+     "x": 232,
+     "y": 290,
+     "w": 156,
+     "h": 140
+    },
+    "file:docs/basket.md": {
+     "x": 250,
+     "y": 300,
+     "w": 120,
+     "h": 46
+    },
+    "file:docs/guide.md": {
+     "x": 250,
+     "y": 366,
+     "w": 120,
+     "h": 46
+    }
+   },
+   "routes": [],
+   "pkgArrows": [],
+   "summaries": [],
+   "farTitle": {
+    "size": 150,
+    "overhang": 200
+   }
+  },
+  "stack": null
+ },
+ "GET /api/reviews/github.com/octo/widgets/30/file?build=bba6e9d7be03&path=docs%2Fbasket.md": {
+  "path": "docs/basket.md",
+  "hunks": [
+   {
+    "header": "@@ -0,0 +1,6 @@",
+    "old_start": 0,
+    "old_count": 0,
+    "new_start": 1,
+    "new_count": 6,
+    "rows": [
+     {
+      "kind": "add",
+      "old": null,
+      "new": 1,
+      "text": "# Basket",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 2,
+      "text": "",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 3,
+      "text": "A basket keeps its prices until checkout.",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 4,
+      "text": "",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 5,
+      "text": "1. Add an item",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 6,
+      "text": "2. Remove an item",
+      "owner": null,
+      "words": null
+     }
+    ]
+   }
+  ],
+  "gaps": [],
+  "whole": [
+   "# Basket",
+   "",
+   "A basket keeps its prices until checkout.",
+   "",
+   "1. Add an item",
+   "2. Remove an item"
+  ],
+  "rendered": {
+   "blocks": [
+    {
+     "state": "add",
+     "markdown": "# Basket",
+     "side": "RIGHT",
+     "start_line": 1,
+     "line": 1,
+     "text_line": 1,
+     "left": null,
+     "list": null
+    },
+    {
+     "state": "add",
+     "markdown": "A basket keeps its prices until checkout.",
+     "side": "RIGHT",
+     "start_line": 3,
+     "line": 3,
+     "text_line": 3,
+     "left": null,
+     "list": null
+    },
+    {
+     "state": "add",
+     "markdown": "1. Add an item",
+     "side": "RIGHT",
+     "start_line": 5,
+     "line": 5,
+     "text_line": 5,
+     "left": null,
+     "list": 0
+    },
+    {
+     "state": "add",
+     "markdown": "2. Remove an item",
+     "side": "RIGHT",
+     "start_line": 6,
+     "line": 6,
+     "text_line": 6,
+     "left": null,
+     "list": 0
+    }
+   ],
+   "partial": false
+  }
+ },
+ "GET /api/reviews/github.com/octo/widgets/30/file?build=bba6e9d7be03&path=docs%2Fguide.md": {
+  "path": "docs/guide.md",
+  "hunks": [
+   {
+    "header": "@@ -1,6 +1,17 @@",
+    "old_start": 1,
+    "old_count": 6,
+    "new_start": 1,
+    "new_count": 17,
+    "rows": [
+     {
+      "kind": "same",
+      "old": 1,
+      "new": 1,
+      "text": "# Guide",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "same",
+      "old": 2,
+      "new": 2,
+      "text": "",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "del",
+      "old": 3,
+      "new": null,
+      "text": "The catalog lists items.",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 3,
+      "text": "The catalog lists every item.",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "same",
+      "old": 4,
+      "new": 4,
+      "text": "",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "same",
+      "old": 5,
+      "new": 5,
+      "text": "- Browse",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "same",
+      "old": 6,
+      "new": 6,
+      "text": "- Search",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 7,
+      "text": "- Keep a basket",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 8,
+      "text": "",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 9,
+      "text": "## Steps",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 10,
+      "text": "",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 11,
+      "text": "1. Open the catalog.",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 12,
+      "text": "1. Pick an item.",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 13,
+      "text": "1. Add it to the basket.",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 14,
+      "text": "",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 15,
+      "text": "```swift",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 16,
+      "text": "let basket = Basket(catalog: catalog)",
+      "owner": null,
+      "words": null
+     },
+     {
+      "kind": "add",
+      "old": null,
+      "new": 17,
+      "text": "```",
+      "owner": null,
+      "words": null
+     }
+    ]
+   }
+  ],
+  "gaps": [],
+  "whole": [
+   "# Guide",
+   "",
+   "The catalog lists every item.",
+   "",
+   "- Browse",
+   "- Search",
+   "- Keep a basket",
+   "",
+   "## Steps",
+   "",
+   "1. Open the catalog.",
+   "1. Pick an item.",
+   "1. Add it to the basket.",
+   "",
+   "```swift",
+   "let basket = Basket(catalog: catalog)",
+   "```"
+  ],
+  "rendered": {
+   "blocks": [
+    {
+     "state": "same",
+     "markdown": "# Guide",
+     "side": "RIGHT",
+     "start_line": 1,
+     "line": 1,
+     "text_line": 1,
+     "left": {
+      "start_line": 1,
+      "line": 1
+     },
+     "list": null
+    },
+    {
+     "state": "del",
+     "markdown": "The catalog lists items.",
+     "side": "LEFT",
+     "start_line": 3,
+     "line": 3,
+     "text_line": 3,
+     "left": null,
+     "list": null
+    },
+    {
+     "state": "add",
+     "markdown": "The catalog lists every item.",
+     "side": "RIGHT",
+     "start_line": 3,
+     "line": 3,
+     "text_line": 3,
+     "left": null,
+     "list": null
+    },
+    {
+     "state": "same",
+     "markdown": "- Browse",
+     "side": "RIGHT",
+     "start_line": 5,
+     "line": 5,
+     "text_line": 5,
+     "left": {
+      "start_line": 5,
+      "line": 5
+     },
+     "list": 0
+    },
+    {
+     "state": "same",
+     "markdown": "- Search",
+     "side": "RIGHT",
+     "start_line": 6,
+     "line": 6,
+     "text_line": 6,
+     "left": {
+      "start_line": 6,
+      "line": 6
+     },
+     "list": 0
+    },
+    {
+     "state": "add",
+     "markdown": "- Keep a basket",
+     "side": "RIGHT",
+     "start_line": 7,
+     "line": 7,
+     "text_line": 7,
+     "left": null,
+     "list": 0
+    },
+    {
+     "state": "add",
+     "markdown": "## Steps",
+     "side": "RIGHT",
+     "start_line": 9,
+     "line": 9,
+     "text_line": 9,
+     "left": null,
+     "list": null
+    },
+    {
+     "state": "add",
+     "markdown": "1. Open the catalog.",
+     "side": "RIGHT",
+     "start_line": 11,
+     "line": 11,
+     "text_line": 11,
+     "left": null,
+     "list": 1
+    },
+    {
+     "state": "add",
+     "markdown": "2. Pick an item.",
+     "side": "RIGHT",
+     "start_line": 12,
+     "line": 12,
+     "text_line": 12,
+     "left": null,
+     "list": 1
+    },
+    {
+     "state": "add",
+     "markdown": "3. Add it to the basket.",
+     "side": "RIGHT",
+     "start_line": 13,
+     "line": 13,
+     "text_line": 13,
+     "left": null,
+     "list": 1
+    },
+    {
+     "state": "add",
+     "markdown": "```swift\nlet basket = Basket(catalog: catalog)\n```",
+     "side": "RIGHT",
+     "start_line": 15,
+     "line": 17,
+     "text_line": 16,
+     "left": null,
+     "list": null
+    }
+   ],
+   "partial": false
+  }
+ }
+}

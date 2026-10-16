@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createServer } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { writeFileSync, readFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync, mkdtempSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -43,11 +43,16 @@ test('one command loads a pull request, starts the app, and prints where to open
     assert.equal(page.status, 200);
     const record = JSON.parse(readFileSync(w.home.serverFile, 'utf8'));
     assert.equal(record.address, `http://127.0.0.1:${port}`);
+    assert.match(record.token, /^[0-9a-f]{64}$/, 'the server records a token a client sends with each change');
+    assert.equal(statSync(w.home.serverFile).mode & 0o777, 0o600, 'only the server file\'s owner can read the token');
 
     const stack = await run(['load', w.link(21), w.link(22), '--context'], env);
     assert.equal(stack.code, 0, stack.stderr);
     assert.match(stack.stdout, /^loaded #21, #22: 4 files \+\d+ -\d+, \d+ components?, \d+ types?\nopen http:\/\/127\.0\.0\.1:\d+\/review\/github\.com\/octo\/widgets\/21\n$/);
 
+    assert.match((await run(['terminal', 'github.com/octo/widgets/99'], env)).stderr, /^review-desk: there is no review github\.com\/octo\/widgets\/99; review-desk list shows every review\n/);
+    assert.match((await run(['terminal', 'https://github.com/octo/widgets/pull/99'], env)).stderr, /^review-desk: https:\/\/github\.com\/octo\/widgets\/pull\/99 is not loaded; load it first\n/);
+    assert.match((await run(['terminal', 'widgets'], env)).stderr, /^review-desk: "widgets" is not a review id/);
     const listed = await run(['list'], env);
     assert.equal(listed.stdout.trim().split('\n').length, 2);
     assert.match(listed.stdout, /\/review\/github\.com\/octo\/widgets\/21 {2}#21, #22 {2}Stack #21 to #22/);
