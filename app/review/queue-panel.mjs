@@ -9,10 +9,12 @@
  * and its own buttons, and each comment shows the pull request it goes on. A
  * press asks once more in the page, then sends the action and the set id the
  * page showed; the server posts only if the queue still gives exactly that
- * set, so the press approves exactly what its button offered.
+ * set, so the press approves exactly what its button offered. An edit or a
+ * drop names the version of the comment it was made on, and when another
+ * window changed the comment since, it shows the comment as it now reads.
  */
 import { esc, when } from '../lib/text.mjs';
-import { send, reviewPath } from '../lib/api.mjs';
+import { send, getJSON, reviewPath } from '../lib/api.mjs';
 import { linesWords } from './line-range.mjs';
 
 const ORDER = ['comment', 'approve-with-comments', 'approve'];
@@ -219,12 +221,26 @@ export function createQueuePanel(ctx) {
     section.appendChild(el('p', 'qc-note', NOTE));
   }
 
+  function queued(state, id) {
+    return state.queue.members.concat(state.queue.earlier).flatMap(m => m.comments).find(c => c.id === id);
+  }
+
+  // The state as it now stands when another window changed comment `id` since its version `seen`, or null.
+  async function changedSince(id, seen) {
+    const now = await getJSON(reviewPath(ctx.state.id));
+    const comment = now.queue && queued(now, id);
+    return comment && comment.version !== seen ? now : null;
+  }
+
   async function drop(id) {
+    const seen = queued(ctx.state, id).version;
     try {
-      const done = await send('DELETE', reviewPath(ctx.state.id, '/comments/' + id), { build: ctx.data.build });
+      const done = await send('DELETE', reviewPath(ctx.state.id, '/comments/' + id), { version: seen, build: ctx.data.build });
       ctx.setState(done.state);
     } catch (error) {
       ctx.flash(error.message);
+      const now = await changedSince(id, seen).catch(() => null);
+      if (now) ctx.setState(now);
     }
   }
 
@@ -232,9 +248,10 @@ export function createQueuePanel(ctx) {
   function edit(id, holder) {
     const body = holder.querySelector('.qc-body, .qn-body');
     if (!body || holder.querySelector('.edit-box')) return;
-    const found = ctx.state.queue.members.flatMap(m => m.comments).find(c => c.id === id);
+    const found = queued(ctx.state, id);
+    let seen = found.version;
     const box = el('div', 'edit-box');
-    box.innerHTML = '<textarea rows="3">' + esc(found ? found.body : body.textContent) + '</textarea><div class="note-actions">' +
+    box.innerHTML = '<textarea rows="3">' + esc(found.body) + '</textarea><div class="note-actions">' +
       '<button type="button" class="nbtn primary" data-edit="save">Save</button><button type="button" class="nbtn quiet" data-edit="cancel">Cancel</button>' +
       '<span class="note-status" aria-live="polite"></span></div>';
     body.replaceWith(box);
@@ -246,12 +263,14 @@ export function createQueuePanel(ctx) {
       if (act !== 'save') return;
       box.querySelectorAll('button, textarea').forEach(x => { x.disabled = true; });
       try {
-        const done = await send('PATCH', reviewPath(ctx.state.id, '/comments/' + id), { body: area.value, build: ctx.data.build });
+        const done = await send('PATCH', reviewPath(ctx.state.id, '/comments/' + id), { body: area.value, version: seen, build: ctx.data.build });
         ctx.setState(done.state);
       } catch (error) {
+        const now = await changedSince(id, seen).catch(() => null);
+        if (now) seen = queued(now, id).version;
         box.querySelectorAll('button, textarea').forEach(x => { x.disabled = false; });
         const status = box.querySelector('.note-status');
-        status.textContent = error.message;
+        status.textContent = error.message + (now ? '. Save again to replace it with your text.' : '');
         status.classList.add('bad');
       }
     });

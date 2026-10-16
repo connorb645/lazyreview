@@ -8,7 +8,8 @@
  * add(ref, given) queues a comment on a line the app shows, at the line of
  * the pull request that takes it, once GitHub confirms the line is in that
  * pull request's diff and its head has not moved. edit(ref, id, {body,
- * build}) and drop(ref, id, {build}) change or remove a queued comment.
+ * version, build}) and drop(ref, id, {version, build}) change or remove a
+ * queued comment, and are refused once it changed since `version`.
  *
  * post(ref, {pull, action, set, build}) is the only way a review reaches GitHub. It
  * refuses, and posts nothing, unless the queue still gives exactly the set id
@@ -21,7 +22,7 @@
  * nothing.
  */
 import { GitHub } from '../github/github.mjs';
-import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, placeProblem, liveMember, nextId, findComment } from './queue-rules.mjs';
+import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, placeProblem, liveMember, nextId, findComment, checkVersion } from './queue-rules.mjs';
 import { commentTarget } from './comment-target.mjs';
 import { checkBuild } from '../store/page-build.mjs';
 
@@ -60,20 +61,22 @@ export class QueueService {
     });
   }
 
-  edit(ref, id, { body, build }) {
+  edit(ref, id, { body, version, build }) {
     const problems = bodyProblems(body);
     if (problems.length) return Promise.reject(new Error(`not changed: ${problems.join('; ')}`));
     return this.#change(ref, { build, refused: 'not changed' }, async review => {
       const { member, comment } = findComment(review, id);
       liveMember(review, member.pull);
+      checkVersion(comment, version, 'not changed');
       comment.body = body.trim();
       return { review, result: { comment, pull: member.pull } };
     }, false);
   }
 
-  drop(ref, id, { build }) {
+  drop(ref, id, { version, build }) {
     return this.#change(ref, { build, refused: 'not dropped' }, async review => {
       const { member, comment } = findComment(review, id);
+      checkVersion(comment, version, 'not dropped');
       member.comments = member.comments.filter(c => c !== comment);
       return { review, result: { comment, pull: member.pull } };
     }, false);

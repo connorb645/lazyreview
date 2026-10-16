@@ -60,11 +60,11 @@ export class AppServer {
         return { comment: done.comment, pull: done.pull, state: this.#state(ref) };
       }],
       ['PATCH', new RegExp(`^/api/reviews/${PULL}/comments/(\\d+)$`), async (ref, body, id) => {
-        await this.#queue.edit(ref, Number(id), { body: text(body.body), build: build(body) });
+        await this.#queue.edit(ref, Number(id), { body: text(body.body), version: version(body), build: build(body) });
         return { state: this.#state(ref) };
       }],
       ['DELETE', new RegExp(`^/api/reviews/${PULL}/comments/(\\d+)$`), async (ref, body, id) => {
-        await this.#queue.drop(ref, Number(id), { build: build(body) });
+        await this.#queue.drop(ref, Number(id), { version: version(body), build: build(body) });
         return { state: this.#state(ref) };
       }],
       ['POST', new RegExp(`^/api/reviews/${PULL}/post$`), async (ref, body) => {
@@ -169,6 +169,10 @@ function range(body) {
 
 function build(body) {
   return typeof body.build === 'string' ? body.build : null;
+}
+
+function version(body) {
+  return typeof body.version === 'string' ? body.version : null;
 }
 
 function side(value) {

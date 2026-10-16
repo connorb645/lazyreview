@@ -9,7 +9,9 @@
  * No action requests changes. Each action has its own set id, worked out
  * from the repository, the pull request, its head, the action and the exact
  * comments it sends, so a set id names one action on one pull request at one
- * head with one set of comments, and nothing else.
+ * head with one set of comments, and nothing else. Each queued comment has a
+ * version, worked out from the comment as it stands, so an edit or a drop
+ * names the comment exactly as its window showed it.
  *
  * Every function here is pure. A review is the record a ReviewStore keeps:
  * {repo, me, members, earlier, moved}, where each member is a pull request
@@ -24,6 +26,7 @@ export const ACTIONS = {
 };
 
 const HUNK = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/;
+const QUOTE = 120;
 
 /** The fields GitHub takes for one comment of a review. */
 export function postedFields(comment) {
@@ -116,6 +119,22 @@ export function nextId(review) {
   return Math.max(0, ...ids) + 1;
 }
 
+/** The version of a queued comment: a short hash of the comment as it stands. */
+export function commentVersion(comment) {
+  return createHash('sha256').update(stableJSON(comment)).digest('hex').slice(0, 12);
+}
+
+/**
+ * Throws, with `refused` saying what did not happen, unless `version` is the
+ * version of `comment` as it stands: it changed since its window showed it.
+ */
+export function checkVersion(comment, version, refused) {
+  if (!version) throw new Error(`${refused}: the change does not name the version of comment ${comment.id} it was made on`);
+  if (version !== commentVersion(comment)) {
+    throw new Error(`${refused}: comment ${comment.id} was changed after this window showed it, and now reads "${clipped(comment.body)}"`);
+  }
+}
+
 /** The queued comment numbered `id`, with the member holding it, or an error. */
 export function findComment(review, id) {
   for (const member of [...review.members, ...review.earlier]) {
@@ -138,7 +157,7 @@ export function queueView(review) {
       pull: member.pull, head: member.head, title: member.title, url: member.url, author: member.author, base: member.base,
       color: member.color, state: member.state || 'open', ended_at: member.ended_at || null,
       sets: live && !ended && !review.moved ? Object.fromEntries(offered(review, member).map(a => [a, setId(review, member, a)])) : {},
-      comments: member.comments,
+      comments: member.comments.map(c => ({ ...c, version: commentVersion(c) })),
       posted: member.posted.map(p => ({ set: p.set, action: p.action, review: p.review, at: p.at, count: p.comments.length })),
     };
   };
@@ -148,6 +167,10 @@ export function queueView(review) {
     earlier: review.earlier.map(m => view(m, false)),
     moved: review.moved || null,
   };
+}
+
+function clipped(text) {
+  return text.length > QUOTE ? `${text.slice(0, QUOTE)}…` : text;
 }
 
 function stableJSON(value) {

@@ -7,6 +7,7 @@ import { GitHub } from '../../src/github/github.mjs';
 
 const ref = n => new PullRef('github.com', 'octo/widgets', n);
 const built = (w, n) => w.store.pageBuild(ref(n));
+const version = (w, n, id) => queueView(w.store.read(ref(n))).members.flatMap(m => m.comments).find(c => c.id === id).version;
 const REVIEW_URL = 'https://github.com/octo/widgets/pull/30#pullrequestreview-7';
 
 function sets(w, n, pull = n) {
@@ -260,16 +261,38 @@ test('on a stack, each pull request posts its own review with its own set', asyn
   }
 });
 
+test('an edit or a drop names the comment\'s version, and is refused once another window changed the comment', async () => {
+  const w = workbench();
+  try {
+    await w.loader.load({ links: [w.link(30)] });
+    const build = built(w, 30);
+    await w.queue.add(ref(30), { build, path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'First.' });
+    const seen = version(w, 30, 1);
+    await w.queue.edit(ref(30), 1, { body: 'Changed in the other window.', version: seen, build });
+    await assert.rejects(w.queue.edit(ref(30), 1, { body: 'Mine.', version: seen, build }),
+      /^Error: not changed: comment 1 was changed after this window showed it, and now reads "Changed in the other window\."$/);
+    await assert.rejects(w.queue.drop(ref(30), 1, { version: seen, build }), /^Error: not dropped: comment 1 was changed after this window showed it/);
+    await assert.rejects(w.queue.edit(ref(30), 1, { body: 'Mine.', build }), /not changed: the change does not name the version of comment 1 it was made on/);
+    assert.equal(w.store.read(ref(30)).members[0].comments[0].body, 'Changed in the other window.', 'nothing refused changed it');
+
+    await w.queue.edit(ref(30), 1, { body: 'Mine.', version: version(w, 30, 1), build });
+    await w.queue.drop(ref(30), 1, { version: version(w, 30, 1), build });
+    assert.deepEqual(w.store.read(ref(30)).members[0].comments, []);
+  } finally {
+    w.done();
+  }
+});
+
 test('a queued comment is edited or dropped by its number', async () => {
   const w = workbench();
   try {
     await w.loader.load({ links: [w.link(30)] });
     await w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'First.' });
     await w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 3, side: 'LEFT', body: 'Second.' });
-    await w.queue.edit(ref(30), 1, { body: ' First, reworded. ', build: built(w, 30) });
-    await assert.rejects(w.queue.edit(ref(30), 1, { body: ' ', build: built(w, 30) }), /not changed: the text is empty/);
-    await w.queue.drop(ref(30), 2, { build: built(w, 30) });
-    await assert.rejects(w.queue.drop(ref(30), 9, { build: built(w, 30) }), /no queued comment 9/);
+    await w.queue.edit(ref(30), 1, { body: ' First, reworded. ', version: version(w, 30, 1), build: built(w, 30) });
+    await assert.rejects(w.queue.edit(ref(30), 1, { body: ' ', version: version(w, 30, 1), build: built(w, 30) }), /not changed: the text is empty/);
+    await w.queue.drop(ref(30), 2, { version: version(w, 30, 2), build: built(w, 30) });
+    await assert.rejects(w.queue.drop(ref(30), 9, { version: 'abc', build: built(w, 30) }), /no queued comment 9/);
     assert.deepEqual(w.store.read(ref(30)).members[0].comments.map(c => [c.id, c.body]), [[1, 'First, reworded.']]);
     await w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Third.' });
     assert.equal(w.store.read(ref(30)).members[0].comments[1].id, 2, 'a new comment takes the number after the highest still held');

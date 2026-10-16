@@ -101,7 +101,7 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
     assert.match(refused.json.error, /not on a line of the diff/);
     assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 'x', side: 'UP', body: 'x', build }, headers: s.own })).status, 409);
 
-    const edited = await call(s.address, 'PATCH', `${base}/comments/1`, { body: { body: 'Every single item?', build }, headers: s.own });
+    const edited = await call(s.address, 'PATCH', `${base}/comments/1`, { body: { body: 'Every single item?', version: added.json.state.queue.members[0].comments[0].version, build }, headers: s.own });
     assert.equal(edited.json.state.queue.members[0].comments[0].body, 'Every single item?');
 
     s.w.routes({ extra: {
@@ -113,9 +113,10 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
     assert.equal(posted.json.message, 'posted 1 comment as one review: https://github.com/octo/widgets/pull/30#r5');
     assert.equal(posted.json.state.queue.members[0].posted.length, 1);
 
-    await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'One more.', build }, headers: s.own });
-    assert.equal((await call(s.address, 'DELETE', `${base}/comments/2`, { headers: { Origin: s.address } })).status, 409);
-    const dropped = await call(s.address, 'DELETE', `${base}/comments/2?build=${build}`, { headers: { Origin: s.address } });
+    const more = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'One more.', build }, headers: s.own });
+    const { version } = more.json.state.queue.members[0].comments[0];
+    assert.equal((await call(s.address, 'DELETE', `${base}/comments/2?version=${version}`, { headers: { Origin: s.address } })).status, 409);
+    const dropped = await call(s.address, 'DELETE', `${base}/comments/2?version=${version}&build=${build}`, { headers: { Origin: s.address } });
     assert.deepEqual(dropped.json.state.queue.members[0].comments, []);
   } finally {
     await s.done();
