@@ -135,13 +135,13 @@ export function createOverview(ctx) {
     while (walker.nextNode()) {
       const t = walker.currentNode;
       const tags = /\[(Certain|Likely|Guessing)\]/.test(t.nodeValue);
-      const mentions = pulls.members.length && /#\d/.test(t.nodeValue) && t.parentNode.closest('.rv-sec') && !t.parentNode.closest('a');
+      const mentions = pulls.members.length && /#\d/.test(t.nodeValue) && t.parentNode.closest('.rv-sec') && !t.parentNode.closest('a, .pp');
       if ((tags || mentions) && !t.parentNode.closest('code, pre')) hits.push(t);
     }
     hits.forEach(t => {
       const span = document.createElement('span');
       span.innerHTML = esc(t.nodeValue).replace(/\[(Certain|Likely|Guessing)\]/g, (_, w) => '<span class="conf ' + w.toLowerCase() + '">' + w + '</span>')
-        .replace(/#(\d+)(?!\d)/g, (whole, n) => (pulls.memberOf[+n] && t.parentNode.closest('.rv-sec') && !t.parentNode.closest('a') ? pulls.pullPill(+n) : whole));
+        .replace(/#(\d+)(?!\d)/g, (whole, n) => (pulls.memberOf[+n] && t.parentNode.closest('.rv-sec') && !t.parentNode.closest('a, .pp') ? pulls.pullPill(+n) : whole));
       t.replaceWith(...Array.prototype.slice.call(span.childNodes));
     });
     root.querySelectorAll('.rv-body code').forEach(code => {
