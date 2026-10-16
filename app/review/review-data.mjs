@@ -14,7 +14,6 @@ export function indexPage(page) {
   model.files.forEach(f => { files[f.path] = f; });
   model.contextFiles.forEach((f, i) => {
     f.index = 'c' + i;
-    f.lines = (page.context[f.path] || []).length;
     contextFiles[f.path] = f;
   });
   model.nodes.forEach(n => {
@@ -35,7 +34,7 @@ export function indexPage(page) {
     t.files++;
   });
   return {
-    build: page.build, model, layout: page.layout, diffs: page.diff || {}, sources: page.sources || {}, contextSources: page.context || {}, stack: page.stack,
+    build: page.build, model, layout: page.layout, stack: page.stack,
     nodes, comps, files, contextFiles, nodesByFile, groupsById, totals, compTotals,
   };
 }

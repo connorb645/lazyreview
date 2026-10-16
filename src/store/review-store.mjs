@@ -1,7 +1,9 @@
 /**
  * Reads and writes the reviews kept under the data home.
  *
- * Reading never locks. A change goes through change(refs, work): it locks
+ * Reading never locks, and a review's page is parsed once per build: the
+ * page readPage gives is shared by every caller, and frozen. A change goes
+ * through change(refs, work): it locks
  * the folders of every review in `refs`, runs `work`, and writes the files
  * `work` returns, as [[path, text]] where null text removes the file. The
  * writes are all-or-nothing: a failure partway puts back every file it had
@@ -17,6 +19,7 @@ import { BranchRef } from '../local/branch-ref.mjs';
 
 export class ReviewStore {
   #home;
+  #pages = new Map();
 
   constructor(home) {
     this.#home = home;
@@ -35,7 +38,13 @@ export class ReviewStore {
   readPage(ref) {
     const path = this.#home.review(ref).page;
     const text = readText(path);
-    return text === null ? null : { build: pageBuild(text), page: parseJSON(path, text) };
+    if (text === null) return null;
+    const build = pageBuild(text);
+    const kept = this.#pages.get(ref.id);
+    if (kept && kept.build === build) return kept;
+    const read = Object.freeze({ build, page: frozen(parseJSON(path, text)) });
+    this.#pages.set(ref.id, read);
+    return read;
   }
 
   /** The build id of a review's page, or null when it has none. */
@@ -127,6 +136,14 @@ export class ReviewStore {
       return result;
     });
   }
+}
+
+function frozen(value) {
+  if (value && typeof value === 'object') {
+    for (const inner of Object.values(value)) frozen(inner);
+    Object.freeze(value);
+  }
+  return value;
 }
 
 function writeAll(files) {

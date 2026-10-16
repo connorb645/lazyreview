@@ -85,9 +85,18 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
     const list = (await call(s.address, 'GET', '/api/reviews')).json;
     assert.deepEqual(list.map(r => [r.id, r.title, r.queued]), [['github.com/octo/widgets/30', 'Fix the guide wording', 0]]);
     const page = (await call(s.address, 'GET', `${base}/page`)).json;
-    assert.deepEqual(Object.keys(page.diff), ['docs/guide.md']);
+    assert.deepEqual(page.model.files.map(f => f.path), ['docs/guide.md']);
+    assert.deepEqual(Object.keys(page).sort(), ['build', 'layout', 'model', 'stack'], 'the page leaves out the diff and the whole texts');
     assert.equal(page.build, s.w.store.pageBuild(s.w.store.list()[0].ref), 'the page names its build, which each change names back');
     const build = page.build;
+    const file = (await call(s.address, 'GET', `${base}/file?path=docs%2Fguide.md&build=${build}`)).json;
+    assert.deepEqual(file.hunks[0].rows.map(r => [r.kind, r.old, r.new, r.text, r.owner]), [
+      ['same', 1, 1, '# Guide', null], ['same', 2, 2, '', null], ['del', 3, null, 'The catalog lists items.', null], ['add', null, 3, 'The catalog lists every item.', null],
+      ['same', 4, 4, '', null], ['same', 5, 5, '- Browse', null], ['same', 6, 6, '- Search', null],
+    ]);
+    assert.deepEqual([file.gaps, file.whole.length], [[], 6]);
+    assert.match((await call(s.address, 'GET', `${base}/file?path=docs%2Fguide.md&build=older`)).json.error, /^no file: the review was loaded again/);
+    assert.match((await call(s.address, 'GET', `${base}/file?path=nowhere.md&build=${build}`)).json.error, /nowhere\.md is not a file of this review/);
     assert.equal((await call(s.address, 'GET', '/api/reviews/github.com/octo/widgets/99')).status, 404);
 
     const unnamed = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?' }, headers: s.own });
@@ -152,7 +161,7 @@ test('a branch review is served read only: its state, its page and its conversat
     const state = (await call(s.address, 'GET', base)).json;
     assert.deepEqual([state.kind, state.title, state.head.ref, state.base.ref, state.queue], ['branch', 'Wording', 'fix/wording', 'main', null]);
     const page = (await call(s.address, 'GET', `${base}/page`)).json;
-    assert.deepEqual(Object.keys(page.diff), ['docs/guide.md']);
+    assert.deepEqual(page.model.files.map(f => f.path), ['docs/guide.md']);
     const listed = (await call(s.address, 'GET', '/api/reviews')).json.find(r => r.id === loaded.ref.id);
     assert.deepEqual([listed.kind, listed.branch, listed.base, listed.queued], ['branch', 'fix/wording', 'main', 0]);
 

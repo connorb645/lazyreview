@@ -6,9 +6,11 @@
  * the JSON the app reads and changes reviews through under /api. `loader`
  * loads pull requests again and `branches` branches. A branch review takes
  * no comments: only a pull request's review has a queue to change or post.
- * A review's page comes with its build id, and every change but a refresh
- * names the build its window was drawn from; a GET or a DELETE takes its
- * fields from its query.
+ * A review's page comes with its build id, without its per-file parts, which
+ * the file route gives one file at a time, for the build a window names.
+ * Every change but a refresh names the build its window was drawn from. A
+ * GET or a DELETE takes its fields from its query. What the page and file
+ * routes answer is kept in memory for each build.
  * listen() resolves once it is listening, with its address; close() stops it.
  *
  * It answers only requests addressed to this machine by name, so a page from
@@ -20,6 +22,9 @@ import { createReadStream, readFileSync } from 'node:fs';
 import { PullRef } from '../github/pull-ref.mjs';
 import { BranchRef } from '../local/branch-ref.mjs';
 import { reviewState, reviewSummary } from './review-state.mjs';
+import { pageView } from '../review/page-view.mjs';
+import { fileView } from '../review/file-view.mjs';
+import { checkBuild } from '../store/page-build.mjs';
 import { staticFile, PAGE } from './static-files.mjs';
 
 const PULL = '([^/]+/[^/]+/[^/]+/\\d+)';
@@ -36,6 +41,7 @@ export class AppServer {
   #port;
   #server = null;
   #routes;
+  #views = new WeakMap();
 
   constructor({ store, loader, branches, queue, threads, port }) {
     this.#store = store;
@@ -49,6 +55,7 @@ export class AppServer {
       ['GET', /^\/api\/reviews$/, () => this.#store.list().map(reviewSummary)],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}$`), ref => this.#state(ref)],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}/page$`), ref => this.#page(ref)],
+      ['GET', new RegExp(`^/api/reviews/${REVIEW}/file$`), (ref, query) => this.#file(ref, text(query.path), build(query))],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}/where$`), (ref, query) => this.#queue.where(ref, {
         path: text(query.path), side: side(query.side), line: whole(query.line), ...range(query), pull: query.pull ? whole(query.pull) : null, build: build(query),
       })],
@@ -145,7 +152,23 @@ export class AppServer {
 
   #page(ref) {
     const read = this.#store.readPage(ref);
-    return read && { build: read.build, ...read.page };
+    return read && this.#viewsOf(read).page;
+  }
+
+  #file(ref, path, build) {
+    const read = this.#store.readPage(ref);
+    if (!read) return null;
+    checkBuild(read.build, build, 'no file');
+    const files = this.#viewsOf(read).files;
+    if (!files.has(path)) files.set(path, fileView(read.page, path));
+    const file = files.get(path);
+    if (!file) throw new Error(`${path} is not a file of this review`);
+    return file;
+  }
+
+  #viewsOf(read) {
+    if (!this.#views.has(read)) this.#views.set(read, { page: pageView(read.build, read.page), files: new Map() });
+    return this.#views.get(read);
   }
 }
 

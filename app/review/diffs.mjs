@@ -1,57 +1,44 @@
 /**
  * The diff of one component at a time: its file list beside it, each file's
  * diff, unified or split, with wrapped lines, the whole file, the unchanged
- * lines between hunks, and a Rendered view of a Markdown file.
+ * lines between hunks, and a Rendered view of a Markdown file. Each file is
+ * drawn from the server's file route, rows and all, for the page's build.
  *
- * createDiffs(ctx) returns renderComponent(id) and the controls the other
- * views use: focusFile, focusLine, rerenderFile and current(). Every line
- * number takes a click, which opens a comment or a question on that line
- * through ctx.notes, and ctx.notes.decorate(file) adds the conversations and
- * queued comments under their lines whenever a file's diff is drawn.
+ * createDiffs(ctx) returns renderComponent(id), which resolves once the
+ * component is drawn, and the controls the other views use: load(path),
+ * focusFile, focusLine, rerenderFile and current(). Every line number takes
+ * a click, which opens a comment or a question on that line through
+ * ctx.notes, and ctx.notes.decorate(file) adds the conversations and queued
+ * comments under their lines whenever a file's diff is drawn.
  */
 import { esc, fmt, plural, baseName, breakable, short } from '../lib/text.mjs';
+import { getJSON, reviewPath } from '../lib/api.mjs';
 import { render as renderMarkdownDiff, renderParts } from '../lib/markdown-diff.mjs';
 
 const GUTTERS = 104;
 
 export function createDiffs(ctx) {
-  const { model, diffs, sources, contextSources, files, contextFiles, nodesByFile, comps, compTotals } = ctx.data;
+  const { model, files, contextFiles, nodesByFile, comps, compTotals } = ctx.data;
   const pulls = ctx.pulls;
   const main = document.getElementById('main');
   const nav = document.getElementById('files-nav');
-  const parsedCache = {};
+  const asked = {};
+  const drawn = {};
   const expandedGaps = {};
   const fileModes = {};
   let viewMode = 'unified';
   let currentComp = null;
+  let rendering = 0;
   let splitRatio = 0.5;
 
-  function parsed(path) {
-    if (parsedCache[path]) return parsedCache[path];
-    const meta = files[path];
-    const f = { path, hunks: [], adds: 0, dels: 0, isNew: meta.status === 'A', isGone: meta.status === 'D', binary: meta.binary };
-    let hunk = null, oldN = 0, newN = 0;
-    (diffs[path] || '').split('\n').forEach(line => {
-      if (line.indexOf('@@') === 0) {
-        const m = /@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)/.exec(line);
-        if (!m) return;
-        oldN = +m[1]; newN = +m[3];
-        hunk = { header: line, rows: [], oldStart: +m[1], oldLen: m[2] === undefined ? 1 : +m[2], newStart: +m[3], newLen: m[4] === undefined ? 1 : +m[4] };
-        f.hunks.push(hunk);
-        return;
-      }
-      if (!hunk) return;
-      const c = line.charAt(0);
-      if (c === '+') { hunk.rows.push({ t: 'add', o: '', n: newN++, s: line.slice(1) }); f.adds++; }
-      else if (c === '-') { hunk.rows.push({ t: 'del', o: oldN++, n: '', s: line.slice(1) }); f.dels++; }
-      else if (c === ' ' || line === '') {
-        if (line === '' && newN >= hunk.newStart + hunk.newLen && oldN >= hunk.oldStart + hunk.oldLen) return;
-        hunk.rows.push({ t: 'ctx', o: oldN++, n: newN++, s: line.slice(1) });
-      }
-      else if (c === '\\') hunk.rows.push({ t: 'meta', o: '', n: '', s: line });
-    });
-    parsedCache[path] = f;
-    return f;
+  // One file as the server draws it: its hunks of rows, the unchanged runs between them and its whole text.
+  function load(path) {
+    if (!asked[path]) {
+      asked[path] = getJSON(reviewPath(ctx.state.id, '/file?' + new URLSearchParams({ path, build: ctx.data.build })))
+        .then(file => { drawn[path] = file; return file; })
+        .catch(error => { delete asked[path]; throw error; });
+    }
+    return asked[path];
   }
 
   function fileName(p) {
@@ -61,151 +48,140 @@ export function createDiffs(ctx) {
   }
   function hunkRow(text) { return '<tr class="hunk"><td colspan="4">' + esc(text) + '</td></tr>'; }
 
-  function wholeText(f) {
-    if (sources[f.path]) return sources[f.path];
-    if (f.isNew) {
-      const lines = [];
-      f.hunks.forEach(h => h.rows.forEach(r => { if (r.t === 'add') lines.push(r.s); }));
-      return lines;
-    }
-    return null;
-  }
-
   function displayList(f) {
-    const src = sources[f.path];
     const items = [];
-    if (!src || !f.hunks.length || f.isNew || f.isGone) {
-      f.hunks.forEach(h => items.push({ type: 'hunk', h }));
-      return items;
-    }
-    let nextN = 1;
+    const gapBefore = i => f.gaps.filter(g => g.before === i).forEach(g => items.push({ type: 'gap', key: f.path + ':' + g.before, g }));
     f.hunks.forEach((h, i) => {
-      if (h.newStart > nextN) items.push({ type: 'gap', key: f.path + ':' + i, startN: nextN, endN: h.newStart - 1, delta: h.oldStart - h.newStart });
+      gapBefore(i);
       items.push({ type: 'hunk', h });
-      nextN = h.newStart + h.newLen;
     });
-    const last = f.hunks[f.hunks.length - 1];
-    if (nextN <= src.length) items.push({ type: 'gap', key: f.path + ':tail', startN: nextN, endN: src.length, delta: (last.oldStart + last.oldLen) - (last.newStart + last.newLen) });
+    gapBefore(f.hunks.length);
     return items;
   }
   function gapRows(f, g) {
-    const src = sources[f.path] || [];
     const rows = [];
-    for (let n = g.startN; n <= g.endN; n++) rows.push({ t: 'ctx', o: n + g.delta, n, s: src[n - 1] === undefined ? '' : src[n - 1] });
+    for (let n = g.from; n <= g.to; n++) rows.push({ kind: 'same', old: n + g.delta, new: n, text: f.whole[n - 1] === undefined ? '' : f.whole[n - 1], owner: null, words: null });
     return rows;
   }
-  function expanderRow(g) {
-    const count = g.endN - g.startN + 1;
-    return '<tr class="expander"><td colspan="4"><button class="gapbtn" data-gap="' + esc(g.key) + '">&#183; &#183; &#183; show ' + plural(count, 'unchanged line') + ' &#183; &#183; &#183;</button></td></tr>';
+  function expanderRow(item) {
+    const count = item.g.to - item.g.from + 1;
+    return '<tr class="expander"><td colspan="4"><button class="gapbtn" data-gap="' + esc(item.key) + '">&#183; &#183; &#183; show ' + plural(count, 'unchanged line') + ' &#183; &#183; &#183;</button></td></tr>';
   }
 
+  // A row's pull request stripe and the server's words for it, on a stack.
+  function mark(r) {
+    if (!r || !r.words) return null;
+    return { owner: r.owner, title: ' title="' + esc(r.words) + '"', other: !!(r.kind !== 'same' && ctx.filter.pull && r.owner !== ctx.filter.pull) };
+  }
+  function num(n) { return n === null || n === undefined ? '' : n; }
   // A line number cell. `at` names the line a click on it comments on, as R:n for the new side or L:o for the removed side.
-  function linenoTd(text, mark, extra, at) {
-    const own = mark && mark.owner ? ' own' : '';
-    return '<td class="lineno' + (extra ? ' ' + extra : '') + own + (mark && mark.other ? ' pr-other' : '') + (at ? ' ln' : '') + '"' +
-      (own ? ' style="--pc:' + pulls.pullColor(mark.owner) + '"' : '') + (at ? ' data-at="' + at + '"' : '') + '>' + text + '</td>';
+  function linenoTd(text, m, extra, at) {
+    const own = m && m.owner ? ' own' : '';
+    return '<td class="lineno' + (extra ? ' ' + extra : '') + own + (m && m.other ? ' pr-other' : '') + (at ? ' ln' : '') + '"' +
+      (own ? ' style="--pc:' + pulls.pullColor(m.owner) + '"' : '') + (at ? ' data-at="' + at + '"' : '') + '>' + num(text) + '</td>';
   }
   function rowKeys(r) {
-    if (r.t === 'del') return 'L:' + r.o;
-    if (r.t === 'add') return 'R:' + r.n;
-    return 'L:' + r.o + ' R:' + r.n;
+    if (r.kind === 'del') return 'L:' + r.old;
+    if (r.kind === 'add') return 'R:' + r.new;
+    return 'L:' + r.old + ' R:' + r.new;
   }
-  function unifiedRow(r, path) {
-    if (r.t === 'meta') return hunkRow(r.s);
-    const cls = r.t === 'add' ? 'add' : r.t === 'del' ? 'del' : '';
-    const sign = r.t === 'add' ? '+' : r.t === 'del' ? '-' : '';
-    const mark = pulls.rowMark(path, r);
-    return '<tr class="' + cls + (mark && mark.other ? ' pr-other' : '') + '"' + (r.n !== '' ? ' data-n="' + r.n + '"' : '') + ' data-l="' + rowKeys(r) + '"' + (mark ? mark.title : '') + '>' +
-      linenoTd(r.o, mark, '', r.t === 'del' ? 'L:' + r.o : 'R:' + r.n) + linenoTd(r.n, null, '', r.t === 'del' ? 'L:' + r.o : 'R:' + r.n) +
-      '<td class="sign">' + sign + '</td><td class="code">' + esc(r.s) + '</td></tr>';
+  function atOf(r) { return r.kind === 'del' ? 'L:' + r.old : 'R:' + r.new; }
+  function unifiedRow(r) {
+    if (r.kind === 'note') return hunkRow(r.text);
+    const cls = r.kind === 'add' ? 'add' : r.kind === 'del' ? 'del' : '';
+    const sign = r.kind === 'add' ? '+' : r.kind === 'del' ? '-' : '';
+    const m = mark(r);
+    return '<tr class="' + cls + (m && m.other ? ' pr-other' : '') + '"' + (r.new !== null ? ' data-n="' + r.new + '"' : '') + ' data-l="' + rowKeys(r) + '"' + (m ? m.title : '') + '>' +
+      linenoTd(r.old, m, '', atOf(r)) + linenoTd(r.new, null, '', atOf(r)) +
+      '<td class="sign">' + sign + '</td><td class="code">' + esc(r.text) + '</td></tr>';
   }
-  function unifiedGapHTML(f, g) { return gapRows(f, g).map(r => unifiedRow(r)).join(''); }
+  function unifiedGapHTML(f, g) { return gapRows(f, g).map(unifiedRow).join(''); }
   function unifiedBody(f) {
     return displayList(f).map(it => {
-      if (it.type === 'gap') return expandedGaps[it.key] ? unifiedGapHTML(f, it) : expanderRow(it);
-      return hunkRow(it.h.header) + it.h.rows.map(r => unifiedRow(r, f.path)).join('');
+      if (it.type === 'gap') return expandedGaps[it.key] ? unifiedGapHTML(f, it.g) : expanderRow(it);
+      return hunkRow(it.h.header) + it.h.rows.map(unifiedRow).join('');
     }).join('');
   }
-  function splitTd(r, no, cls, path) {
+  function splitTd(r, no, cls) {
     if (!r) return '<td class="lineno void"></td><td class="code void"></td>';
-    const mark = cls ? pulls.rowMark(path, r) : null;
-    return linenoTd(no, mark, cls, r.t === 'del' ? 'L:' + r.o : 'R:' + r.n) + '<td class="code ' + cls + (mark && mark.other ? ' pr-other' : '') + '"' + (mark ? mark.title : '') + '>' + esc(r.s) + '</td>';
+    const m = cls ? mark(r) : null;
+    return linenoTd(no, m, cls, atOf(r)) + '<td class="code ' + cls + (m && m.other ? ' pr-other' : '') + '"' + (m ? m.title : '') + '>' + esc(r.text) + '</td>';
   }
-  function splitCtxRow(r, path) {
-    const mark = pulls.rowMark(path, r);
-    return '<tr data-n="' + r.n + '" data-l="' + rowKeys(r) + '"' + (mark ? mark.title : '') + '>' + splitTd(r, r.o, '') + splitTd(r, r.n, '') + '</tr>';
+  function splitSameRow(r) {
+    const m = mark(r);
+    return '<tr data-n="' + r.new + '" data-l="' + rowKeys(r) + '"' + (m ? m.title : '') + '>' + splitTd(r, r.old, '') + splitTd(r, r.new, '') + '</tr>';
   }
-  function splitGapHTML(f, g) { return gapRows(f, g).map(r => splitCtxRow(r)).join(''); }
-  function splitHunkHTML(h, path) {
+  function splitGapHTML(f, g) { return gapRows(f, g).map(splitSameRow).join(''); }
+  function splitHunkHTML(h) {
     let out = hunkRow(h.header), dels = [], adds = [];
     function flush() {
       const n = Math.max(dels.length, adds.length);
       for (let i = 0; i < n; i++) {
-        const keys = [dels[i] ? 'L:' + dels[i].o : '', adds[i] ? 'R:' + adds[i].n : ''].filter(Boolean).join(' ');
-        out += '<tr' + (adds[i] ? ' data-n="' + adds[i].n + '"' : '') + ' data-l="' + keys + '">' + splitTd(dels[i], dels[i] ? dels[i].o : '', 'cdel', path) + splitTd(adds[i], adds[i] ? adds[i].n : '', 'cadd', path) + '</tr>';
+        const keys = [dels[i] ? 'L:' + dels[i].old : '', adds[i] ? 'R:' + adds[i].new : ''].filter(Boolean).join(' ');
+        out += '<tr' + (adds[i] ? ' data-n="' + adds[i].new + '"' : '') + ' data-l="' + keys + '">' + splitTd(dels[i], dels[i] ? dels[i].old : '', 'cdel') + splitTd(adds[i], adds[i] ? adds[i].new : '', 'cadd') + '</tr>';
       }
       dels = []; adds = [];
     }
     h.rows.forEach(r => {
-      if (r.t === 'del') { dels.push(r); return; }
-      if (r.t === 'add') { adds.push(r); return; }
+      if (r.kind === 'del') { dels.push(r); return; }
+      if (r.kind === 'add') { adds.push(r); return; }
       flush();
-      if (r.t === 'meta') { out += hunkRow(r.s); return; }
-      out += splitCtxRow(r, path);
+      if (r.kind === 'note') { out += hunkRow(r.text); return; }
+      out += splitSameRow(r);
     });
     flush();
     return out;
   }
   function splitBody(f) {
     return displayList(f).map(it => {
-      if (it.type === 'gap') return expandedGaps[it.key] ? splitGapHTML(f, it) : expanderRow(it);
-      return splitHunkHTML(it.h, f.path);
+      if (it.type === 'gap') return expandedGaps[it.key] ? splitGapHTML(f, it.g) : expanderRow(it);
+      return splitHunkHTML(it.h);
     }).join('');
   }
-  function wholeHTML(lines, added, path) {
+  function wholeHTML(lines, added) {
     return '<table class="difftable wholetable"><tbody>' + lines.map((s, i) => {
-      const marked = added && added[i + 1];
-      const mark = marked ? pulls.rowMark(path, { t: 'add', n: i + 1 }) : null;
-      return '<tr data-n="' + (i + 1) + '" data-l="R:' + (i + 1) + '"' + (marked ? ' class="mark' + (mark && mark.other ? ' pr-other' : '') + '"' : '') + (mark ? mark.title : '') + '>' +
-        linenoTd(i + 1, mark, '', 'R:' + (i + 1)) + '<td class="code">' + esc(s) + '</td></tr>';
+      const row = added && added[i + 1];
+      const m = mark(row);
+      return '<tr data-n="' + (i + 1) + '" data-l="R:' + (i + 1) + '"' + (row ? ' class="mark' + (m && m.other ? ' pr-other' : '') + '"' : '') + (m ? m.title : '') + '>' +
+        linenoTd(i + 1, m, '', 'R:' + (i + 1)) + '<td class="code">' + esc(s) + '</td></tr>';
     }).join('') + '</tbody></table>';
   }
   function hunkSide(h, keep) {
-    return h.rows.filter(r => r.t === 'ctx' || r.t === keep).map(r => r.s);
+    return h.rows.filter(r => r.kind === 'same' || r.kind === keep).map(r => r.text);
   }
   function canRenderMd(f) { return /\.(md|markdown)$/i.test(f.path) && f.hunks.length > 0; }
-  function renderMd(f) {
-    if (f.isNew) return renderMarkdownDiff(null, hunkSide(f.hunks[0], 'add').join('\n'));
-    if (f.isGone) return renderMarkdownDiff(hunkSide(f.hunks[0], 'del').join('\n'), null);
-    const whole = wholeText(f);
-    if (whole) {
+  function renderMd(f, meta) {
+    if (meta.status === 'A') return renderMarkdownDiff(null, hunkSide(f.hunks[0], 'add').join('\n'));
+    if (meta.status === 'D') return renderMarkdownDiff(hunkSide(f.hunks[0], 'del').join('\n'), null);
+    if (f.whole) {
       let before = [], next = 1;
       f.hunks.forEach(h => {
-        const first = h.newLen === 0 ? h.newStart + 1 : h.newStart;
-        before = before.concat(whole.slice(next - 1, first - 1), hunkSide(h, 'del'));
-        next = first + h.newLen;
+        const first = h.new_count === 0 ? h.new_start + 1 : h.new_start;
+        before = before.concat(f.whole.slice(next - 1, first - 1), hunkSide(h, 'del'));
+        next = first + h.new_count;
       });
-      return renderMarkdownDiff(before.concat(whole.slice(next - 1)).join('\n'), whole.join('\n'));
+      return renderMarkdownDiff(before.concat(f.whole.slice(next - 1)).join('\n'), f.whole.join('\n'));
     }
-    return renderParts(f.hunks.map(h => ({ before: hunkSide(h, 'del').join('\n'), after: hunkSide(h, 'add').join('\n'), oldStart: h.oldStart, newStart: h.newStart })));
+    return renderParts(f.hunks.map(h => ({ before: hunkSide(h, 'del').join('\n'), after: hunkSide(h, 'add').join('\n'), oldStart: h.old_start, newStart: h.new_start })));
   }
 
   function fileBody(path) {
+    const f = drawn[path];
     if (contextFiles[path]) {
-      return '<div class="note">Unchanged at ' + esc(short(model.heading.head)) + '. Read only: select a line number to ask about it.</div><div class="diffwrap">' + wholeHTML(contextSources[path] || [], null, path) + '</div>';
+      return '<div class="note">Unchanged at ' + esc(short(model.heading.head)) + '. Read only: select a line number to ask about it.</div><div class="diffwrap">' + wholeHTML(f.whole || [], null) + '</div>';
     }
-    const f = parsed(path), meta = files[path], mode = fileModes[path] || 'diff';
+    const meta = files[path], mode = fileModes[path] || 'diff';
     if (meta.binary) return '<div class="note">A binary file. Its contents are not shown.</div>';
     if (!f.hunks.length) {
       return '<div class="note">' + (meta.status === 'R' ? 'Renamed, with no change to its contents.' : 'No change to its contents, only to its mode.') + '</div>';
     }
     if (mode === 'whole') {
       const added = {};
-      if (!f.isNew) f.hunks.forEach(h => h.rows.forEach(r => { if (r.t === 'add') added[r.n] = true; }));
-      return '<div class="diffwrap">' + wholeHTML(wholeText(f) || [], added, path) + '</div>';
+      if (meta.status !== 'A') f.hunks.forEach(h => h.rows.forEach(r => { if (r.kind === 'add') added[r.new] = r; }));
+      return '<div class="diffwrap">' + wholeHTML(f.whole || [], added) + '</div>';
     }
     if (mode === 'rendered') {
-      return '<div class="mdview"><p class="md-hint">' + (ctx.state.queue ? 'Select a passage to comment on it or ask Claude about it.' : 'Select a passage to ask Claude about it.') + '</p>' + renderMd(f) + '</div>';
+      return '<div class="mdview"><p class="md-hint">' + (ctx.state.queue ? 'Select a passage to comment on it or ask Claude about it.' : 'Select a passage to ask Claude about it.') + '</p>' + renderMd(f, meta) + '</div>';
     }
     const split = viewMode === 'split';
     return '<div class="diffwrap"><table class="difftable' + (split ? ' splittable' : '') + '">' +
@@ -225,12 +201,12 @@ export function createDiffs(ctx) {
     if (contextFiles[path]) {
       head = '<span class="badge same">unchanged</span>' + chipsFor(path) + ctx.notes.countBadge(path) + '<span class="fstats">' + plural(contextFiles[path].lines, 'line') + '</span>';
     } else {
-      const meta = files[path], f = parsed(path), mode = fileModes[path] || 'diff';
+      const meta = files[path], f = drawn[path], mode = fileModes[path] || 'diff';
       const badge = { A: '<span class="badge new">new</span>', D: '<span class="badge gone">deleted</span>', R: '<span class="badge mod">renamed</span>' }[meta.status] ||
         '<span class="badge mod">changed</span>';
       const from = meta.status === 'R' && meta.oldPath ? '<span class="from">from ' + breakable(meta.oldPath) + '</span>' : '';
       let buttons = '';
-      if (!meta.binary && f.hunks.length && wholeText(f)) buttons += '<button class="fbtn" data-mode="whole" aria-pressed="' + (mode === 'whole') + '">Whole file</button>';
+      if (!meta.binary && f.hunks.length && f.whole) buttons += '<button class="fbtn" data-mode="whole" aria-pressed="' + (mode === 'whole') + '">Whole file</button>';
       if (canRenderMd(f)) buttons += '<button class="fbtn" data-mode="rendered" aria-pressed="' + (mode === 'rendered') + '">Rendered</button>';
       const counts = ctx.filter.pull && meta.byPull ? meta.byPull[ctx.filter.pull] || [0, 0] : [meta.adds, meta.dels];
       head = badge + pulls.pullPills(meta.pulls) + from + chipsFor(path) + buttons + ctx.notes.countBadge(path) +
@@ -261,11 +237,21 @@ export function createDiffs(ctx) {
     return t;
   }
 
-  function renderComponent(cid) {
+  async function renderComponent(cid) {
     currentComp = cid;
+    const turn = ++rendering;
     const c = comps[cid];
     let t = compTotals[cid] || { files: 0, adds: 0, dels: 0 };
     const pkgs = compFiles(cid);
+    if (!c.context) {
+      try {
+        await Promise.all(pkgs.flatMap(p => p.files.map(f => load(f.path))));
+      } catch (error) {
+        if (turn === rendering) main.innerHTML = '<p class="filter-empty">The diff could not load: ' + esc(error.message) + '</p>';
+        return;
+      }
+    }
+    if (turn !== rendering) return;
     if (ctx.filter.pull && !c.context) t = filteredTotals([].concat(...pkgs.map(p => p.files)));
     nav.innerHTML = '<p class="nav-comp" style="color:' + ctx.diagram.compColor(cid) + '">' + esc(c.title) + '</p>' +
       '<p class="nav-tag">' + breakable(c.tag) + '</p>' +
@@ -304,28 +290,40 @@ export function createDiffs(ctx) {
     return fresh;
   }
 
-  main.addEventListener('toggle', e => {
-    const d = e.target;
-    if (!d.classList || !d.classList.contains('file') || !d.open || d.querySelector('.diffwrap, .mdview, .note')) return;
-    d.insertAdjacentHTML('beforeend', fileBody(d.getAttribute('data-path')));
+  // Opens a file, drawing its body once the server has given it.
+  async function openFile(d) {
+    if (!d.open) d.open = true;
+    const path = d.getAttribute('data-path');
+    try {
+      await load(path);
+    } catch (error) {
+      if (!d.querySelector('.note')) d.insertAdjacentHTML('beforeend', '<div class="note">This file could not load: ' + esc(error.message) + '</div>');
+      return;
+    }
+    if (!d.isConnected || d.querySelector('.diffwrap, .mdview, .note')) return;
+    d.insertAdjacentHTML('beforeend', fileBody(path));
     ctx.notes.decorate(d);
     if (viewMode === 'split') applySplitRatio();
+  }
+
+  main.addEventListener('toggle', e => {
+    const d = e.target;
+    if (d.classList && d.classList.contains('file') && d.open) openFile(d);
   }, true);
 
   function expandGap(det, key) {
     expandedGaps[key] = true;
-    const f = parsed(det.getAttribute('data-path'));
-    let g = null;
-    displayList(f).forEach(it => { if (it.type === 'gap' && it.key === key) g = it; });
+    const f = drawn[det.getAttribute('data-path')];
+    const item = displayList(f).find(it => it.type === 'gap' && it.key === key);
     const btn = det.querySelector('button.gapbtn[data-gap="' + CSS.escape(key) + '"]');
-    if (g && btn) btn.closest('tr').outerHTML = viewMode === 'split' ? splitGapHTML(f, g) : unifiedGapHTML(f, g);
+    if (item && btn) btn.closest('tr').outerHTML = viewMode === 'split' ? splitGapHTML(f, item.g) : unifiedGapHTML(f, item.g);
   }
   // Shows every unchanged line a note sits on, so no note hides inside a gap.
   function expandFor(det, line) {
     const path = det.getAttribute('data-path');
-    if (!files[path] || (fileModes[path] || 'diff') !== 'diff') return;
-    displayList(parsed(path)).forEach(it => {
-      if (it.type === 'gap' && !expandedGaps[it.key] && line >= it.startN && line <= it.endN) expandGap(det, it.key);
+    if (!files[path] || !drawn[path] || (fileModes[path] || 'diff') !== 'diff') return;
+    displayList(drawn[path]).forEach(it => {
+      if (it.type === 'gap' && !expandedGaps[it.key] && line >= it.g.from && line <= it.g.to) expandGap(det, it.key);
     });
   }
 
@@ -368,20 +366,20 @@ export function createDiffs(ctx) {
     const nb = nav.querySelector('.nav-file[data-path="' + CSS.escape(path) + '"]');
     if (nb) { nb.classList.add('on'); nb.scrollIntoView({ block: 'nearest' }); }
   }
-  function focusFile(path) {
+  async function focusFile(path) {
     const d = detailsFor(path);
     if (!d) return;
-    if (!d.open) d.open = true;
+    await openFile(d);
     markNav(path);
     d.scrollIntoView({ block: 'start' });
     d.classList.add('flash');
     setTimeout(() => d.classList.remove('flash'), 1400);
   }
   // Scroll to one line of a file, showing it first if it sits among hidden unchanged lines.
-  function focusLine(path, line, side) {
+  async function focusLine(path, line, side) {
     const d = detailsFor(path);
     if (!d) return;
-    if (!d.open) d.open = true;
+    await openFile(d);
     const key = (side === 'LEFT' ? 'L:' : 'R:') + line;
     let row = d.querySelector('tr[data-l~="' + key + '"]');
     if (!row && side !== 'LEFT') {
@@ -459,7 +457,7 @@ export function createDiffs(ctx) {
   });
 
   return {
-    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, parsed, wholeText,
+    renderComponent, rerenderFile, focusFile, focusLine, detailsFor, expandFor, load,
     current: () => currentComp,
     forget: () => { currentComp = null; },
     setMode(path, mode) { fileModes[path] = mode; },

@@ -10,6 +10,7 @@
  * nothing.
  */
 import { readHunks } from './diff-hunks.mjs';
+import { wholeText } from './page-text.mjs';
 
 export function quotedCode(page, n) {
   const startSide = n.start_line ? n.start_side || n.side : n.side;
@@ -26,12 +27,4 @@ export function quotedCode(page, n) {
 
 function on(row, side, line) {
   return side === 'LEFT' ? row.kind !== 'add' && row.old === line : row.kind !== 'del' && row.new === line;
-}
-
-function wholeText(page, path) {
-  if (page.sources[path]) return page.sources[path];
-  if (page.context[path]) return page.context[path];
-  const file = page.model.files.find(f => f.path === path);
-  if (!file || file.status !== 'A') return null;
-  return readHunks(page.diff[path]).flatMap(hunk => hunk.rows.filter(row => row.kind === 'add').map(row => row.text));
 }

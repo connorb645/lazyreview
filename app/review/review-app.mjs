@@ -60,11 +60,11 @@ export async function openReview(id) {
     ctx.diagram.clearHover();
     go('#diff/' + encodeURIComponent(cid));
   }
-  function openNode(nodeId) {
+  async function openNode(nodeId) {
     const n = ctx.data.nodes[nodeId];
     if (n.state === 'context') { openComponent(n.component, { file: n.file, line: n.line }); return; }
     // an unchanged type in a changed file opens that file whole
-    if (n.state === 'same' && files[n.file] && ctx.diffs.wholeText(ctx.diffs.parsed(n.file))) {
+    if (n.state === 'same' && files[n.file] && (await ctx.diffs.load(n.file).catch(() => ({}))).whole) {
       ctx.diffs.setMode(n.file, 'whole');
       openComponent(n.component, { file: n.file, mode: 'whole', line: n.line });
       return;
@@ -155,7 +155,8 @@ export async function openReview(id) {
   createPassages(ctx);
 
   /* ---------- routing ---------- */
-  function show(route) {
+  // Shows the view `route` names, and resolves once it is drawn.
+  async function show(route) {
     let cid = route.indexOf('diff/') === 0 ? decodeURIComponent(route.slice(5)) : null;
     if (cid && !comps[cid]) cid = null;
     const which = cid ? 'diff' : route === 'review' ? 'review' : route === 'map' ? 'map' : home;
@@ -182,10 +183,10 @@ export async function openReview(id) {
       pending = null;
       return;
     }
-    if (ctx.diffs.current() !== cid) ctx.diffs.renderComponent(cid);
-    window.scrollTo(0, 0);
     const p = pending;
     pending = null;
+    if (ctx.diffs.current() !== cid) await ctx.diffs.renderComponent(cid);
+    window.scrollTo(0, 0);
     if (p && p.file && p.mode) {
       const d = ctx.diffs.detailsFor(p.file);
       if (d) ctx.diffs.rerenderFile(d);
@@ -209,7 +210,7 @@ export async function openReview(id) {
     if (e.key === 'Escape' && !diffView.hidden && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) go('#' + from);
   });
 
-  show(location.hash.slice(1));
+  await show(location.hash.slice(1));
   refresh.restore();
   return ctx;
 }

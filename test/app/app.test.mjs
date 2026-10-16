@@ -63,14 +63,15 @@ test('the page data is indexed with the totals of the change and of each compone
     model: {
       nodes: [{ id: 'A', file: 'a.ts', extFiles: ['b.ts'] }], components: [{ id: 'one' }, { id: 'context' }], groups: [],
       files: [{ path: 'a.ts', component: 'one', adds: 3, dels: 1 }, { path: 'b.ts', component: 'one', adds: 2, dels: 0 }],
-      contextFiles: [{ path: 'c.ts', component: 'context' }],
+      contextFiles: [{ path: 'c.ts', component: 'context', lines: 2 }],
     },
-    layout: {}, diff: {}, sources: {}, context: { 'c.ts': ['x', 'y'] }, stack: null,
+    layout: {}, stack: null, build: 'abc',
   });
   assert.deepEqual(data.totals, { files: 2, adds: 5, dels: 1 });
   assert.deepEqual(data.compTotals, { one: { files: 2, adds: 5, dels: 1 }, context: { files: 1, adds: 0, dels: 0 } });
   assert.deepEqual(Object.keys(data.nodesByFile), ['a.ts', 'b.ts']);
-  assert.equal(data.contextFiles['c.ts'].lines, 2);
+  assert.equal(data.contextFiles['c.ts'].index, 'c0');
+  assert.equal(data.build, 'abc');
   assert.equal(breakable('Sources/A_b.swift'), 'Sources/<wbr>A_<wbr>b.swift');
   assert.equal(plural(1, 'file') + ', ' + plural(1200, 'file'), '1 file, 1,200 files');
 });
