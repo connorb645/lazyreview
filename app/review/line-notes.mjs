@@ -16,7 +16,9 @@
  *   countBadge(path) the file header's count of its notes
  *   refresh()        draw every open file's notes again, after a change
  *
- * From the composer, Ask Claude starts a conversation on the lines and
+ * The composer says where a comment on its lines goes, or why none can, as
+ * the server answers it: the same answer the queue takes. From the composer,
+ * Ask Claude starts a conversation on the lines and
  * Queue comment queues the text for the pull request. A conversation takes
  * follow-up questions, and any answer can be taken as the comment's text. A
  * branch's review has no queue, so there only Ask Claude is offered.
@@ -26,7 +28,7 @@
  * A note on no line the view shows sits at the top of its file.
  */
 import { esc, plural } from '../lib/text.mjs';
-import { send, reviewPath } from '../lib/api.mjs';
+import { send, getJSON, reviewPath } from '../lib/api.mjs';
 import { createFolds } from '../lib/folds.mjs';
 import { pointOf, rangeOf, rowFor, rowsOf, linesWords } from './line-range.mjs';
 import { createNoteCards } from './note-cards.mjs';
@@ -63,45 +65,63 @@ export function createLineNotes(ctx) {
     return '<span class="ncount" title="' + esc(words) + '">' + esc(words) + '</span>';
   }
 
-  // Where a comment on the composer's lines would go, or why none can.
-  function destination(c) {
+  // Where a comment on the composer's lines goes, as far as the server has said.
+  function whereOf(c) {
     if (!ctx.state.queue) return { words: '' };
-    if (ctx.state.moved) return { off: 'This review moved, so nothing can be queued here.' };
-    if (!ctx.data.files[c.path]) return { off: 'This file is not in the change, so a comment cannot go on it. Ask about it instead.' };
-    const end = ctx.diffs.hunkAt(c.path, c.side, c.line);
-    if (end < 0) return { off: 'GitHub takes comments only on lines of the diff, and this one is not. Ask Claude about it instead.' };
-    if (c.start_line && ctx.diffs.hunkAt(c.path, c.start_side || c.side, c.start_line) !== end) {
-      return { off: 'GitHub takes a range only inside one hunk of the diff, and this one leaves it. Pick lines inside one hunk, or ask Claude about these.' };
+    if (!c.where) return { words: 'Checking where a comment here goes…', off: 'Checking where a comment here goes.' };
+    if (c.where.refused) return { words: c.where.refused, off: c.where.refused };
+    return { words: c.where.words, choose: c.where.choose || c.choices };
+  }
+
+  function chooseHTML(c, choose) {
+    if (!choose) return '';
+    return '<label class="composer-choose">Comment on <select data-pull>' + choose.map(x =>
+      '<option value="' + x.pull + '"' + (c.pull === x.pull ? ' selected' : '') + '>#' + x.pull + ', line ' + x.line + '</option>').join('') + '</select></label>';
+  }
+
+  async function lookWhere(c, named) {
+    if (!ctx.state.queue) return;
+    const asked = { path: c.path, side: c.side, line: c.line, build: ctx.data.build };
+    if (c.start_line) Object.assign(asked, { start_line: c.start_line, start_side: c.start_side || c.side });
+    if (named) asked.pull = c.pull;
+    c.asking = asked;
+    let answer;
+    try {
+      answer = await getJSON(reviewPath(ctx.state.id, '/where?' + new URLSearchParams(asked)));
+    } catch (error) {
+      answer = { refused: 'Where a comment here goes could not be checked: ' + error.message };
     }
-    if (!ctx.pulls.members.length) {
-      const m = ctx.state.queue.members[0];
-      if (m && m.state && m.state !== 'open') return { off: '#' + m.pull + ' is ' + m.state + ', so nothing can be queued for it.' };
-      return { words: '' };
+    if (composer !== c || c.asking !== asked) return;
+    c.where = answer;
+    if (answer.choose) {
+      c.choices = answer.choose;
+      if (!answer.choose.some(x => x.pull === c.pull)) c.pull = answer.choose[0].pull;
     }
-    const t = ctx.pulls.lineTarget(c.path, c.side, c.line);
-    if (!t) return { off: 'This line is not in the combined diff, so a comment cannot go on it.' };
-    if (c.start_line) {
-      const first = ctx.pulls.lineTarget(c.path, c.start_side || c.side, c.start_line);
-      const pullsOf = x => (!x ? [] : x.pull ? [x.pull] : (x.candidates || []).map(k => k.pull));
-      if (!pullsOf(first).some(p => pullsOf(t).includes(p))) return { off: 'These lines do not all go to one pull request of the stack. Comment on fewer lines, or one comment per pull request.' };
+    showWhere(c);
+  }
+
+  function showWhere(c) {
+    const box = document.querySelector('#main .composer-row .composer');
+    if (!box) return;
+    const to = whereOf(c);
+    box.querySelector('.where-words').textContent = to.words ? ' · ' + to.words : '';
+    box.querySelector('.choose-slot').innerHTML = chooseHTML(c, to.choose);
+    const button = box.querySelector('button[data-act="queue"]');
+    if (button) {
+      button.disabled = !!to.off;
+      button.title = to.off || '';
     }
-    if (t.none) return { off: 'No pull request in the stack can take a comment here: ' + t.none + '.' };
-    if (t.pull) return { words: 'Goes on #' + t.pull + ', line ' + t.line + (t.path !== c.path ? ' of ' + t.path : '') + '.' };
-    if (!t.candidates.length) return { off: 'No pull request in the stack shows this line, so it takes no comment.' };
-    if (t.candidates.length === 1) return { words: 'Goes on #' + t.candidates[0].pull + ', line ' + t.candidates[0].line + '.' };
-    return { choose: t.candidates };
   }
 
   function composerHTML(c) {
-    const to = destination(c);
-    const choose = to.choose ? '<label class="composer-choose">Comment on <select data-pull>' + to.choose.map(x =>
-      '<option value="' + x.pull + '"' + (c.pull === x.pull ? ' selected' : '') + '>#' + x.pull + ', line ' + x.line + '</option>').join('') + '</select></label>' : '';
+    const to = whereOf(c);
     const hint = c.quote !== undefined ? 'Select another passage to change the lines.'
       : touch ? 'Tap another line number for a range.' : 'Drag across line numbers, or shift-select another, for a range.';
     return '<div class="composer">' +
-      '<p class="composer-where"><b>' + esc(linesWords(c)) + '</b>' + (to.words ? ' &middot; ' + esc(to.words) : '') +
-      (to.off ? ' &middot; ' + esc(to.off) : '') + ' <span class="hint-inline">' + hint + '</span></p>' +
-      (c.quote ? '<blockquote class="composer-quote">' + esc(c.quote.length > QUOTE ? c.quote.slice(0, QUOTE) + '…' : c.quote) + '</blockquote>' : '') + choose +
+      '<p class="composer-where"><b>' + esc(linesWords(c)) + '</b><span class="where-words">' + (to.words ? ' &middot; ' + esc(to.words) : '') + '</span>' +
+      ' <span class="hint-inline">' + hint + '</span></p>' +
+      (c.quote ? '<blockquote class="composer-quote">' + esc(c.quote.length > QUOTE ? c.quote.slice(0, QUOTE) + '…' : c.quote) + '</blockquote>' : '') +
+      '<div class="choose-slot">' + chooseHTML(c, to.choose) + '</div>' +
       cards.textArea(ctx.state.queue ? 'Ask Claude about these lines, or write a comment for the pull request' : 'Ask Claude about these lines', c.text) +
       cards.actions(to.off) + '<button type="button" class="nbtn quiet close" data-act="cancel" aria-label="Close">Cancel</button></div>';
   }
@@ -242,6 +262,7 @@ export function createLineNotes(ctx) {
     composer = { path, ...lines, anchor: null, quote, text: composer ? composer.text : '', pull: composer && composer.path === path ? composer.pull : null };
     clearPicked();
     placeComposer(file);
+    lookWhere(composer, false);
   }
 
   function compose(file, from, to) {
@@ -250,6 +271,7 @@ export function createLineNotes(ctx) {
     composer = { path, ...range, anchor: from, text: composer ? composer.text : '', pull: composer && composer.path === path ? composer.pull : null };
     clearPicked();
     placeComposer(file);
+    lookWhere(composer, false);
   }
 
   function pick(cell, e) {
@@ -355,7 +377,10 @@ export function createLineNotes(ctx) {
     if (composer && e.target.closest('.composer') && e.target.tagName === 'TEXTAREA') composer.text = e.target.value;
   });
   main.addEventListener('change', e => {
-    if (composer && e.target.matches('.composer select[data-pull]')) composer.pull = +e.target.value;
+    if (composer && e.target.matches('.composer select[data-pull]')) {
+      composer.pull = +e.target.value;
+      lookWhere(composer, true);
+    }
   });
   main.addEventListener('click', e => {
     const fold = e.target.closest('.note-row summary.note-head, .md-note summary.note-head');

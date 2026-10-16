@@ -66,7 +66,8 @@ export function bodyProblems(body) {
  * Where each line of a file's patch sits, on each side: {RIGHT, LEFT}, each a
  * Map from a line number to {hunk, row}, the hunk it is in and its row in
  * the patch. The unchanged line of a row has the same place on both sides,
- * so two places compare in the order the diff shows them.
+ * so two places compare in the order the diff shows them. Rows before the
+ * first hunk, the header of a file's diff, are no lines.
  */
 export function diffPlaces(patch) {
   const places = { RIGHT: new Map(), LEFT: new Map() };
@@ -79,6 +80,7 @@ export function diffPlaces(patch) {
     const start = HUNK.exec(row);
     const at = { hunk, row: index };
     if (start) { hunk++; old = +start[1]; now = +start[2]; return; }
+    if (hunk < 0) return;
     if (row.startsWith('+')) places.RIGHT.set(now++, at);
     else if (row.startsWith('-')) places.LEFT.set(old++, at);
     else if (!row.startsWith('\\')) { places.RIGHT.set(now++, at); places.LEFT.set(old++, at); }

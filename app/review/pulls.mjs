@@ -56,5 +56,5 @@ export function createPulls(ctx) {
     return { owner, title: ' title="' + esc(targetWords(t, changed, path)) + '"', other: !!(changed && ctx.filter.pull && owner !== ctx.filter.pull) };
   }
 
-  return { stack, members, memberOf, pullColor, pullPill, pullPills, onFilter, lineTarget, targetWords, rowMark };
+  return { stack, members, memberOf, pullColor, pullPill, pullPills, onFilter, rowMark };
 }

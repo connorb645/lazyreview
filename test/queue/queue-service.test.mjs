@@ -23,7 +23,7 @@ test('a comment is queued on a line of the diff, and refused anywhere else', asy
     await w.loader.load({ links: [w.link(30)] });
     const done = await w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 3, side: 'RIGHT', body: '  Every item, or every item shown?  ', code: 'The catalog lists every item.' });
     assert.deepEqual(done.comment, { id: 1, path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item, or every item shown?', code: 'The catalog lists every item.' });
-    await assert.rejects(w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 40, side: 'RIGHT', body: 'Hm' }), /not queued: docs\/guide\.md:40 is not on a line of the diff/);
+    await assert.rejects(w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 40, side: 'RIGHT', body: 'Hm' }), /not queued: GitHub takes comments only on lines of the diff, and this one is not/);
     await assert.rejects(w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 3, side: 'RIGHT', body: '   ' }), /not queued: the text is empty/);
     await w.queue.add(ref(30), { build: built(w, 30), path: 'docs/guide.md', line: 3, side: 'LEFT', body: 'Why drop this?' });
     assert.deepEqual(w.store.read(ref(30)).members[0].comments.map(c => [c.id, c.side]), [[1, 'RIGHT'], [2, 'LEFT']]);
@@ -44,8 +44,8 @@ test('a range is queued only inside one hunk, may start on a removed line, and p
     w.routes();
     await w.loader.load({ links: [w.link(30)] });
     await assert.rejects(w.queue.add(ref(30), { build: built(w, 30), path: 'docs/long.md', start_line: 4, line: 25, side: 'RIGHT', body: 'Both?' }),
-      /not queued: docs\/long\.md:4-25 runs from line 4 across more than one hunk of the diff, and GitHub takes a range only inside one hunk/);
-    await assert.rejects(w.queue.add(ref(30), { build: built(w, 30), path: 'docs/long.md', start_line: 5, line: 4, side: 'RIGHT', body: 'Backwards?' }), /starts on line 5, which does not come before its last line/);
+      /not queued: GitHub takes a range only inside one hunk of the diff, and this one leaves it/);
+    await assert.rejects(w.queue.add(ref(30), { build: built(w, 30), path: 'docs/long.md', start_line: 5, line: 4, side: 'RIGHT', body: 'Backwards?' }), /not queued: A range runs from its first line to its last, and this one does not/);
     const mixed = await w.queue.add(ref(30), { build: built(w, 30), path: 'docs/long.md', start_line: 4, start_side: 'LEFT', line: 5, side: 'RIGHT', body: 'Why reword it?' });
     assert.deepEqual([mixed.comment.start_line, mixed.comment.start_side, mixed.comment.line, mixed.comment.side], [4, 'LEFT', 5, 'RIGHT']);
 
@@ -75,10 +75,10 @@ test('on a stack, a comment goes to the pull request that last changed its line,
     assert.deepEqual(first.comment.shown, { path: 'Sources/Catalog/MemoryCatalog.swift', line: 9, side: 'RIGHT' });
     const second = await w.queue.add(ref(21), { build: built(w, 21), path: 'Sources/Basket/Basket.swift', line: 7, side: 'RIGHT', body: 'Could this be passed in?' });
     assert.equal(second.pull, 22);
-    await assert.rejects(w.queue.add(ref(21), { build: built(w, 21), path: 'Sources/Basket/Basket.swift', line: 7, side: 'RIGHT', body: 'x', pull: 21 }), /#22 last changed Sources\/Basket\/Basket\.swift:7/);
+    await assert.rejects(w.queue.add(ref(21), { build: built(w, 21), path: 'Sources/Basket/Basket.swift', line: 7, side: 'RIGHT', body: 'x', pull: 21 }), /not queued: #22 last changed this line, not #21/);
     const range = await w.queue.add(ref(21), { build: built(w, 21), path: 'Sources/Basket/Basket.swift', line: 7, start_line: 3, side: 'RIGHT', body: 'Both of these?' });
     assert.deepEqual([range.pull, range.comment.start_line, range.comment.line], [22, 3, 7]);
-    await assert.rejects(w.queue.add(ref(21), { build: built(w, 21), path: 'Sources/Catalog/Catalog.swift', line: 2, side: 'RIGHT', body: 'x' }), /is not a line of the stack's combined diff/);
+    await assert.rejects(w.queue.add(ref(21), { build: built(w, 21), path: 'Sources/Catalog/Catalog.swift', line: 2, side: 'RIGHT', body: 'x' }), /not queued: This file is not in the change/);
     const review = w.store.read(ref(21));
     assert.deepEqual(review.members.map(m => m.comments.map(c => c.id)), [[1], [2, 3]]);
   } finally {

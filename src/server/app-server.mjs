@@ -7,7 +7,8 @@
  * loads pull requests again and `branches` branches. A branch review takes
  * no comments: only a pull request's review has a queue to change or post.
  * A review's page comes with its build id, and every change but a refresh
- * names the build its window was drawn from; a DELETE names it in its query.
+ * names the build its window was drawn from; a GET or a DELETE takes its
+ * fields from its query.
  * listen() resolves once it is listening, with its address; close() stops it.
  *
  * It answers only requests addressed to this machine by name, so a page from
@@ -48,6 +49,9 @@ export class AppServer {
       ['GET', /^\/api\/reviews$/, () => this.#store.list().map(reviewSummary)],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}$`), ref => this.#state(ref)],
       ['GET', new RegExp(`^/api/reviews/${REVIEW}/page$`), ref => this.#page(ref)],
+      ['GET', new RegExp(`^/api/reviews/${REVIEW}/where$`), (ref, query) => this.#queue.where(ref, {
+        path: text(query.path), side: side(query.side), line: whole(query.line), ...range(query), pull: query.pull ? whole(query.pull) : null, build: build(query),
+      })],
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/refresh$`), async ref => {
         const loaded = await (ref instanceof BranchRef ? this.#branches : this.#loader).refresh(ref);
         return { id: loaded.ref.id, notes: loaded.notes };
@@ -125,7 +129,7 @@ export class AppServer {
     const match = route[1].exec(path).slice(1);
     try {
       const ref = match.length ? reviewRef(match[0]) : null;
-      const body = request.method === 'GET' ? {} : request.method === 'DELETE' ? Object.fromEntries(url.searchParams) : await readBody(request);
+      const body = request.method === 'GET' || request.method === 'DELETE' ? Object.fromEntries(url.searchParams) : await readBody(request);
       const answer = await route[2](...(ref ? [ref, body, ...match.slice(1)] : [body]));
       if (typeof answer === 'string') return sendRaw(response, 200, answer);
       if (answer === null || answer === undefined) return send(response, 404, { error: 'no such review' });

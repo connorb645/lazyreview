@@ -10,6 +10,8 @@
  * text around them (all of it when the file is short), and the conversation
  * so far.
  */
+import { linesWords } from '../review/lines-words.mjs';
+
 const WHOLE_FILE = 400;
 const AROUND = 80;
 
@@ -28,7 +30,7 @@ export function questionFor({ review, page, thread }) {
   const owner = ownerOf(review, page, thread);
   const parts = [about(review, owner)];
   parts.push(`File: ${thread.path}${file ? fileState(file) : ' (unchanged by this change)'}`);
-  parts.push(`They ask about ${lines(thread)}${owner && review.members.length > 1 ? `, which #${owner.pull} changed` : ''}.`);
+  parts.push(`They ask about ${linesWords(thread)}${owner && review.members.length > 1 ? `, which #${owner.pull} changed` : ''}.`);
   const hunk = file ? hunkAround(page.diff[thread.path] || '', thread) : null;
   if (hunk) parts.push(`The diff of this file around those lines:\n\`\`\`diff\n${hunk}\n\`\`\``);
   const text = thread.side === 'LEFT' ? null : page.sources[thread.path] || contextLines || addedText(page.diff[thread.path], file);
@@ -67,15 +69,6 @@ function fileState(file) {
   if (file.status === 'D') return ' (deleted)';
   if (file.status === 'R') return ` (renamed from ${file.oldPath})`;
   return ' (changed)';
-}
-
-function lines(thread) {
-  const side = thread.side === 'LEFT' ? 'removed line' : 'line';
-  const startSide = thread.start_side || thread.side;
-  if (thread.start_line && startSide !== thread.side) {
-    return `${startSide === 'LEFT' ? 'removed line' : 'line'} ${thread.start_line} to ${side} ${thread.line}`;
-  }
-  return thread.start_line ? `${side}s ${thread.start_line}-${thread.line}` : `${side} ${thread.line}`;
 }
 
 function hunkAround(diff, thread) {

@@ -98,7 +98,11 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
     assert.equal(added.json.state.queue.members[0].comments[0].body, 'Every item?');
     const refused = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 99, side: 'RIGHT', body: 'x', build }, headers: s.own });
     assert.equal(refused.status, 409);
-    assert.match(refused.json.error, /not on a line of the diff/);
+    assert.match(refused.json.error, /GitHub takes comments only on lines of the diff/);
+    const where = query => call(s.address, 'GET', `${base}/where?${new URLSearchParams(query)}`).then(r => r.json);
+    assert.deepEqual(await where({ path: 'docs/guide.md', side: 'RIGHT', line: 3, build }), { goes: { pull: 30, path: 'docs/guide.md', side: 'RIGHT', line: 3, start_line: null, start_side: null }, words: 'Goes on #30, line 3.' });
+    assert.deepEqual(await where({ path: 'docs/guide.md', side: 'RIGHT', line: 99, build }), { refused: 'GitHub takes comments only on lines of the diff, and this one is not. Ask Claude about it instead.' });
+    assert.match((await where({ path: 'docs/guide.md', side: 'RIGHT', line: 3, build: 'older' })).refused, /^The review was loaded again after this window opened/);
     assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 'x', side: 'UP', body: 'x', build }, headers: s.own })).status, 409);
 
     const edited = await call(s.address, 'PATCH', `${base}/comments/1`, { body: { body: 'Every single item?', version: added.json.state.queue.members[0].comments[0].version, build }, headers: s.own });
@@ -153,6 +157,8 @@ test('a branch review is served read only: its state, its page and its conversat
     assert.deepEqual([listed.kind, listed.branch, listed.base, listed.queued], ['branch', 'fix/wording', 'main', 0]);
 
     const comment = { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?' };
+    const where = await call(s.address, 'GET', `${base}/where?${new URLSearchParams({ path: 'docs/guide.md', side: 'RIGHT', line: 3, build: page.build })}`);
+    assert.match(where.json.refused, /^A branch with no pull request takes no comments/);
     assert.equal((await call(s.address, 'POST', `${base}/comments`, { body: comment, headers: s.own })).status, 404);
     assert.equal((await call(s.address, 'POST', `${base}/post`, { body: { pull: 1, action: 'comment', set: 'x' }, headers: s.own })).status, 404);
 

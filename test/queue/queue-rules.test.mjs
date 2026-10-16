@@ -98,11 +98,45 @@ test('regrouping moves another review\'s queue in, renumbered, and refuses to dr
   assert.deepEqual(left.earlier.map(m => [m.pull, m.state, m.ended_at]), [[2, 'closed', 'then']]);
 });
 
-test('a comment on a single pull request goes where it was made', () => {
+test('a comment on a single pull request goes where it was made, on a line of the diff and a range inside one hunk', () => {
   const review = { members: [member(7)] };
-  assert.deepEqual(commentTarget(review, null, { path: 'a.ts', line: 3, side: 'RIGHT', start_line: 2 }),
-    { pull: 7, target: { path: 'a.ts', line: 3, side: 'RIGHT', start_line: 2, start_side: 'RIGHT' }, shown: null });
-  assert.throws(() => commentTarget(review, null, { path: 'a.ts', line: 3, side: 'RIGHT', pull: 8 }), /this review is #7's, not #8's/);
-  const stack = { members: [{ pull: 7, head: 'other' }], lines: {} };
-  assert.throws(() => commentTarget(review, stack, { path: 'a.ts', line: 3, side: 'RIGHT' }), /the page shows other heads of #7 than the review holds/);
+  const page = { model: { files: [{ path: 'a.ts' }] }, diff: { 'a.ts': 'diff --git a/a.ts b/a.ts\n--- a/a.ts\n+++ b/a.ts\n@@ -1,3 +1,4 @@\n one\n+two\n three\n four\n@@ -20,2 +21,2 @@\n-x\n+y\n z' }, stack: null };
+  const at = given => commentTarget(review, page, { path: 'a.ts', side: 'RIGHT', ...given });
+  assert.deepEqual(at({ line: 3, start_line: 2 }), { goes: { pull: 7, path: 'a.ts', side: 'RIGHT', line: 3, start_line: 2, start_side: 'RIGHT' }, words: 'Goes on #7, lines 2-3.' });
+  assert.deepEqual(at({ line: 21, start_line: 20, start_side: 'LEFT' }).words, 'Goes on #7, removed line 20 to line 21.');
+  assert.deepEqual(at({ line: 9 }), { refused: 'GitHub takes comments only on lines of the diff, and this one is not. Ask Claude about it instead.' });
+  assert.deepEqual(at({ line: 1, start_line: null }).goes.line, 1, 'the header of the file\'s diff is no line');
+  assert.match(at({ line: 21, start_line: 2 }).refused, /^GitHub takes a range only inside one hunk/);
+  assert.match(at({ line: 2, start_line: 3 }).refused, /^A range runs from its first line to its last/);
+  assert.deepEqual(at({ line: 2, pull: 8 }), { refused: 'This review is #7\'s, not #8\'s.' });
+  assert.deepEqual(commentTarget(review, page, { path: 'b.ts', side: 'RIGHT', line: 1 }).refused, 'This file is not in the change, so a comment cannot go on it. Ask Claude about it instead.');
+  assert.deepEqual(commentTarget({ members: [member(7, { state: 'closed' })] }, page, { path: 'a.ts', side: 'RIGHT', line: 2 }), { refused: '#7 is closed, so nothing can be queued for it.' });
+  assert.match(commentTarget({ ...review, moved: { to: 'x' } }, page, { path: 'a.ts', side: 'RIGHT', line: 2 }).refused, /^This review moved/);
+  assert.match(commentTarget({ kind: 'branch' }, page, { path: 'a.ts', side: 'RIGHT', line: 2 }).refused, /^A branch with no pull request takes no comments/);
+});
+
+test('on a stack, a comment goes to the pull request that last changed its line, or names one of those that show it', () => {
+  const review = { members: [member(7), member(8)] };
+  const page = {
+    model: { files: [{ path: 'a.ts' }] },
+    diff: { 'a.ts': '@@ -1,3 +1,4 @@\n one\n+two\n three\n four\n@@ -20,2 +21,2 @@\n-x\n+y\n z' },
+    stack: {
+      members: review.members.map(m => ({ pull: m.pull, head: m.head })),
+      lines: { 'a.ts': { RIGHT: { 1: { c: [[7, 1], [8, 1]] }, 2: [8, 2], 3: { c: [[8, 3]] }, 4: { c: [] }, 21: { x: 'no pull request\'s own diff adds it' }, 22: [7, 30, 'old/a.ts'] }, LEFT: {} } },
+    },
+  };
+  const at = given => commentTarget(review, page, { path: 'a.ts', side: 'RIGHT', ...given });
+  assert.deepEqual(at({ line: 2 }), { goes: { pull: 8, path: 'a.ts', side: 'RIGHT', line: 2, start_line: null, start_side: null }, words: 'Goes on #8, line 2.' });
+  assert.deepEqual(at({ line: 1 }), { choose: [{ pull: 7, path: 'a.ts', line: 1 }, { pull: 8, path: 'a.ts', line: 1 }], words: 'Unchanged, and shown by #7 and #8. Choose the pull request it goes on.' });
+  assert.equal(at({ line: 1, pull: 8 }).words, 'Goes on #8, line 1.');
+  assert.deepEqual(at({ line: 2, pull: 7 }), { refused: '#8 last changed this line, not #7.' });
+  assert.equal(at({ line: 2, start_line: 1 }).words, 'Goes on #8, lines 1-2.', 'a range may start on a line several pull requests show');
+  assert.deepEqual(at({ line: 4 }), { refused: 'Unchanged, and no pull request in the stack shows this line, so it takes no comment.' });
+  assert.deepEqual(at({ line: 21 }), { refused: 'No pull request in the stack can take a comment here: no pull request\'s own diff adds it.' });
+  assert.equal(at({ line: 22 }).words, 'Goes on #7, line 30 of old/a.ts.', 'a comment goes at the pull request\'s own path and line');
+  assert.equal(at({ line: 3, start_line: 2 }).words, 'Goes on #8, lines 2-3.');
+  assert.match(at({ line: 3, start_line: 1, pull: 7 }).refused, /^#7's diff does not show this line\./);
+  assert.deepEqual(commentTarget({ members: [member(7), member(8, { state: 'merged' })] }, page, { path: 'a.ts', side: 'RIGHT', line: 2 }), { refused: '#8 is merged, so nothing can be queued for it.' });
+  const moved = { ...page, stack: { ...page.stack, members: [{ pull: 7, head: 'other' }, { pull: 8, head: review.members[1].head }] } };
+  assert.match(commentTarget(review, moved, { path: 'a.ts', side: 'RIGHT', line: 2 }).refused, /^This page shows other heads of #7 than the review holds/);
 });

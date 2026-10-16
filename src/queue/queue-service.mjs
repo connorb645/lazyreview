@@ -5,9 +5,10 @@
  * from, and is refused once the review was loaded again since: that
  * window's line numbers may name other code now.
  *
- * add(ref, given) queues a comment on a line the app shows, at the line of
- * the pull request that takes it, once GitHub confirms the line is in that
- * pull request's diff and its head has not moved. edit(ref, id, {body,
+ * where(ref, given) says where a comment on lines the app shows would go, as
+ * commentTarget does, or why none can, or null when there is no review
+ * `ref`. add(ref, given) queues a comment there, once GitHub confirms the
+ * line is in that pull request's diff and its head has not moved. edit(ref, id, {body,
  * version, build}) and drop(ref, id, {version, build}) change or remove a
  * queued comment, and are refused once it changed since `version`.
  *
@@ -24,7 +25,7 @@
 import { GitHub } from '../github/github.mjs';
 import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, placeProblem, liveMember, nextId, findComment, checkVersion } from './queue-rules.mjs';
 import { commentTarget } from './comment-target.mjs';
-import { checkBuild } from '../store/page-build.mjs';
+import { buildProblem, checkBuild } from '../store/page-build.mjs';
 
 export class QueueService {
   #store;
@@ -37,10 +38,22 @@ export class QueueService {
     this.#now = now;
   }
 
+  where(ref, given) {
+    const review = this.#store.read(ref);
+    if (!review) return null;
+    const drawn = this.#store.readPage(ref);
+    const problem = buildProblem(drawn && drawn.build, given.build);
+    if (problem) return { refused: `${problem.charAt(0).toUpperCase()}${problem.slice(1)}.` };
+    return commentTarget(review, drawn.page, given);
+  }
+
   add(ref, given) {
     return this.#change(ref, { build: given.build, refused: 'not queued' }, async (review, gh) => {
       const { page } = this.#store.readPage(ref);
-      const { pull, target, shown } = commentTarget(review, page.stack, given);
+      const where = commentTarget(review, page, given);
+      if (!where.goes) throw new Error(`not queued: ${where.refused || where.words}`);
+      const target = where.goes;
+      const pull = target.pull;
       const member = liveMember(review, pull);
       const problems = bodyProblems(given.body);
       if (problems.length) throw new Error(`not queued: ${problems.join('; ')}`);
@@ -49,12 +62,13 @@ export class QueueService {
         throw new Error(`not queued: #${pull} moved from ${member.head.slice(0, 8)} to ${now.head.sha.slice(0, 8)}; load it again, then queue`);
       }
       const places = await filePlaces(gh, review.repo, pull);
-      const where = `${target.path}:${target.start_line ? `${target.start_line}-` : ''}${target.line}${shown ? ` of #${pull}` : ''}`;
+      const at = `${target.path}:${target.start_line ? `${target.start_line}-` : ''}${target.line}${page.stack ? ` of #${pull}` : ''}`;
       const problem = placeProblem(places[target.path] || NO_PLACES, target);
-      if (problem) throw new Error(`not queued: ${where} ${problem}`);
+      if (problem) throw new Error(`not queued: ${at} ${problem}`);
+      const shown = { path: given.path, line: given.line, side: given.side, ...(target.start_line ? { start_line: given.start_line, start_side: target.start_side } : {}) };
       const comment = {
         id: nextId(review), path: target.path, line: target.line, side: target.side, body: given.body.trim(), code: given.code || '',
-        ...(target.start_line ? { start_line: target.start_line, start_side: target.start_side } : {}), ...(shown ? { shown } : {}),
+        ...(target.start_line ? { start_line: target.start_line, start_side: target.start_side } : {}), ...(page.stack ? { shown } : {}),
       };
       member.comments.push(comment);
       return { review, result: { comment, pull } };
