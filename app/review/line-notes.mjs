@@ -81,9 +81,9 @@ export function createLineNotes(ctx) {
     const t = ctx.pulls.lineTarget(c.path, c.side, c.line);
     if (!t) return { off: 'This line is not in the combined diff, so a comment cannot go on it.' };
     if (c.start_line) {
-      const s0 = ctx.pulls.lineTarget(c.path, c.start_side || c.side, c.start_line);
-      const owner = x => (x && x.pull) || (x && x.candidates && x.candidates.length === 1 && x.candidates[0].pull) || null;
-      if (!owner(t) || owner(s0) !== owner(t)) return { off: 'These lines do not all go to one pull request of the stack. Comment on fewer lines, or one comment per pull request.' };
+      const first = ctx.pulls.lineTarget(c.path, c.start_side || c.side, c.start_line);
+      const pullsOf = x => (!x ? [] : x.pull ? [x.pull] : (x.candidates || []).map(k => k.pull));
+      if (!pullsOf(first).some(p => pullsOf(t).includes(p))) return { off: 'These lines do not all go to one pull request of the stack. Comment on fewer lines, or one comment per pull request.' };
     }
     if (t.none) return { off: 'No pull request in the stack can take a comment here: ' + t.none + '.' };
     if (t.pull) return { words: 'Goes on #' + t.pull + ', line ' + t.line + (t.path !== c.path ? ' of ' + t.path : '') + '.' };
