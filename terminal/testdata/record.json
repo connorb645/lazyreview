@@ -3900,5 +3900,12 @@
     "version": "6ebd31545b3a"
    }
   }
+ },
+ "POST /api/reviews/github.com/octo/widgets/30/refresh {}": {
+  "status": 200,
+  "body": {
+   "id": "github.com/octo/widgets/30",
+   "notes": []
+  }
  }
 }

@@ -3,6 +3,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -56,6 +57,10 @@ type App struct {
 	confirming *confirmation
 	choosing   *editing
 	posting    *posting
+	editingNow bool
+	live       <-chan tea.Msg
+	stopLive   context.CancelFunc
+	liveFor    string
 }
 
 // New returns the app, which opens on the review opts names, or on the list
@@ -75,6 +80,9 @@ func New(opts Options) App {
 	}
 	if opts.Exec == nil {
 		opts.Exec = tea.ExecProcess
+	}
+	if opts.Listen == nil {
+		opts.Listen = listen
 	}
 	p := newPalette(opts.Dark)
 	a := App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: true, rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}}
@@ -114,7 +122,9 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.review = &msg.data
 		a.screen = screenReview
 		a.files, a.diff, a.dg, a.filter = map[string]server.File{}, diffView{}, diagramView{}, 0
-		return a.relaid(), nil
+		var listening tea.Cmd
+		a, listening = a.listenTo(msg.data.id)
+		return a.relaid(), listening
 	case filesLoaded:
 		a.loading = false
 		if msg.err != nil {
@@ -144,9 +154,19 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a.afterPost(msg), nil
 	case stateLoaded:
 		if msg.err != nil {
-			return a, nil
+			return a.say("could not read the review again: "+msg.err.Error(), true), nil
 		}
 		return a.withState(msg.state), nil
+	case liveNotice:
+		return a.afterNotice(msg)
+	case liveStopped:
+		if a.review != nil && msg.id == a.review.id {
+			a.liveFor = ""
+			return a.say("Stopped hearing changes made elsewhere: "+msg.err.Error()+". R loads the review again.", true), nil
+		}
+		return a, nil
+	case reviewReloaded:
+		return a.afterReload(msg)
 	case tea.MouseMsg:
 		return a.mouse(msg)
 	case tea.KeyMsg:
@@ -229,6 +249,8 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 	switch action {
 	case "quit":
 		return a, tea.Quit
+	case "refresh":
+		return a.refresh()
 	case "command", "find":
 		return a.ask(map[string]string{"command": ":", "find": "/"}[action]), nil
 	case "keys":
@@ -476,6 +498,8 @@ func (a App) command(typed string) (tea.Model, tea.Cmd) {
 		return a, nil
 	case "q", "q!", "quit", "qa", "qa!":
 		return a, tea.Quit
+	case "refresh":
+		return a.refresh()
 	}
 	if n, err := strconv.Atoi(typed); err == nil && a.screen == screenDiff {
 		a = a.leave()
@@ -584,6 +608,19 @@ func (a App) relaid() App {
 	lines, items := a.reviews.build(a.width, a.p, a.opts.Location)
 	a.reviews.view = a.reviews.view.reset(lines, items, sameItem, h)
 	return a
+}
+
+func (a App) refresh() (tea.Model, tea.Cmd) {
+	if a.review == nil {
+		return a.say("no review is open; Enter on one opens it", true), nil
+	}
+	cmd := reloadReview(a.opts.Server, a.review.id, true)
+	if a.liveFor == "" {
+		var listening tea.Cmd
+		a, listening = a.listenTo(a.review.id)
+		cmd = tea.Batch(cmd, listening)
+	}
+	return a.say("Loading the review again…", false), cmd
 }
 
 func (a App) say(notice string, bad bool) App {

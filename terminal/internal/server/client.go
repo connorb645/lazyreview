@@ -3,6 +3,7 @@
 package server
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -18,9 +19,10 @@ import (
 )
 
 const (
-	readWait   = 20 * time.Second
-	changeWait = 60 * time.Second
-	askWait    = 200 * time.Second
+	readWait    = 20 * time.Second
+	changeWait  = 60 * time.Second
+	askWait     = 200 * time.Second
+	refreshWait = 120 * time.Second
 )
 
 // Client talks to the Review Desk server. It reads the server's address and
@@ -145,6 +147,56 @@ func (c *Client) Post(id string, pull int, action, set, build string) (string, S
 	fields := map[string]any{"pull": pull, "action": action, "set": set, "build": build}
 	err := c.change(http.MethodPost, ReviewPath(id, "/post"), nil, fields, changeWait, &answer)
 	return answer.Message, answer.State, err
+}
+
+// Refresh loads a review again: a pull request's from GitHub, or a branch's
+// from its repository. It returns the server's notes on what it found.
+func (c *Client) Refresh(id string) ([]string, error) {
+	var answer struct{ Notes []string }
+	return answer.Notes, c.change(http.MethodPost, ReviewPath(id, "/refresh"), nil, map[string]any{}, refreshWait, &answer)
+}
+
+// Events sends each change notice of a review to notices, the first naming
+// both the state's version and the page's build, until ctx ends or the
+// stream breaks, and says why it stopped.
+func (c *Client) Events(ctx context.Context, id string, notices chan<- Notice) error {
+	record, err := c.record()
+	if err != nil {
+		return err
+	}
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, record.Address+ReviewPath(id, "/events"), nil)
+	if err != nil {
+		return fmt.Errorf("could not listen for changes to %s: %w", id, err)
+	}
+	request.Header.Set("Accept", "text/event-stream")
+	response, err := c.http.Do(request)
+	if err != nil {
+		return fmt.Errorf("the Review Desk server did not answer: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return Refusal{Status: response.StatusCode, Message: fmt.Sprintf("the server answered %d to listening for changes", response.StatusCode)}
+	}
+	lines := bufio.NewScanner(response.Body)
+	for lines.Scan() {
+		data, ok := strings.CutPrefix(lines.Text(), "data: ")
+		if !ok {
+			continue
+		}
+		var notice Notice
+		if err := json.Unmarshal([]byte(data), &notice); err != nil {
+			return fmt.Errorf("could not read a change notice: %w", err)
+		}
+		select {
+		case notices <- notice:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	if err := lines.Err(); err != nil {
+		return fmt.Errorf("the stream of changes broke: %w", err)
+	}
+	return errors.New("the server ended the stream of changes")
 }
 
 func linesFields(at Lines) map[string]any {

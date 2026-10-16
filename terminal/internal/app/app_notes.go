@@ -265,6 +265,7 @@ func (a App) edit(e editing) (tea.Model, tea.Cmd) {
 		return a.say("could not write "+file.Name()+": "+err.Error(), true), nil
 	}
 	cmd := exec.Command("sh", "-c", a.opts.Editor+` "$@"`, "editor", file.Name())
+	a.editingNow = true
 	return a, a.opts.Exec(cmd, func(err error) tea.Msg { return edited{e: e, file: file.Name(), err: err} })
 }
 
@@ -283,6 +284,7 @@ func written(file string) (string, error) {
 }
 
 func (a App) afterEditing(msg edited) (tea.Model, tea.Cmd) {
+	a.editingNow = false
 	text, readErr := written(msg.file)
 	if err := os.Remove(msg.file); err != nil && readErr == nil {
 		readErr = err

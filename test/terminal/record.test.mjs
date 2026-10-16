@@ -135,6 +135,7 @@ async function recordAnswers() {
         const path = where(one, { ...given, build: oneBuild });
         answers[key('GET', path)] = await send(address, 'GET', path);
       }
+      changes.push(['POST', `${one}/refresh`, {}]);
       for (const [method, path, body] of changes) answers[key(method, path, body)] = await send(address, method, path, body);
       return answers;
     } finally {

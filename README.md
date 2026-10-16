@@ -179,6 +179,7 @@ Every view:
 | `Space m` | the diagram |
 | `Space f` | finds a file, type or component as you type; `Ctrl-n` `Ctrl-p` move, `Enter` goes there |
 | `gh` | every review |
+| `R` `:refresh` | loads the review again: from GitHub, or a branch from its repository |
 | `]p` `[p` | the next or previous pull request filter on a stack |
 | `Ctrl-o` `Ctrl-i` | back and forward through jumps |
 | `gx` `gX` | opens the pull request on GitHub, or this place in the web app |
@@ -230,6 +231,11 @@ The diff shows one component's files:
 | `Space s` `Space w` `Space o` | split or unified, wrap, the whole file |
 | `Space r` | a Markdown file rendered, block by block, or back to its diff; `V`, `c` and `a` work on whole blocks |
 | `-` | back to where it was opened from |
+
+Changes made elsewhere, in the web app, another terminal or from the command
+line, show within a second. When the review is loaded again, the app loads it
+in place and keeps your view, folds and filter. With a draft open it says so
+instead, and `R` loads it when you are ready.
 
 A comment, a question or an edit is written in your own editor: the first of
 `REVIEW_DESK_EDITOR`, `VISUAL` and `EDITOR` that is set, or `vi`, as git

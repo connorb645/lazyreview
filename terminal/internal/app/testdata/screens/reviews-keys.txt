@@ -13,12 +13,12 @@
 │ / n N          find                                                                              │
 │ :              the command line: :q quits, :q! quits and drops drafts                            │
 │ Space ?        lists the keys of this view                                                       │
+│ R :refresh     loads the review again: from GitHub, or a branch from its repository              │
 │ Space v        the Review view                                                                   │
 │ Space m        the diagram                                                                       │
 │ Space f        finds a file, type or component by name                                           │
 │ gh             every review                                                                      │
 │ gx             opens the pull request, or the thread at the cursor, on GitHub                    │
-│ gX             opens this place in the web app                                                   │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
  NORMAL  every review
  j k move   q close

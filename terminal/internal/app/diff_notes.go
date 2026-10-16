@@ -209,7 +209,11 @@ func noteHead(d reviewData, n note, open bool) (string, string) {
 		}
 		return head, "e edit  dd drop"
 	case "conversation":
-		return fmt.Sprintf("%s Claude · %s%s", fold, plural(len(n.conversation.Messages), "message"), lines), "a ask  za"
+		head := fmt.Sprintf("%s Claude · %s%s", fold, plural(len(n.conversation.Messages), "message"), lines)
+		if m := n.conversation.Messages; len(m) > 0 && m[len(m)-1].From == "you" {
+			head += " · waiting for Claude"
+		}
+		return head, "a ask  za"
 	}
 	var people []string
 	for _, c := range n.thread.Comments {

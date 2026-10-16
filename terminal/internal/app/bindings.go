@@ -6,7 +6,7 @@ var everyView = keys.Bindings{
 	":": "command", "space ?": "keys", "g h": "reviews", "space v": "review", "g x": "github", "g X": "web",
 	"q": "close", "esc": "close", "Z Z": "quit", "ctrl+c": "quit",
 	"] p": "next pull", "[ p": "previous pull", "ctrl+o": "jump back", "tab": "jump forward",
-	"space m": "diagram", "space f": "finder",
+	"space m": "diagram", "space f": "finder", "R": "refresh",
 }
 
 var listKeys = keys.Bindings{
@@ -40,6 +40,7 @@ var diagramKeys = keys.Bindings{
 var everyViewHelp = []helpRow{
 	{":", "the command line: :q quits, :q! quits and drops drafts"},
 	{"Space ?", "lists the keys of this view"},
+	{"R :refresh", "loads the review again: from GitHub, or a branch from its repository"},
 	{"Space v", "the Review view"},
 	{"Space m", "the diagram"},
 	{"Space f", "finds a file, type or component by name"},
