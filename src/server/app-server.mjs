@@ -1,7 +1,7 @@
 /**
  * The app's web server, for this machine only.
  *
- * new AppServer({store, loader, branches, queue, threads, port}) serves the
+ * new AppServer({store, loader, branches, queue, threads, events, port}) serves the
  * app at http://127.0.0.1:<port>/, each review at /review/<review id>, and
  * the JSON the app reads and changes reviews through under /api. `loader`
  * loads pull requests again and `branches` branches. A branch review takes
@@ -10,7 +10,9 @@
  * the file route gives one file at a time, for the build a window names.
  * Every change but a refresh names the build its window was drawn from. A
  * GET or a DELETE takes its fields from its query. What the page and file
- * routes answer is kept in memory for each build.
+ * routes answer is kept in memory for each build. A review's events route is
+ * a stream of its change notices, as `events` gives them, one JSON object
+ * to each server-sent event.
  * listen() resolves once it is listening, with its address; close() stops it.
  *
  * It answers only requests addressed to this machine by name, so a page from
@@ -25,10 +27,12 @@ import { reviewState, reviewSummary } from './review-state.mjs';
 import { pageView } from '../review/page-view.mjs';
 import { fileView } from '../review/file-view.mjs';
 import { checkBuild } from '../store/page-build.mjs';
+import { ReviewEvents } from './review-events.mjs';
 import { staticFile, PAGE } from './static-files.mjs';
 
 const PULL = '([^/]+/[^/]+/[^/]+/\\d+)';
 const REVIEW = '(local/[^/]+/[^/]+|[^/]+/[^/]+/[^/]+/\\d+)';
+const EVENTS = new RegExp(`^/api/reviews/${REVIEW}/events$`);
 const BODY_LIMIT = 1 << 20;
 const PAGE_SECURITY = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
@@ -39,12 +43,15 @@ export class AppServer {
   #queue;
   #threads;
   #port;
+  #events;
   #server = null;
   #routes;
   #views = new WeakMap();
+  #streams = new Set();
 
-  constructor({ store, loader, branches, queue, threads, port }) {
+  constructor({ store, loader, branches, queue, threads, events = new ReviewEvents({ store }), port }) {
     this.#store = store;
+    this.#events = events;
     this.#loader = loader;
     this.#branches = branches;
     this.#queue = queue;
@@ -106,6 +113,8 @@ export class AppServer {
   }
 
   close() {
+    for (const response of this.#streams) response.end();
+    this.#events.close();
     return new Promise(resolve => (this.#server ? this.#server.close(() => resolve()) : resolve()));
   }
 
@@ -131,6 +140,8 @@ export class AppServer {
         return send(response, 415, { error: 'send JSON' });
       }
     }
+    const stream = EVENTS.exec(path);
+    if (stream && request.method === 'GET') return this.#stream(request, response, stream[1]);
     const route = this.#routes.find(([method, pattern]) => method === request.method && pattern.test(path));
     if (!route) return send(response, 404, { error: `nothing at ${request.method} ${path}` });
     const match = route[1].exec(path).slice(1);
@@ -144,6 +155,24 @@ export class AppServer {
     } catch (error) {
       return send(response, 409, { error: error.message });
     }
+  }
+
+  #stream(request, response, id) {
+    let ref;
+    try {
+      ref = reviewRef(id);
+    } catch (error) {
+      return send(response, 409, { error: error.message });
+    }
+    if (!this.#store.read(ref)) return send(response, 404, { error: 'no such review' });
+    response.writeHead(200, headers('text/event-stream; charset=utf-8'));
+    response.write('retry: 1000\n\n');
+    this.#streams.add(response);
+    const stop = this.#events.subscribe(ref, notice => response.write(`data: ${JSON.stringify(notice)}\n\n`));
+    response.on('close', () => {
+      stop();
+      this.#streams.delete(response);
+    });
   }
 
   #state(ref) {

@@ -4,8 +4,9 @@
  * address's #fragment so the browser's back button walks them.
  *
  * openReview(id) loads the review's state and page data from the server,
- * draws every view and shows the one the address names. It opens on the
- * diagram, or on the Review when a written review is attached.
+ * draws every view and shows the one the address names, then keeps them up
+ * to date with changes made elsewhere. It opens on the diagram, or on the
+ * Review when a written review is attached.
  */
 import { getJSON, reviewPath } from '../lib/api.mjs';
 import { esc, fmt, plural } from '../lib/text.mjs';
@@ -18,6 +19,7 @@ import { createQueuePanel } from './queue-panel.mjs';
 import { createOverview } from './overview.mjs';
 import { createRefresh } from './refresh.mjs';
 import { createPassages } from './passages.mjs';
+import { createLiveUpdates } from './live-updates.mjs';
 
 export async function openReview(id) {
   const [state, page] = await Promise.all([getJSON(reviewPath(id)), getJSON(reviewPath(id, '/page'))]);
@@ -132,11 +134,29 @@ export async function openReview(id) {
     badge.hidden = !n;
     badge.title = n ? plural(n, 'queued comment') : '';
   }
+  // Which draft has the keyboard, and where its caret is, so a page drawn again from a new state keeps it there.
+  function draftFocus() {
+    const area = document.activeElement;
+    const holder = area && area.tagName === 'TEXTAREA' && area.closest('.qc-item, .queued-note, .composer, .thread');
+    if (!holder) return null;
+    const of = name => holder.getAttribute(name);
+    const selector = holder.matches('.composer') ? '.composer textarea'
+      : holder.matches('.thread') ? '.thread[data-thread="' + of('data-thread') + '"] .reply textarea'
+        : (holder.matches('.qc-item') ? '.qc-item' : '.queued-note') + '[data-comment="' + of('data-comment') + '"] .edit-box textarea';
+    return { selector, start: area.selectionStart, end: area.selectionEnd };
+  }
   function setState(next, message) {
+    const focus = draftFocus();
     ctx.state = next;
     ctx.overview.render(message);
     ctx.notes.refresh();
+    ctx.queuePanel.restore();
     countQueued();
+    const area = focus && document.querySelector(focus.selector);
+    if (area && document.activeElement !== area) {
+      area.focus({ preventScroll: true });
+      area.setSelectionRange(focus.start, focus.end);
+    }
   }
 
   Object.assign(ctx, {
@@ -212,5 +232,6 @@ export async function openReview(id) {
 
   await show(location.hash.slice(1));
   refresh.restore();
+  createLiveUpdates(ctx, refresh.reloadHere);
   return ctx;
 }

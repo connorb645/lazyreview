@@ -799,6 +799,7 @@ tr.pr-other > td, td.pr-other { opacity: .4; }
   margin: 0; max-width: min(40rem, calc(100vw - 32px)); padding: 12px 18px; border-radius: var(--r);
   background: var(--surface-3); color: var(--ink); border: 1px solid var(--border-strong); font-size: 13.5px; line-height: 1.45; box-shadow: var(--shadow-pop);
 }
+.reload-note { display: flex; align-items: center; gap: 16px; }
 #empty-view .empty-home { margin-top: 18px; }
 #empty-view a, .side-line a { color: var(--accent); }
 

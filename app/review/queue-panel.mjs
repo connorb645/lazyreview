@@ -4,7 +4,9 @@
  * Comments and Approve buttons.
  *
  * createQueuePanel(ctx) returns mount(section), which fills the section from
- * ctx.state.queue, and the edit and drop actions every view shares. A stack
+ * ctx.state.queue, the edit and drop actions every view shares, restore(),
+ * which opens again every edit a drawing of the page closed, with its text,
+ * and drafting(), whether any edit is open. A stack
  * gets one group per pull request, bottom first, each with its own comments
  * and its own buttons, and each comment shows the pull request it goes on. A
  * press asks once more in the page, then sends the action and the set id the
@@ -236,37 +238,62 @@ export function createQueuePanel(ctx) {
     }
   }
 
+  // Edits open, by where each is drawn and its comment's number, each with its text, the version it was made on, and what the last Save said.
+  const editing = new Map();
+
+  function draftKey(holder, id) {
+    return (holder.classList.contains('qc-item') ? 'review:' : 'diff:') + id;
+  }
+
   // Swaps a queued comment's text for a box to edit it in, with Save and Cancel.
-  function edit(id, holder) {
+  function edit(id, holder, focus = true) {
     const body = holder.querySelector('.qc-body, .qn-body');
     if (!body || holder.querySelector('.edit-box')) return;
+    const key = draftKey(holder, id);
     const found = queued(ctx.state, id);
-    let seen = found.version;
+    const draft = editing.get(key) || { text: found.body, seen: found.version, said: '' };
+    editing.set(key, draft);
     const box = el('div', 'edit-box');
-    box.innerHTML = '<textarea rows="3">' + esc(found.body) + '</textarea><div class="note-actions">' +
+    box.innerHTML = '<textarea rows="3">' + esc(draft.text) + '</textarea><div class="note-actions">' +
       '<button type="button" class="nbtn primary" data-edit="save">Save</button><button type="button" class="nbtn quiet" data-edit="cancel">Cancel</button>' +
-      '<span class="note-status" aria-live="polite"></span></div>';
+      '<span class="note-status' + (draft.said ? ' bad' : '') + '" aria-live="polite">' + esc(draft.said) + '</span></div>';
     body.replaceWith(box);
     const area = box.querySelector('textarea');
-    area.focus();
+    if (focus) area.focus();
+    area.addEventListener('input', () => { draft.text = area.value; });
     box.addEventListener('click', async e => {
       const act = e.target.getAttribute('data-edit');
-      if (act === 'cancel') { box.replaceWith(body); return; }
+      if (act === 'cancel') { editing.delete(key); box.replaceWith(body); return; }
       if (act !== 'save') return;
       box.querySelectorAll('button, textarea').forEach(x => { x.disabled = true; });
       try {
-        const done = await send('PATCH', reviewPath(ctx.state.id, '/comments/' + id), { body: area.value, version: seen, build: ctx.data.build });
+        const done = await send('PATCH', reviewPath(ctx.state.id, '/comments/' + id), { body: area.value, version: draft.seen, build: ctx.data.build });
+        editing.delete(key);
         ctx.setState(done.state);
       } catch (error) {
-        const now = await changedSince(id, seen).catch(() => null);
-        if (now) seen = queued(now, id).version;
+        const now = await changedSince(id, draft.seen).catch(() => null);
+        if (now) draft.seen = queued(now, id).version;
+        draft.said = error.message + (now ? '. Save again to replace it with your text.' : '');
         box.querySelectorAll('button, textarea').forEach(x => { x.disabled = false; });
         const status = box.querySelector('.note-status');
-        status.textContent = error.message + (now ? '. Save again to replace it with your text.' : '');
+        status.textContent = draft.said;
         status.classList.add('bad');
       }
     });
   }
 
-  return { mount, actions: { edit, drop } };
+  function restore() {
+    for (const [key, draft] of editing) {
+      const [where, id] = key.split(':');
+      if (!queued(ctx.state, +id)) {
+        editing.delete(key);
+        ctx.flash('Comment ' + id + ' was dropped elsewhere while you edited it. Your text was: ' + draft.text);
+        continue;
+      }
+      const holder = document.querySelector((where === 'review' ? '.qc-item' : '.queued-note') + '[data-comment="' + id + '"]');
+      if (holder) edit(+id, holder, false);
+    }
+  }
+
+  return { mount, restore, drafting: () => editing.size > 0, actions: { edit, drop } };
 }

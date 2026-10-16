@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { workbench } from '../support/workbench.mjs';
+import { notices } from '../support/notices.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { fakeGh } from '../support/fake-gh.mjs';
 
@@ -51,6 +52,8 @@ test('one command loads a pull request, starts the app, and prints where to open
     assert.equal(listed.stdout.trim().split('\n').length, 2);
     assert.match(listed.stdout, /\/review\/github\.com\/octo\/widgets\/21 {2}#21, #22 {2}Stack #21 to #22/);
 
+    const heard = notices(`http://127.0.0.1:${port}`, 'github.com/octo/widgets/21');
+    const before = await heard.next();
     const file = join(w.home.root, 'written.md');
     writeFileSync(file, `---\nstack: 21, 22\nhead: ${w.repo.sha('feature/basket')}\n---\n## What it does\nAdds search in \`Search.swift:4\`, then a basket.\n`);
     const attached = await run(['attach', w.link(22), file], env);
@@ -58,6 +61,9 @@ test('one command loads a pull request, starts the app, and prints where to open
     assert.match(attached.stdout, /^attached to github\.com\/octo\/widgets\/21; open http:/);
     const state = await (await fetch(`http://127.0.0.1:${port}/api/reviews/github.com/octo/widgets/21`)).json();
     assert.deepEqual(state.written.sections[0].links, [{ text: 'Search.swift:4', path: 'Sources/Catalog/Search.swift', line: 4 }], 'the server resolves the written review\'s links');
+    assert.deepEqual(await heard.next(1000), { state: state.version }, 'an app open on the review hears of an attach from another process');
+    assert.notEqual(state.version, before.state);
+    heard.close();
     writeFileSync(file, '---\npull: 30\nhead: 1111111\n---\n## Notes\nx\n');
     const stale = await run(['attach', w.link(30), file], env);
     assert.equal(stale.code, 1);

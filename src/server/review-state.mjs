@@ -8,8 +8,10 @@
  * shows, and each of its sections carries its `file:line` links, as
  * writtenLinks resolves them. A branch review gives its branch, its base and
  * its conversations, with `queue` null: it takes no comments and sends
- * nothing.
+ * nothing. Each state carries its `version`, a short hash of the rest of it,
+ * which the change notices name.
  */
+import { createHash } from 'node:crypto';
 import { queueView } from '../queue/queue-rules.mjs';
 import { readWrittenReview } from '../review/written-review.mjs';
 import { writtenLinks } from '../review/written-links.mjs';
@@ -18,10 +20,10 @@ export function reviewState(store, ref) {
   const review = store.read(ref);
   if (!review) return null;
   if (review.kind === 'branch') {
-    return {
+    return versioned({
       id: review.id, kind: review.kind, repo: review.repo, path: review.path, title: review.title, base: review.base, head: review.head,
       context: review.context, loaded_at: review.loaded_at, notes: review.notes, moved: null, queue: null, threads: store.threads(ref), github: [], written: null,
-    };
+    });
   }
   const text = store.readWritten(ref);
   let written = null;
@@ -32,7 +34,7 @@ export function reviewState(store, ref) {
     const paths = drawn ? [...drawn.page.model.files, ...drawn.page.model.contextFiles].map(f => f.path) : [];
     written = { ...read, sections: read.sections.map(s => ({ ...s, links: writtenLinks(s.markdown, paths) })), stale: !head.startsWith(read.head) };
   }
-  return {
+  return versioned({
     id: review.id, host: review.host, repo: review.repo, title: review.title, me: review.me, account: review.account,
     base: review.base, context: review.context, loaded_at: review.loaded_at, notes: review.notes, moved: review.moved,
     members: review.members.map(summary),
@@ -41,7 +43,7 @@ export function reviewState(store, ref) {
     threads: store.threads(ref),
     github: store.githubThreads(ref),
     written,
-  };
+  });
 }
 
 /** One line per review, for the list of every review kept. */
@@ -54,6 +56,10 @@ export function reviewSummary({ ref, review }) {
     members: review.members.map(summary),
     queued: review.members.reduce((n, m) => n + m.comments.length, 0),
   };
+}
+
+function versioned(state) {
+  return { ...state, version: createHash('sha256').update(JSON.stringify(state)).digest('hex').slice(0, 12) };
 }
 
 function summary(m) {

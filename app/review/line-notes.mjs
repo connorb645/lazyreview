@@ -15,6 +15,7 @@
  *                    Rendered view under the passage holding their lines
  *   countBadge(path) the file header's count of its notes
  *   refresh()        draw every open file's notes again, after a change
+ *   drafting()       whether a question or a comment is being written
  *
  * The composer says where a comment on its lines goes, or why none can, as
  * the server answers it: the same answer the queue takes. From the composer,
@@ -157,7 +158,8 @@ export function createLineNotes(ctx) {
       const area = file.querySelector('.thread[data-thread="' + id + '"] textarea');
       if (area) area.value = typed[id];
     });
-    if (composer && composer.path === path) placeComposer(file);
+    if (composer && composer.path === path) placeComposer(file, false);
+    ctx.queuePanel.restore();
   }
 
   function notesOn(path) {
@@ -225,9 +227,9 @@ export function createLineNotes(ctx) {
     return '<div class="gh-away"><p class="gh-away-h">On no line shown here</p>' + html.join('') + '</div>';
   }
 
-  function placeComposer(file) {
+  function placeComposer(file, focus) {
     const view = file.querySelector('.mdview');
-    if (view) { placeInRendered(view); return; }
+    if (view) { placeInRendered(view, focus); return; }
     const row = rowFor(file, composer.side, composer.line);
     if (!row) { composer = null; return; }
     rowsOf(file, composer).forEach(r => r.classList.add('picked'));
@@ -235,12 +237,15 @@ export function createLineNotes(ctx) {
     while (after.nextElementSibling && after.nextElementSibling.classList.contains('note-row') && !after.nextElementSibling.classList.contains('composer-row')) after = after.nextElementSibling;
     const tr = noteRow(row, 'composer-row', composerHTML(composer));
     after.after(tr);
-    const area = tr.querySelector('textarea');
-    area.focus();
+    if (focus) focusEnd(tr.querySelector('textarea'));
+  }
+
+  function focusEnd(area) {
+    area.focus({ preventScroll: true });
     area.setSelectionRange(area.value.length, area.value.length);
   }
 
-  function placeInRendered(view) {
+  function placeInRendered(view, focus) {
     const end = blockFor(view, composer.side, composer.line);
     if (!end) { composer = null; return; }
     const start = composer.start_line ? blockFor(view, composer.start_side || composer.side, composer.start_line) || end : end;
@@ -252,16 +257,14 @@ export function createLineNotes(ctx) {
     }
     const note = mdNote('composer-row', composerHTML(composer));
     afterNotes(end).after(note);
-    const area = note.querySelector('textarea');
-    area.focus({ preventScroll: true });
-    area.setSelectionRange(area.value.length, area.value.length);
+    if (focus) focusEnd(note.querySelector('textarea'));
   }
 
   function composeLines(file, lines, quote) {
     const path = file.getAttribute('data-path');
     composer = { path, ...lines, anchor: null, quote, text: composer ? composer.text : '', pull: composer && composer.path === path ? composer.pull : null };
     clearPicked();
-    placeComposer(file);
+    placeComposer(file, true);
     lookWhere(composer, false);
   }
 
@@ -270,7 +273,7 @@ export function createLineNotes(ctx) {
     const range = rangeOf(file, from, to, ctx.diffs.isWide()) || { side: to.side, line: to.line, start_line: null, start_side: null };
     composer = { path, ...range, anchor: from, text: composer ? composer.text : '', pull: composer && composer.path === path ? composer.pull : null };
     clearPicked();
-    placeComposer(file);
+    placeComposer(file, true);
     lookWhere(composer, false);
   }
 
@@ -420,5 +423,9 @@ export function createLineNotes(ctx) {
     if (queued) ctx.queueActions[act](+queued.getAttribute('data-comment'), queued);
   });
 
-  return { pick, composeLines, decorate, countBadge, refresh };
+  function drafting() {
+    return !!(composer && composer.text.trim()) || Array.prototype.some.call(document.querySelectorAll('#main .thread .reply textarea'), area => area.value.trim());
+  }
+
+  return { pick, composeLines, decorate, countBadge, refresh, drafting };
 }

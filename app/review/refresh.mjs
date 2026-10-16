@@ -4,8 +4,9 @@
  * repository, then opens the page again at the view and the place it was.
  *
  * createRefresh(ctx) shows the button, unless the review moved, and returns
- * restore(), which scrolls back to where the page was when a press reloaded
- * it, and does nothing otherwise.
+ * reloadHere(), which opens the page again at the view and the place it is,
+ * and restore(), which scrolls back to where the page was when it was opened
+ * again so, and does nothing otherwise.
  */
 import { send, reviewPath, reviewAddress } from '../lib/api.mjs';
 import { when } from '../lib/text.mjs';
@@ -38,6 +39,11 @@ export function createRefresh(ctx) {
     }
   });
 
+  function reloadHere() {
+    remember({ id: ctx.state.id, hash: location.hash, y: window.scrollY, line: firstLineShown() });
+    location.reload();
+  }
+
   function restore() {
     history.scrollRestoration = 'manual';
     const back = recall();
@@ -51,7 +57,7 @@ export function createRefresh(ctx) {
     requestAnimationFrame(() => requestAnimationFrame(place));
   }
 
-  return { restore };
+  return { reloadHere, restore };
 }
 
 function firstLineShown() {

@@ -7,6 +7,7 @@ import { AppServer } from '../../src/server/app-server.mjs';
 import { ThreadService } from '../../src/ask/thread-service.mjs';
 import { Claude } from '../../src/ask/claude.mjs';
 import { BranchLoader } from '../../src/loader/branch-loader.mjs';
+import { notices } from '../support/notices.mjs';
 
 function call(address, method, path, { body, headers = {} } = {}) {
   const url = new URL(path, address);
@@ -183,6 +184,33 @@ test('a branch review is served read only: its state, its page and its conversat
     assert.equal(after.head.sha, s.w.repo.sha('fix/wording'));
     assert.equal(after.threads.length, 1, 'loading again keeps the conversations');
   } finally {
+    await s.done();
+  }
+});
+
+test('each app open on a review hears of every change within a second: its state, and a new page build', async () => {
+  const s = await started();
+  const base = '/api/reviews/github.com/octo/widgets/30';
+  const heard = notices(s.address, 'github.com/octo/widgets/30');
+  try {
+    const state = (await call(s.address, 'GET', base)).json;
+    const { build } = (await call(s.address, 'GET', `${base}/page`)).json;
+    assert.deepEqual(await heard.next(), { state: state.version, build }, 'a listener hears where the review stands at once');
+
+    const added = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?', build }, headers: s.own });
+    assert.deepEqual(await heard.next(1000), { state: added.json.state.version }, 'a queued comment changes the state, not the page');
+
+    s.w.repo.commit('fix/wording', { 'docs/guide.md': '# Guide\n\nRead this first.\n\nThe catalog lists every item.\n' }, 'More');
+    s.w.repo.checkout('main');
+    s.w.routes();
+    await s.w.loader.load({ links: [s.w.link(30)] });
+    const loaded = await heard.next(1000);
+    assert.notEqual(loaded.build, build, 'a load that draws another page names its new build');
+    assert.equal(loaded.state, (await call(s.address, 'GET', base)).json.version);
+    await assert.rejects(heard.next(400), /no notice came/, 'nothing more is said until something more changes');
+    assert.equal((await call(s.address, 'GET', '/api/reviews/github.com/octo/widgets/99/events')).status, 404);
+  } finally {
+    heard.close();
     await s.done();
   }
 });
