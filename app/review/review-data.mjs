@@ -3,8 +3,7 @@
  *
  * indexPage(page) takes the page data the server built and returns it with
  * lookups by id and path, the totals of the whole change and of each
- * component, its review threads on GitHub, none when it holds none, and its
- * build id, which every change the page sends names. It changes nothing in
+ * component, and its build id, which every change the page sends names. It changes nothing in
  * `page` but the context files' own index.
  */
 export function indexPage(page) {
@@ -36,7 +35,7 @@ export function indexPage(page) {
     t.files++;
   });
   return {
-    build: page.build, model, layout: page.layout, diffs: page.diff || {}, sources: page.sources || {}, contextSources: page.context || {}, stack: page.stack, threads: page.threads || [],
+    build: page.build, model, layout: page.layout, diffs: page.diff || {}, sources: page.sources || {}, contextSources: page.context || {}, stack: page.stack,
     nodes, comps, files, contextFiles, nodesByFile, groupsById, totals, compTotals,
   };
 }

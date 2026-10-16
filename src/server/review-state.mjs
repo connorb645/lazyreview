@@ -2,7 +2,8 @@
  * What the app shows of one review, apart from its page data.
  *
  * reviewState(store, ref) returns the review's pull requests, its queue as
- * the buttons need it, its conversations and its written review, or null
+ * the buttons need it, its conversations, the review threads on GitHub and
+ * its written review, or null
  * when there is no review `ref`. A written review is marked `stale` when it
  * read another head than the review now shows. A branch review gives its
  * branch, its base and its conversations, with `queue` null: it takes no
@@ -17,7 +18,7 @@ export function reviewState(store, ref) {
   if (review.kind === 'branch') {
     return {
       id: review.id, kind: review.kind, repo: review.repo, path: review.path, title: review.title, base: review.base, head: review.head,
-      context: review.context, loaded_at: review.loaded_at, notes: review.notes, moved: null, queue: null, threads: store.threads(ref), written: null,
+      context: review.context, loaded_at: review.loaded_at, notes: review.notes, moved: null, queue: null, threads: store.threads(ref), github: [], written: null,
     };
   }
   const text = store.readWritten(ref);
@@ -34,6 +35,7 @@ export function reviewState(store, ref) {
     earlier: review.earlier.map(summary),
     queue: queueView(review),
     threads: store.threads(ref),
+    github: store.githubThreads(ref),
     written,
   };
 }

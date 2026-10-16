@@ -8,6 +8,8 @@
  *   config.json        the components config it was loaded with, if any
  *   written.md         a written review, if one was attached
  *   threads/<n>.json   each conversation on a line
+ *   github.json        the review threads on GitHub, as the last load read
+ *                      them, each on the line the app shows it on
  *   .lock              held while the review changes
  *
  * ReviewFolder only names paths. It reads and writes nothing.
@@ -25,6 +27,7 @@ export class ReviewFolder {
   get config() { return join(this.path, 'config.json'); }
   get written() { return join(this.path, 'written.md'); }
   get threads() { return join(this.path, 'threads'); }
+  get github() { return join(this.path, 'github.json'); }
   get lock() { return join(this.path, '.lock'); }
 
   thread(id) {

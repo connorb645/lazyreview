@@ -11,8 +11,9 @@
  * review had, or the default.
  *
  * The review threads already on GitHub are read with the pull requests and
- * kept with the page, each on the line the app shows it on; when GitHub
- * will not give them, the load goes on without them and a note says why.
+ * kept as their own record, each on the line the app shows it on; when
+ * GitHub will not give them, the load goes on without them and a note says
+ * why.
  *
  * Loading again refreshes a review in place. A stack's review lives with its
  * lowest pull request that has one, and the queues of other reviews of its
@@ -118,7 +119,8 @@ export class Loader {
       const folder = this.#store.home.review(anchor);
       return {
         files: [
-          [folder.page, JSON.stringify({ ...built.page, threads: placeThreads(threads, built.page.stack) })],
+          [folder.page, JSON.stringify(built.page)],
+          [folder.github, JSON.stringify(placeThreads(threads, built.page.stack), null, 2) + '\n'],
           this.#store.recordWrite(anchor, review),
           ...(settled.config !== undefined ? [[folder.config, JSON.stringify(settled.config, null, 2) + '\n']] : []),
           ...grouped.moved.map(m => this.#store.recordWrite(m.ref, m.review)),

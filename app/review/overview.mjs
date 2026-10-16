@@ -108,7 +108,7 @@ export function createOverview(ctx) {
   }
 
   function githubHTML() {
-    const threads = ctx.data.threads;
+    const threads = ctx.state.github;
     if (!threads.length) return '';
     const open = threads.filter(t => !t.resolved).length;
     return '<section class="rv-sec" id="on-github"><h2>On GitHub</h2>' +
@@ -176,7 +176,7 @@ export function createOverview(ctx) {
 
     const shared = sharedPrefix(pulls.members.map(m => m.title));
     const toc = (written ? written.sections.map(s => ['rv-' + s.id, s.title]) : []).concat(state.queue ? [['queued-comments', 'Queued comments']] : [])
-      .concat(ctx.data.threads.length ? [['on-github', 'On GitHub']] : [])
+      .concat(ctx.state.github.length ? [['on-github', 'On GitHub']] : [])
       .concat(state.threads.length ? [['conversations', 'Conversations']] : []);
     side.innerHTML =
       '<div class="side-open"><button class="back" data-go="map">Open the diagram &rarr;</button></div>' +

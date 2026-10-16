@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { workbench } from '../support/workbench.mjs';
 import { PullRef } from '../../src/github/pull-ref.mjs';
+import { reviewState } from '../../src/server/review-state.mjs';
 
 const ref = n => new PullRef('github.com', 'octo/widgets', n);
 
@@ -47,7 +48,7 @@ test('a stack loads bottom first into one review, each pull request in its own c
   }
 });
 
-test('a load keeps the review threads on GitHub with the page, each on the line it shows them on', async () => {
+test('a load keeps the review threads on GitHub as their own record, each on the line it shows them on', async () => {
   const w = workbench();
   const thread = (id, path, line, login, extra = {}) => ({
     id, isResolved: false, isOutdated: false, path, line, startLine: null, originalLine: line, originalStartLine: null, diffSide: 'RIGHT', startDiffSide: null,
@@ -60,12 +61,13 @@ test('a load keeps the review threads on GitHub with the page, each on the line 
       22: { threads: [thread('T3', 'Sources/Basket/Basket.swift', 7, 'sam')] },
     } });
     await w.loader.load({ links: [w.link(21), w.link(22)] });
-    const page = w.store.readPage(ref(21)).page;
-    assert.deepEqual(page.threads.map(t => [t.id, t.pull, t.resolved, t.outdated, t.at && t.at.line]), [['T1', 21, false, false, 9], ['T2', 21, true, true, null], ['T3', 22, false, false, 7]]);
+    assert.deepEqual(w.store.githubThreads(ref(21)).map(t => [t.id, t.pull, t.resolved, t.outdated, t.at && t.at.line]), [['T1', 21, false, false, 9], ['T2', 21, true, true, null], ['T3', 22, false, false, 7]]);
+    assert.equal(w.store.readPage(ref(21)).page.threads, undefined, 'the page holds only what the change draws');
+    assert.deepEqual(reviewState(w.store, ref(21)).github.map(t => t.id), ['T1', 'T2', 'T3'], 'the app reads them in the review\'s state');
 
     w.routes({ extra: { 'POST graphql octo/widgets#30': { errors: [{ message: 'Resource not accessible' }] } } });
     const loaded = await w.loader.load({ links: [w.link(30)] });
-    assert.deepEqual(w.store.readPage(ref(30)).page.threads, []);
+    assert.deepEqual(w.store.githubThreads(ref(30)), []);
     assert.deepEqual(loaded.notes, ["#30's review threads on GitHub are not shown, as they could not be read: GitHub refused the review threads of octo/widgets#30: Resource not accessible"]);
     assert.deepEqual(w.store.read(ref(30)).notes, loaded.notes, 'the Review view says so too');
   } finally {

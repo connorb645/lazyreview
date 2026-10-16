@@ -45,7 +45,7 @@ export function createLineNotes(ctx) {
     return ctx.state.threads.filter(t => t.path === path);
   }
   function githubOn(path) {
-    return ctx.data.threads.filter(t => (t.at ? t.at.path : t.path) === path);
+    return ctx.state.github.filter(t => (t.at ? t.at.path : t.path) === path);
   }
   function queuedOn(path) {
     const out = [];

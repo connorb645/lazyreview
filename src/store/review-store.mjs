@@ -63,6 +63,11 @@ export class ReviewStore {
       .sort((a, b) => a.id - b.id);
   }
 
+  /** The review threads on GitHub as the last load read them, none for a review that keeps none. */
+  githubThreads(ref) {
+    return readJSON(this.#home.review(ref).github) || [];
+  }
+
   /** Every review kept, of pull requests and of branches, each {ref, review}, newest load first. */
   list() {
     const out = [];
