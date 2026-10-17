@@ -10,6 +10,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 const cutLine = "# ------------------------ >8 ------------------------"
@@ -116,30 +118,32 @@ func linesKey(at server.Lines) string {
 	return fmt.Sprintf("%s %s %d %s %d", at.Path, at.StartSide, at.StartLine, at.Side, at.Line)
 }
 
-func onWords(at server.Lines) string {
-	return at.Path + ", " + linesWords(at.Side, at.Line, at.StartLine, at.StartSide)
+func onWords(tr *i18n.TranslationSet, at server.Lines) string {
+	return at.Path + ", " + linesWords(tr, at.Side, at.Line, at.StartLine, at.StartSide)
 }
 
 func (a App) comment() (tea.Model, tea.Cmd) {
+	tr := a.c.Tr
 	if n, r, ok := a.noteAt(); ok {
 		switch {
 		case n.kind == "conversation" && r.part == "claude":
 			text := n.conversation.Messages[r.message].Text
-			e := editing{purpose: "comment", at: *n.at, text: text, key: "comment " + linesKey(*n.at), about: []string{"A comment on " + onWords(*n.at) + ", from Claude's answer."}}
-			return a.say("Checking where it goes…", false), checkWhere(a.opts.Server, a.review.id, a.review.page.Build, e)
+			about := utils.ResolvePlaceholderString(tr.CommentFromAnswer, map[string]string{"on": onWords(tr, *n.at)})
+			e := editing{purpose: "comment", at: *n.at, text: text, key: "comment " + linesKey(*n.at), about: []string{about}}
+			return a.say(tr.CheckingWhere, false), checkWhere(a.opts.Server, a.review.id, a.review.page.Build, e)
 		case n.kind == "queued":
-			return a.say("e edits a queued comment", true), nil
+			return a.say(tr.EEditsQueued, true), nil
 		}
-		return a.say("c comments on a line or a selection, or on Claude's answer uses it", true), nil
+		return a.say(tr.CCommentsOrAnswer, true), nil
 	}
 	at, code, ok := a.selected()
 	if !ok {
-		return a.say("c comments on a line or a selection", true), nil
+		return a.say(tr.CComments, true), nil
 	}
-	about := []string{"A comment on " + onWords(at) + "."}
+	about := []string{utils.ResolvePlaceholderString(tr.CommentOn, map[string]string{"on": onWords(tr, at)})}
 	e := editing{purpose: "comment", at: at, key: "comment " + linesKey(at), about: append(about, codeAbout(code)...)}
 	a.diff.selecting = false
-	return a.say("Checking where it goes…", false), checkWhere(a.opts.Server, a.review.id, a.review.page.Build, e)
+	return a.say(tr.CheckingWhere, false), checkWhere(a.opts.Server, a.review.id, a.review.page.Build, e)
 }
 
 func codeAbout(code []string) []string {
@@ -154,15 +158,16 @@ func codeAbout(code []string) []string {
 }
 
 func (a App) askClaude() (tea.Model, tea.Cmd) {
+	tr := a.c.Tr
 	if n, _, ok := a.noteAt(); ok && n.kind == "conversation" {
 		c := n.conversation
-		about := []string{"A follow-up to Claude on " + onWords(*n.at) + ".", "The conversation so far:", ""}
+		about := []string{utils.ResolvePlaceholderString(tr.FollowUpOn, map[string]string{"on": onWords(tr, *n.at)}), tr.ConversationSoFar, ""}
 		for _, m := range c.Messages {
-			who, text := "You", m.Text
+			who, text := tr.You, m.Text
 			if m.From != "you" {
-				who = "Claude"
+				who = tr.Claude
 				if m.Error != "" {
-					text = "did not answer: " + m.Error
+					text = tr.DidNotAnswer + ": " + m.Error
 				}
 			}
 			for _, l := range strings.Split(who+": "+text, "\n") {
@@ -173,10 +178,10 @@ func (a App) askClaude() (tea.Model, tea.Cmd) {
 	}
 	at, code, ok := a.selected()
 	if !ok {
-		return a.say("a asks Claude about a line or a selection, or in a conversation asks a follow-up", true), nil
+		return a.say(tr.AAsks, true), nil
 	}
 	a.diff.selecting = false
-	about := append([]string{"A question to Claude about " + onWords(at) + ".", "Claude answers here, in the review. Nothing goes to GitHub."}, codeAbout(code)...)
+	about := append([]string{utils.ResolvePlaceholderString(tr.QuestionAbout, map[string]string{"on": onWords(tr, at)}), tr.ClaudeAnswersHere}, codeAbout(code)...)
 	return a.edit(editing{purpose: "ask", at: at, key: "ask " + linesKey(at), about: about})
 }
 
@@ -209,19 +214,21 @@ func (a App) queuedAt() (server.Comment, int, bool) {
 }
 
 func (a App) editQueued() (tea.Model, tea.Cmd) {
+	tr := a.c.Tr
 	c, pull, ok := a.queuedAt()
 	if !ok {
-		return a.say("e edits the queued comment at the cursor", true), nil
+		return a.say(tr.EEditsAtCursor, true), nil
 	}
 	at := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
-	about := []string{fmt.Sprintf("Queued comment %d on %s, for #%d.", c.ID, onWords(at), pull), "Saving replaces it."}
+	queued := utils.ResolvePlaceholderString(tr.QueuedCommentOn, map[string]string{"comment": utils.Itoa(c.ID), "on": onWords(tr, at), "pull": utils.Itoa(pull)})
+	about := []string{queued, tr.SavingReplaces}
 	return a.edit(editing{purpose: "edit", comment: c.ID, version: c.Version, at: at, pull: pull, text: c.Body, key: fmt.Sprintf("edit %d", c.ID), about: about})
 }
 
 func (a App) dropQueued() App {
 	c, pull, ok := a.queuedAt()
 	if !ok {
-		return a.say("dd drops the queued comment at the cursor", true)
+		return a.say(a.c.Tr.DdDrops, true)
 	}
 	a.confirming = &confirmation{comment: c.ID, pull: pull, version: c.Version}
 	return a
@@ -231,11 +238,11 @@ func (a App) confirmKey(name string) (tea.Model, tea.Cmd) {
 	c := *a.confirming
 	a.confirming = nil
 	if name != "y" {
-		return a.say(fmt.Sprintf("Kept queued comment %d.", c.comment), false), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.KeptQueued, map[string]string{"comment": utils.Itoa(c.comment)}), false), nil
 	}
 	client, id, build := a.opts.Server, a.review.id, a.review.page.Build
 	e := editing{purpose: "drop", comment: c.comment, pull: c.pull}
-	return a.say("Dropping…", false), func() tea.Msg {
+	return a.say(a.c.Tr.Dropping, false), func() tea.Msg {
 		state, err := client.Drop(id, c.comment, c.version, build)
 		return changed{e: e, state: &state, err: err}
 	}
@@ -246,13 +253,14 @@ func (a App) edit(e editing) (tea.Model, tea.Cmd) {
 	if draft, ok := a.drafts[e.key]; ok {
 		text = draft
 	}
+	tr := a.c.Tr
 	file, err := os.CreateTemp("", "lazyreview-*.md")
 	if err != nil {
-		return a.say("could not make a file to write in: "+err.Error(), true), nil
+		return a.say(tr.CouldNotMakeFile+": "+err.Error(), true), nil
 	}
 	var b strings.Builder
 	b.WriteString(text)
-	b.WriteString("\n\n" + cutLine + "\n# Nothing below the line above is sent. Saving with no text sends nothing.\n")
+	b.WriteString("\n\n" + cutLine + "\n# " + tr.NothingBelowLine + "\n")
 	for _, l := range e.about {
 		b.WriteString(strings.TrimRight("# "+l, " ") + "\n")
 	}
@@ -261,7 +269,7 @@ func (a App) edit(e editing) (tea.Model, tea.Cmd) {
 		err = closeErr
 	}
 	if err != nil {
-		return a.say("could not write "+file.Name()+": "+err.Error(), true), nil
+		return a.say(utils.ResolvePlaceholderString(tr.CouldNotWrite, map[string]string{"path": file.Name()})+": "+err.Error(), true), nil
 	}
 	cmd := exec.Command("sh", "-c", a.opts.Editor+` "$@"`, "editor", file.Name())
 	a.editingNow = true
@@ -284,6 +292,7 @@ func written(file string) (string, error) {
 
 func (a App) afterEditing(msg edited) (tea.Model, tea.Cmd) {
 	a.editingNow = false
+	tr := a.c.Tr
 	text, readErr := written(msg.file)
 	if err := os.Remove(msg.file); err != nil && readErr == nil {
 		readErr = err
@@ -293,36 +302,36 @@ func (a App) afterEditing(msg edited) (tea.Model, tea.Cmd) {
 		if text != "" {
 			a.drafts = withDraft(a.drafts, msg.e.key, text)
 		}
-		return a.say("the editor stopped: "+msg.err.Error(), true), nil
+		return a.say(tr.EditorStopped+": "+msg.err.Error(), true), nil
 	case readErr != nil:
-		return a.say("could not read what was written: "+readErr.Error(), true), nil
+		return a.say(tr.CouldNotReadWritten+": "+readErr.Error(), true), nil
 	case text == "":
 		a.drafts = withDraft(a.drafts, msg.e.key, "")
-		return a.say("Nothing was written, so nothing was sent.", false), nil
+		return a.say(tr.NothingWritten, false), nil
 	case msg.e.purpose == "edit" && text == msg.e.text:
 		a.drafts = withDraft(a.drafts, msg.e.key, "")
-		return a.say(fmt.Sprintf("Queued comment %d is as it was.", msg.e.comment), false), nil
+		return a.say(utils.ResolvePlaceholderString(tr.QueuedAsItWas, map[string]string{"comment": utils.Itoa(msg.e.comment)}), false), nil
 	}
 	a.drafts = withDraft(a.drafts, msg.e.key, text)
 	client, id, build, e := a.opts.Server, a.review.id, a.review.page.Build, msg.e
 	switch e.purpose {
 	case "comment":
-		return a.say("Queueing…", false), func() tea.Msg {
+		return a.say(tr.Queueing, false), func() tea.Msg {
 			state, err := client.Queue(id, e.at, e.pull, text, build)
 			return changed{e: e, state: &state, err: err}
 		}
 	case "edit":
-		return a.say("Saving…", false), func() tea.Msg {
+		return a.say(tr.Saving, false), func() tea.Msg {
 			state, err := client.Edit(id, e.comment, text, e.version, build)
 			return changed{e: e, state: &state, err: err}
 		}
 	case "reply":
-		return a.say("Asking Claude…", false), func() tea.Msg {
+		return a.say(tr.AskingClaude, false), func() tea.Msg {
 			c, err := client.Reply(id, e.conversation, text, build)
 			return changed{e: e, conversation: &c, err: err}
 		}
 	}
-	return a.say("Asking Claude…", false), func() tea.Msg {
+	return a.say(tr.AskingClaude, false), func() tea.Msg {
 		c, err := client.Ask(id, e.at, text, build)
 		return changed{e: e, conversation: &c, err: err}
 	}
@@ -358,18 +367,19 @@ func (a App) afterChange(msg changed) (tea.Model, tea.Cmd) {
 		a.diff.notes[fmt.Sprintf("conversation:%d", c.ID)] = true
 		a = a.relaid()
 		if last := c.Messages[len(c.Messages)-1]; last.Error != "" {
-			return a.say("Claude did not answer; the conversation says why.", true), nil
+			return a.say(a.c.Tr.ClaudeSaysWhy, true), nil
 		}
-		return a.say("Claude answered.", false), nil
+		return a.say(a.c.Tr.ClaudeAnswered, false), nil
 	}
 	a = a.withState(*msg.state)
+	comment := map[string]string{"comment": utils.Itoa(e.comment)}
 	switch e.purpose {
 	case "edit":
-		return a.say(fmt.Sprintf("Saved queued comment %d.", e.comment), false), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.SavedQueued, comment), false), nil
 	case "drop":
-		return a.say(fmt.Sprintf("Dropped queued comment %d.", e.comment), false), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.DroppedQueued, comment), false), nil
 	}
-	return a.say("Queued: "+strings.TrimSuffix(e.about[0], "."), false), nil
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.QueuedAbout, map[string]string{"about": strings.TrimSuffix(e.about[0], ".")}), false), nil
 }
 
 func withConversation(st server.State, c server.Conversation) server.State {
@@ -402,7 +412,8 @@ func (a App) afterCheck(msg checked) (tea.Model, tea.Cmd) {
 		pending := msg.e
 		pn := menu{title: msg.where.Words}
 		for _, c := range msg.where.Choose {
-			pn.rows = append(pn.rows, menuRow{left: fmt.Sprintf("#%d", c.Pull), right: fmt.Sprintf("%s, line %d", c.Path, c.Line), open: &item{kind: "choose", pull: c.Pull}})
+			line := utils.ResolvePlaceholderString(a.c.Tr.LineAt, map[string]string{"line": utils.Itoa(c.Line)})
+			pn.rows = append(pn.rows, menuRow{left: fmt.Sprintf("#%d", c.Pull), right: c.Path + ", " + line, open: &item{kind: "choose", pull: c.Pull}})
 		}
 		a.menu, a.choosing = &pn, &pending
 		return a.say("", false), nil

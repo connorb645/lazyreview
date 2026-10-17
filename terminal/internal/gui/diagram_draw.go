@@ -8,14 +8,15 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 const noLane = -1
 
-func drawDiagram(d reviewData, v diagramView, filter pullFilter) (canvas, []int, stubs) {
+func drawDiagram(tr *i18n.TranslationSet, d reviewData, v diagramView, filter pullFilter) (canvas, []int, stubs) {
 	lvl, g := v.level, v.grid
-	stubLines := stubWords(lvl, v)
+	stubLines := stubWords(tr, lvl, v)
 	routes, lanes := routesOf(lvl, g, v.focus, v.all, len(stubLines) > 0)
 	focusRow := -1
 	if len(stubLines) > 0 {
@@ -74,7 +75,7 @@ func drawDiagram(d reviewData, v diagramView, filter pullFilter) (canvas, []int,
 		}
 	}
 	for i, card := range lvl.Cards {
-		drawCard(c, d, lvl, card, g.Spots[i], tops[g.Spots[i].Row], i == v.focus, dimmed(card, filter), labels[i])
+		drawCard(c, d, lvl, card, diagram.StateWord(tr, card.State), g.Spots[i], tops[g.Spots[i].Row], i == v.focus, dimmed(card, filter), labels[i])
 	}
 	for _, pass := range []func(route) bool{isFaint, isPlain, isLit} {
 		for _, r := range routes {
@@ -98,7 +99,7 @@ func drawDiagram(d reviewData, v diagramView, filter pullFilter) (canvas, []int,
 	return c, tops, below
 }
 
-func stubWords(lvl diagram.Level, v diagramView) []string {
+func stubWords(tr *i18n.TranslationSet, lvl diagram.Level, v diagramView) []string {
 	card, ok := v.card()
 	if !ok || lvl.Kind != "types" {
 		return nil
@@ -110,8 +111,8 @@ func stubWords(lvl diagram.Level, v diagramView) []string {
 		case l.From == card.ID:
 			out = append(out, "─▶ "+l.Words+" "+l.Outside)
 		case l.To == card.ID:
-			name, place, _ := strings.Cut(l.Outside, " · in ")
-			in = append(in, "◀─ "+name+" "+l.Words+" · in "+place)
+			place := utils.ResolvePlaceholderString(tr.InPlace, map[string]string{"place": l.OutsidePlace})
+			in = append(in, "◀─ "+l.OutsideName+" "+l.Words+" · "+place)
 		}
 	}
 	return append(out, in...)
@@ -557,7 +558,7 @@ func drawAreas(c canvas, d reviewData, lvl diagram.Level, g diagram.Grid, tops [
 	}
 }
 
-func drawCard(c canvas, d reviewData, lvl diagram.Level, card diagram.Card, s diagram.Spot, y int, focused, dim bool, label string) {
+func drawCard(c canvas, d reviewData, lvl diagram.Level, card diagram.Card, state string, s diagram.Spot, y int, focused, dim bool, label string) {
 	x, w := s.Col, s.Width
 	border := "border"
 	if lvl.Kind == "components" {
@@ -597,7 +598,6 @@ func drawCard(c canvas, d reviewData, lvl diagram.Level, card diagram.Card, s di
 	}
 	room := w - 4
 	c.text(x+2, y+1, utils.FitTitle(card.Title, room), titleStyle)
-	state := diagram.StateWord(card.State)
 	c.text(x+2, y+2, ansi.Truncate(card.Detail, room-ansi.StringWidth(state)-1, "…"), detailStyle)
 	if state != "" {
 		stateStyle := "state:" + card.State

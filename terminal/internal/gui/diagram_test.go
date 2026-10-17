@@ -195,7 +195,7 @@ func TestThePullRequestFilterDimsTheTypesItLeavesOut(t *testing.T) {
 	if got := fmt.Sprint(a.filter); got != "[21]" {
 		t.Fatalf("the filter: %s", got)
 	}
-	c, tops, _ := drawDiagram(*a.review, a.dg, a.filter)
+	c, tops, _ := drawDiagram(a.c.Tr, *a.review, a.dg, a.filter)
 	titleStyle := func(id string) string {
 		s := a.dg.grid.Spots[a.dg.level.Index(id)]
 		return c.cells[tops[s.Row]+1][s.Col+2].style
@@ -251,7 +251,7 @@ func standIn() reviewData {
 }
 
 func standInApp(width, height int) App {
-	a := New(Options{Dark: true})
+	a := New(testCommon(), Options{Dark: true})
 	d := standIn()
 	a.review, a.loading, a.width, a.height, a.focus = &d, false, width, height, mainPanel
 	return a
@@ -298,7 +298,7 @@ func pathsStandIn() reviewData {
 
 func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 	d := pathsStandIn()
-	a := New(Options{Dark: true})
+	a := New(testCommon(), Options{Dark: true})
 	a.review, a.loading, a.width, a.height, a.focus, a.driving = &d, false, 80, 24, diagramPanel, diagramPanel
 	a = a.showBox(diagramPlace{level: "packages", component: "shop", box: "experiments"}).relaid()
 	screenIs(t, a, "paths-packages")

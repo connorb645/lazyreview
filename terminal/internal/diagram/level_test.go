@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 func recordedPage(t *testing.T) server.Page {
@@ -27,22 +28,22 @@ func recordedPage(t *testing.T) server.Page {
 }
 
 func TestTheThreeLevelsComeFromTheLayout(t *testing.T) {
-	page := recordedPage(t)
-	top := Components(page)
+	page, tr := recordedPage(t), i18n.EnglishTranslationSet()
+	top := Components(tr, page)
 	if len(top.Cards) != 2 || top.Cards[0].Title != "widgets" || top.Cards[1].Detail != "1 file · unchanged" || !top.Cards[1].Context {
 		t.Fatalf("components: %+v", top.Cards)
 	}
 	if len(top.Links) != 1 || top.Links[0].Words != "→ 5 links" {
 		t.Fatalf("the arrow between components: %+v", top.Links)
 	}
-	pkgs, ok := Packages(page, "root")
+	pkgs, ok := Packages(tr, page, "root")
 	if !ok || len(pkgs.Cards) != 2 || pkgs.Cards[0].Title != "Sources" || pkgs.Cards[0].Detail != "3 types" {
 		t.Fatalf("packages of root: %v %+v", ok, pkgs.Cards)
 	}
-	if _, ok := Packages(page, "context"); ok {
+	if _, ok := Packages(tr, page, "context"); ok {
 		t.Fatal("a component of one package has no level of packages")
 	}
-	types := Types(page, "root", "sources")
+	types := Types(tr, page, "root", "sources")
 	var titles []string
 	for _, c := range types.Cards {
 		titles = append(titles, c.Title+"|"+c.Detail+"|"+c.State)
@@ -74,7 +75,7 @@ func TestRowsAndColumnsAndTheNearestCard(t *testing.T) {
 		{ID: "d", Title: "Delta", Box: server.Box{X: 400, Y: 200, H: 60}},
 		{ID: "e", Title: "Epsilon", Box: server.Box{X: 900, Y: 0, H: 60}},
 	}
-	g := Arrange(cards, 10)
+	g := Arrange(i18n.EnglishTranslationSet(), cards, 10)
 	if len(g.Rows) != 2 || len(g.Rows[0]) != 3 || g.Rows[1][0] != 2 || g.Rows[1][1] != 3 {
 		t.Fatalf("rows: %v", g.Rows)
 	}

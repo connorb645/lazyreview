@@ -2,12 +2,15 @@ package gui
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cmd) {
@@ -26,7 +29,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 	if len(missing) > 0 {
 		a.loading = true
 		a.screen = screenDiff
-		return a, loadFiles(a.opts.Server, a.review.id, a.review.page.Build, component, missing, place)
+		return a, loadFiles(a.c.Tr, a.opts.Server, a.review.id, a.review.page.Build, component, missing, place)
 	}
 	if a.diff.component != component || a.diff.files == nil {
 		a.diff = newDiffView(component, a.files, a.opts.Location, a.md)
@@ -38,7 +41,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 		a.diff.folded[place.Path] = false
 		a.diff = a.withRunOpen(place.Path, place.Side, place.Line)
 	}
-	a.diff = a.diff.rebuilt(*a.review, a.filter, a.mainHeight())
+	a.diff = a.diff.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
 	if place != nil {
 		a.diff = a.diff.find(*place).placed(a.mainHeight())
 	} else {
@@ -143,7 +146,7 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 				}
 			}
 		}
-		a.diff = v.rebuilt(*a.review, a.filter, h)
+		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
 	case "open":
 		if v.cursor < len(v.rows) && (v.rows[v.cursor].kind == "file" || v.rows[v.cursor].kind == "gap") {
 			return a.fold("toggle fold"), nil
@@ -158,7 +161,7 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		} else {
 			v.wrap = !v.wrap
 		}
-		a.diff = v.rebuilt(*a.review, a.filter, h)
+		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
 	case "show type":
 		return a.showType()
 	case "comment":
@@ -175,7 +178,7 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		}
 		if r := v.rows[v.cursor]; r.kind != "block" {
 			if _, _, ok := r.at(); !ok {
-				return a.say("V starts a selection on a line", true), nil
+				return a.say(a.c.Tr.SelectStartsOnLine, true), nil
 			}
 		}
 		a.diff.selecting, a.diff.anchor = true, v.cursor
@@ -187,12 +190,12 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 	case "rendered":
 		path := v.file()
 		if f, ok := v.files[path]; !ok || f.Rendered == nil {
-			return a.say("Space r shows a Markdown file rendered, and this file has no rendered view", true), nil
+			return a.say(a.c.Tr.NoRenderedView, true), nil
 		}
 		v = v.copied()
 		v.rendered[path] = !v.rendered[path]
 		v.folded[path] = false
-		a.diff = v.rebuilt(*a.review, a.filter, h)
+		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
 		if i := a.diff.first(func(r diffRow) bool { return r.kind == "file" && r.path == path }); i >= 0 {
 			a.diff = a.diff.to(i, h)
 		}
@@ -200,11 +203,11 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		path := v.file()
 		entry := fileEntry(*a.review, path)
 		if f, ok := v.files[path]; !ok || f.Whole == nil || entry.Status == "" || len(f.Hunks) == 0 {
-			return a.say("this file has no whole text to show", true), nil
+			return a.say(a.c.Tr.NoWholeText, true), nil
 		}
 		v = v.copied()
 		v.whole[path] = !v.whole[path]
-		a.diff = v.rebuilt(*a.review, a.filter, h)
+		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
 	}
 	return a, nil
 }
@@ -236,7 +239,7 @@ func (a App) fold(action string) App {
 	if r.kind == "notehead" || r.kind == "notetext" {
 		n, _ := noteOf(*a.review, r.path, r.key)
 		v.notes[r.key] = action == "open fold" || action == "toggle fold" && !v.noteOpen(n)
-		a.diff = v.rebuilt(*a.review, a.filter, a.mainHeight())
+		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
 		if i := a.diff.first(func(row diffRow) bool { return row.kind == "notehead" && row.key == r.key }); i >= 0 {
 			a.diff = a.diff.to(i, a.mainHeight())
 		}
@@ -253,7 +256,7 @@ func (a App) fold(action string) App {
 	default:
 		v.folded[r.path] = action != "open fold" && !(action == "toggle fold" && v.folded[r.path])
 	}
-	a.diff = v.rebuilt(*a.review, a.filter, a.mainHeight())
+	a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
 	switch {
 	case r.kind != "file" && v.folded[r.path]:
 		a.diff = a.diff.find(server.Lines{Path: r.path, Side: "file:"}).shown(a.mainHeight())
@@ -273,7 +276,7 @@ func (a App) toLine(n int) (tea.Model, tea.Cmd) {
 	a.diff = a.diff.copied()
 	a.diff.folded[path] = false
 	a.diff = a.withRunOpen(path, "RIGHT", n)
-	a.diff = a.diff.rebuilt(*a.review, a.filter, a.mainHeight())
+	a.diff = a.diff.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
 	for i, r := range a.diff.rows {
 		if side, line, ok := r.at(); ok && r.path == path && (line == n && side == "RIGHT" || sameLine(r, server.Lines{Side: "RIGHT", Line: n})) {
 			a.diff.cursor = i
@@ -281,7 +284,7 @@ func (a App) toLine(n int) (tea.Model, tea.Cmd) {
 			return a, nil
 		}
 	}
-	return a.say(fmt.Sprintf("%s shows no line %d", path, n), true), nil
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoSuchLine, map[string]string{"path": path, "line": utils.Itoa(n)}), true), nil
 }
 
 func (a App) matchNext(back bool) (tea.Model, tea.Cmd) {
@@ -294,7 +297,7 @@ func (a App) matchNext(back bool) (tea.Model, tea.Cmd) {
 		a.diff = a.diff.to(i, a.mainHeight())
 		return a, nil
 	}
-	return a.say(fmt.Sprintf("no more of %q", query), true), nil
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoMoreOf, map[string]string{"query": strconv.Quote(query)}), true), nil
 }
 
 func (a App) here() jump {
@@ -351,7 +354,7 @@ func (a App) jumpBy(back bool) (tea.Model, tea.Cmd) {
 	return a.relaid(), nil
 }
 
-func loadFiles(c *server.Client, id, build, component string, paths []string, place *server.Lines) tea.Cmd {
+func loadFiles(tr *i18n.TranslationSet, c *server.Client, id, build, component string, paths []string, place *server.Lines) tea.Cmd {
 	return func() tea.Msg {
 		files := map[string]server.File{}
 		var mu sync.Mutex
@@ -365,7 +368,7 @@ func loadFiles(c *server.Client, id, build, component string, paths []string, pl
 				mu.Lock()
 				defer mu.Unlock()
 				if err != nil {
-					failed = fmt.Errorf("could not open %s: %w", path, err)
+					failed = fmt.Errorf("%s: %w", utils.ResolvePlaceholderString(tr.CouldNotOpen, map[string]string{"name": path}), err)
 					return
 				}
 				files[path] = file

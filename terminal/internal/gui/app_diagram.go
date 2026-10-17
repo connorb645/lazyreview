@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -17,7 +18,7 @@ const labelLetters = "asdfghjklqwertyuiopzxcvbnm"
 
 func (a App) openDiagram() App {
 	if a.review == nil {
-		return a.say("no review is open; Enter on one opens it", true)
+		return a.say(a.c.Tr.NoReviewOpen, true)
 	}
 	a.focus, a.driving = mainPanel, diagramPanel
 	if a.screen == screenDiagram {
@@ -29,14 +30,14 @@ func (a App) openDiagram() App {
 }
 
 func (a App) showBox(at diagramPlace) App {
-	v := newDiagramView(levelAt(a.review.page, at), at.box)
+	v := newDiagramView(a.c.Tr, levelAt(a.c.Tr, a.review.page, at), at.box)
 	v.all, v.query = a.dg.all, a.dg.query
 	a.dg, a.screen = v, screenDiagram
 	return a.diagramShown()
 }
 
 func (a App) diagramShown() App {
-	a.dg = a.dg.shownIn(*a.review, a.mainWidth(), a.mainHeight(), a.filter)
+	a.dg = a.dg.shownIn(a.c.Tr, *a.review, a.mainWidth(), a.mainHeight(), a.filter)
 	return a
 }
 
@@ -73,9 +74,9 @@ func (a App) diagramAction(action string, count int) (tea.Model, tea.Cmd) {
 	case "follow":
 		return a.follow()
 	case "references":
-		return a.linksPanel(false, true, "nothing links to %s"), nil
+		return a.linksPanel(false, true, a.c.Tr.NothingLinksTo), nil
 	case "links":
-		return a.linksPanel(true, true, "%s has no links"), nil
+		return a.linksPanel(true, true, a.c.Tr.HasNoLinks), nil
 	case "properties":
 		return a.propertiesPanel(), nil
 	case "box diff":
@@ -129,7 +130,7 @@ func (a App) labelKey(name string) App {
 		}
 	}
 	a.dg = v
-	return a.say("no box has the label "+typed, true)
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoBoxHasLabel, map[string]string{"label": typed}), true)
 }
 
 func (a App) stepIn() (tea.Model, tea.Cmd) {
@@ -139,14 +140,14 @@ func (a App) stepIn() (tea.Model, tea.Cmd) {
 	}
 	switch card.Kind {
 	case "component":
-		packages, ok := diagram.Packages(a.review.page, card.ID)
+		packages, ok := diagram.Packages(a.c.Tr, a.review.page, card.ID)
 		switch {
 		case ok:
 			return a.showBox(diagramPlace{level: "packages", component: card.ID}), nil
 		case len(packages.Cards) == 1:
 			return a.showBox(diagramPlace{level: "types", component: card.ID, pkg: packages.Cards[0].ID}), nil
 		}
-		return a.say(card.Title+" has no types to draw; Space d opens its diff", true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoTypesToDraw, map[string]string{"title": card.Title}), true), nil
 	case "package":
 		return a.showBox(diagramPlace{level: "types", component: a.dg.level.Component, pkg: card.ID}), nil
 	case "group":
@@ -159,7 +160,7 @@ func (a App) stepOut() App {
 	l := a.dg.level
 	switch l.Kind {
 	case "types":
-		if _, ok := diagram.Packages(a.review.page, l.Component); ok {
+		if _, ok := diagram.Packages(a.c.Tr, a.review.page, l.Component); ok {
 			return a.showBox(diagramPlace{level: "packages", component: l.Component, box: l.Package})
 		}
 		return a.showBox(diagramPlace{level: "components", box: l.Component})
@@ -187,7 +188,7 @@ func (a App) boxDiff() (tea.Model, tea.Cmd) {
 				return a.openPlace(f.Component, &server.Lines{Path: f.Path, Side: "file:"})
 			}
 		}
-		return a.say(card.Title+" has no files in this change", true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoFilesInChange, map[string]string{"title": card.Title}), true), nil
 	case "group":
 		return a.openNode(card.Members[0])
 	}
@@ -252,14 +253,13 @@ func (a App) linkRows(out, in bool) []menuRow {
 		if link.Outside != "" {
 			n, _ := nodeOf(a.review.page, other)
 			at = boxOf(n)
-			_, place, _ = strings.Cut(link.Outside, " · ")
-			place = " · " + place
+			place = " · " + utils.ResolvePlaceholderString(a.c.Tr.InPlace, map[string]string{"place": link.OutsidePlace})
 		}
 		from, to := a.boxName(card.ID), name
 		if way == "in" {
 			from, to = name, a.boxName(card.ID)
 		}
-		row := menuRow{left: way, right: from + " ─ " + link.Words + " ─▶ " + to + place, open: &item{kind: "box", box: &at}}
+		row := menuRow{left: map[string]string{"out": a.c.Tr.LinkOut, "in": a.c.Tr.LinkIn}[way], right: from + " ─ " + link.Words + " ─▶ " + to + place, open: &item{kind: "box", box: &at}}
 		if way == "out" {
 			outs = append(outs, row)
 		} else {
@@ -286,11 +286,11 @@ func (a App) linksPanel(out, in bool, none string) App {
 	}
 	rows := a.linkRows(out, in)
 	if len(rows) == 0 {
-		return a.say(fmt.Sprintf(none, card.Title), true)
+		return a.say(utils.ResolvePlaceholderString(none, map[string]string{"title": card.Title}), true)
 	}
-	title := a.boxName(card.ID) + " · " + utils.Plural(len(rows), "link")
+	title := a.boxName(card.ID) + " · " + utils.Plural(len(rows), a.c.Tr.LinkNoun)
 	if !out {
-		title = "What links to " + a.boxName(card.ID)
+		title = utils.ResolvePlaceholderString(a.c.Tr.WhatLinksTo, map[string]string{"name": a.boxName(card.ID)})
 	}
 	a.menu = &menu{title: title, rows: rows}
 	return a
@@ -304,23 +304,23 @@ func (a App) follow() (tea.Model, tea.Cmd) {
 	rows := a.linkRows(true, false)
 	switch len(rows) {
 	case 0:
-		return a.say(card.Title+" links to nothing", true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.LinksToNothing, map[string]string{"title": card.Title}), true), nil
 	case 1:
 		a = a.leave()
 		return a.showBox(*rows[0].open.box), nil
 	}
-	a.menu = &menu{title: a.boxName(card.ID) + " links to", rows: rows}
+	a.menu = &menu{title: utils.ResolvePlaceholderString(a.c.Tr.LinksTo, map[string]string{"name": a.boxName(card.ID)}), rows: rows}
 	return a, nil
 }
 
 func (a App) membersPanel(card diagram.Card) App {
-	pn := menu{title: card.Title + " · " + utils.Plural(len(card.Members), "member")}
+	pn := menu{title: card.Title + " · " + utils.Plural(len(card.Members), a.c.Tr.MemberNoun)}
 	for _, id := range card.Members {
 		n, ok := nodeOf(a.review.page, id)
 		if !ok {
 			continue
 		}
-		pn.rows = append(pn.rows, menuRow{left: n.Name, right: path.Base(n.File) + "  " + diagram.StateWord(n.State), open: &item{kind: "line", place: nodePlace(n)}})
+		pn.rows = append(pn.rows, menuRow{left: n.Name, right: path.Base(n.File) + "  " + diagram.StateWord(a.c.Tr, n.State), open: &item{kind: "line", place: nodePlace(n)}})
 	}
 	a.menu = &pn
 	return a
@@ -331,34 +331,38 @@ func (a App) propertiesPanel() App {
 	if !ok {
 		return a
 	}
+	tr := a.c.Tr
 	n, ok := nodeOf(a.review.page, card.ID)
 	if !ok || card.Kind != "type" {
-		return a.say("only a type has properties", true)
+		return a.say(tr.OnlyTypeHasProperties, true)
 	}
 	if len(n.Properties) == 0 {
-		return a.say(n.Name+" has no stored properties", true)
+		return a.say(utils.ResolvePlaceholderString(tr.NoStoredProperties, map[string]string{"name": n.Name}), true)
 	}
 	holds := map[string]string{}
 	for _, e := range a.review.page.Model.Edges {
 		if e.Source == n.ID && e.Kind == "has" {
 			target, _ := nodeOf(a.review.page, e.Target)
 			for _, p := range e.Properties {
-				holds[p] = "holds " + target.Name
+				holds[p] = tr.LinkHolds + " " + target.Name
 			}
 		}
+	}
+	lineAt := func(n int) string {
+		return utils.ResolvePlaceholderString(tr.LineAt, map[string]string{"line": utils.Itoa(n)})
 	}
 	typeWidth, lineWidth := 0, 0
 	for _, p := range n.Properties {
 		typeWidth = max(typeWidth, len([]rune(p.Type)))
-		lineWidth = max(lineWidth, len(fmt.Sprintf("line %d", p.Line)))
+		lineWidth = max(lineWidth, len(lineAt(p.Line)))
 	}
-	pn := menu{title: n.Name + " · " + utils.Plural(len(n.Properties), "property")}
+	pn := menu{title: n.Name + " · " + utils.Plural(len(n.Properties), tr.PropertyNoun)}
 	for _, p := range n.Properties {
 		inferred := ""
 		if p.Inferred {
-			inferred = "inferred"
+			inferred = tr.Inferred
 		}
-		right := fmt.Sprintf("%-*s  %-8s  %-*s  %s", typeWidth, p.Type, inferred, lineWidth, fmt.Sprintf("line %d", p.Line), holds[p.Name])
+		right := fmt.Sprintf("%-*s  %-8s  %-*s  %s", typeWidth, p.Type, inferred, lineWidth, lineAt(p.Line), holds[p.Name])
 		pn.rows = append(pn.rows, menuRow{left: p.Name, right: strings.TrimRight(right, " "), open: &item{kind: "line", place: &server.Lines{Path: n.File, Side: "RIGHT", Line: p.Line}}})
 	}
 	a.menu = &pn
@@ -378,7 +382,7 @@ func (a App) findBox(back bool) (tea.Model, tea.Cmd) {
 		}
 	}
 	if len(hits) == 0 {
-		return a.say(fmt.Sprintf("no type or file is called %q", a.dg.query), true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NothingIsCalled, map[string]string{"query": strconv.Quote(a.dg.query)}), true), nil
 	}
 	here := a.dg.place()
 	from, to := -1, len(nodes)
@@ -406,7 +410,7 @@ func (a App) findBox(back bool) (tea.Model, tea.Cmd) {
 	}
 	a = a.leave()
 	a = a.showBox(boxOf(nodes[hits[pick]]))
-	return a.say(fmt.Sprintf("%d of %d for %q", pick+1, len(hits), a.dg.query), false), nil
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.MatchOfFor, map[string]string{"at": utils.Itoa(pick + 1), "total": utils.Itoa(len(hits)), "query": strconv.Quote(a.dg.query)}), false), nil
 }
 
 func (a App) showType() (tea.Model, tea.Cmd) {
@@ -421,22 +425,23 @@ func (a App) showType() (tea.Model, tea.Cmd) {
 			types = append(types, n)
 		}
 	}
+	tr := a.c.Tr
 	if len(types) == 0 {
-		return a.say(path.Base(r.path)+" holds no type the diagram draws", true), nil
+		return a.say(utils.ResolvePlaceholderString(tr.NoTypeInFile, map[string]string{"file": path.Base(r.path)}), true), nil
 	}
 	sort.SliceStable(types, func(i, j int) bool { return types[i].Line < types[j].Line })
 	if r.kind == "file" {
-		pn := menu{title: "Types in " + path.Base(r.path)}
+		pn := menu{title: utils.ResolvePlaceholderString(tr.TypesIn, map[string]string{"file": path.Base(r.path)})}
 		for _, n := range types {
 			at := boxOf(n)
-			pn.rows = append(pn.rows, menuRow{left: n.Name, right: fmt.Sprintf("%s · line %d", n.Kind, n.Line), open: &item{kind: "box", box: &at}})
+			pn.rows = append(pn.rows, menuRow{left: n.Name, right: n.Kind + " · " + utils.ResolvePlaceholderString(tr.LineAt, map[string]string{"line": utils.Itoa(n.Line)}), open: &item{kind: "box", box: &at}})
 		}
 		a.menu = &pn
 		return a, nil
 	}
 	_, line, ok := r.at()
 	if !ok {
-		return a.say("gd shows the type at a line, or lists a file's types from its header", true), nil
+		return a.say(tr.ShowTypeHow, true), nil
 	}
 	at := types[0]
 	for _, n := range types {
@@ -449,32 +454,33 @@ func (a App) showType() (tea.Model, tea.Cmd) {
 }
 
 func (a App) boxWords(width int) string {
+	tr := a.c.Tr
 	card, ok := a.dg.card()
 	if !ok {
-		return "nothing to draw"
+		return tr.NothingToDrawHere
 	}
 	switch card.Kind {
 	case "component":
-		return card.Title + " · component · " + card.Detail
+		return card.Title + " · " + tr.ComponentNoun + " · " + card.Detail
 	case "package":
-		return utils.FitPathIn("", card.Title, " · package · "+card.Detail, width)
+		return utils.FitPathIn("", card.Title, " · "+tr.PackageNoun+" · "+card.Detail, width)
 	case "group":
 		return card.Title + " · " + card.Detail
 	}
 	n, _ := nodeOf(a.review.page, card.ID)
 	kind := n.Kind
 	if kind == "artifact" {
-		kind = "file"
+		kind = tr.FileNoun
 	}
 	tail := ""
-	if state := diagram.StateWord(n.State); state != "" {
+	if state := diagram.StateWord(tr, n.State); state != "" {
 		tail = " · " + state
 		if len(n.Pulls) > 0 && a.review.page.Stack != nil {
 			pulls := make([]string, len(n.Pulls))
 			for i, p := range n.Pulls {
 				pulls[i] = fmt.Sprintf("#%d", p)
 			}
-			tail += " in " + strings.Join(pulls, ", ")
+			tail += " " + utils.ResolvePlaceholderString(tr.InPulls, map[string]string{"pulls": strings.Join(pulls, ", ")})
 		}
 	}
 	return utils.FitPathIn(n.Name+" · "+kind+" · ", n.File, tail, width)
@@ -482,7 +488,7 @@ func (a App) boxWords(width int) string {
 
 func (a App) diagramTitle() (string, string) {
 	l := a.dg.level
-	out := "Diagram"
+	out := a.c.Tr.DiagramTitle
 	if l.Component != "" {
 		out += " · " + componentTitle(*a.review, l.Component)
 	}
@@ -507,16 +513,17 @@ func packageTitle(page server.Page, component, id string) string {
 }
 
 func (a App) diagramHints() [][2]string {
+	tr := a.c.Tr
 	card, _ := a.dg.card()
 	switch card.Kind {
 	case "type", "file":
-		return [][2]string{{"Enter", "Diff"}, {"gd", "Follow"}, {"Space l", "Links"}, {"Space p", "Properties"}, {"-", "Out"}}
+		return [][2]string{{"Enter", tr.Diff}, {"gd", tr.Follow}, {"Space l", tr.Links}, {"Space p", tr.Properties}, {"-", tr.Out}}
 	case "group":
-		return [][2]string{{"Enter", "Members"}, {"gd", "Follow"}, {"Space l", "Links"}, {"-", "Out"}}
+		return [][2]string{{"Enter", tr.Members}, {"gd", tr.Follow}, {"Space l", tr.Links}, {"-", tr.Out}}
 	}
-	out := "Out"
+	out := tr.Out
 	if a.dg.level.Kind == "components" {
-		out = "Review view"
+		out = tr.ReviewView
 	}
-	return [][2]string{{"h j k l", "Move"}, {"Enter", "In"}, {"Space d", "Diff"}, {"/", "Find"}, {"f", "Labels"}, {"-", out}}
+	return [][2]string{{"h j k l", tr.Move}, {"Enter", tr.In}, {"Space d", tr.Diff}, {"/", tr.Find}, {"f", tr.Labels}, {"-", out}}
 }

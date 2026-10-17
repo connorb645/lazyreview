@@ -9,6 +9,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -46,7 +47,7 @@ func reviewRows(d reviewData, filter pullFilter, p palette) []sideRow {
 	return rows
 }
 
-func fileRows(d reviewData, folded map[string]bool, filter pullFilter, p palette) []sideRow {
+func fileRows(tr *i18n.TranslationSet, d reviewData, folded map[string]bool, filter pullFilter, p palette) []sideRow {
 	var rows []sideRow
 	for _, c := range d.page.Model.Components {
 		files := diffFiles(d, c.ID, filter)
@@ -54,7 +55,7 @@ func fileRows(d reviewData, folded map[string]bool, filter pullFilter, p palette
 			continue
 		}
 		key := componentKey(c.ID)
-		right := p.Muted.Render("unchanged")
+		right := p.Muted.Render(tr.Unchanged)
 		if !c.Context {
 			adds, dels := 0, 0
 			for _, f := range files {
@@ -125,7 +126,7 @@ func foldMark(folded bool, p palette) string {
 	return p.Muted.Render("▾")
 }
 
-func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
+func noteListRows(tr *i18n.TranslationSet, d reviewData, filter pullFilter, p palette) []sideRow {
 	var rows []sideRow
 	stacked := d.page.Stack != nil
 	if q := d.state.Queue; q != nil && q.Moved == nil {
@@ -141,7 +142,7 @@ func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
 				}
 				right := ""
 				if c.Stale != "" {
-					right = p.Warn.Render("stale ")
+					right = p.Warn.Render(tr.Stale + " ")
 				}
 				if stacked {
 					right += p.pull(memberColor(d.state, m.Pull)).Render(fmt.Sprintf("#%d", m.Pull))
@@ -151,7 +152,7 @@ func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
 			}
 		}
 		if len(queued) > 0 {
-			rows = append(append(rows, heading("Queued", utils.Itoa(len(queued)), p)), queued...)
+			rows = append(append(rows, heading(tr.QueuedHeading, utils.Itoa(len(queued)), p)), queued...)
 		}
 	}
 	var asked []server.Conversation
@@ -161,12 +162,12 @@ func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
 		}
 	}
 	if len(asked) > 0 {
-		rows = append(rows, heading("Claude", utils.Itoa(len(asked)), p))
+		rows = append(rows, heading(tr.Claude, utils.Itoa(len(asked)), p))
 		for _, t := range asked {
 			at := server.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
 			right := ""
 			if m := t.Messages; len(m) > 0 && m[len(m)-1].From == "you" {
-				right = p.Muted.Render("waiting")
+				right = p.Muted.Render(tr.Waiting)
 			}
 			first := ""
 			if len(t.Messages) > 0 {
@@ -183,7 +184,7 @@ func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
 		}
 	}
 	if len(threads) > 0 {
-		rows = append(rows, heading("On GitHub", utils.Itoa(len(threads)), p))
+		rows = append(rows, heading(tr.OnGitHubHeading, utils.Itoa(len(threads)), p))
 		for _, t := range threads {
 			at := server.Lines{Path: t.Path, Side: "file:"}
 			if t.At != nil && !t.File {
@@ -192,7 +193,7 @@ func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
 			author, where, right := p.Ink, p.Muted, ""
 			if t.Resolved || t.Outdated {
 				author, where = p.Faint, p.Faint
-				right = p.Faint.Render(map[bool]string{true: "resolved", false: "outdated"}[t.Resolved])
+				right = p.Faint.Render(map[bool]string{true: tr.Resolved, false: tr.Outdated}[t.Resolved])
 			}
 			who := ""
 			if len(t.Comments) > 0 {
@@ -207,10 +208,10 @@ func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
 		}
 	}
 	if len(rows) == 0 && len(filter) > 0 {
-		rows = append(rows, heading("Nothing on "+filter.words()+" yet", "", p))
+		rows = append(rows, heading(utils.ResolvePlaceholderString(tr.NothingOnYet, map[string]string{"pulls": filter.words(tr)}), "", p))
 	}
 	if len(rows) == 0 {
-		rows = append(rows, heading("Nothing queued or asked yet", "", p))
+		rows = append(rows, heading(tr.NothingQueuedYet, "", p))
 	}
 	return rows
 }
@@ -226,9 +227,9 @@ func lineName(at server.Lines) string {
 	return fmt.Sprintf("%s:%d", name, at.Line)
 }
 
-func boxRows(d reviewData, v diagramView, filter pullFilter, p palette) []sideRow {
+func boxRows(tr *i18n.TranslationSet, d reviewData, v diagramView, filter pullFilter, p palette) []sideRow {
 	l := v.level
-	where := "Components"
+	where := tr.Components
 	if l.Component != "" {
 		where = componentTitle(d, l.Component)
 	}
@@ -252,7 +253,7 @@ func boxRows(d reviewData, v diagramView, filter pullFilter, p palette) []sideRo
 			title = p.Faint
 		}
 		at := diagramPlace{level: l.Kind, component: l.Component, pkg: l.Package, box: card.ID}
-		rows = append(rows, sideRow{key: boxKey(card.ID), text: mark, title: card.Title, titleStyle: title, right: stateStyle.Render(diagram.StateWord(card.State)), it: item{kind: "box", box: &at}})
+		rows = append(rows, sideRow{key: boxKey(card.ID), text: mark, title: card.Title, titleStyle: title, right: stateStyle.Render(diagram.StateWord(tr, card.State)), it: item{kind: "box", box: &at}})
 	}
 	return rows
 }

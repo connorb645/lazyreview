@@ -128,7 +128,7 @@ func TestListeningComesBackAfterTheStreamEnds(t *testing.T) {
 	}
 	ctx, stop := context.WithCancel(context.Background())
 	defer stop()
-	heard := listen(ctx, server.NewClient(file), stack)
+	heard := listen(ctx, server.NewClient(testCommon(), file), stack)
 	for _, want := range []string{"v1", "v2"} {
 		select {
 		case msg := <-heard:
@@ -148,7 +148,7 @@ func TestAQuestionAskedElsewhereShowsAsWaiting(t *testing.T) {
 	state.Threads = append(state.Threads, server.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Why here?"}}})
 	a = a.withState(state)
 	n, _ := noteOf(*a.review, "Sources/Basket/Basket.swift", "conversation:9")
-	if head, _ := noteHead(*a.review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
+	if head, _ := noteHead(a.c.Tr, *a.review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
 		t.Fatalf("the conversation's head reads %q", head)
 	}
 }

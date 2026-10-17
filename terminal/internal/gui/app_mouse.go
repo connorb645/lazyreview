@@ -39,7 +39,7 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		case screenDiff:
 			a.diff = a.diff.scroll(by, at.h)
 		case screenDiagram:
-			a.dg = a.dg.scrolled(*a.review, 0, by, at.w, at.h, a.filter)
+			a.dg = a.dg.scrolled(a.c.Tr, *a.review, 0, by, at.w, at.h, a.filter)
 		}
 		return a, nil
 	case tea.MouseButtonWheelLeft, tea.MouseButtonWheelRight:
@@ -48,7 +48,7 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			if msg.Button == tea.MouseButtonWheelLeft {
 				by = -6
 			}
-			a.dg = a.dg.scrolled(*a.review, by, 0, at.w, at.h, a.filter)
+			a.dg = a.dg.scrolled(a.c.Tr, *a.review, by, 0, at.w, at.h, a.filter)
 		}
 		return a, nil
 	case tea.MouseButtonLeft:
@@ -86,7 +86,7 @@ func (a App) mainClicked(x, y int, double bool) (tea.Model, tea.Cmd) {
 	h := a.mainHeight()
 	switch a.screen {
 	case screenDiagram:
-		if i := a.dg.boxAt(*a.review, x, y, a.filter); i >= 0 {
+		if i := a.dg.boxAt(a.c.Tr, *a.review, x, y, a.filter); i >= 0 {
 			a.dg.focus = i
 			a = a.diagramShown()
 			if double {

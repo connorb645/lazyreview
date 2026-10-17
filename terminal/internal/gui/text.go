@@ -1,37 +1,42 @@
 package gui
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 var inlineSVG = regexp.MustCompile(`(?is)<svg\b.*?</svg>`)
 
-func linesWords(side string, line, startLine int, startSide string) string {
-	name := func(s string) string {
+func linesWords(tr *i18n.TranslationSet, side string, line, startLine int, startSide string) string {
+	one := func(s string, n int) string {
+		words := tr.LineAt
 		if s == "LEFT" {
-			return "removed line"
+			words = tr.RemovedLineAt
 		}
-		return "line"
+		return utils.ResolvePlaceholderString(words, map[string]string{"line": utils.Itoa(n)})
 	}
 	if startLine == 0 {
-		return fmt.Sprintf("%s %d", name(side), line)
+		return one(side, line)
 	}
 	if startSide == "" {
 		startSide = side
 	}
 	if startSide != side {
-		return fmt.Sprintf("%s %d to %s %d", name(startSide), startLine, name(side), line)
+		return utils.ResolvePlaceholderString(tr.LineToLine, map[string]string{"from": one(startSide, startLine), "to": one(side, line)})
 	}
-	return fmt.Sprintf("%ss %d-%d", name(side), startLine, line)
+	words := tr.LinesAt
+	if side == "LEFT" {
+		words = tr.RemovedLinesAt
+	}
+	return utils.ResolvePlaceholderString(words, map[string]string{"from": utils.Itoa(startLine), "to": utils.Itoa(line)})
 }
 
-func withoutDiagrams(markdown string) string {
-	return inlineSVG.ReplaceAllString(markdown, "\n\n*A diagram is here that a terminal cannot draw. gX opens this review in the web app.*\n\n")
+func withoutDiagrams(tr *i18n.TranslationSet, markdown string) string {
+	return inlineSVG.ReplaceAllLiteralString(markdown, "\n\n*"+tr.DiagramNotDrawn+"*\n\n")
 }
 
 func clipped(text string, width, rows int) []string {

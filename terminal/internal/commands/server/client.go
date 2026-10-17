@@ -16,6 +16,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/connorb645/lazyreview/terminal/internal/common"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 const (
@@ -31,14 +35,15 @@ const (
 // token from the server's own record at each call, so a server started again
 // is found again.
 type Client struct {
+	tr   *i18n.TranslationSet
 	file string
 	http *http.Client
 }
 
 // NewClient returns a client of the server that records itself in file, the
 // data home's server.json.
-func NewClient(file string) *Client {
-	return &Client{file: file, http: &http.Client{}}
+func NewClient(cmn *common.Common, file string) *Client {
+	return &Client{tr: cmn.Tr, file: file, http: &http.Client{}}
 }
 
 // Address is where the server answers, such as http://127.0.0.1:4747.
@@ -181,16 +186,16 @@ func (c *Client) Events(ctx context.Context, id string, notices chan<- Notice) e
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, record.Address+ReviewPath(id, "/events"), nil)
 	if err != nil {
-		return fmt.Errorf("could not listen for changes to %s: %w", id, err)
+		return fmt.Errorf("%s: %w", utils.ResolvePlaceholderString(c.tr.CouldNotListen, map[string]string{"review": id}), err)
 	}
 	request.Header.Set("Accept", "text/event-stream")
 	response, err := c.http.Do(request)
 	if err != nil {
-		return fmt.Errorf("the lazyreview server did not answer: %w", err)
+		return fmt.Errorf("%s: %w", c.tr.ServerDidNotAnswer, err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return Refusal{Status: response.StatusCode, Message: fmt.Sprintf("the server answered %d to listening for changes", response.StatusCode)}
+		return Refusal{Status: response.StatusCode, Message: utils.ResolvePlaceholderString(c.tr.ServerAnsweredListening, map[string]string{"status": strconv.Itoa(response.StatusCode)})}
 	}
 	lines := bufio.NewScanner(response.Body)
 	for lines.Scan() {
@@ -200,7 +205,7 @@ func (c *Client) Events(ctx context.Context, id string, notices chan<- Notice) e
 		}
 		var notice Notice
 		if err := json.Unmarshal([]byte(data), &notice); err != nil {
-			return fmt.Errorf("could not read a change notice: %w", err)
+			return fmt.Errorf("%s: %w", c.tr.CouldNotReadNotice, err)
 		}
 		select {
 		case notices <- notice:
@@ -209,9 +214,9 @@ func (c *Client) Events(ctx context.Context, id string, notices chan<- Notice) e
 		}
 	}
 	if err := lines.Err(); err != nil {
-		return fmt.Errorf("the stream of changes broke: %w", err)
+		return fmt.Errorf("%s: %w", c.tr.StreamBroke, err)
 	}
-	return errors.New("the server ended the stream of changes")
+	return errors.New(c.tr.StreamEnded)
 }
 
 func linesFields(at Lines) map[string]any {
@@ -234,14 +239,15 @@ func ReviewPath(id, rest string) string {
 func (c *Client) record() (Record, error) {
 	text, err := os.ReadFile(c.file)
 	if errors.Is(err, os.ErrNotExist) {
-		return Record{}, fmt.Errorf("the lazyreview server is not running; lazyreview start starts it")
+		return Record{}, errors.New(c.tr.ServerNotRunning)
 	}
+	couldNotRead := utils.ResolvePlaceholderString(c.tr.CouldNotRead, map[string]string{"path": c.file})
 	if err != nil {
-		return Record{}, fmt.Errorf("could not read %s: %w", c.file, err)
+		return Record{}, fmt.Errorf("%s: %w", couldNotRead, err)
 	}
 	var record Record
 	if err := json.Unmarshal(text, &record); err != nil {
-		return Record{}, fmt.Errorf("could not read %s: %w", c.file, err)
+		return Record{}, fmt.Errorf("%s: %w", couldNotRead, err)
 	}
 	return record, nil
 }
@@ -259,7 +265,7 @@ func (c *Client) get(path string, query url.Values, wait time.Duration, into any
 	defer cancel()
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
 	if err != nil {
-		return fmt.Errorf("could not ask the server for %s: %w", path, err)
+		return fmt.Errorf("%s: %w", utils.ResolvePlaceholderString(c.tr.CouldNotAsk, map[string]string{"path": path}), err)
 	}
 	request.Header.Set("Accept", "application/json")
 	return c.do(request, into)
@@ -278,7 +284,7 @@ func (c *Client) change(method, path string, query url.Values, fields map[string
 	if fields != nil {
 		text, err := json.Marshal(fields)
 		if err != nil {
-			return fmt.Errorf("could not write the change to %s: %w", path, err)
+			return fmt.Errorf("%s: %w", utils.ResolvePlaceholderString(c.tr.CouldNotWriteChange, map[string]string{"path": path}), err)
 		}
 		body = bytes.NewReader(text)
 	}
@@ -286,7 +292,7 @@ func (c *Client) change(method, path string, query url.Values, fields map[string
 	defer cancel()
 	request, err := http.NewRequestWithContext(ctx, method, address, body)
 	if err != nil {
-		return fmt.Errorf("could not send the change to %s: %w", path, err)
+		return fmt.Errorf("%s: %w", utils.ResolvePlaceholderString(c.tr.CouldNotSendChange, map[string]string{"path": path}), err)
 	}
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Authorization", "Bearer "+record.Token)
@@ -299,12 +305,13 @@ func (c *Client) change(method, path string, query url.Values, fields map[string
 func (c *Client) do(request *http.Request, into any) error {
 	response, err := c.http.Do(request)
 	if err != nil {
-		return fmt.Errorf("the lazyreview server did not answer: %w", err)
+		return fmt.Errorf("%s: %w", c.tr.ServerDidNotAnswer, err)
 	}
 	defer response.Body.Close()
+	couldNotRead := utils.ResolvePlaceholderString(c.tr.CouldNotReadAnswer, map[string]string{"path": request.URL.Path})
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("could not read the server's answer to %s: %w", request.URL.Path, err)
+		return fmt.Errorf("%s: %w", couldNotRead, err)
 	}
 	if response.StatusCode != http.StatusOK {
 		var refused struct {
@@ -313,10 +320,10 @@ func (c *Client) do(request *http.Request, into any) error {
 		if json.Unmarshal(body, &refused) == nil && refused.Error != "" {
 			return Refusal{Status: response.StatusCode, Message: refused.Error}
 		}
-		return Refusal{Status: response.StatusCode, Message: fmt.Sprintf("the server answered %d", response.StatusCode)}
+		return Refusal{Status: response.StatusCode, Message: utils.ResolvePlaceholderString(c.tr.ServerAnswered, map[string]string{"status": strconv.Itoa(response.StatusCode)})}
 	}
 	if err := json.Unmarshal(body, into); err != nil {
-		return fmt.Errorf("could not read the server's answer to %s: %w", request.URL.Path, err)
+		return fmt.Errorf("%s: %w", couldNotRead, err)
 	}
 	return nil
 }

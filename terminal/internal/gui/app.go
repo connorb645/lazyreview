@@ -18,7 +18,10 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/oscommands"
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/common"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/keys"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 const doubleClick = 400 * time.Millisecond
@@ -29,6 +32,7 @@ const doubleClick = 400 * time.Millisecond
 // typed toward a key sequence. Each key press is Update, which returns the
 // next App.
 type App struct {
+	c          *common.Common
 	opts       Options
 	p          palette
 	md         *markdown
@@ -77,7 +81,7 @@ type App struct {
 
 // New returns the app, which opens on the review opts names, or with none on
 // the home screen.
-func New(opts Options) App {
+func New(cmn *common.Common, opts Options) App {
 	if opts.Now == nil {
 		opts.Now = time.Now
 	}
@@ -100,12 +104,12 @@ func New(opts Options) App {
 		opts.Listen = listen
 	}
 	p := newPalette(opts.Dark)
-	a := App{opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: opts.Review != "", screen: screenReview, opening: opts.Review,
+	a := App{c: cmn, opts: opts, p: p, styles: diagramStyles(p), md: newMarkdown(opts.Dark), loading: opts.Review != "", screen: screenReview, opening: opts.Review,
 		focus: reviewPanel, driving: reviewPanel, rv: reviewView{folded: map[string]bool{}}, files: map[string]server.File{}, tree: map[string]bool{}}
 	if opts.Review == "" {
 		a.screen, a.home.reading = screenHome, true
 	}
-	a.home = a.home.rebuilt(p)
+	a.home = a.home.rebuilt(cmn.Tr, p)
 	return a
 }
 
@@ -115,7 +119,7 @@ func (a App) Init() tea.Cmd {
 	if a.opening == "" {
 		return readPulls(a.opts.Server)
 	}
-	return loadReview(a.opts.Server, a.opening)
+	return loadReview(a.c.Tr, a.opts.Server, a.opening)
 }
 
 // Update takes one message, such as a key, a click, or an answer from the
@@ -143,7 +147,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = screenReview
 		}
 		a.files, a.diff, a.filter, a.growFrom = map[string]server.File{}, diffView{}, nil, 0
-		a.dg = newDiagramView(levelAt(msg.data.page, diagramPlace{level: "components"}), "")
+		a.dg = newDiagramView(a.c.Tr, levelAt(a.c.Tr, msg.data.page, diagramPlace{level: "components"}), "")
 		var listening tea.Cmd
 		a, listening = a.listenTo(msg.data.id)
 		return a.relaid(), listening
@@ -180,7 +184,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a.afterPost(msg), nil
 	case stateLoaded:
 		if msg.err != nil {
-			return a.say("could not read the review again: "+msg.err.Error(), true), nil
+			return a.say(a.c.Tr.CouldNotReadReviewAgain+": "+msg.err.Error(), true), nil
 		}
 		return a.withState(msg.state), nil
 	case liveNotice:
@@ -188,7 +192,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case liveStopped:
 		if a.review != nil && msg.id == a.review.id {
 			a.liveFor = ""
-			return a.say("Stopped hearing changes made elsewhere: "+msg.err.Error()+". R loads the review again.", true), nil
+			return a.say(utils.ResolvePlaceholderString(a.c.Tr.StoppedHearing, map[string]string{"error": msg.err.Error()}), true), nil
 		}
 		return a, nil
 	case reviewReloaded:
@@ -303,9 +307,9 @@ func (a App) do(action string, count int, counted bool) (tea.Model, tea.Cmd) {
 	case "review":
 		switch {
 		case a.review == nil && a.screen == screenHome:
-			return a.say("No review is open yet: Enter opens one", true), nil
+			return a.say(a.c.Tr.NoReviewOpenYet, true), nil
 		case a.review == nil:
-			return a.say("the review is not open yet; R tries again", true), nil
+			return a.say(a.c.Tr.ReviewNotOpenYet, true), nil
 		case a.screen != screenHome:
 			a = a.leave()
 		}
@@ -353,7 +357,7 @@ func (a App) closed() App {
 	case a.menu != nil:
 		a.menu = nil
 	case a.screen == screenHome:
-		return a.say("ZZ or :q quits", false)
+		return a.say(a.c.Tr.HowToQuit, false)
 	case a.focus == reviewPanel && len(a.filter) > 0:
 		return a.setFilter(nil)
 	case a.screen == screenDiff && a.diff.selecting:
@@ -362,7 +366,7 @@ func (a App) closed() App {
 		a.focus = a.driving
 		return a.relaid()
 	default:
-		return a.say("ZZ or :q quits", false)
+		return a.say(a.c.Tr.HowToQuit, false)
 	}
 	return a
 }
@@ -456,7 +460,7 @@ func (a App) openGitHub() (tea.Model, tea.Cmd) {
 		address = a.review.state.Members[0].URL
 	}
 	if address == "" {
-		return a.say("this has no pull request on GitHub", true), nil
+		return a.say(a.c.Tr.NoPullRequestOnGitHub, true), nil
 	}
 	return a.opened(address)
 }
@@ -478,21 +482,22 @@ func (a App) openWeb() (tea.Model, tea.Cmd) {
 
 func (a App) opened(address string) (tea.Model, tea.Cmd) {
 	if err := a.opts.Open(address); err != nil {
-		return a.say("could not open "+address+": "+err.Error(), true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.CouldNotOpen, map[string]string{"name": address})+": "+err.Error(), true), nil
 	}
-	return a.say("opened "+address, false), nil
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.Opened, map[string]string{"address": address}), false), nil
 }
 
 func (a App) showKeys() App {
-	rows := map[screen][]helpRow{screenReview: reviewHelp, screenDiff: diffHelp, screenDiagram: diagramHelp}[a.screen]
+	tr := a.c.Tr
+	rows := map[screen][]helpRow{screenReview: reviewHelp(tr), screenDiff: diffHelp(tr), screenDiagram: diagramHelp(tr)}[a.screen]
 	if a.focus != mainPanel {
-		rows = sideHelp[a.focus]
+		rows = sideHelp(tr)[a.focus]
 	}
-	heading, every, everyRows := a.panelName(), "Every panel", everyViewHelp
+	heading, every, everyRows := a.panelName(), tr.EveryPanel, everyViewHelp(tr)
 	if a.screen == screenHome {
-		heading, rows, every, everyRows = "Home", homeHelp, "Marks", homeMarks
+		heading, rows, every, everyRows = tr.HomeTitle, homeHelp(tr), tr.Marks, homeMarks(tr)
 	}
-	pn := menu{title: "Keys"}
+	pn := menu{title: tr.KeysTitle}
 	pn.rows = append(pn.rows, menuRow{heading: heading})
 	for _, r := range rows {
 		pn.rows = append(pn.rows, menuRow{left: r.keys, right: r.words})
@@ -559,7 +564,7 @@ func (a App) command(typed string) (tea.Model, tea.Cmd) {
 	if arg, ok := strings.CutPrefix(typed, "pull "); ok {
 		return a.pullCommand(strings.TrimSpace(arg)), nil
 	}
-	return a.say("not a command: :"+typed, true), nil
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.NotACommand, map[string]string{"command": typed}), true), nil
 }
 
 func (a App) relaid() App {
@@ -576,9 +581,9 @@ func (a App) relaid() App {
 		a = a.diagramShown()
 	case a.screen == screenDiff && a.diff.files != nil:
 		a.diff.width = a.mainWidth()
-		a.diff = a.diff.rebuilt(*a.review, a.filter, h)
+		a.diff = a.diff.rebuilt(a.c.Tr, *a.review, a.filter, h)
 	}
-	a.rv = a.rv.rebuilt(*a.review, a.filter, a.mainWidth(), h, a.p, a.md, a.opts.Location)
+	a.rv = a.rv.rebuilt(a.c.Tr, *a.review, a.filter, a.mainWidth(), h, a.p, a.md, a.opts.Location)
 	return a.mirrored()
 }
 
@@ -588,15 +593,15 @@ func (a App) refresh() (tea.Model, tea.Cmd) {
 	}
 	if a.review == nil {
 		a.loading, a.failed = true, ""
-		return a.say("Opening the review again…", false), loadReview(a.opts.Server, a.opening)
+		return a.say(a.c.Tr.OpeningReviewAgain, false), loadReview(a.c.Tr, a.opts.Server, a.opening)
 	}
-	cmd := reloadReview(a.opts.Server, a.review.id, true)
+	cmd := reloadReview(a.c.Tr, a.opts.Server, a.review.id, true)
 	if a.liveFor == "" {
 		var listening tea.Cmd
 		a, listening = a.listenTo(a.review.id)
 		cmd = tea.Batch(cmd, listening)
 	}
-	return a.say("Loading the review again…", false), cmd
+	return a.say(a.c.Tr.LoadingReviewAgain, false), cmd
 }
 
 func (a App) say(notice string, bad bool) App {
@@ -636,15 +641,16 @@ func (a App) menuRows() int {
 	return max(1, min(a.height*2/3, 24)-2)
 }
 
-func loadReview(c *server.Client, id string) tea.Cmd {
+func loadReview(tr *i18n.TranslationSet, c *server.Client, id string) tea.Cmd {
+	couldNotOpen := utils.ResolvePlaceholderString(tr.CouldNotOpen, map[string]string{"name": id})
 	return func() tea.Msg {
 		state, err := c.State(id)
 		if err != nil {
-			return reviewLoaded{id: id, err: fmt.Errorf("could not open %s: %w", id, err)}
+			return reviewLoaded{id: id, err: fmt.Errorf("%s: %w", couldNotOpen, err)}
 		}
 		page, err := c.Page(id)
 		if err != nil {
-			return reviewLoaded{id: id, err: fmt.Errorf("could not open %s: %w", id, err)}
+			return reviewLoaded{id: id, err: fmt.Errorf("%s: %w", couldNotOpen, err)}
 		}
 		return reviewLoaded{id: id, data: reviewData{id: id, state: state, page: page}}
 	}

@@ -1,14 +1,22 @@
 package gui
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
 
-var panelNames = [sideCount + 1]string{"Main", "Review", "Files", "Notes", "Diagram"}
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
+)
+
+func panelNames(tr *i18n.TranslationSet) [sideCount + 1]string {
+	return [sideCount + 1]string{tr.MainTitle, tr.ReviewTitle, tr.FilesTitle, tr.NotesTitle, tr.DiagramTitle}
+}
 
 func (a App) panelName() string {
+	tr := a.c.Tr
 	if a.focus != mainPanel {
-		return panelNames[a.focus]
+		return panelNames(tr)[a.focus]
 	}
-	return map[screen]string{screenReview: "Review", screenDiff: "Diff", screenDiagram: "Diagram"}[a.screen]
+	return map[screen]string{screenReview: tr.ReviewTitle, screenDiff: tr.DiffTitle, screenDiagram: tr.DiagramTitle}[a.screen]
 }
 
 func (a App) focusOn(n int) (tea.Model, tea.Cmd) {
@@ -25,12 +33,12 @@ func (a App) focusOn(n int) (tea.Model, tea.Cmd) {
 }
 
 func (a App) sidesBuilt() App {
-	d := *a.review
+	d, tr := *a.review, a.c.Tr
 	built := [sideCount + 1][]sideRow{
 		reviewPanel:  reviewRows(d, a.filter, a.p),
-		filesPanel:   fileRows(d, a.tree, a.filter, a.p),
-		notesPanel:   noteListRows(d, a.filter, a.p),
-		diagramPanel: boxRows(d, a.dg, a.filter, a.p),
+		filesPanel:   fileRows(tr, d, a.tree, a.filter, a.p),
+		notesPanel:   noteListRows(tr, d, a.filter, a.p),
+		diagramPanel: boxRows(tr, d, a.dg, a.filter, a.p),
 	}
 	for n := reviewPanel; n <= sideCount; n++ {
 		a.sides[n] = a.sides[n].reset(built[n])
@@ -123,7 +131,7 @@ func (a App) toNote(row sideRow) (tea.Model, tea.Cmd) {
 	place := row.it.place
 	component := a.componentOf(place.Path)
 	if component == "" {
-		return a.say(place.Path+" is not in this change's diff", true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NotInDiff, map[string]string{"path": place.Path}), true), nil
 	}
 	next, cmd := a.openPlace(component, place)
 	if cmd != nil {
@@ -132,7 +140,7 @@ func (a App) toNote(row sideRow) (tea.Model, tea.Cmd) {
 	a = next.(App)
 	a.diff = a.diff.copied()
 	a.diff.notes[row.key] = true
-	a.diff = a.diff.rebuilt(*a.review, a.filter, a.mainHeight())
+	a.diff = a.diff.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
 	if i := a.diff.first(func(r diffRow) bool { return r.kind == "notehead" && r.key == row.key }); i >= 0 {
 		a.diff = a.diff.to(i, a.mainHeight()).placed(a.mainHeight())
 	}

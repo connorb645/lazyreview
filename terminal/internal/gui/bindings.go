@@ -1,6 +1,9 @@
 package gui
 
-import "github.com/connorb645/lazyreview/terminal/internal/keys"
+import (
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/keys"
+)
 
 var everyView = keys.Bindings{
 	":": "command", "space ?": "keys", "space v": "review", "g x": "github", "g X": "web",
@@ -60,137 +63,153 @@ var diagramKeys = keys.Bindings{
 	"f": "labels", "space l": "links", "space p": "properties", "space d": "box diff", "space a": "all links",
 }
 
-var everyViewHelp = []helpRow{
-	{"1 2 3 4", "the Review, Files, Notes or Diagram panel, from a panel on the left"},
-	{"0", "the main panel, on the right"},
-	{"Esc", "closes the top popup; with none, back to the panel on the left that the main panel shows"},
-	{"+ _", "more of the screen for the panel with the keys, then all of it; _ goes back"},
-	{":", "the command line: :q quits, :q! quits and drops drafts"},
-	{"Space ?", "lists the keys of this panel"},
-	{"R :refresh", "loads the review again: from GitHub, or a branch from its repository"},
-	{"Space v", "the Review view"},
-	{"Space h", "the home screen: the open pull requests of your accounts"},
-	{"Space m", "the diagram"},
-	{"Space f", "finds a file, type or component by name"},
-	{"gx", "opens the pull request, or the thread at the cursor, on GitHub"},
-	{"gX", "opens this place in the web app"},
-	{"]p [p", "highlights the next or previous pull request on a stack: All, then each one"},
-	{"Ctrl-o Ctrl-i", "back and forward through jumps"},
-	{"q", "closes the top popup"},
-	{"ZZ", "quits, as :q does"},
+func everyViewHelp(tr *i18n.TranslationSet) []helpRow {
+	return []helpRow{
+		{"1 2 3 4", tr.HelpFocusPanels},
+		{"0", tr.HelpFocusMain},
+		{"Esc", tr.HelpEscape},
+		{"+ _", tr.HelpScreenMode},
+		{":", tr.HelpCommandLine},
+		{"Space ?", tr.HelpKeys},
+		{"R :refresh", tr.HelpRefresh},
+		{"Space v", tr.HelpReviewView},
+		{"Space h", tr.HelpHome},
+		{"Space m", tr.HelpDiagram},
+		{"Space f", tr.HelpFinder},
+		{"gx", tr.HelpGitHub},
+		{"gX", tr.HelpWeb},
+		{"]p [p", tr.HelpPullFilter},
+		{"Ctrl-o Ctrl-i", tr.HelpJumps},
+		{"q", tr.HelpClose},
+		{"ZZ", tr.HelpQuit},
+	}
 }
 
-var sideHelp = [sideCount + 1][]helpRow{
-	reviewPanel: {
-		{"j k gg G", "the next, previous, first or last pull request"},
-		{"h l", "the panel above or below; h goes round to Diagram"},
-		{"Enter", "the Review view, in the main panel"},
-		{"v", "on a stack, highlights this pull request; j k grow or shrink the highlight, and the other panels show only what it holds"},
-		{"Esc", "clears the highlight, to show the whole stack"},
-		{"P", "post: the actions offered for this pull request"},
-	},
-	filesPanel: {
-		{"j k gg G", "the next, previous, first or last file; the main panel shows its diff"},
-		{"h l", "the panel above or below"},
-		{"Enter", "on a file, its diff in the main panel; on a component or a folder, folds it"},
-		{"za", "folds or unfolds a component or a folder"},
-	},
-	notesPanel: {
-		{"j k gg G", "the next, previous, first or last note; the main panel shows it in its diff"},
-		{"h l", "the panel above or below"},
-		{"Enter", "the note in its diff, in the main panel"},
-		{"e dd", "edit or drop the queued comment"},
-		{"P", "post: the actions offered for the comment's pull request"},
-	},
-	diagramPanel: {
-		{"j k w b gg G", "the next, previous, first or last box, in reading order"},
-		{"h l", "the nearest box left or right"},
-		{"Enter", "steps in; on a type, opens its diff; on a group, lists its members"},
-		{"-", "steps out"},
-		{"gd", "follows a link of the box"},
-		{"gr", "lists the boxes that link to it"},
-		{"/ ? n N", "find a type or file, forward or back"},
-		{"f then a label", "jumps to the box with that label"},
-		{"Space l", "lists the box's links, in and out"},
-		{"Space p", "lists its properties"},
-		{"Space d", "opens its diff"},
-		{"Space a", "draws every link faintly, or stops"},
-	},
+func sideHelp(tr *i18n.TranslationSet) [sideCount + 1][]helpRow {
+	return [sideCount + 1][]helpRow{
+		reviewPanel: {
+			{"j k gg G", tr.HelpPullsMove},
+			{"h l", tr.HelpPanelsRound},
+			{"Enter", tr.HelpOpenReviewView},
+			{"v", tr.HelpHighlight},
+			{"Esc", tr.HelpClearHighlight},
+			{"P", tr.HelpPostPull},
+		},
+		filesPanel: {
+			{"j k gg G", tr.HelpFilesMove},
+			{"h l", tr.HelpPanels},
+			{"Enter", tr.HelpOpenFile},
+			{"za", tr.HelpFoldTree},
+		},
+		notesPanel: {
+			{"j k gg G", tr.HelpNotesMove},
+			{"h l", tr.HelpPanels},
+			{"Enter", tr.HelpOpenNote},
+			{"e dd", tr.HelpEditDrop},
+			{"P", tr.HelpPostComment},
+		},
+		diagramPanel: {
+			{"j k w b gg G", tr.HelpBoxesMove},
+			{"h l", tr.HelpBoxesSideways},
+			{"Enter", tr.HelpStepIn},
+			{"-", tr.HelpStepOut},
+			{"gd", tr.HelpFollowBox},
+			{"gr", tr.HelpReferences},
+			{"/ ? n N", tr.HelpFindBox},
+			{tr.HelpLabelsKeys, tr.HelpLabels},
+			{"Space l", tr.HelpBoxLinks},
+			{"Space p", tr.HelpProperties},
+			{"Space d", tr.HelpBoxDiff},
+			{"Space a", tr.HelpAllLinks},
+		},
+	}
 }
 
-var reviewHelp = []helpRow{
-	{"j k", "the next or previous item: a section, a queued comment, a conversation or a link"},
-	{"]] [[", "the next or previous section"},
-	{"gg G", "the first or last item"},
-	{"Enter", "opens the item in its diff; a component opens its diff"},
-	{"za", "folds or unfolds a section"},
-	{"e dd", "edit or drop the queued comment"},
-	{"P", "post: the actions offered for the pull request at the cursor"},
+func reviewHelp(tr *i18n.TranslationSet) []helpRow {
+	return []helpRow{
+		{"j k", tr.HelpItemsMove},
+		{"]] [[", tr.HelpSections},
+		{"gg G", tr.HelpItemsEnds},
+		{"Enter", tr.HelpOpenItem},
+		{"za", tr.HelpFoldSection},
+		{"e dd", tr.HelpEditDrop},
+		{"P", tr.HelpPostAtCursor},
+	}
 }
 
-var diffHelp = []helpRow{
-	{"j k", "the next or previous line"},
-	{"Ctrl-d Ctrl-u Ctrl-f Ctrl-b", "half a page and a page, down and up"},
-	{"gg G {n}G", "the top, the bottom, or line n of this file"},
-	{"]c [c", "the next or previous hunk"},
-	{"]f [f", "the next or previous file"},
-	{"]n [n", "the next or previous note: a queued comment, a conversation or a colleague's thread"},
-	{"/ ? n N", "search the text, forward or back"},
-	{"za zo zc", "toggle, open or close the fold at the cursor: a file, a run of unchanged lines or a note"},
-	{"zR zM", "open every fold, close every fold"},
-	{"Enter", "on a file's header, toggles the file"},
-	{"V", "selects lines; o goes to the other end; Esc stops"},
-	{"c", "comments on the line or the selection; on Claude's answer, uses it as the comment"},
-	{"a", "asks Claude about the line or the selection; in a conversation, asks a follow-up"},
-	{"e", "edits the queued comment at the cursor"},
-	{"dd", "drops the queued comment at the cursor, after y confirms"},
-	{"gd", "shows the type at the cursor on the diagram; on a file's header, lists its types"},
-	{"-", "goes back to the diagram or the Review view"},
-	{"Space s", "split or unified"},
-	{"Space w", "wraps lines, or stops"},
-	{"Space o", "the whole file, or back to the diff"},
-	{"Space r", "a Markdown file rendered, or back to the diff"},
+func diffHelp(tr *i18n.TranslationSet) []helpRow {
+	return []helpRow{
+		{"j k", tr.HelpLinesMove},
+		{"Ctrl-d Ctrl-u Ctrl-f Ctrl-b", tr.HelpPages},
+		{"gg G {n}G", tr.HelpLineEnds},
+		{"]c [c", tr.HelpHunks},
+		{"]f [f", tr.HelpFiles},
+		{"]n [n", tr.HelpNotes},
+		{"/ ? n N", tr.HelpSearch},
+		{"za zo zc", tr.HelpFold},
+		{"zR zM", tr.HelpFoldAll},
+		{"Enter", tr.HelpToggleFile},
+		{"V", tr.HelpSelect},
+		{"c", tr.HelpComment},
+		{"a", tr.HelpAsk},
+		{"e", tr.HelpEditAtCursor},
+		{"dd", tr.HelpDropAtCursor},
+		{"gd", tr.HelpShowType},
+		{"-", tr.HelpBack},
+		{"Space s", tr.HelpSplit},
+		{"Space w", tr.HelpWrap},
+		{"Space o", tr.HelpWhole},
+		{"Space r", tr.HelpRendered},
+	}
 }
 
-var diagramHelp = []helpRow{
-	{"h j k l", "focus the nearest box left, down, up or right"},
-	{"w b", "the next or previous box in reading order"},
-	{"gg G", "the first or last box"},
-	{"Enter", "steps in; on a type, opens its diff; on a group, lists its members"},
-	{"-", "steps out"},
-	{"gd", "follows a link of the focused box"},
-	{"gr", "lists the boxes that link to it"},
-	{"/ ? n N", "find a type or file, forward or back"},
-	{"f then a label", "jumps to the box with that label"},
-	{"Space l", "lists the focused box's links, in and out"},
-	{"Space p", "lists its properties"},
-	{"Space d", "opens its diff"},
-	{"Space a", "draws every link faintly, or stops"},
+func diagramHelp(tr *i18n.TranslationSet) []helpRow {
+	return []helpRow{
+		{"h j k l", tr.HelpBoxesNearest},
+		{"w b", tr.HelpBoxesOrder},
+		{"gg G", tr.HelpBoxesEnds},
+		{"Enter", tr.HelpStepIn},
+		{"-", tr.HelpStepOut},
+		{"gd", tr.HelpFollow},
+		{"gr", tr.HelpReferences},
+		{"/ ? n N", tr.HelpFindBox},
+		{tr.HelpLabelsKeys, tr.HelpLabels},
+		{"Space l", tr.HelpLinks},
+		{"Space p", tr.HelpProperties},
+		{"Space d", tr.HelpBoxDiff},
+		{"Space a", tr.HelpAllLinks},
+	}
 }
 
-var homeHelp = []helpRow{
-	{"j k", "the next or previous pull request, on into the next or previous repository"},
-	{"gg G", "the first or last pull request"},
-	{"h l", "the repository above or below, going round at the ends"},
-	{"1 to 9", "the first nine repositories"},
-	{"Enter", "opens the pull request's review; one no review holds yet is loaded from GitHub first"},
-	{"R :refresh", "reads the open pull requests from GitHub again"},
-	{"gx", "opens the pull request on GitHub"},
-	{"gX", "opens the web app's list of reviews"},
-	{"Space v", "the Review view of the review open"},
-	{"+ _", "more of the screen for the list, then all of it; _ goes back"},
-	{":", "the command line: :q quits"},
-	{"ZZ", "quits, as :q does"},
+func homeHelp(tr *i18n.TranslationSet) []helpRow {
+	return []helpRow{
+		{"j k", tr.HelpHomeMove},
+		{"gg G", tr.HelpHomeEnds},
+		{"h l", tr.HelpRepositories},
+		{tr.HelpFirstNineKeys, tr.HelpFirstNine},
+		{"Enter", tr.HelpOpenPull},
+		{"R :refresh", tr.HelpReadAgain},
+		{"gx", tr.HelpGitHubPull},
+		{"gX", tr.HelpWebList},
+		{"Space v", tr.HelpReviewOpen},
+		{"+ _", tr.HelpListMode},
+		{":", tr.HelpCommandQuit},
+		{"ZZ", tr.HelpQuit},
+	}
 }
 
-var homeMarks = []helpRow{
-	{"●", "your review is waiting: asked of you, or of your team"},
-	{"◆", "loaded in lazyreview"},
-	{"┌ └", "a stack, bottom first, reviewed as one"},
-	{"dim", "a draft"},
+func homeMarks(tr *i18n.TranslationSet) []helpRow {
+	return []helpRow{
+		{"●", tr.MarkWaiting},
+		{"◆", tr.MarkLoaded},
+		{"┌ └", tr.MarkStack},
+		{tr.Dim, tr.MarkDraft},
+	}
 }
 
-var leaderWords = map[string]string{
-	"keys": "Keys", "review": "Review view", "home": "Home", "split": "Split", "wrap": "Wrap", "whole": "Whole file", "rendered": "Rendered",
-	"diagram": "Diagram", "finder": "Find", "links": "Links", "properties": "Properties", "box diff": "Diff", "all links": "Every link",
+func leaderWords(tr *i18n.TranslationSet) map[string]string {
+	return map[string]string{
+		"keys": tr.Keys, "review": tr.ReviewView, "home": tr.Home, "split": tr.Split, "wrap": tr.Wrap, "whole": tr.WholeFile, "rendered": tr.Rendered,
+		"diagram": tr.Diagram, "finder": tr.Find, "links": tr.Links, "properties": tr.Properties, "box diff": tr.Diff, "all links": tr.EveryLink,
+	}
 }

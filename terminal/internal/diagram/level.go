@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
-
-var kindWords = map[string]string{"has": "holds", "realize": "conforms to", "inherit": "inherits from", "extend": "extends", "use": "uses", "test": "tests"}
 
 // Level is the cards of one container of the diagram and the links between
 // them: the components, the packages of Component, or the types of Package.
@@ -31,10 +31,10 @@ func (l Level) Index(id string) int {
 }
 
 // Components is the first level: every component, with the arrows between them.
-func Components(page server.Page) Level {
+func Components(tr *i18n.TranslationSet, page server.Page) Level {
 	l := Level{Kind: "components"}
 	for _, c := range page.Model.Components {
-		l.Cards = append(l.Cards, Card{ID: c.ID, Kind: "component", Title: c.Title, Detail: componentDetail(page, c), Context: c.Context, Area: c.Area, Box: page.Layout.Components[c.ID]})
+		l.Cards = append(l.Cards, Card{ID: c.ID, Kind: "component", Title: c.Title, Detail: componentDetail(tr, page, c), Context: c.Context, Area: c.Area, Box: page.Layout.Components[c.ID]})
 	}
 	for _, s := range page.Layout.Summaries {
 		words := strings.Join(s.Lines, " · ")
@@ -49,7 +49,7 @@ func Components(page server.Page) Level {
 // Packages is the second level: the packages of a component that hold
 // types, with the arrows between them. A component of one package has no
 // such level, and ok is false.
-func Packages(page server.Page, component string) (Level, bool) {
+func Packages(tr *i18n.TranslationSet, page server.Page, component string) (Level, bool) {
 	l := Level{Kind: "packages", Component: component}
 	for _, c := range page.Model.Components {
 		if c.ID != component {
@@ -64,7 +64,7 @@ func Packages(page server.Page, component string) (Level, bool) {
 			if title == "" {
 				title = p.Path
 			}
-			l.Cards = append(l.Cards, Card{ID: p.ID, Kind: "package", Title: title, Detail: packageDetail(page, component, p), Context: c.Context, Box: box})
+			l.Cards = append(l.Cards, Card{ID: p.ID, Kind: "package", Title: title, Detail: packageDetail(tr, page, component, p), Context: c.Context, Box: box})
 		}
 	}
 	for _, a := range page.Layout.PkgArrows {
@@ -82,7 +82,7 @@ func Packages(page server.Page, component string) (Level, bool) {
 // Types is the third level: the types of one package, a group of look-alike
 // types as one card, and every link of each, those to a type elsewhere
 // ending outside the level.
-func Types(page server.Page, component, pkg string) Level {
+func Types(tr *i18n.TranslationSet, page server.Page, component, pkg string) Level {
 	l := Level{Kind: "types", Component: component, Package: pkg}
 	cardOf := map[string]string{}
 	groups := map[string]server.Group{}
@@ -98,7 +98,8 @@ func Types(page server.Page, component, pkg string) Level {
 			cardOf[n.ID] = id
 			if l.Index(id) < 0 {
 				g := groups[n.Group]
-				l.Cards = append(l.Cards, Card{ID: id, Kind: "group", Title: g.Title, Detail: fmt.Sprintf("a group of %d", len(g.Members)), State: n.State, Members: g.Members, Box: page.Layout.Boxes[id]})
+				detail := utils.ResolvePlaceholderString(tr.GroupOf, map[string]string{"count": utils.Itoa(len(g.Members))})
+				l.Cards = append(l.Cards, Card{ID: id, Kind: "group", Title: g.Title, Detail: detail, State: n.State, Members: g.Members, Box: page.Layout.Boxes[id]})
 			}
 			continue
 		}
@@ -116,12 +117,14 @@ func Types(page server.Page, component, pkg string) Level {
 		if !fromIn && !toIn || from == to && fromIn {
 			continue
 		}
-		link := Link{From: from, To: to, Kind: e.Kind, Words: Words(e), AtRest: atRest(e)}
+		link := Link{From: from, To: to, Kind: e.Kind, Words: Words(tr, e), AtRest: atRest(e)}
 		switch {
 		case !fromIn:
-			link.From, link.Outside, link.AtRest = e.Source, outside(page, nodes[e.Source]), false
+			link.From, link.AtRest = e.Source, false
+			link.Outside, link.OutsideName, link.OutsidePlace = outside(tr, page, nodes[e.Source])
 		case !toIn:
-			link.To, link.Outside, link.AtRest = e.Target, outside(page, nodes[e.Target]), false
+			link.To, link.AtRest = e.Target, false
+			link.Outside, link.OutsideName, link.OutsidePlace = outside(tr, page, nodes[e.Target])
 		}
 		key := link.From + ">" + link.To + ">" + link.Words
 		if !seen[key] {
@@ -134,15 +137,19 @@ func Types(page server.Page, component, pkg string) Level {
 
 // Words are a link's words: its config's label, or its kind's, a has link
 // naming the properties that hold its target.
-func Words(e server.Edge) string {
+func Words(tr *i18n.TranslationSet, e server.Edge) string {
 	words := e.Label
 	if words == "" {
-		words = kindWords[e.Kind]
+		words = kindWords(tr)[e.Kind]
 	}
 	if e.Kind == "has" && len(e.Properties) > 0 {
 		words += " " + strings.Join(e.Properties, ", ")
 	}
 	return words
+}
+
+func kindWords(tr *i18n.TranslationSet) map[string]string {
+	return map[string]string{"has": tr.LinkHolds, "realize": tr.LinkConformsTo, "inherit": tr.LinkInheritsFrom, "extend": tr.LinkExtends, "use": tr.LinkUses, "test": tr.LinkTests}
 }
 
 func atRest(e server.Edge) bool {
@@ -164,7 +171,7 @@ func nodeCard(n server.Node, box server.Box) Card {
 	return Card{ID: n.ID, Kind: kind, Title: title, Detail: path.Base(n.File), State: n.State, Pulls: n.Pulls, Box: box}
 }
 
-func outside(page server.Page, n server.Node) string {
+func outside(tr *i18n.TranslationSet, page server.Page, n server.Node) (string, string, string) {
 	place := n.Component
 	for _, c := range page.Model.Components {
 		if c.ID != n.Component {
@@ -181,10 +188,11 @@ func outside(page server.Page, n server.Node) string {
 	if name == "" {
 		name = n.ID
 	}
-	return name + " · in " + place
+	in := utils.ResolvePlaceholderString(tr.InPlace, map[string]string{"place": place})
+	return name + " · " + in, name, place
 }
 
-func componentDetail(page server.Page, c server.Component) string {
+func componentDetail(tr *i18n.TranslationSet, page server.Page, c server.Component) string {
 	if c.Context {
 		n := 0
 		for _, f := range page.Model.ContextFiles {
@@ -192,7 +200,7 @@ func componentDetail(page server.Page, c server.Component) string {
 				n++
 			}
 		}
-		return count(n, "file") + " · unchanged"
+		return count(n, tr.FileNoun) + " · " + tr.Unchanged
 	}
 	n, adds, dels := 0, 0, 0
 	for _, f := range page.Model.Files {
@@ -200,10 +208,10 @@ func componentDetail(page server.Page, c server.Component) string {
 			n, adds, dels = n+1, adds+f.Adds, dels+f.Dels
 		}
 	}
-	return fmt.Sprintf("%s +%d −%d", count(n, "file"), adds, dels)
+	return fmt.Sprintf("%s +%d −%d", count(n, tr.FileNoun), adds, dels)
 }
 
-func packageDetail(page server.Page, component string, p server.Package) string {
+func packageDetail(tr *i18n.TranslationSet, page server.Page, component string, p server.Package) string {
 	types, files := 0, 0
 	for _, n := range page.Model.Nodes {
 		if n.Component == component && n.Package == p.ID {
@@ -215,9 +223,9 @@ func packageDetail(page server.Page, component string, p server.Package) string 
 		}
 	}
 	if types == 0 {
-		return count(files, "file")
+		return count(files, tr.FileNoun)
 	}
-	return count(types, "type")
+	return count(types, tr.TypeNoun)
 }
 
 func count(n int, word string) string {

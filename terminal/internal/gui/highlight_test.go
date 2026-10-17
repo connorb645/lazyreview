@@ -209,14 +209,14 @@ func TestHighlightedRowsDrawApartFromTheCursorRow(t *testing.T) {
 	for _, dark := range []bool{true, false} {
 		p := newPalette(dark)
 		s := sidePanel{cursor: 1, rows: []sideRow{{key: "a", text: "#21", lit: true}, {key: "b", text: "#22", lit: true}, {key: "c", text: "#23"}}}
-		focused, _ := sideContent(s, rect{w: 20, h: 3}, true, p)
+		focused, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, true, p)
 		if !strings.HasPrefix(focused[0], p.visual) || !strings.HasPrefix(focused[1], p.selected) || strings.HasPrefix(focused[2], p.visual) {
 			t.Fatalf("with the keys, a lit row, the cursor and an unlit row draw as %q", focused)
 		}
 		if p.visual == p.selected || p.visual == p.faded {
 			t.Fatalf("the highlight's colour is the cursor's: %q", p.visual)
 		}
-		away, _ := sideContent(s, rect{w: 20, h: 3}, false, p)
+		away, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, false, p)
 		if !strings.HasPrefix(away[1], p.visual) {
 			t.Fatalf("without the keys, the cursor's lit row draws as %q", away[1])
 		}
@@ -224,8 +224,8 @@ func TestHighlightedRowsDrawApartFromTheCursorRow(t *testing.T) {
 	plain := newPalette(true)
 	plain.plain = true
 	s := sidePanel{cursor: 1, rows: []sideRow{{key: "a", text: "#21", lit: true}, {key: "b", text: "#22", lit: true}, {key: "c", text: "#23"}}}
-	focused, _ := sideContent(s, rect{w: 20, h: 3}, true, plain)
-	away, _ := sideContent(s, rect{w: 20, h: 3}, false, plain)
+	focused, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, true, plain)
+	away, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, false, plain)
 	if !strings.HasPrefix(focused[0], "┃") || !strings.HasPrefix(focused[1], "▌") || !strings.HasPrefix(away[1], "┃") || !strings.HasPrefix(focused[2], " ") {
 		t.Fatalf("with no colour, the rows draw as %q, then without the keys %q", focused, away)
 	}

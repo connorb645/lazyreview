@@ -1,11 +1,11 @@
 package gui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -99,7 +99,7 @@ func (pn menu) choices() (int, int) {
 	return at, n
 }
 
-func (pn menu) box(width, height int, p palette) []string {
+func (pn menu) box(tr *i18n.TranslationSet, width, height int, p palette) []string {
 	left, right := 0, 0
 	for _, r := range pn.rows {
 		left = max(left, ansi.StringWidth(r.left))
@@ -117,7 +117,7 @@ func (pn menu) box(width, height int, p palette) []string {
 		content = append(content, " "+p.Accent.Render("›")+" "+p.Ink.Render(pn.query)+p.Accent.Render("▏"))
 	}
 	if pn.finding && len(pn.rows) == 0 {
-		content = append(content, " "+p.Muted.Render("nothing matches"))
+		content = append(content, " "+p.Muted.Render(tr.NothingMatches))
 	}
 	drawn := make([][]string, len(pn.rows))
 	for i, r := range pn.rows {
@@ -136,7 +136,7 @@ func (pn menu) box(width, height int, p palette) []string {
 	}
 	footer := ""
 	if at, n := pn.choices(); n > 0 && pn.choosing() {
-		footer = fmt.Sprintf("%d of %d", at, n)
+		footer = ofTotal(tr, at, n)
 	}
 	h := len(content) + 2
 	if pn.finding {

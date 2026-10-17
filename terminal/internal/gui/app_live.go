@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 const liveTries = 5
@@ -93,16 +94,16 @@ func (a App) afterNotice(msg liveNotice) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch n := msg.notice; {
 	case n.Build != "" && n.Build != a.review.page.Build && (a.editingNow || len(a.drafts) > 0):
-		a = a.say("This review was loaded again. R loads it here; your drafts stay.", false)
+		a = a.say(a.c.Tr.LoadedElsewhere, false)
 	case n.Build != "" && n.Build != a.review.page.Build:
-		cmds = append(cmds, reloadReview(a.opts.Server, a.review.id, false))
+		cmds = append(cmds, reloadReview(a.c.Tr, a.opts.Server, a.review.id, false))
 	case n.State != "" && n.State != a.review.state.Version:
 		cmds = append(cmds, loadState(a.opts.Server, a.review.id))
 	}
 	return a, tea.Batch(append(cmds, next)...)
 }
 
-func reloadReview(c *server.Client, id string, refresh bool) tea.Cmd {
+func reloadReview(tr *i18n.TranslationSet, c *server.Client, id string, refresh bool) tea.Cmd {
 	return func() tea.Msg {
 		var notes []string
 		if refresh {
@@ -111,7 +112,7 @@ func reloadReview(c *server.Client, id string, refresh bool) tea.Cmd {
 				return reviewReloaded{err: err}
 			}
 		}
-		loaded, ok := loadReview(c, id)().(reviewLoaded)
+		loaded, ok := loadReview(tr, c, id)().(reviewLoaded)
 		if !ok || loaded.err != nil {
 			return reviewReloaded{err: loaded.err}
 		}
@@ -126,7 +127,7 @@ func (a App) afterReload(msg reviewReloaded) (tea.Model, tea.Cmd) {
 	if a.review == nil || msg.data.id != a.review.id {
 		return a, nil
 	}
-	words := "Loaded again."
+	words := a.c.Tr.LoadedAgain
 	if len(msg.notes) > 0 {
 		words += " " + strings.Join(msg.notes, " ")
 	}

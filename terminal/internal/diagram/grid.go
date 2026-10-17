@@ -4,6 +4,8 @@ import (
 	"sort"
 
 	"github.com/charmbracelet/x/ansi"
+
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 const (
@@ -32,7 +34,7 @@ type Grid struct {
 
 // Arrange sets a level's cards in rows, `gap` columns apart, each card as
 // wide as its words.
-func Arrange(cards []Card, gap int) Grid {
+func Arrange(tr *i18n.TranslationSet, cards []Card, gap int) Grid {
 	order := make([]int, len(cards))
 	for i := range order {
 		order[i] = i
@@ -55,7 +57,7 @@ func Arrange(cards []Card, gap int) Grid {
 		sort.SliceStable(row, func(a, b int) bool { return cards[row[a]].Box.X < cards[row[b]].Box.X })
 		col := 2
 		for _, i := range row {
-			w := CardWidth(cards[i])
+			w := CardWidth(tr, cards[i])
 			g.Spots[i] = Spot{Row: r, Col: col, Width: w}
 			col += w + gap
 		}
@@ -65,8 +67,8 @@ func Arrange(cards []Card, gap int) Grid {
 }
 
 // CardWidth is a card's width: its words, a space either side and its border.
-func CardWidth(c Card) int {
-	w := max(ansi.StringWidth(c.Title), ansi.StringWidth(c.Detail)+1+len(StateWord(c.State))) + 4
+func CardWidth(tr *i18n.TranslationSet, c Card) int {
+	w := max(ansi.StringWidth(c.Title), ansi.StringWidth(c.Detail)+1+len(StateWord(tr, c.State))) + 4
 	return min(max(w, minWidth), maxWidth)
 }
 

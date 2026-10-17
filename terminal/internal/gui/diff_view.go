@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -33,9 +34,9 @@ func newDiffView(component string, files map[string]server.File, loc *time.Locat
 	return diffView{component: component, files: files, loc: loc, md: md, rendered: map[string]bool{}, notes: map[string]bool{}, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
 }
 
-func (v diffView) rebuilt(d reviewData, filter pullFilter, height int) diffView {
+func (v diffView) rebuilt(tr *i18n.TranslationSet, d reviewData, filter pullFilter, height int) diffView {
 	was := v.place()
-	v.rows = buildDiff(d, v, filter)
+	v.rows = buildDiff(tr, d, v, filter)
 	v.cursor = 0
 	if was != nil {
 		v = v.find(*was)

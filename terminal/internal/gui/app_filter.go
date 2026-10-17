@@ -3,11 +3,13 @@ package gui
 import (
 	"strconv"
 	"strings"
+
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 func (a App) filterBy(by int) App {
 	if a.review == nil || a.review.page.Stack == nil {
-		return a.say("only a stack has pull requests to filter by", true)
+		return a.say(a.c.Tr.OnlyStackFilters, true)
 	}
 	order := append([]int{0}, stackPulls(*a.review)...)
 	from := 0
@@ -37,14 +39,14 @@ func (a App) setFilter(f pullFilter) App {
 
 func (a App) pullCommand(arg string) App {
 	if a.review == nil || a.review.page.Stack == nil {
-		return a.say("only a stack has pull requests to filter by", true)
+		return a.say(a.c.Tr.OnlyStackFilters, true)
 	}
 	if arg == "all" {
 		return a.setFilter(nil)
 	}
 	n, err := strconv.Atoi(strings.TrimPrefix(arg, "#"))
 	if err != nil || stackMember(a.review.page.Stack, n).Head == "" {
-		return a.say("no pull request #"+arg+" in this stack", true)
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoPullInStack, map[string]string{"pull": arg}), true)
 	}
 	return a.setFilter(pullFilter{n})
 }

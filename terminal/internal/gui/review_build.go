@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -18,6 +19,7 @@ type builder struct {
 	lines []line
 	items []item
 	width int
+	tr    *i18n.TranslationSet
 	p     palette
 }
 
@@ -57,8 +59,8 @@ func (b *builder) add(it item, texts ...string) {
 	}
 }
 
-func buildReview(d reviewData, filter pullFilter, folded map[string]bool, width int, p palette, md *markdown, loc *time.Location) ([]line, []item) {
-	b := &builder{width: width, p: p}
+func buildReview(tr *i18n.TranslationSet, d reviewData, filter pullFilter, folded map[string]bool, width int, p palette, md *markdown, loc *time.Location) ([]line, []item) {
+	b := &builder{width: width, tr: tr, p: p}
 	reviewHeader(b, d, filter)
 	section := func(id, title, summary string, body func()) {
 		b.text("")
@@ -78,26 +80,27 @@ func buildReview(d reviewData, filter pullFilter, folded map[string]bool, width 
 	if w := d.state.Written; w != nil {
 		if w.Stale {
 			b.text("")
-			b.prose(" ", p.Warn, fmt.Sprintf("This written review read head %s; the pull request has moved on since, so it may not match the diff.", utils.Short(w.Head)))
+			b.prose(" ", p.Warn, utils.ResolvePlaceholderString(tr.WrittenStale, map[string]string{"head": utils.Short(w.Head)}))
 		}
 		for _, s := range w.Sections {
 			s := s
-			section("written:"+s.ID, s.Title, utils.Plural(len(s.Links), "link"), func() {
-				for _, l := range md.lines(withoutDiagrams(s.Markdown), width-2) {
+			section("written:"+s.ID, s.Title, utils.Plural(len(s.Links), tr.LinkNoun), func() {
+				for _, l := range md.lines(withoutDiagrams(tr, s.Markdown), width-2) {
 					b.text(" " + l)
 				}
 				for _, link := range s.Links {
 					place := server.Lines{Path: link.Path, Side: "RIGHT", Line: link.Line}
-					b.add(item{kind: "link", section: "written:" + s.ID, place: &place}, "   "+p.Accent.Render("→ "+link.Text)+p.Muted.Render(fmt.Sprintf("  %s line %d", link.Path, link.Line)))
+					where := "  " + link.Path + " " + utils.ResolvePlaceholderString(tr.LineAt, map[string]string{"line": utils.Itoa(link.Line)})
+					b.add(item{kind: "link", section: "written:" + s.ID, place: &place}, "   "+p.Accent.Render("→ "+link.Text)+p.Muted.Render(where))
 				}
 			})
 		}
 	} else if d.state.Queue != nil {
 		b.text("")
-		b.prose(" ", p.Muted, "No written review is attached. The diagram and the diffs hold the change.")
+		b.prose(" ", p.Muted, tr.NoWrittenReview)
 	} else {
 		b.text("")
-		b.prose(" ", p.Muted, "This branch has no pull request yet, so its review is read only.")
+		b.prose(" ", p.Muted, tr.BranchReadOnly)
 	}
 	if q := d.state.Queue; q != nil {
 		count := 0
@@ -106,7 +109,7 @@ func buildReview(d reviewData, filter pullFilter, folded map[string]bool, width 
 				count += len(m.Comments)
 			}
 		}
-		section("queue", "Queued comments", utils.Plural(count, "comment"), func() { queueLines(b, d, filter, loc) })
+		section("queue", tr.QueuedComments, utils.Plural(count, tr.CommentNoun), func() { queueLines(b, d, filter, loc) })
 	}
 	var threads []server.GitHubThread
 	open := 0
@@ -119,8 +122,8 @@ func buildReview(d reviewData, filter pullFilter, folded map[string]bool, width 
 		}
 	}
 	if len(threads) > 0 {
-		section("github", "On GitHub", utils.Plural(len(threads), "thread"), func() {
-			b.prose(" ", p.Muted, fmt.Sprintf("%s, %d unresolved, as GitHub had them when this review was loaded.", utils.Plural(len(threads), "review thread"), open))
+		section("github", tr.OnGitHubHeading, utils.Plural(len(threads), tr.ThreadNoun), func() {
+			b.prose(" ", p.Muted, utils.ResolvePlaceholderString(tr.GitHubThreadsLoaded, map[string]string{"threads": utils.Plural(len(threads), tr.ReviewThreadNoun), "open": utils.Itoa(open)}))
 			for _, t := range threads {
 				githubLines(b, d, t)
 			}
@@ -133,7 +136,7 @@ func buildReview(d reviewData, filter pullFilter, folded map[string]bool, width 
 		}
 	}
 	if len(asked) > 0 {
-		section("conversations", "Conversations", utils.Plural(len(asked), "conversation"), func() {
+		section("conversations", tr.Conversations, utils.Plural(len(asked), tr.ConversationNoun), func() {
 			for _, t := range asked {
 				conversationLines(b, t, loc)
 			}
@@ -145,33 +148,38 @@ func buildReview(d reviewData, filter pullFilter, folded map[string]bool, width 
 			components = append(components, c)
 		}
 	}
-	section("change", "The change", utils.Plural(len(components), "component"), func() {
+	section("change", tr.TheChange, utils.Plural(len(components), tr.ComponentNoun), func() {
 		for _, c := range components {
-			b.add(item{kind: "component", title: c.Title, section: "change", component: c.ID}, "   "+p.componentColor(c.Color).Render("■ ")+p.Ink.Render(c.Title)+"  "+p.Muted.Render(componentWords(d, c, filter)))
+			b.add(item{kind: "component", title: c.Title, section: "change", component: c.ID}, "   "+p.componentColor(c.Color).Render("■ ")+p.Ink.Render(c.Title)+"  "+p.Muted.Render(componentWords(tr, d, c, filter)))
 		}
 	})
 	return b.lines, b.items
 }
 
 func reviewHeader(b *builder, d reviewData, filter pullFilter) {
-	p, s := b.p, d.state
+	p, s, tr := b.p, d.state, b.tr
 	title := s.Title
 	if s.Written != nil && s.Written.Title != "" {
 		title = s.Written.Title
 	}
-	totals := changeTotals(p, d.page.Model.Files)
+	totals := changeTotals(tr, p, d.page.Model.Files)
+	base := func(ref string) string { return utils.ResolvePlaceholderString(tr.Base, map[string]string{"ref": ref}) }
+	head := func(sha string) string {
+		return utils.ResolvePlaceholderString(tr.Head, map[string]string{"sha": utils.Short(sha)})
+	}
 	switch {
 	case s.Kind == "branch":
-		b.prose(" ", p.Muted, fmt.Sprintf("Branch %s in %s, with no pull request yet", s.Head.Ref, s.Repo))
+		b.prose(" ", p.Muted, utils.ResolvePlaceholderString(tr.BranchHeader, map[string]string{"branch": s.Head.Ref, "repo": s.Repo}))
 		b.prose(" ", p.Bold, title)
-		b.parts(" ", p.Muted.Render("Base "+s.Base.Ref), p.Muted.Render("Head "+utils.Short(s.Head.Sha)), totals)
+		b.parts(" ", p.Muted.Render(base(s.Base.Ref)), p.Muted.Render(head(s.Head.Sha)), totals)
 	case d.page.Stack != nil:
-		b.prose(" ", p.Muted, fmt.Sprintf("A stack of %d pull requests, each built on the one before, reviewed together", len(s.Members)))
+		b.prose(" ", p.Muted, utils.ResolvePlaceholderString(tr.StackHeader, map[string]string{"count": utils.Itoa(len(s.Members))}))
 		b.prose(" ", p.Bold, title)
 		for _, m := range s.Members {
 			own := stackMember(d.page.Stack, m.Pull)
-			parts := []string{p.Muted.Render("by " + m.Author), p.Muted.Render("on " + m.Base), p.Muted.Render("head " + utils.Short(m.Head)),
-				p.Muted.Render(utils.Plural(own.Files, "file")+" ") + p.Add.Render(fmt.Sprintf("+%d", own.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", own.Dels))}
+			parts := []string{p.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author})), p.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base})),
+				p.Muted.Render(utils.ResolvePlaceholderString(tr.MemberHead, map[string]string{"sha": utils.Short(m.Head)})),
+				p.Muted.Render(utils.Plural(own.Files, tr.FileNoun)+" ") + p.Add.Render(fmt.Sprintf("+%d", own.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", own.Dels))}
 			if m.State != "" && m.State != "open" {
 				parts = append(parts, p.Del.Render(m.State))
 			}
@@ -188,12 +196,12 @@ func reviewHeader(b *builder, d reviewData, filter pullFilter) {
 			b.parts("       ", parts...)
 		}
 		top := s.Members[len(s.Members)-1]
-		b.parts(" ", p.Muted.Render("Base "+s.Base.Ref), p.Muted.Render("Head "+utils.Short(top.Head)), p.Muted.Render("Combined: ")+totals)
+		b.parts(" ", p.Muted.Render(base(s.Base.Ref)), p.Muted.Render(head(top.Head)), p.Muted.Render(tr.Combined+" ")+totals)
 		for _, w := range d.page.Stack.Warnings {
 			b.prose(" ", p.Warn, w)
 		}
 		if len(filter) > 0 {
-			b.prose(" ", p.Accent, "Showing "+filter.words()+" only. Esc in the Review panel shows the whole stack.")
+			b.prose(" ", p.Accent, utils.ResolvePlaceholderString(tr.ShowingOnly, map[string]string{"pulls": filter.words(tr)}))
 		}
 	default:
 		m := s.Members[0]
@@ -201,12 +209,12 @@ func reviewHeader(b *builder, d reviewData, filter pullFilter) {
 		if m.State != "" && m.State != "open" {
 			state = " · " + m.State
 		}
-		b.text(" " + p.Muted.Render(fmt.Sprintf("Pull request #%d by %s%s", m.Pull, m.Author, state)))
+		b.text(" " + p.Muted.Render(utils.ResolvePlaceholderString(tr.PullHeader, map[string]string{"pull": utils.Itoa(m.Pull), "author": m.Author})+state))
 		b.prose(" ", p.Bold, title)
-		b.parts(" ", p.Muted.Render("Base "+m.Base), p.Muted.Render("Head "+utils.Short(m.Head)), totals)
+		b.parts(" ", p.Muted.Render(base(m.Base)), p.Muted.Render(head(m.Head)), totals)
 	}
 	if s.Moved != nil {
-		b.prose(" ", p.Warn, fmt.Sprintf("This review moved: its pull requests are reviewed together on %s. Its queued comments moved there, and nothing can be sent from here.", s.Moved.To))
+		b.prose(" ", p.Warn, utils.ResolvePlaceholderString(tr.ReviewMoved, map[string]string{"to": s.Moved.To}))
 	}
 	for _, n := range s.Notes {
 		for _, l := range utils.Wrap(n, b.width-2) {
@@ -216,14 +224,14 @@ func reviewHeader(b *builder, d reviewData, filter pullFilter) {
 }
 
 func queueLines(b *builder, d reviewData, filter pullFilter, loc *time.Location) {
-	p, q := b.p, d.state.Queue
+	p, q, tr := b.p, d.state.Queue, b.tr
 	if q.Moved != nil {
-		b.prose(" ", p.Muted, "This review moved to "+q.Moved.To+". Its queued comments moved there.")
+		b.prose(" ", p.Muted, utils.ResolvePlaceholderString(tr.QueueMoved, map[string]string{"to": q.Moved.To}))
 		return
 	}
 	stacked := d.page.Stack != nil
 	if stacked {
-		b.prose(" ", p.Muted, "A comment goes on the pull request that last changed its line, shown as → #number.")
+		b.prose(" ", p.Muted, tr.CommentGoesOn)
 	}
 	groups := append(append([]server.QueueMember{}, q.Members...), q.Earlier...)
 	for i, m := range groups {
@@ -237,7 +245,7 @@ func queueLines(b *builder, d reviewData, filter pullFilter, loc *time.Location)
 			b.add(item{kind: "pull", section: "queue", title: fmt.Sprintf("#%d %s", m.Pull, m.Title), pull: m.Pull, url: m.URL}, "  "+p.pull(color).Render(fmt.Sprintf("#%d", m.Pull))+"  "+p.Ink.Render(m.Title))
 		}
 		if len(m.Comments) == 0 {
-			b.text("   " + p.Muted.Render("No comments queued."))
+			b.text("   " + p.Muted.Render(tr.NoCommentsQueued))
 		}
 		for _, c := range m.Comments {
 			commentLines(b, d, m, c, color, stacked)
@@ -246,31 +254,32 @@ func queueLines(b *builder, d reviewData, filter pullFilter, loc *time.Location)
 		case m.State != "" && m.State != "open":
 			at := ""
 			if m.EndedAt != nil {
-				at = " on " + utils.When(*m.EndedAt, loc)
+				at = " " + utils.ResolvePlaceholderString(tr.OnDate, map[string]string{"date": utils.When(*m.EndedAt, loc)})
 			}
-			b.prose("   ", p.Muted, fmt.Sprintf("#%d was %s%s. Nothing can be sent to it.", m.Pull, m.State, at))
+			b.prose("   ", p.Muted, utils.ResolvePlaceholderString(tr.PullEnded, map[string]string{"pull": utils.Itoa(m.Pull), "state": m.State, "at": at}))
 		case left:
-			b.prose("   ", p.Muted, fmt.Sprintf("#%d left this stack. Nothing can be sent to it from here.", m.Pull))
+			b.prose("   ", p.Muted, utils.ResolvePlaceholderString(tr.PullLeftStack, map[string]string{"pull": utils.Itoa(m.Pull)}))
 		}
 		for _, posted := range m.Posted {
-			what := map[string]string{"comment": "Posted " + utils.Plural(posted.Count, "comment"), "approve-with-comments": "Approved with " + utils.Plural(posted.Count, "comment"), "approve": "Approved"}[posted.Action]
+			comments := utils.Plural(posted.Count, tr.CommentNoun)
+			what := map[string]string{"comment": utils.ResolvePlaceholderString(tr.PostedComments, map[string]string{"comments": comments}), "approve-with-comments": utils.ResolvePlaceholderString(tr.ApprovedWith, map[string]string{"comments": comments}), "approve": tr.Approved}[posted.Action]
 			b.prose("   ", p.Muted, fmt.Sprintf("%s, %s: %s", what, utils.When(posted.At, loc), posted.Review))
 		}
 	}
 }
 
 func commentLines(b *builder, d reviewData, m server.QueueMember, c server.Comment, color int, stacked bool) {
-	p := b.p
+	p, tr := b.p, b.tr
 	head := "   " + p.Accent.Render(fmt.Sprintf("%d", c.ID)) + " "
 	if stacked {
 		head += p.pull(color).Render(fmt.Sprintf("→ #%d", m.Pull)) + " "
 	}
-	head += p.Ink.Render(c.Path + ", " + linesWords(c.Side, c.Line, c.StartLine, c.StartSide))
+	head += p.Ink.Render(c.Path + ", " + linesWords(tr, c.Side, c.Line, c.StartLine, c.StartSide))
 	place := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
 	if c.Shown != nil {
 		place = *c.Shown
 		if c.Shown.Path != c.Path || c.Shown.Line != c.Line {
-			head += p.Muted.Render(fmt.Sprintf("  shown at line %d", c.Shown.Line))
+			head += p.Muted.Render("  " + utils.ResolvePlaceholderString(tr.ShownAtLine, map[string]string{"line": utils.Itoa(c.Shown.Line)}))
 		}
 	}
 	texts := []string{head}
@@ -283,7 +292,7 @@ func commentLines(b *builder, d reviewData, m server.QueueMember, c server.Comme
 		texts = append(texts, "     "+p.Ink.Render(l))
 	}
 	if c.Stale != "" {
-		for _, l := range utils.Wrap("Its line may have moved: "+c.Stale+". Nothing sends it until it is queued again or dropped.", b.width-6) {
+		for _, l := range utils.Wrap(utils.ResolvePlaceholderString(tr.MayHaveMoved, map[string]string{"reason": c.Stale}), b.width-6) {
 			texts = append(texts, "     "+p.Warn.Render(l))
 		}
 	}
@@ -291,15 +300,16 @@ func commentLines(b *builder, d reviewData, m server.QueueMember, c server.Comme
 }
 
 func githubLines(b *builder, d reviewData, t server.GitHubThread) {
-	p := b.p
+	p, tr := b.p, b.tr
 	where := t.Path
 	switch {
 	case t.File:
-		where += ", the whole file"
+		where += ", " + tr.TheWholeFile
 	case t.At != nil:
-		where += ":" + strings.TrimPrefix(linesWords(t.At.Side, t.At.Line, t.At.StartLine, t.At.StartSide), "line ")
+		lineWord := utils.ResolvePlaceholderString(tr.LineAt, map[string]string{"line": ""})
+		where += ":" + strings.TrimPrefix(linesWords(tr, t.At.Side, t.At.Line, t.At.StartLine, t.At.StartSide), lineWord)
 	case t.OriginalLine > 0:
-		where += fmt.Sprintf(", was line %d", t.OriginalLine)
+		where += ", " + utils.ResolvePlaceholderString(tr.WasLine, map[string]string{"line": utils.Itoa(t.OriginalLine)})
 	}
 	var people []string
 	for _, c := range t.Comments {
@@ -307,12 +317,12 @@ func githubLines(b *builder, d reviewData, t server.GitHubThread) {
 			people = append(people, c.Author)
 		}
 	}
-	meta := strings.Join(people, ", ") + " · " + utils.Plural(len(t.Comments)+t.More, "comment")
+	meta := strings.Join(people, ", ") + " · " + utils.Plural(len(t.Comments)+t.More, tr.CommentNoun)
 	if t.Resolved {
-		meta += " · resolved"
+		meta += " · " + tr.Resolved
 	}
 	if t.Outdated {
-		meta += " · outdated"
+		meta += " · " + tr.Outdated
 	}
 	head := "   " + p.Accent.Render(where) + "  "
 	if d.page.Stack != nil {
@@ -332,21 +342,21 @@ func githubLines(b *builder, d reviewData, t server.GitHubThread) {
 }
 
 func conversationLines(b *builder, t server.Conversation, loc *time.Location) {
-	p := b.p
+	p, tr := b.p, b.tr
 	lines := fmt.Sprint(t.Line)
 	if t.StartLine > 0 {
 		lines = fmt.Sprintf("%d-%d", t.StartLine, t.Line)
 	}
-	texts := []string{"   " + p.Accent.Render(t.Path+":"+lines) + "  " + p.Muted.Render(utils.When(t.CreatedAt, loc)+" · "+utils.Plural(len(t.Messages), "message"))}
+	texts := []string{"   " + p.Accent.Render(t.Path+":"+lines) + "  " + p.Muted.Render(utils.When(t.CreatedAt, loc)+" · "+utils.Plural(len(t.Messages), tr.MessageNoun))}
 	if len(t.Messages) > 0 {
 		for _, l := range clipped(t.Messages[0].Text, b.width-6, 2) {
 			texts = append(texts, "     "+p.Bold.Render(l))
 		}
 		last := t.Messages[len(t.Messages)-1]
-		answer := "Waiting for Claude…"
+		answer := tr.WaitingForClaude
 		switch {
 		case last.From == "claude" && last.Error != "":
-			answer = "No answer: " + last.Error
+			answer = tr.NoAnswer + ": " + last.Error
 		case last.From == "claude":
 			answer = utils.PlainText(last.Text)
 		}
@@ -358,16 +368,16 @@ func conversationLines(b *builder, t server.Conversation, loc *time.Location) {
 	b.add(item{kind: "conversation", section: "conversations", place: &place}, texts...)
 }
 
-func changeTotals(p palette, files []server.FileEntry) string {
+func changeTotals(tr *i18n.TranslationSet, p palette, files []server.FileEntry) string {
 	adds, dels := 0, 0
 	for _, f := range files {
 		adds += f.Adds
 		dels += f.Dels
 	}
-	return p.Muted.Render(utils.Plural(len(files), "file")+" ") + p.Add.Render(fmt.Sprintf("+%d", adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", dels))
+	return p.Muted.Render(utils.Plural(len(files), tr.FileNoun)+" ") + p.Add.Render(fmt.Sprintf("+%d", adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", dels))
 }
 
-func componentWords(d reviewData, c server.Component, filter pullFilter) string {
+func componentWords(tr *i18n.TranslationSet, d reviewData, c server.Component, filter pullFilter) string {
 	if c.Context {
 		n := 0
 		for _, f := range d.page.Model.ContextFiles {
@@ -375,7 +385,7 @@ func componentWords(d reviewData, c server.Component, filter pullFilter) string 
 				n++
 			}
 		}
-		return utils.Plural(n, "file") + " · unchanged"
+		return utils.Plural(n, tr.FileNoun) + " · " + tr.Unchanged
 	}
 	n, adds, dels := 0, 0, 0
 	for _, f := range d.page.Model.Files {
@@ -383,7 +393,7 @@ func componentWords(d reviewData, c server.Component, filter pullFilter) string 
 			n, adds, dels = n+1, adds+f.Adds, dels+f.Dels
 		}
 	}
-	return fmt.Sprintf("%s +%d −%d", utils.Plural(n, "file"), adds, dels)
+	return fmt.Sprintf("%s +%d −%d", utils.Plural(n, tr.FileNoun), adds, dels)
 }
 
 func stackMember(stack *server.PageStack, pull int) server.StackMember {

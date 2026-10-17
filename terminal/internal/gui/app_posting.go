@@ -9,13 +9,15 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-var (
-	postOrder  = []string{"comment", "approve-with-comments", "approve"}
-	postLabels = map[string]string{"comment": "Add Comments", "approve-with-comments": "Approve With Comments", "approve": "Approve"}
-)
+var postOrder = []string{"comment", "approve-with-comments", "approve"}
+
+func postLabels(tr *i18n.TranslationSet) map[string]string {
+	return map[string]string{"comment": tr.AddComments, "approve-with-comments": tr.ApproveWithComments, "approve": tr.Approve}
+}
 
 func (a App) queueMember(pull int) (server.QueueMember, bool) {
 	if a.review == nil || a.review.state.Queue == nil {
@@ -30,18 +32,19 @@ func (a App) queueMember(pull int) (server.QueueMember, bool) {
 }
 
 func (a App) openPosting(pull int) App {
+	tr := a.c.Tr
 	if a.review == nil || a.review.state.Queue == nil {
-		return a.say("only a pull request's review has a queue to post", true)
+		return a.say(tr.NoQueueToPost, true)
 	}
 	if a.review.state.Queue.Moved != nil {
-		return a.say("this review moved, so nothing can be sent from here", true)
+		return a.say(tr.ReviewMovedNoSend, true)
 	}
 	if members := a.review.state.Queue.Members; pull == 0 && len(members) == 1 {
 		pull = members[0].Pull
 	}
 	m, ok := a.queueMember(pull)
 	if !ok {
-		return a.say("P posts for the pull request at the cursor; move to it, or to one of its comments", true)
+		return a.say(tr.PPosts, true)
 	}
 	pn := posting{pull: m.Pull}
 	for _, action := range postOrder {
@@ -50,7 +53,7 @@ func (a App) openPosting(pull int) App {
 		}
 	}
 	if len(pn.actions) == 0 {
-		return a.say(fmt.Sprintf("#%d was %s, so nothing can be sent to it", m.Pull, m.State), true)
+		return a.say(utils.ResolvePlaceholderString(tr.PullWasState, map[string]string{"pull": utils.Itoa(m.Pull), "state": m.State}), true)
 	}
 	a.posting = &pn
 	return a
@@ -65,7 +68,7 @@ func (a App) postingKey(name string) (tea.Model, tea.Cmd) {
 			m, _ := a.queueMember(pn.pull)
 			action := pn.actions[pn.choice]
 			client, id, build, set := a.opts.Server, a.review.id, a.review.page.Build, m.Sets[action].Set
-			return a.say("Checking the pull request with GitHub, then sending…", false), func() tea.Msg {
+			return a.say(a.c.Tr.CheckingThenSending, false), func() tea.Msg {
 				message, state, err := client.Post(id, pn.pull, action, set, build)
 				return posted{message: message, state: state, err: err}
 			}
@@ -95,9 +98,10 @@ func (a App) postingKey(name string) (tea.Model, tea.Cmd) {
 }
 
 func (a App) afterPost(msg posted) App {
-	title, words, notice := "Sent to GitHub", msg.message, "Sent; q closes the server's answer."
+	tr := a.c.Tr
+	title, words, notice := tr.SentToGitHub, msg.message, tr.SentQCloses
 	if msg.err != nil {
-		title, words, notice = "Nothing was posted", msg.err.Error(), "Nothing was posted; q closes why."
+		title, words, notice = tr.NothingPosted, msg.err.Error(), tr.NothingPostedQCloses
 	} else {
 		a = a.withState(msg.state)
 	}
@@ -111,13 +115,13 @@ func (a App) popupWidth() int {
 }
 
 func (a App) postingBox() []string {
-	p, pn := a.p, *a.posting
+	p, pn, tr := a.p, *a.posting, a.c.Tr
 	m, _ := a.queueMember(pn.pull)
 	w := a.popupWidth()
 	inner := w - 2
 	var out []string
 	for i, action := range pn.actions {
-		label := postLabels[action]
+		label := postLabels(tr)[action]
 		if action != "approve" {
 			label += fmt.Sprintf(" (%d)", len(m.Comments))
 		}
@@ -127,7 +131,7 @@ func (a App) postingBox() []string {
 		}
 		out = append(out, row)
 	}
-	footer := fmt.Sprintf("%d of %d", pn.choice+1, len(pn.actions))
+	footer := ofTotal(tr, pn.choice+1, len(pn.actions))
 	if pn.confirming {
 		action := pn.actions[pn.choice]
 		out = append(out, p.Border.Render(strings.Repeat("─", inner)))
@@ -137,27 +141,29 @@ func (a App) postingBox() []string {
 		if action != "approve" {
 			place := 0
 			for _, c := range m.Comments {
-				place = max(place, ansi.StringWidth(commentPlace(c)))
+				place = max(place, ansi.StringWidth(commentPlace(tr, c)))
 			}
 			out = append(out, "")
 			for i, c := range m.Comments {
 				first, _, _ := strings.Cut(c.Body, "\n")
-				out = append(out, " "+p.Muted.Render(fmt.Sprintf("%2d  %-*s", i+1, place, commentPlace(c)))+"  "+p.Ink.Render(first))
+				out = append(out, " "+p.Muted.Render(fmt.Sprintf("%2d  %-*s", i+1, place, commentPlace(tr, c)))+"  "+p.Ink.Render(first))
 			}
 		}
 		footer = ""
 	}
-	return framed(out, extent{}, w, len(out)+2, fmt.Sprintf("Post to %s#%d", a.review.state.Queue.Repo, pn.pull), "", footer, true, p)
+	title := utils.ResolvePlaceholderString(tr.PostTo, map[string]string{"repo": a.review.state.Queue.Repo, "pull": utils.Itoa(pn.pull)})
+	return framed(out, extent{}, w, len(out)+2, title, "", footer, true, p)
 }
 
-func commentPlace(c server.Comment) string {
-	return path.Base(c.Path) + ", " + linesWords(c.Side, c.Line, c.StartLine, c.StartSide)
+func commentPlace(tr *i18n.TranslationSet, c server.Comment) string {
+	return path.Base(c.Path) + ", " + linesWords(tr, c.Side, c.Line, c.StartLine, c.StartSide)
 }
 
 func (a App) postingHints() [][2]string {
-	pn := a.posting
+	pn, tr := a.posting, a.c.Tr
 	if pn.confirming {
-		return [][2]string{{"y", "Yes, " + strings.ToLower(postLabels[pn.actions[pn.choice]])}, {"n", "Cancel"}}
+		yes := utils.ResolvePlaceholderString(tr.YesAction, map[string]string{"action": strings.ToLower(postLabels(tr)[pn.actions[pn.choice]])})
+		return [][2]string{{"y", yes}, {"n", tr.Cancel}}
 	}
-	return [][2]string{{"j k 1 2 3", "Choose"}, {"Enter", "Show what it sends"}, {"Esc", "Cancel"}}
+	return [][2]string{{"j k 1 2 3", tr.Choose}, {"Enter", tr.ShowWhatItSends}, {"Esc", tr.Cancel}}
 }

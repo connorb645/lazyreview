@@ -1,14 +1,18 @@
 package gui
 
-import "time"
+import (
+	"time"
+
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+)
 
 type reviewView struct {
 	view   scroller
 	folded map[string]bool
 }
 
-func (v reviewView) rebuilt(d reviewData, filter pullFilter, width, height int, p palette, md *markdown, loc *time.Location) reviewView {
-	lines, items := buildReview(d, filter, v.folded, width, p, md, loc)
+func (v reviewView) rebuilt(tr *i18n.TranslationSet, d reviewData, filter pullFilter, width, height int, p palette, md *markdown, loc *time.Location) reviewView {
+	lines, items := buildReview(tr, d, filter, v.folded, width, p, md, loc)
 	v.view = v.view.reset(lines, items, sameItem, height)
 	return v
 }

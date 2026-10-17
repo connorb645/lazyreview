@@ -5,6 +5,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 type diagramView struct {
@@ -24,8 +25,8 @@ const (
 	rowLines = diagram.CardHeight + 2
 )
 
-func newDiagramView(level diagram.Level, focusID string) diagramView {
-	v := diagramView{level: level, grid: diagram.Arrange(level.Cards, cardGap)}
+func newDiagramView(tr *i18n.TranslationSet, level diagram.Level, focusID string) diagramView {
+	v := diagramView{level: level, grid: diagram.Arrange(tr, level.Cards, cardGap)}
 	if i := level.Index(focusID); i >= 0 {
 		v.focus = i
 	} else if order := v.grid.Order(); len(order) > 0 {
@@ -34,15 +35,15 @@ func newDiagramView(level diagram.Level, focusID string) diagramView {
 	return v
 }
 
-func levelAt(page server.Page, at diagramPlace) diagram.Level {
+func levelAt(tr *i18n.TranslationSet, page server.Page, at diagramPlace) diagram.Level {
 	switch at.level {
 	case "types":
-		return diagram.Types(page, at.component, at.pkg)
+		return diagram.Types(tr, page, at.component, at.pkg)
 	case "packages":
-		l, _ := diagram.Packages(page, at.component)
+		l, _ := diagram.Packages(tr, page, at.component)
 		return l
 	}
-	return diagram.Components(page)
+	return diagram.Components(tr, page)
 }
 
 func (v diagramView) card() (diagram.Card, bool) {
@@ -71,13 +72,13 @@ func (v diagramView) moved(by int) diagramView {
 	return v
 }
 
-func (v diagramView) lines(d reviewData, width, height int, filter pullFilter, styles map[string]lipgloss.Style) ([]string, extent) {
-	c, _, _ := drawDiagram(d, v, filter)
+func (v diagramView) lines(tr *i18n.TranslationSet, d reviewData, width, height int, filter pullFilter, styles map[string]lipgloss.Style) ([]string, extent) {
+	c, _, _ := drawDiagram(tr, d, v, filter)
 	return c.lines(v.left, v.top, width, height, styles), extent{lines: c.h, top: v.top}
 }
 
-func (v diagramView) boxAt(d reviewData, x, y int, filter pullFilter) int {
-	_, tops, _ := drawDiagram(d, v, filter)
+func (v diagramView) boxAt(tr *i18n.TranslationSet, d reviewData, x, y int, filter pullFilter) int {
+	_, tops, _ := drawDiagram(tr, d, v, filter)
 	x, y = x+v.left, y+v.top
 	for i, s := range v.grid.Spots {
 		if x >= s.Col && x < s.Col+s.Width && y >= tops[s.Row] && y < tops[s.Row]+diagram.CardHeight {
@@ -87,18 +88,18 @@ func (v diagramView) boxAt(d reviewData, x, y int, filter pullFilter) int {
 	return -1
 }
 
-func (v diagramView) scrolled(d reviewData, across, by, width, height int, filter pullFilter) diagramView {
-	c, _, _ := drawDiagram(d, v, filter)
+func (v diagramView) scrolled(tr *i18n.TranslationSet, d reviewData, across, by, width, height int, filter pullFilter) diagramView {
+	c, _, _ := drawDiagram(tr, d, v, filter)
 	v.left = clamp(v.left+across, 0, max(0, c.w-width))
 	v.top = clamp(v.top+by, 0, max(0, c.h-height))
 	return v
 }
 
-func (v diagramView) shownIn(d reviewData, width, height int, filter pullFilter) diagramView {
+func (v diagramView) shownIn(tr *i18n.TranslationSet, d reviewData, width, height int, filter pullFilter) diagramView {
 	if _, ok := v.card(); !ok {
 		return v
 	}
-	c, tops, below := drawDiagram(d, v, filter)
+	c, tops, below := drawDiagram(tr, d, v, filter)
 	s := v.grid.Spots[v.focus]
 	x0, x1 := s.Col-2, s.Col+s.Width+2
 	y0, y1 := tops[s.Row]-1, tops[s.Row]+diagram.CardHeight+below.lines+1

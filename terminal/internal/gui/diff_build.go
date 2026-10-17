@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -23,7 +24,7 @@ func diffFiles(d reviewData, component string, filter pullFilter) []server.FileE
 	return out
 }
 
-func buildDiff(d reviewData, v diffView, filter pullFilter) []diffRow {
+func buildDiff(tr *i18n.TranslationSet, d reviewData, v diffView, filter pullFilter) []diffRow {
 	var rows []diffRow
 	for _, f := range diffFiles(d, v.component, filter) {
 		rows = append(rows, diffRow{kind: "file", path: f.Path, text: f.Path})
@@ -33,17 +34,17 @@ func buildDiff(d reviewData, v diffView, filter pullFilter) []diffRow {
 		file, loaded := v.files[f.Path]
 		switch {
 		case !loaded:
-			rows = append(rows, diffRow{kind: "note", path: f.Path, text: "Loading…"})
+			rows = append(rows, diffRow{kind: "note", path: f.Path, text: tr.Loading})
 		case f.Status == "":
 			rows = append(rows, wholeRows(f.Path, file.Whole, nil)...)
 		case f.Binary:
-			rows = append(rows, diffRow{kind: "note", path: f.Path, text: "A binary file. Its contents are not shown."})
+			rows = append(rows, diffRow{kind: "note", path: f.Path, text: tr.BinaryFile})
 		case len(file.Hunks) == 0 && f.Status == "R":
-			rows = append(rows, diffRow{kind: "note", path: f.Path, text: "Renamed, with no change to its contents."})
+			rows = append(rows, diffRow{kind: "note", path: f.Path, text: tr.RenamedOnly})
 		case len(file.Hunks) == 0:
-			rows = append(rows, diffRow{kind: "note", path: f.Path, text: "No change to its contents, only to its mode."})
+			rows = append(rows, diffRow{kind: "note", path: f.Path, text: tr.ModeOnly})
 		case v.rendered[f.Path] && file.Rendered != nil:
-			rows = append(rows, blockRows(f.Path, *file.Rendered, v)...)
+			rows = append(rows, blockRows(tr, f.Path, *file.Rendered, v)...)
 		case v.whole[f.Path] && file.Whole != nil:
 			added := map[int]*server.Row{}
 			for h := range file.Hunks {
@@ -58,13 +59,13 @@ func buildDiff(d reviewData, v diffView, filter pullFilter) []diffRow {
 			rows = append(rows, hunkRows(f.Path, file, v)...)
 		}
 	}
-	return withNotes(d, v, rows)
+	return withNotes(tr, d, v, rows)
 }
 
-func blockRows(path string, rendered server.Rendered, v diffView) []diffRow {
+func blockRows(tr *i18n.TranslationSet, path string, rendered server.Rendered, v diffView) []diffRow {
 	var rows []diffRow
 	if rendered.Partial {
-		rows = append(rows, diffRow{kind: "note", path: path, text: "Only the changed parts show: the page kept no whole text of this file."})
+		rows = append(rows, diffRow{kind: "note", path: path, text: tr.PartialRendered})
 	}
 	for i := range rendered.Blocks {
 		b := &rendered.Blocks[i]

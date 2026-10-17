@@ -9,6 +9,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/connorb645/lazyreview/terminal/internal/common"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 func streaming(t *testing.T, streams ...[]string) *Client {
@@ -34,7 +37,7 @@ func streaming(t *testing.T, streams ...[]string) *Client {
 	if err := os.WriteFile(file, record, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	return NewClient(file)
+	return NewClient(&common.Common{Tr: i18n.EnglishTranslationSet()}, file)
 }
 
 func TestEventsSendsEachNoticeAndSaysWhyItStopped(t *testing.T) {

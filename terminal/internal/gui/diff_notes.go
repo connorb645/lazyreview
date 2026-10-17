@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -53,7 +54,7 @@ func noteOf(d reviewData, path, key string) (note, bool) {
 	return note{}, false
 }
 
-func withNotes(d reviewData, v diffView, rows []diffRow) []diffRow {
+func withNotes(tr *i18n.TranslationSet, d reviewData, v diffView, rows []diffRow) []diffRow {
 	byPath := map[string][]note{}
 	for _, r := range rows {
 		if r.kind == "file" && !v.folded[r.path] {
@@ -70,7 +71,7 @@ func withNotes(d reviewData, v diffView, rows []diffRow) []diffRow {
 		for _, n := range byPath[r.path] {
 			if !placed[n.key] && n.at != nil && rowHolds(r, *n.at, v) {
 				placed[n.key] = true
-				out = append(out, noteRows(d, v, r.path, n)...)
+				out = append(out, noteRows(tr, d, v, r.path, n)...)
 			}
 		}
 	}
@@ -78,7 +79,7 @@ func withNotes(d reviewData, v diffView, rows []diffRow) []diffRow {
 		var lost []diffRow
 		for _, n := range notes {
 			if !placed[n.key] {
-				lost = append(lost, noteRows(d, v, path, n)...)
+				lost = append(lost, noteRows(tr, d, v, path, n)...)
 			}
 		}
 		if len(lost) == 0 {
@@ -133,7 +134,7 @@ func (v diffView) noteOpen(n note) bool {
 	return n.kind == "queued"
 }
 
-func noteRows(d reviewData, v diffView, path string, n note) []diffRow {
+func noteRows(tr *i18n.TranslationSet, d reviewData, v diffView, path string, n note) []diffRow {
 	rows := []diffRow{{kind: "notehead", path: path, key: n.key}}
 	if !v.noteOpen(n) {
 		return rows
@@ -148,21 +149,21 @@ func noteRows(d reviewData, v diffView, path string, n note) []diffRow {
 	case "queued":
 		text("body", n.comment.Body, -1)
 		if n.comment.Stale != "" {
-			text("stale", "Its line may have moved: "+n.comment.Stale+". Nothing sends it until it is queued again or dropped.", -1)
+			text("stale", utils.ResolvePlaceholderString(tr.MayHaveMoved, map[string]string{"reason": n.comment.Stale}), -1)
 		}
 	case "conversation":
 		for i, m := range n.conversation.Messages {
 			switch {
 			case m.From == "you":
-				text("you", "You: "+m.Text, i)
+				text("you", utils.ResolvePlaceholderString(tr.YouSaid, map[string]string{"text": m.Text}), i)
 			case m.Error != "":
-				text("error", "Claude did not answer: "+m.Error, i)
+				text("error", tr.ClaudeDidNotAnswer+": "+m.Error, i)
 			default:
-				text("claude", "Claude: "+m.Text, i)
+				text("claude", utils.ResolvePlaceholderString(tr.ClaudeSaid, map[string]string{"text": m.Text}), i)
 			}
 		}
 		if last := n.conversation.Messages; len(last) > 0 && last[len(last)-1].From == "you" {
-			text("waiting", "Waiting for Claude…", -1)
+			text("waiting", tr.WaitingForClaude, -1)
 		}
 	case "thread":
 		for _, c := range n.thread.Comments {
@@ -170,48 +171,48 @@ func noteRows(d reviewData, v diffView, path string, n note) []diffRow {
 			text("body", c.Body, -1)
 		}
 		if n.thread.More > 0 {
-			text("author", utils.Plural(n.thread.More, "more comment")+" on GitHub", -1)
+			text("author", utils.ResolvePlaceholderString(tr.MoreOnGitHub, map[string]string{"comments": utils.Plural(n.thread.More, tr.MoreCommentNoun)}), -1)
 		}
 	}
 	return rows
 }
 
-func noteWords(n note) string {
-	lines := "the whole file"
+func noteWords(tr *i18n.TranslationSet, n note) string {
+	lines := tr.TheWholeFile
 	if n.at != nil {
-		lines = linesWords(n.at.Side, n.at.Line, n.at.StartLine, n.at.StartSide)
+		lines = linesWords(tr, n.at.Side, n.at.Line, n.at.StartLine, n.at.StartSide)
 	}
 	switch n.kind {
 	case "queued":
-		return fmt.Sprintf("queued comment %d → #%d · %s", n.comment.ID, n.pull, lines)
+		return utils.ResolvePlaceholderString(tr.QueuedComment, map[string]string{"comment": utils.Itoa(n.comment.ID)}) + fmt.Sprintf(" → #%d · %s", n.pull, lines)
 	case "conversation":
-		return "a conversation with Claude · " + lines
+		return tr.AConversation + " · " + lines
 	}
-	return fmt.Sprintf("a thread on #%d · %s", n.pull, lines)
+	return utils.ResolvePlaceholderString(tr.AThreadOn, map[string]string{"pull": utils.Itoa(n.pull)}) + " · " + lines
 }
 
-func noteHead(d reviewData, n note, open bool) (string, string) {
+func noteHead(tr *i18n.TranslationSet, d reviewData, n note, open bool) (string, string) {
 	fold := "▸"
 	if open {
 		fold = "▾"
 	}
 	lines := ""
 	if n.at != nil {
-		lines = " · " + linesWords(n.at.Side, n.at.Line, n.at.StartLine, n.at.StartSide)
+		lines = " · " + linesWords(tr, n.at.Side, n.at.Line, n.at.StartLine, n.at.StartSide)
 	}
 	switch n.kind {
 	case "queued":
-		head := fmt.Sprintf("%s Queued %d → #%d%s", fold, n.comment.ID, n.pull, lines)
+		head := fold + " " + utils.ResolvePlaceholderString(tr.QueuedNumber, map[string]string{"comment": utils.Itoa(n.comment.ID)}) + fmt.Sprintf(" → #%d%s", n.pull, lines)
 		if n.comment.Stale != "" {
-			head += " · stale"
+			head += " · " + tr.Stale
 		}
-		return head, "e edit  dd drop"
+		return head, tr.QueuedNoteKeys
 	case "conversation":
-		head := fmt.Sprintf("%s Claude · %s%s", fold, utils.Plural(len(n.conversation.Messages), "message"), lines)
+		head := fold + " " + tr.Claude + " · " + utils.Plural(len(n.conversation.Messages), tr.MessageNoun) + lines
 		if m := n.conversation.Messages; len(m) > 0 && m[len(m)-1].From == "you" {
-			head += " · waiting for Claude"
+			head += " · " + tr.WaitingForClaudeWords
 		}
-		return head, "a ask  za"
+		return head, tr.ConversationNoteKeys
 	}
 	var people []string
 	for _, c := range n.thread.Comments {
@@ -219,15 +220,15 @@ func noteHead(d reviewData, n note, open bool) (string, string) {
 			people = append(people, c.Author)
 		}
 	}
-	head := fmt.Sprintf("%s %s · %s", fold, strings.Join(people, ", "), utils.Plural(len(n.thread.Comments)+n.thread.More, "comment"))
+	head := fmt.Sprintf("%s %s · %s", fold, strings.Join(people, ", "), utils.Plural(len(n.thread.Comments)+n.thread.More, tr.CommentNoun))
 	if n.thread.Resolved {
-		head += " · resolved"
+		head += " · " + tr.Resolved
 	}
 	if n.thread.Outdated {
-		head += " · outdated"
+		head += " · " + tr.Outdated
 	}
 	if n.at == nil {
-		head += " · the whole file"
+		head += " · " + tr.TheWholeFile
 	}
-	return head, "gx GitHub  za"
+	return head, tr.ThreadNoteKeys
 }

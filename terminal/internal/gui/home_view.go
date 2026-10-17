@@ -1,6 +1,9 @@
 package gui
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import (
+	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+)
 
 type homeView struct {
 	list        *server.Pulls
@@ -15,13 +18,13 @@ type homeView struct {
 	fromDriving int
 }
 
-func (h homeView) rebuilt(p palette) homeView {
+func (h homeView) rebuilt(tr *i18n.TranslationSet, p palette) homeView {
 	was, _ := h.selected()
 	kept := map[string]sidePanel{}
 	for _, panel := range h.panels {
 		kept[panel.title] = panel.rows
 	}
-	panels := homePanels(h, p)
+	panels := homePanels(tr, h, p)
 	for i, panel := range panels {
 		if rows, ok := kept[panel.title]; ok {
 			panels[i].rows = rows.reset(panel.rows.rows)

@@ -10,24 +10,25 @@ import (
 )
 
 func (a App) openFinder() App {
+	tr := a.c.Tr
 	if a.review == nil {
-		return a.say("no review is open; Enter on one opens it", true)
+		return a.say(tr.NoReviewOpen, true)
 	}
 	page := a.review.page
-	pn := menu{title: "Find a file, type or component", finding: true}
+	pn := menu{title: tr.FinderTitle, finding: true}
 	for _, c := range page.Model.Components {
 		at := diagramPlace{level: "components", box: c.ID}
-		pn.all = append(pn.all, menuRow{left: "component", right: c.Title, open: &item{kind: "box", box: &at}})
+		pn.all = append(pn.all, menuRow{left: tr.ComponentNoun, right: c.Title, open: &item{kind: "box", box: &at}})
 	}
 	for _, n := range page.Model.Nodes {
 		if n.Kind == "artifact" {
 			continue
 		}
 		at := boxOf(n)
-		pn.all = append(pn.all, menuRow{left: "type", right: fmt.Sprintf("%s · %s", n.Name, path.Base(n.File)), open: &item{kind: "box", box: &at}})
+		pn.all = append(pn.all, menuRow{left: tr.TypeNoun, right: fmt.Sprintf("%s · %s", n.Name, path.Base(n.File)), open: &item{kind: "box", box: &at}})
 	}
 	for _, f := range append(append([]server.FileEntry{}, page.Model.Files...), page.Model.ContextFiles...) {
-		pn.all = append(pn.all, menuRow{left: "file", right: f.Path, open: &item{kind: "file", place: &server.Lines{Path: f.Path, Side: "file:"}}})
+		pn.all = append(pn.all, menuRow{left: tr.FileNoun, right: f.Path, open: &item{kind: "file", place: &server.Lines{Path: f.Path, Side: "file:"}}})
 	}
 	pn = pn.narrowed("")
 	a.menu = &pn

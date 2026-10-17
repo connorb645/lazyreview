@@ -21,6 +21,8 @@ import (
 	"github.com/muesli/termenv"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/common"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 var update = flag.Bool("update", false, "write the screens the tests compare against")
@@ -28,6 +30,10 @@ var update = flag.Bool("update", false, "write the screens the tests compare aga
 func TestMain(m *testing.M) {
 	lipgloss.SetColorProfile(termenv.Ascii)
 	os.Exit(m.Run())
+}
+
+func testCommon() *common.Common {
+	return &common.Common{Tr: i18n.EnglishTranslationSet()}
 }
 
 type answer struct {
@@ -101,7 +107,7 @@ func served(t *testing.T, changed *changes) *server.Client {
 	if err := os.WriteFile(file, record, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	return server.NewClient(file)
+	return server.NewClient(testCommon(), file)
 }
 
 func sortedFields(t *testing.T, body io.Reader) string {
@@ -143,7 +149,7 @@ func openedOn(t *testing.T, changed *changes, review string, width, height int, 
 	for _, s := range set {
 		s(&opts)
 	}
-	a := New(opts)
+	a := New(testCommon(), opts)
 	a = drive(t, a, a.Init())
 	a = send(t, a, tea.WindowSizeMsg{Width: width, Height: height})
 	return a, &visited

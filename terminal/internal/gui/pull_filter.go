@@ -3,6 +3,9 @@ package gui
 import (
 	"fmt"
 	"strings"
+
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 type pullFilter []int
@@ -68,7 +71,7 @@ func (f pullFilter) within(stack []int) pullFilter {
 	return kept
 }
 
-func (f pullFilter) words() string {
+func (f pullFilter) words(tr *i18n.TranslationSet) string {
 	names := make([]string, len(f))
 	for i, pull := range f {
 		names[i] = fmt.Sprintf("#%d", pull)
@@ -76,5 +79,5 @@ func (f pullFilter) words() string {
 	if len(names) < 2 {
 		return strings.Join(names, "")
 	}
-	return strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1]
+	return utils.ResolvePlaceholderString(tr.ListAnd, map[string]string{"list": strings.Join(names[:len(names)-1], ", "), "last": names[len(names)-1]})
 }

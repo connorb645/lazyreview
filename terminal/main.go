@@ -9,12 +9,14 @@ import (
 	"os"
 
 	"github.com/connorb645/lazyreview/terminal/internal/app"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 func main() {
-	serverFile := flag.String("server-file", "", "the lazyreview server's own record, server.json, holding its address and token")
+	tr := i18n.EnglishTranslationSet()
+	serverFile := flag.String("server-file", "", tr.ServerFileFlag)
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: lazyreview-terminal --server-file <server.json> [<review id>]")
+		fmt.Fprintln(os.Stderr, tr.Usage)
 	}
 	flag.Parse()
 	if *serverFile == "" || flag.NArg() > 1 {
@@ -22,7 +24,7 @@ func main() {
 		os.Exit(2)
 	}
 	if err := app.Run(*serverFile, flag.Arg(0)); err != nil {
-		fmt.Fprintln(os.Stderr, "lazyreview terminal:", err)
+		fmt.Fprintln(os.Stderr, tr.TerminalFailed+":", err)
 		os.Exit(1)
 	}
 }

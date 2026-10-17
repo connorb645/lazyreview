@@ -8,17 +8,20 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 const gutter = 14
 
-var badges = map[string]string{"A": "new", "D": "deleted", "R": "renamed", "M": "changed", "": "unchanged"}
+func badges(tr *i18n.TranslationSet) map[string]string {
+	return map[string]string{"A": tr.New, "D": tr.Deleted, "R": tr.Renamed, "M": tr.Changed, "": tr.Unchanged}
+}
 
-func diffLines(d reviewData, v diffView, height int, filter pullFilter, p palette, active bool) []string {
+func diffLines(tr *i18n.TranslationSet, d reviewData, v diffView, height int, filter pullFilter, p palette, active bool) []string {
 	var out []string
 	for i := v.top; i < len(v.rows) && len(out) < height; i++ {
-		lines := drawRow(d, v, i, filter, p, active)
+		lines := drawRow(tr, d, v, i, filter, p, active)
 		if !p.plain && (i == v.cursor || v.selecting && i >= min(v.anchor, v.cursor) && i <= max(v.anchor, v.cursor)) {
 			for j := range lines {
 				lines[j] = p.highlight(lines[j], v.width, active)
@@ -32,7 +35,7 @@ func diffLines(d reviewData, v diffView, height int, filter pullFilter, p palett
 	return out
 }
 
-func drawRow(d reviewData, v diffView, i int, filter pullFilter, p palette, active bool) []string {
+func drawRow(tr *i18n.TranslationSet, d reviewData, v diffView, i int, filter pullFilter, p palette, active bool) []string {
 	r := v.rows[i]
 	mark := " "
 	switch {
@@ -44,15 +47,15 @@ func drawRow(d reviewData, v diffView, i int, filter pullFilter, p palette, acti
 	}
 	switch r.kind {
 	case "notehead", "notetext":
-		return []string{mark + noteLine(d, v, r, p)}
+		return []string{mark + noteLine(tr, d, v, r, p)}
 	case "block":
 		return []string{mark + blockLine(v, i, p)}
 	case "file":
-		return []string{mark + fileHeader(d, v, r, p)}
+		return []string{mark + fileHeader(tr, d, v, r, p)}
 	case "hunk":
 		return []string{mark + "  " + p.Muted.Render(r.text)}
 	case "gap":
-		return []string{mark + "  " + p.Muted.Render(fmt.Sprintf("··· %s ···", utils.Plural(r.count, "unchanged line"))) + "  " + p.Key.Render("zo")}
+		return []string{mark + "  " + p.Muted.Render(fmt.Sprintf("··· %s ···", utils.Plural(r.count, tr.UnchangedLineNoun))) + "  " + p.Key.Render("zo")}
 	case "note":
 		return []string{mark + "  " + p.Muted.Render(r.text)}
 	}
@@ -92,14 +95,14 @@ func blockLabel(b *server.Block) string {
 	return label
 }
 
-func noteLine(d reviewData, v diffView, r diffRow, p palette) string {
+func noteLine(tr *i18n.TranslationSet, d reviewData, v diffView, r diffRow, p palette) string {
 	indent := strings.Repeat(" ", gutter-1)
 	n, ok := noteOf(d, r.path, r.key)
 	if !ok {
 		return ""
 	}
 	if r.kind == "notehead" {
-		head, keys := noteHead(d, n, v.noteOpen(n))
+		head, keys := noteHead(tr, d, n, v.noteOpen(n))
 		style := map[string]lipgloss.Style{"queued": p.Accent, "conversation": p.Bold, "thread": p.Bold}[n.kind]
 		if n.kind == "queued" {
 			style = p.pull(memberColor(d.state, n.pull))
@@ -110,24 +113,24 @@ func noteLine(d reviewData, v diffView, r diffRow, p palette) string {
 	return indent + "  " + style.Render(r.text)
 }
 
-func fileHeader(d reviewData, v diffView, r diffRow, p palette) string {
+func fileHeader(tr *i18n.TranslationSet, d reviewData, v diffView, r diffRow, p palette) string {
 	fold := "▾"
 	if v.folded[r.path] {
 		fold = "▸"
 	}
 	entry := fileEntry(d, r.path)
-	head, tail := " "+p.Muted.Render(fold)+" ", "  "+p.Muted.Render(badges[entry.Status])
+	head, tail := " "+p.Muted.Render(fold)+" ", "  "+p.Muted.Render(badges(tr)[entry.Status])
 	for _, pull := range entry.Pulls {
 		tail += "  " + p.pull(memberColor(d.state, pull)).Render(fmt.Sprintf("#%d", pull))
 	}
 	if v.whole[r.path] {
-		tail += "  " + p.Accent.Render("whole")
+		tail += "  " + p.Accent.Render(tr.WholeBadge)
 	}
 	if v.rendered[r.path] {
-		tail += "  " + p.Accent.Render("rendered")
+		tail += "  " + p.Accent.Render(tr.RenderedBadge)
 	}
 	if entry.Status == "" {
-		tail += "  " + p.Muted.Render(utils.Plural(entry.Lines, "line"))
+		tail += "  " + p.Muted.Render(utils.Plural(entry.Lines, tr.LineNoun))
 	} else {
 		tail += "  " + p.Add.Render(fmt.Sprintf("+%d", entry.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", entry.Dels))
 	}

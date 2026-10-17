@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 func readPulls(c *server.Client) tea.Cmd {
@@ -65,16 +66,16 @@ func (a App) goHome() (tea.Model, tea.Cmd) {
 	if a.home.list == nil && !a.home.reading && a.home.failed == "" {
 		return a.readHome()
 	}
-	a.home = a.home.rebuilt(a.p)
+	a.home = a.home.rebuilt(a.c.Tr, a.p)
 	return a.homeRelaid(), nil
 }
 
 func (a App) readHome() (tea.Model, tea.Cmd) {
 	if a.home.reading {
-		return a.say("Reading GitHub already", false), nil
+		return a.say(a.c.Tr.ReadingAlready, false), nil
 	}
 	a.home.reading, a.home.failed = true, ""
-	a.home = a.home.rebuilt(a.p)
+	a.home = a.home.rebuilt(a.c.Tr, a.p)
 	return a.homeRelaid(), readPulls(a.opts.Server)
 }
 
@@ -82,13 +83,13 @@ func (a App) afterPulls(msg pullsRead) (tea.Model, tea.Cmd) {
 	a.home.reading = false
 	switch {
 	case msg.err != nil && a.home.list != nil:
-		a = a.say("Could not read GitHub again: "+msg.err.Error(), true)
+		a = a.say(a.c.Tr.CouldNotReadGitHubAgain+": "+msg.err.Error(), true)
 	case msg.err != nil:
 		a.home.failed = msg.err.Error()
 	default:
 		a.home.list = &msg.pulls
 	}
-	a.home = a.home.rebuilt(a.p)
+	a.home = a.home.rebuilt(a.c.Tr, a.p)
 	return a.homeRelaid(), nil
 }
 
@@ -100,7 +101,7 @@ func (a App) openSelected() (tea.Model, tea.Cmd) {
 	case u.Review != "":
 		return a.openReview(u.Review)
 	case a.home.loading != "":
-		return a.say("One load at a time: "+a.home.loadingName+" is loading", true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.OneLoadAtATime, map[string]string{"name": a.home.loadingName}), true), nil
 	case a.heldDraft() != "":
 		return a.say(a.heldDraft(), true), nil
 	}
@@ -116,11 +117,11 @@ func (a App) afterLoaded(msg pullsLoaded) (tea.Model, tea.Cmd) {
 	name := a.home.loadingName
 	a.home.loading, a.home.loadingName = "", ""
 	if msg.err != nil {
-		return a.say("Could not load "+name+": "+msg.err.Error(), true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.CouldNotLoad, map[string]string{"name": name})+": "+msg.err.Error(), true), nil
 	}
-	a.home = a.home.withReview(msg.unit, msg.id).rebuilt(a.p)
+	a.home = a.home.withReview(msg.unit, msg.id).rebuilt(a.c.Tr, a.p)
 	if a.screen != screenHome {
-		return a.say("Loaded "+name+"; Enter on the home screen opens it", false), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.LoadedEnterOpens, map[string]string{"name": name}), false), nil
 	}
 	next, cmd := a.homeRelaid().openReview(msg.id)
 	if len(msg.notes) > 0 {
@@ -143,14 +144,14 @@ func (a App) openReview(id string) (tea.Model, tea.Cmd) {
 	case a.heldDraft() != "":
 		return a.say(a.heldDraft(), true), nil
 	}
-	return a.cleared(id), loadReview(a.opts.Server, id)
+	return a.cleared(id), loadReview(a.c.Tr, a.opts.Server, id)
 }
 
 func (a App) cleared(id string) App {
 	if a.stopLive != nil {
 		a.stopLive()
 	}
-	fresh := New(a.opts)
+	fresh := New(a.c, a.opts)
 	fresh.md, fresh.width, fresh.height, fresh.mode, fresh.home = a.md, a.width, a.height, a.mode, a.home
 	fresh.opening, fresh.loading, fresh.screen, fresh.focus, fresh.driving = id, true, screenReview, reviewPanel, reviewPanel
 	return fresh
@@ -160,7 +161,7 @@ func (a App) heldDraft() string {
 	if a.review == nil || (len(a.drafts) == 0 && !a.editingNow) {
 		return ""
 	}
-	return "Your draft in " + a.review.state.Title + " is not sent yet: Space v goes back to it"
+	return utils.ResolvePlaceholderString(a.c.Tr.DraftNotSent, map[string]string{"title": a.review.state.Title})
 }
 
 func (a App) homeLayout() homeLayout {
@@ -169,7 +170,7 @@ func (a App) homeLayout() homeLayout {
 
 func (a App) homeRelaid() App {
 	if len(a.home.panels) == 0 {
-		a.home = a.home.rebuilt(a.p)
+		a.home = a.home.rebuilt(a.c.Tr, a.p)
 	}
 	if a.width == 0 {
 		return a
@@ -222,29 +223,30 @@ func (a App) homeMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 }
 
 func (a App) homeHints() [][2]string {
+	tr := a.c.Tr
 	if _, u, _, ok := a.home.pull(); ok {
-		open := [2]string{"Enter", "Open"}
+		open := [2]string{"Enter", tr.Open}
 		if u.Review == "" {
-			open = [2]string{"Enter", "Load and open"}
+			open = [2]string{"Enter", tr.LoadAndOpen}
 		}
 		hints := [][2]string{open}
 		if len(a.home.panels) > 1 {
-			hints = append(hints, [2]string{"h l", "Repositories"})
+			hints = append(hints, [2]string{"h l", tr.Repositories})
 		}
-		return append(hints, [2]string{"gx", "GitHub"}, [2]string{"R", "Refresh"}, [2]string{"Space ?", "Keys"})
+		return append(hints, [2]string{"gx", tr.GitHub}, [2]string{"R", tr.Refresh}, [2]string{"Space ?", tr.Keys})
 	}
 	if a.home.list == nil && a.home.reading {
-		return [][2]string{{":q", "Quit"}, {"Space ?", "Keys"}}
+		return [][2]string{{":q", tr.Quit}, {"Space ?", tr.Keys}}
 	}
-	return [][2]string{{"R", "Read again"}, {":q", "Quit"}, {"Space ?", "Keys"}}
+	return [][2]string{{"R", tr.ReadAgain}, {":q", tr.Quit}, {"Space ?", tr.Keys}}
 }
 
 func (a App) homeStatus() string {
 	switch {
 	case a.home.loading != "":
-		return "Loading " + a.home.loadingName + " from GitHub…"
+		return utils.ResolvePlaceholderString(a.c.Tr.LoadingFromGitHub, map[string]string{"name": a.home.loadingName})
 	case a.home.reading && a.home.list != nil:
-		return "Reading GitHub…"
+		return a.c.Tr.ReadingGitHub
 	}
 	return ""
 }
