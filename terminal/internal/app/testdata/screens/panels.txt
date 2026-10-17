@@ -27,4 +27,4 @@
 │ ■ widgets                     ││                                                                 │
 │ ■ Unchanged code              ││  #21  Add search to the catalog                                 │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
- Review: Enter | Post: P | GitHub: gx | Files, notes, diagram: 2 3 4 | Keys: Space ?
+ Review: Enter | Post: P | GitHub: gx | Panels: h l | Keys: Space ?

@@ -174,6 +174,7 @@ and why, and the others are still listed.
 | --- | --- |
 | `j` `k` | the next or previous pull request, on into the next or previous repository |
 | `gg` `G` | the first or last pull request |
+| `h` `l` | the repository above or below, going round from the last to the first and back |
 | `1` to `9` | the first nine repositories |
 | `Enter` | opens the pull request's review; one no review holds yet is loaded from GitHub first, as the account that found it |
 | `R` `:refresh` | reads GitHub again |
@@ -238,6 +239,7 @@ The panels on the left:
 | Key | Does |
 | --- | --- |
 | `j` `k` `gg` `G` | move; the main panel follows |
+| `h` `l` | the panel above or below, as Lazygit moves between its panels; `h` in Review goes round to Diagram; in Diagram, the box to the left or right |
 | `Enter` | gives the main panel the keys; in Files, on a component or a folder, folds it; in Diagram, steps in |
 | `P` | in Review and Notes, posts for the pull request selected |
 | `e` `dd` | in Notes, edits or drops the queued comment |

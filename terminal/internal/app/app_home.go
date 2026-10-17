@@ -42,6 +42,10 @@ func (a App) homeAction(action string, count int) (tea.Model, tea.Cmd) {
 		a.home = a.home.ends(false)
 	case "bottom":
 		a.home = a.home.ends(true)
+	case "next panel":
+		a.home = a.home.panelBy(1)
+	case "previous panel":
+		a.home = a.home.panelBy(-1)
 	case "open":
 		return a.openSelected()
 	default:
@@ -223,11 +227,11 @@ func (a App) homeHints() [][2]string {
 		if u.Review == "" {
 			open = [2]string{"Enter", "Load and open"}
 		}
-		hints := [][2]string{open, {"gx", "GitHub"}, {"R", "Refresh"}}
-		if numbers := a.home.numbers(3); len(numbers) > 1 {
-			hints = append(hints, [2]string{strings.Join(numbers, " "), "Repositories"})
+		hints := [][2]string{open}
+		if len(a.home.panels) > 1 {
+			hints = append(hints, [2]string{"h l", "Repositories"})
 		}
-		return append(hints, [2]string{"Space ?", "Keys"})
+		return append(hints, [2]string{"gx", "GitHub"}, [2]string{"R", "Refresh"}, [2]string{"Space ?", "Keys"})
 	}
 	if a.home.list == nil && a.home.reading {
 		return [][2]string{{":q", "Quit"}, {"Space ?", "Keys"}}

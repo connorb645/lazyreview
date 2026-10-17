@@ -6,8 +6,9 @@
 │ │ Home                                                                                         │ │
 │ │▌j k         the next or previous pull request, on into the next or previous repository       │ │
 │ │ gg G        the first or last pull request                                                   │ │
-╰─│ 1 to 9      the first nine repositories                                                      │ │
-╭─│ Enter       opens the pull request's review; one no review holds yet is loaded from GitHub   │ │
+╰─│ h l         the repository above or below, going round at the ends                           │ │
+╭─│ 1 to 9      the first nine repositories                                                      │ │
+│ │ Enter       opens the pull request's review; one no review holds yet is loaded from GitHub   │ │
 │ │             first                                                                            │ │
 │ │ R :refresh  reads the open pull requests from GitHub again                                   │ │
 │ │ gx          opens the pull request on GitHub                                                 │ │
@@ -15,13 +16,12 @@
 │ │ Space v     the Review view of the review open                                               │ │
 │ │ + _         more of the screen for the list, then all of it; _ goes back                     │ │
 │ │ :           the command line: :q quits                                                       │ │
-│ │ ZZ          quits, as :q does                                                                │ │
-╰─│ Marks                                                                                        │ │
-╭─│ ●           your review is waiting: asked of you, or of your team                            │ │
+╰─│ ZZ          quits, as :q does                                                                │ │
+╭─│ Marks                                                                                        │ │
+│ │ ●           your review is waiting: asked of you, or of your team                            │ │
 │ │ ◆           loaded in lazyreview                                                             │ │
 │ │ ┌ └         a stack, bottom first, reviewed as one                                           │ │
-│ │ dim         a draft                                                                          │ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 15─╯ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 16─╯ │
 │                                                ││                                                │
 │                                                ││                                                │
 │                                                ││                                                │

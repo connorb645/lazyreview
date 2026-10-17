@@ -74,6 +74,23 @@ func TestMovingOnTheHomeScreenRunsThroughEveryRepository(t *testing.T) {
 	}
 }
 
+func TestHAndLGoToTheRepositoryAboveOrBelowAndRoundAtTheEnds(t *testing.T) {
+	a, _, _ := homeOn(t, "", 100, 30)
+	steps := []struct{ keys, at string }{
+		{"h", "reviewer-home/notes#3"}, {"l", "octo/gadgets#7"}, {"l", "octo/widgets#21"}, {"j", "octo/widgets#22"},
+		{"l", "reviewer-home/notes#3"}, {"h", "octo/widgets#22"},
+	}
+	for _, s := range steps {
+		a = press(t, a, s.keys)
+		if got := selectedPull(a); got != s.at {
+			t.Fatalf("%s went to %s, not %s", s.keys, got, s.at)
+		}
+	}
+	if a.home.focus != 1 {
+		t.Fatalf("the panel with the keys is the repository chosen: %d", a.home.focus)
+	}
+}
+
 func TestTheMainPanelSaysWhatInvolvesYouAndWhatEnterDoes(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
 	a = press(t, a, "2", "j")

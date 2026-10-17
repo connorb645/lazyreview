@@ -80,6 +80,10 @@ func (s scroller) at(y int) int {
 	return -1
 }
 
+func around(n, size int) int {
+	return (n%size + size) % size
+}
+
 func clamp(n, low, high int) int {
 	if n < low {
 		return low

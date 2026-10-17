@@ -27,4 +27,4 @@
 │ ■ widgets                     ││     4    4       func items() -> [Item] {                       │
 │ ■ Unchanged code              ││     5    5           stored                                     │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────a conversation with Claude · line 7─╯
- Open: Enter | Edit: e | Drop: dd | Post: P | Panels: 1 2 4 | Keys: Space ?
+ Open: Enter | Edit: e | Drop: dd | Post: P | Panels: h l | Keys: Space ?

@@ -14,12 +14,14 @@ var homeKeys = keys.Bindings{
 	":": "command", "space ?": "keys", "space v": "review", "g x": "github", "g X": "web",
 	"q": "close", "esc": "close", "Z Z": "quit", "ctrl+c": "quit", "R": "refresh", "+": "bigger", "_": "smaller",
 	"j": "down", "down": "down", "k": "up", "up": "up", "g g": "top", "G": "bottom", "enter": "open",
+	"h": "previous panel", "l": "next panel",
 	"1": "repository 1", "2": "repository 2", "3": "repository 3", "4": "repository 4", "5": "repository 5",
 	"6": "repository 6", "7": "repository 7", "8": "repository 8", "9": "repository 9",
 }
 
 var sideKeys = keys.Bindings{
 	"j": "down", "down": "down", "k": "up", "up": "up", "g g": "top", "G": "bottom", "enter": "open",
+	"h": "previous panel", "l": "next panel",
 	"1": "focus review", "2": "focus files", "3": "focus notes", "4": "focus diagram",
 }
 
@@ -28,6 +30,7 @@ var sidePanelKeys = [sideCount + 1]keys.Bindings{
 	filesPanel:  {"z a": "toggle fold"},
 	notesPanel:  {"e": "edit", "d d": "drop", "P": "post"},
 	diagramPanel: {
+		"h": "left", "l": "right",
 		"w": "next box", "b": "previous box", "-": "back",
 		"g d": "follow", "g r": "references", "/": "search", "?": "search back", "n": "next match", "N": "previous match",
 		"f": "labels", "space l": "links", "space p": "properties", "space d": "box diff", "space a": "all links",
@@ -80,22 +83,26 @@ var everyViewHelp = []helpRow{
 var sideHelp = [sideCount + 1][]helpRow{
 	reviewPanel: {
 		{"j k gg G", "the next, previous, first or last pull request"},
+		{"h l", "the panel above or below; h goes round to Diagram"},
 		{"Enter", "the Review view, in the main panel"},
 		{"P", "post: the actions offered for this pull request"},
 	},
 	filesPanel: {
 		{"j k gg G", "the next, previous, first or last file; the main panel shows its diff"},
+		{"h l", "the panel above or below"},
 		{"Enter", "on a file, its diff in the main panel; on a component or a folder, folds it"},
 		{"za", "folds or unfolds a component or a folder"},
 	},
 	notesPanel: {
 		{"j k gg G", "the next, previous, first or last note; the main panel shows it in its diff"},
+		{"h l", "the panel above or below"},
 		{"Enter", "the note in its diff, in the main panel"},
 		{"e dd", "edit or drop the queued comment"},
 		{"P", "post: the actions offered for the comment's pull request"},
 	},
 	diagramPanel: {
 		{"j k w b gg G", "the next, previous, first or last box, in reading order"},
+		{"h l", "the nearest box left or right"},
 		{"Enter", "steps in; on a type, opens its diff; on a group, lists its members"},
 		{"-", "steps out"},
 		{"gd", "follows a link of the box"},
@@ -162,6 +169,7 @@ var diagramHelp = []helpRow{
 var homeHelp = []helpRow{
 	{"j k", "the next or previous pull request, on into the next or previous repository"},
 	{"gg G", "the first or last pull request"},
+	{"h l", "the repository above or below, going round at the ends"},
 	{"1 to 9", "the first nine repositories"},
 	{"Enter", "opens the pull request's review; one no review holds yet is loaded from GitHub first"},
 	{"R :refresh", "reads the open pull requests from GitHub again"},

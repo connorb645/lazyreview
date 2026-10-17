@@ -119,6 +119,52 @@ func TestTheDiagramPanelListsTheBoxesInReadingOrder(t *testing.T) {
 	}
 }
 
+func TestHAndLGoToThePanelAboveOrBelowAndHGoesRoundFromTheFirst(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	steps := []struct {
+		key    string
+		panel  int
+		screen screen
+	}{
+		{"l", filesPanel, screenDiff}, {"l", notesPanel, screenDiff}, {"h", filesPanel, screenDiff},
+		{"h", reviewPanel, screenReview}, {"h", diagramPanel, screenDiagram},
+	}
+	for _, s := range steps {
+		from := a.focus
+		a = press(t, a, s.key)
+		if a.focus != s.panel || a.screen != s.screen {
+			t.Fatalf("%s from panel %d went to panel %d, screen %d", s.key, from, a.focus, a.screen)
+		}
+	}
+	a = press(t, a, "3", "l")
+	if a.focus != diagramPanel || a.screen != screenDiagram {
+		t.Fatalf("l from Notes enters Diagram, not panel %d", a.focus)
+	}
+}
+
+func TestHAndLInTheDiagramPanelGoToTheBoxLeftOrRight(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	a = press(t, a, "4", "enter")
+	focusedOn(t, a, "sources")
+	for _, s := range []struct{ key, box string }{{"l", "web-src"}, {"l", "web-src"}, {"h", "sources"}, {"h", "sources"}} {
+		a = press(t, a, s.key)
+		focusedOn(t, a, s.box)
+		if a.focus != diagramPanel || selectedKey(a, diagramPanel) != boxKey(s.box) {
+			t.Fatalf("%s keeps the Diagram panel and its row on the box: panel %d, %s", s.key, a.focus, selectedKey(a, diagramPanel))
+		}
+	}
+	if a.hints()[0] != [2]string{"h j k l", "Move"} {
+		t.Fatalf("the bar names the keys that move: %v", a.hints()[0])
+	}
+	if listed := press(t, a, "space", "?").menu.rows[2]; listed.left != "h l" || listed.right != "the nearest box left or right" {
+		t.Fatalf("Space ? lists h l as %q: %q", listed.left, listed.right)
+	}
+	a = press(t, a, "3")
+	if a.focus != notesPanel {
+		t.Fatalf("3 leaves the Diagram panel for Notes, not panel %d", a.focus)
+	}
+}
+
 func TestBiggerAndSmallerScreenModes(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "2", "j", "j", "enter")

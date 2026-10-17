@@ -120,14 +120,11 @@ func (h homeView) toRepo(number int) homeView {
 	return h
 }
 
-func (h homeView) numbers(most int) []string {
-	var out []string
-	for _, p := range h.panels {
-		if p.number > 0 && len(out) < most {
-			out = append(out, itoa(p.number))
-		}
+func (h homeView) panelBy(by int) homeView {
+	if len(h.panels) > 0 {
+		h.focus = around(h.focus+by, len(h.panels))
 	}
-	return out
+	return h
 }
 
 func (h homeView) at(panel, row int) homeView {

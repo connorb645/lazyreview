@@ -272,13 +272,13 @@ func (a App) hints() [][2]string {
 	var hints [][2]string
 	switch a.focus {
 	case reviewPanel:
-		hints = [][2]string{{"Enter", "Review"}, {"P", "Post"}, {"gx", "GitHub"}, {"2 3 4", "Files, notes, diagram"}}
+		hints = [][2]string{{"Enter", "Review"}, {"P", "Post"}, {"gx", "GitHub"}, {"h l", "Panels"}}
 	case filesPanel:
-		hints = [][2]string{{"Enter", "Diff"}, {"za", "Fold"}, {"]p [p", "Pull request"}, {"1 3 4", "Panels"}}
+		hints = [][2]string{{"Enter", "Diff"}, {"za", "Fold"}, {"]p [p", "Pull request"}, {"h l", "Panels"}}
 	case notesPanel:
-		hints = [][2]string{{"Enter", "Open"}, {"e", "Edit"}, {"dd", "Drop"}, {"P", "Post"}, {"1 2 4", "Panels"}}
+		hints = [][2]string{{"Enter", "Open"}, {"e", "Edit"}, {"dd", "Drop"}, {"P", "Post"}, {"h l", "Panels"}}
 	case diagramPanel:
-		hints = [][2]string{{"Enter", "In"}, {"-", "Out"}, {"gd", "Follow"}, {"Space l", "Links"}, {"/", "Find"}, {"1 2 3", "Panels"}}
+		hints = [][2]string{{"h j k l", "Move"}, {"Enter", "In"}, {"-", "Out"}, {"1 2 3", "Panels"}, {"gd", "Follow"}, {"Space l", "Links"}, {"/", "Find"}}
 	default:
 		hints = a.mainHints()
 	}

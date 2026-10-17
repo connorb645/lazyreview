@@ -11,4 +11,4 @@
 ╭─[4]─Diagram────────────╮│     │ The catalog lists every item.                │
 │ ■ docs                 ││     Every item, or every item shown?               │
 ╰─────────────────1 of 1─╯╰────────────────────────────────────────────────────╯
- Review: Enter | Post: P | GitHub: gx | Keys: Space ?
+ Review: Enter | Post: P | GitHub: gx | Panels: h l | Keys: Space ?

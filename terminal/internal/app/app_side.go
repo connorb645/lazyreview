@@ -168,6 +168,10 @@ func (a App) sideAction(action string, count int) (tea.Model, tea.Cmd) {
 		a = a.leave()
 		a.focus = mainPanel
 		return a.relaid(), nil
+	case "next panel":
+		return a.focusOn(reviewPanel + around(a.focus-reviewPanel+1, sideCount))
+	case "previous panel":
+		return a.focusOn(reviewPanel + around(a.focus-reviewPanel-1, sideCount))
 	case "toggle fold":
 		if selected && (row.it.kind == "component" || row.it.kind == "dir") {
 			return a.treeFolded(row)

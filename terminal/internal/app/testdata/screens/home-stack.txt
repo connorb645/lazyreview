@@ -27,4 +27,4 @@
 │                                                ││                                                │
 │                                                ││                                                │
 ╰─────────────────────────────────────────1 of 2─╯╰────────────────────────────────────────────────╯
- Open: Enter | GitHub: gx | Refresh: R | Repositories: 1 2 3 | Keys: Space ?
+ Open: Enter | Repositories: h l | GitHub: gx | Refresh: R | Keys: Space ?
