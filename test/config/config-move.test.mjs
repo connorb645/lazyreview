@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { planMove, checkLines, move } from '../../src/config/config-move.mjs';
 import { readUserConfig } from '../../src/config/user-config.mjs';
 import { checkedConfigText } from '../../src/config/config-text.mjs';
+import { defaults } from '../../src/config/schema.mjs';
 
 const SETTINGS = '{"accounts": [\n  {"login": "lee"},\n  {"login": "lee-at-work", "teams": [{"name": "example-org/mobile", "since": "2026-10-01"}, {"name": "example-org/web"}]}\n]}\n';
 
@@ -75,6 +76,7 @@ test('the move loses nothing: every account, team and variable reads the same af
       assert.deepEqual(config.values, {
         dataHome: s.data, server: { port: 4748 }, claude: { command: 'claude', model: 'claude-sonnet' }, os: { editor: 'nvim' },
         github: { accounts: [{ login: 'lee', teams: [] }, { login: 'lee-at-work', teams: [{ name: 'example-org/mobile', since: '2026-10-01' }, { name: 'example-org/web', since: null }] }] },
+        gui: defaults().gui,
       });
     }
     const checked = checkedConfigText(fromFile);

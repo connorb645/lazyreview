@@ -41,13 +41,21 @@ test('the file is read on top of the defaults, group by group, and a list replac
   assert.deepEqual(read('').values, read('# only a comment\n').values, 'an empty file means every default');
 });
 
+test('the theme merges colour by colour, so a file can change one colour or one component\'s and keep the rest', () => {
+  const { values, sources } = read("gui:\n  theme:\n    dark:\n      accentColor: '#ff0000'\n      selectedLineBgColor: 62\n      componentColors: {teal: '#00ffff'}\n    light:\n      pullRequestColors: [1, 2, 3, 4, 5, 6, 7, '#000000']\n");
+  const fallback = defaults().gui.theme;
+  assert.deepEqual(values.gui.theme.dark, { ...fallback.dark, accentColor: '#ff0000', selectedLineBgColor: '62', componentColors: { ...fallback.dark.componentColors, teal: '#00ffff' } }, 'a terminal colour number is handed over as text');
+  assert.deepEqual(values.gui.theme.light, { ...fallback.light, pullRequestColors: ['1', '2', '3', '4', '5', '6', '7', '#000000'] });
+  assert.deepEqual([sources['gui.theme.dark.accentColor'], sources['gui.theme.dark.componentColors.teal'], sources['gui.theme.dark.componentColors.blue']], ['file', 'file', 'default']);
+});
+
 test('each variable overrides its setting, over the file, and says so', () => {
   const f = folder('server:\n  port: 4748\nos:\n  editor: nano\n');
   try {
     const env = { ...f.env, LAZYREVIEW_HOME: '/srv/lr', LAZYREVIEW_PORT: '4749', LAZYREVIEW_CLAUDE: '/opt/claude', LAZYREVIEW_MODEL: 'claude-opus', LAZYREVIEW_EDITOR: 'nvim' };
     const config = readUserConfig({ env, home: '/home/lee' });
-    assert.deepEqual(config.values, { dataHome: '/srv/lr', server: { port: 4749 }, claude: { command: '/opt/claude', model: 'claude-opus' }, os: { editor: 'nvim' }, github: { accounts: [] } });
-    assert.deepEqual(config.sources, { 'dataHome': 'LAZYREVIEW_HOME', 'server.port': 'LAZYREVIEW_PORT', 'claude.command': 'LAZYREVIEW_CLAUDE', 'claude.model': 'LAZYREVIEW_MODEL', 'os.editor': 'LAZYREVIEW_EDITOR', 'github.accounts': 'default' });
+    assert.deepEqual(config.values, { ...defaults(), dataHome: '/srv/lr', server: { port: 4749 }, claude: { command: '/opt/claude', model: 'claude-opus' }, os: { editor: 'nvim' }, github: { accounts: [] } });
+    assert.deepEqual(Object.entries(config.sources).filter(([key]) => !key.startsWith('gui.')), [['dataHome', 'LAZYREVIEW_HOME'], ['server.port', 'LAZYREVIEW_PORT'], ['claude.command', 'LAZYREVIEW_CLAUDE'], ['claude.model', 'LAZYREVIEW_MODEL'], ['os.editor', 'LAZYREVIEW_EDITOR'], ['github.accounts', 'default']]);
     assert.equal(readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: '' }, home: '/home/lee' }).values.server.port, 4748, 'an empty variable is not set');
     assert.throws(() => readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: 'x' }, home: '/home/lee' }), /^Error: LAZYREVIEW_PORT must be a port number, not "x"$/);
   } finally {
@@ -57,7 +65,7 @@ test('each variable overrides its setting, over the file, and says so', () => {
 
 test('the terminal app is handed the file\'s path and the editor: the variable, the setting, then VISUAL, EDITOR and vi', () => {
   const config = editor => ({ path: PATH, values: { ...defaults(), os: { editor } } });
-  assert.deepEqual(terminalPart(config(''), {}), { path: PATH, editor: 'vi' });
+  assert.deepEqual(terminalPart(config(''), {}), { path: PATH, editor: 'vi', theme: defaults().gui.theme });
   assert.equal(terminalPart(config(''), { EDITOR: 'nano' }).editor, 'nano');
   assert.equal(terminalPart(config(''), { EDITOR: 'nano', VISUAL: 'code -w' }).editor, 'code -w');
   assert.equal(terminalPart(config('hx'), { EDITOR: 'nano', VISUAL: 'code -w' }).editor, 'hx');
@@ -87,5 +95,9 @@ test('every mistake in the file is named at once, each with what it must be', ()
   one('github:\n  accounts:\n    - login: lee\n      teams:\n        - name: mobile\n', 'gives lee a team that is not named as organisation/team');
   one('github:\n  accounts:\n    - login: lee\n      teams:\n        - name: example-org/mobile\n          since: last week\n', 'gives example-org/mobile a "since" that is not a date such as 2026-10-01');
   one('github:\n  accounts:\n    - login: lee\n      teams:\n        - name: example-org/mobile\n          until: 2026-12-01\n', 'gives example-org/mobile "until", which a team does not have');
+  one('gui:\n  theme:\n    dark:\n      accentColor: violet\n', 'gives gui.theme.dark.accentColor "violet", which is not a colour: #rrggbb or a terminal colour number from 0 to 255');
+  one('gui:\n  theme:\n    light:\n      addedColor: 256\n', 'gives gui.theme.light.addedColor 256, which is not a colour: #rrggbb or a terminal colour number from 0 to 255');
+  one("gui:\n  theme:\n    dark:\n      pullRequestColors: ['#ffffff']\n", 'gives gui.theme.dark.pullRequestColors \\["#ffffff"\\], which is not a list of 8 colours');
+  one('gui:\n  theme:\n    dark:\n      componentColors: {cyan: "#00ffff"}\n', 'sets gui.theme.dark.componentColors.cyan, which is not a setting');
   assert.throws(() => read('server:\n  port: abc\nkeybindings: {}\n'), new RegExp(`^Error: ${PATH.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} has 2 problems:\n  - gives server.port "abc", which is not a port number from 1 to 65535\n  - sets keybindings, which is not a setting$`));
 });

@@ -9,7 +9,7 @@
  * move writes: the line that gives an editor the schema, then the values.
  */
 import { english } from '../i18n/english.mjs';
-import { SCHEMA } from './schema.mjs';
+import { SCHEMA, defaults } from './schema.mjs';
 import { dumpYAML } from './yaml.mjs';
 
 const COMMENT_COLUMN = 39;
@@ -19,6 +19,7 @@ export const SCHEMA_ADDRESS = 'https://raw.githubusercontent.com/connorb645/lazy
 
 export function defaultConfigText() {
   return lines(SCHEMA, null, '', {
+    flow: true,
     about: setting => setting.about,
     beside: setting => (setting.env ? `# ${setting.env}` : ''),
     after: setting => setting.example.map(line => `# ${line}`),
@@ -27,6 +28,7 @@ export function defaultConfigText() {
 
 export function checkedConfigText(config) {
   return lines(SCHEMA, config.values, '', {
+    flow: false,
     about: () => [],
     beside: (setting, key) => `# ${words.source(config.sources[key])}`,
     after: () => [],
@@ -42,8 +44,13 @@ function lines(section, values, indent, show, prefix = '') {
   for (const [name, node] of Object.entries(section.settings)) {
     const key = prefix ? `${prefix}.${name}` : name;
     if (!indent && out.length) out.push('');
+    if (node.kind === 'section' && node.flow && show.flow) {
+      const given = values ? values[name] : defaults(node);
+      out.push(`${indent}${name}: {${Object.entries(given).map(([inner, value]) => `${inner}: ${scalar(value)}`).join(', ')}}`);
+      continue;
+    }
     if (node.kind === 'section') {
-      out.push(...node.about.map(line => `${indent}# ${line}`), `${indent}${name}:`);
+      out.push(`${indent}${name}:`, ...(show.flow ? node.about.map(line => `${indent}  # ${line}`) : []));
       out.push(...lines(node, values?.[name], `${indent}  `, show, key));
       continue;
     }

@@ -12,11 +12,12 @@ import (
 )
 
 // UserConfig is the terminal app's part of the config: the config file's
-// path, and the editor a comment is written in, as a command line the
-// shell runs with the file after it.
+// path, the editor a comment is written in, as a command line the shell
+// runs with the file after it, and the theme's colours.
 type UserConfig struct {
-	Path   string `json:"path"`
-	Editor string `json:"editor"`
+	Path   string      `json:"path"`
+	Editor string      `json:"editor"`
+	Theme  ThemeConfig `json:"theme"`
 }
 
 // Decode reads the hand-over, refusing a field it does not know and

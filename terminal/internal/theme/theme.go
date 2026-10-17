@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/muesli/termenv"
 
+	"github.com/connorb645/lazyreview/terminal/internal/config"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -17,7 +18,7 @@ import (
 // Keys and the focused title are bold. Plain is a terminal of no colour,
 // which marks the selected line in its first cell instead.
 type Theme struct {
-	Colours                    Colours
+	Colours                    config.Colours
 	Dark                       bool
 	Plain                      bool
 	Text                       lipgloss.Style
@@ -40,7 +41,7 @@ type Theme struct {
 
 // New makes the theme of colours for a dark or a light terminal that shows
 // the colours of profile.
-func New(colours Colours, dark bool, profile termenv.Profile) Theme {
+func New(colours config.Colours, dark bool, profile termenv.Profile) Theme {
 	fg := func(colour string) lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color(colour)) }
 	t := Theme{Colours: colours, Dark: dark, Plain: profile == termenv.Ascii}
 	t.Text = fg(colours.DefaultFgColor)

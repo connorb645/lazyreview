@@ -41,7 +41,9 @@ test('config check prints every setting as read, and where it came from', async 
     writeFileSync(s.file, 'server:\n  port: 4748\ngithub:\n  accounts:\n    - login: lee\n');
     const checked = await run(['config', 'check'], { ...s.env, LAZYREVIEW_MODEL: 'claude-sonnet' });
     assert.equal(checked.code, 0, checked.stderr);
-    assert.equal(checked.stdout, [
+    const [head, theme] = checked.stdout.split('\ngui:\n');
+    assert.ok(theme.trimEnd().split('\n').every(line => /^ {2}theme:$|^ {4}(dark|light):$|^ {6}componentColors:$|# default$/.test(line)), 'every colour is its default');
+    assert.equal(head, [
       `the config at ${s.file}, on top of the defaults:`,
       '',
       `dataHome: ${join(s.home, '.lazyreview')}`.padEnd(38) + ' # default',
@@ -62,6 +64,7 @@ test('config check prints every setting as read, and where it came from', async 
       '      teams: []',
       '',
     ].join('\n'));
+    assert.match(theme, /^ {4}dark:\n {6}defaultFgColor: '#f1f0fb' +# default\n/m);
   } finally {
     s.done();
   }

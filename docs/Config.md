@@ -89,6 +89,41 @@ github:
   #     teams:
   #       - name: example-org/mobile
   #         since: 2026-10-01
+
+gui:
+  theme:
+    # The terminal app's colours, for a dark terminal and a light one.
+    # Each is #rrggbb or a terminal colour number from 0 to 255.
+    dark:
+      defaultFgColor: '#f1f0fb'
+      mutedFgColor: '#a09dbf'
+      faintFgColor: '#6d6a8a'
+      accentColor: '#a796ff'
+      activeBorderColor: '#a796ff'
+      inactiveBorderColor: '#4a4766'
+      addedColor: '#7ce2a7'
+      removedColor: '#ff9fb6'
+      warningColor: '#f2b26a'
+      selectedLineBgColor: '#3a3270'
+      inactiveViewSelectedLineBgColor: '#26233d'
+      visualSelectionBgColor: '#45475a'
+      pullRequestColors: ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767']
+      componentColors: {blue: '#7fa8f8', teal: '#4cd3c2', purple: '#b893fb', amber: '#f2b26a', olive: '#b8cc6a', rose: '#f08cb6', indigo: '#a4a9ff', slate: '#a3afc8', grey: '#9d9bb8'}
+    light:
+      defaultFgColor: '#17152f'
+      mutedFgColor: '#615e7f'
+      faintFgColor: '#9b98b5'
+      accentColor: '#5233e6'
+      activeBorderColor: '#5233e6'
+      inactiveBorderColor: '#c4c0dc'
+      addedColor: '#146b3a'
+      removedColor: '#b21f43'
+      warningColor: '#9c5212'
+      selectedLineBgColor: '#dcd4ff'
+      inactiveViewSelectedLineBgColor: '#efebfb'
+      visualSelectionBgColor: '#c9cbd6'
+      pullRequestColors: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948']
+      componentColors: {blue: '#2c66a8', teal: '#0b6e6e', purple: '#7448ad', amber: '#9c5212', olive: '#5f6e12', rose: '#a8325e', indigo: '#4a4fb0', slate: '#556170', grey: '#6f7987'}
 ```
 <!-- END DEFAULT CONFIG -->
 
@@ -118,6 +153,32 @@ Each account is read by its own token, so each must be signed in to `gh`.
 A review asked of one of an account's teams counts as asked of the
 account, for pull requests opened on or after the team's `since` date. A
 team with no `since` counts from any date.
+
+## Theme
+
+`gui.theme` colours the terminal app. It has two sets, `dark` and `light`,
+and the app takes the one that suits the terminal's background. A colour is
+`'#rrggbb'`, in quotes, since a YAML comment starts with `#`, or a terminal
+colour number from 0 to 255:
+
+```yaml
+gui:
+  theme:
+    dark:
+      accentColor: '#ff8800'
+      selectedLineBgColor: 237
+      componentColors: {teal: '#00d7d7'}
+```
+
+A colour the file leaves out keeps its default, so this changes three
+colours of the dark set and nothing else. `pullRequestColors` are the
+colours of a stack's pull requests, in order: a list of 8, which replaces
+the default list whole. `componentColors` are the colours a components
+config can name, one by one. The names follow lazygit's where the colour
+does the same thing, such as `activeBorderColor` and `selectedLineBgColor`.
+Bold and plain text stay as they are.
+
+The web app keeps its own colours, dark and light by the system setting.
 
 ## A bad file
 

@@ -22,6 +22,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/common"
+	"github.com/connorb645/lazyreview/terminal/internal/config"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
@@ -41,12 +42,24 @@ func testCommon() *common.Common {
 	return commonFor(true)
 }
 
+// commonFor is what every layer shares in a test: the default config, as
+// the lazyreview command hands it over and terminal/testdata/config.json
+// keeps it, drawn for a dark or a light terminal.
 func commonFor(dark bool) *common.Common {
-	colours := theme.LightColours()
-	if dark {
-		colours = theme.DarkColours()
+	tr := i18n.EnglishTranslationSet()
+	text, err := os.ReadFile(filepath.Join("..", "..", "testdata", "config.json"))
+	if err != nil {
+		panic("could not read the default config: " + err.Error())
 	}
-	return &common.Common{Tr: i18n.EnglishTranslationSet(), Theme: theme.New(colours, dark, lipgloss.ColorProfile())}
+	given, err := config.Decode(string(text), tr)
+	if err != nil {
+		panic("could not read the default config: " + err.Error())
+	}
+	colours := given.Theme.Light
+	if dark {
+		colours = given.Theme.Dark
+	}
+	return &common.Common{Tr: tr, Config: given, Theme: theme.New(colours, dark, lipgloss.ColorProfile())}
 }
 
 type answer struct {

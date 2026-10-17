@@ -26,16 +26,16 @@ func Run(serverFile, userConfig, review string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", tr.UserConfigUnreadable, err)
 	}
-	cmn := &common.Common{Tr: tr, Config: given, Theme: terminalTheme()}
+	cmn := &common.Common{Tr: tr, Config: given, Theme: terminalTheme(given.Theme)}
 	opts := gui.Options{Server: server.NewClient(cmn, serverFile), Review: review, Editor: given.Editor}
 	program := tea.NewProgram(gui.New(cmn, opts), tea.WithAltScreen(), tea.WithMouseCellMotion())
 	_, err = program.Run()
 	return err
 }
 
-func terminalTheme() theme.Theme {
+func terminalTheme(colours config.ThemeConfig) theme.Theme {
 	if lipgloss.HasDarkBackground() {
-		return theme.New(theme.DarkColours(), true, lipgloss.ColorProfile())
+		return theme.New(colours.Dark, true, lipgloss.ColorProfile())
 	}
-	return theme.New(theme.LightColours(), false, lipgloss.ColorProfile())
+	return theme.New(colours.Light, false, lipgloss.ColorProfile())
 }

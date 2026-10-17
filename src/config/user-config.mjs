@@ -15,8 +15,8 @@
  * the file replaces the default whole, as lazygit's YAML reader merges.
  *
  * terminalPart(config, env) is what the terminal app is handed: the file's
- * path and the editor, chosen from LAZYREVIEW_EDITOR, then os.editor, then
- * VISUAL, then EDITOR, then vi.
+ * path, the editor, chosen from LAZYREVIEW_EDITOR, then os.editor, then
+ * VISUAL, then EDITOR, then vi, and the theme's colours, each as text.
  */
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -30,6 +30,8 @@ const words = english.config;
 const LOGIN = new RegExp(PATTERNS.login);
 const TEAM = new RegExp(PATTERNS.team);
 const DATE = new RegExp(PATTERNS.date);
+const COLOUR = new RegExp(PATTERNS.colour);
+const PULL_COLOURS = 8;
 
 export function readUserConfig({ env = process.env, platform = process.platform, home = homedir() } = {}) {
   const file = findConfigFile({ env, platform, home });
@@ -46,7 +48,7 @@ export function readUserConfig({ env = process.env, platform = process.platform,
 }
 
 export function terminalPart(config, env) {
-  return { path: config.path, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi' };
+  return { path: config.path, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi', theme: config.values.gui.theme };
 }
 
 /** The config a file's text gives, on top of the defaults, with each setting's source. */
@@ -92,7 +94,14 @@ const CHECKS = {
   command: (value, key) => (typeof value === 'string' && value.trim() ? ok(value) : wrong(words.notACommand(key, value))),
   text: (value, key) => (typeof value === 'string' ? ok(value) : wrong(words.notText(key, value))),
   accounts: (value, key) => checkAccounts(value, key),
+  colour: (value, key) => (isColour(value) ? ok(String(value)) : wrong(words.notAColour(key, value))),
+  colours: (value, key) => (Array.isArray(value) && value.length === PULL_COLOURS && value.every(isColour)
+    ? ok(value.map(String)) : wrong(words.notColours(key, value, PULL_COLOURS))),
 };
+
+function isColour(value) {
+  return (typeof value === 'string' && COLOUR.test(value)) || (Number.isInteger(value) && value >= 0 && value <= 255);
+}
 
 /** The accounts a list gives, as {login, teams: [{name, since}]}, and every problem in it, in the config's words. */
 export function checkAccounts(value, key) {

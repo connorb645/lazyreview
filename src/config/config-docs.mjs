@@ -65,6 +65,8 @@ const TYPES = {
   port: { type: 'integer', minimum: 1, maximum: 65535 },
   command: { type: 'string', minLength: 1 },
   text: { type: 'string' },
+  colour: { oneOf: [{ type: 'string', pattern: PATTERNS.colour }, { type: 'integer', minimum: 0, maximum: 255 }] },
+  colours: { type: 'array', minItems: 8, maxItems: 8, items: { oneOf: [{ type: 'string', pattern: PATTERNS.colour }, { type: 'integer', minimum: 0, maximum: 255 }] } },
   accounts: {
     type: 'array',
     items: {

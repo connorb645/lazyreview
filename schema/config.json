@@ -94,6 +94,731 @@
         }
       },
       "additionalProperties": false
+    },
+    "gui": {
+      "type": "object",
+      "properties": {
+        "theme": {
+          "type": "object",
+          "description": "The terminal app's colours, for a dark terminal and a light one. Each is #rrggbb or a terminal colour number from 0 to 255.",
+          "properties": {
+            "dark": {
+              "type": "object",
+              "properties": {
+                "defaultFgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#f1f0fb"
+                },
+                "mutedFgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#a09dbf"
+                },
+                "faintFgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#6d6a8a"
+                },
+                "accentColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#a796ff"
+                },
+                "activeBorderColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#a796ff"
+                },
+                "inactiveBorderColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#4a4766"
+                },
+                "addedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#7ce2a7"
+                },
+                "removedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#ff9fb6"
+                },
+                "warningColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#f2b26a"
+                },
+                "selectedLineBgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#3a3270"
+                },
+                "inactiveViewSelectedLineBgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#26233d"
+                },
+                "visualSelectionBgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#45475a"
+                },
+                "pullRequestColors": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^#[0-9a-fA-F]{6}$"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                      }
+                    ]
+                  },
+                  "description": "",
+                  "default": [
+                    "#3987e5",
+                    "#d95926",
+                    "#199e70",
+                    "#c98500",
+                    "#d55181",
+                    "#008300",
+                    "#9085e9",
+                    "#e66767"
+                  ]
+                },
+                "componentColors": {
+                  "type": "object",
+                  "properties": {
+                    "blue": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#7fa8f8"
+                    },
+                    "teal": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#4cd3c2"
+                    },
+                    "purple": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#b893fb"
+                    },
+                    "amber": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#f2b26a"
+                    },
+                    "olive": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#b8cc6a"
+                    },
+                    "rose": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#f08cb6"
+                    },
+                    "indigo": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#a4a9ff"
+                    },
+                    "slate": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#a3afc8"
+                    },
+                    "grey": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#9d9bb8"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "light": {
+              "type": "object",
+              "properties": {
+                "defaultFgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#17152f"
+                },
+                "mutedFgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#615e7f"
+                },
+                "faintFgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#9b98b5"
+                },
+                "accentColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#5233e6"
+                },
+                "activeBorderColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#5233e6"
+                },
+                "inactiveBorderColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#c4c0dc"
+                },
+                "addedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#146b3a"
+                },
+                "removedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#b21f43"
+                },
+                "warningColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#9c5212"
+                },
+                "selectedLineBgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#dcd4ff"
+                },
+                "inactiveViewSelectedLineBgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#efebfb"
+                },
+                "visualSelectionBgColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "description": "",
+                  "default": "#c9cbd6"
+                },
+                "pullRequestColors": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^#[0-9a-fA-F]{6}$"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                      }
+                    ]
+                  },
+                  "description": "",
+                  "default": [
+                    "#2a78d6",
+                    "#eb6834",
+                    "#1baf7a",
+                    "#eda100",
+                    "#e87ba4",
+                    "#008300",
+                    "#6250d6",
+                    "#e34948"
+                  ]
+                },
+                "componentColors": {
+                  "type": "object",
+                  "properties": {
+                    "blue": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#2c66a8"
+                    },
+                    "teal": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#0b6e6e"
+                    },
+                    "purple": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#7448ad"
+                    },
+                    "amber": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#9c5212"
+                    },
+                    "olive": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#5f6e12"
+                    },
+                    "rose": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#a8325e"
+                    },
+                    "indigo": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#4a4fb0"
+                    },
+                    "slate": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#556170"
+                    },
+                    "grey": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^#[0-9a-fA-F]{6}$"
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 255
+                        }
+                      ],
+                      "description": "",
+                      "default": "#6f7987"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

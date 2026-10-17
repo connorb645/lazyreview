@@ -13,8 +13,10 @@ import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 import { PullRef } from '../../src/models/pull-ref.mjs';
 import { OpenPulls } from '../../src/home/open-pulls.mjs';
 import { SETTINGS, homeRoutes, accountsConfig } from '../support/home-routes.mjs';
+import { configFrom, terminalPart } from '../../src/config/user-config.mjs';
 
 const RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal', 'testdata', 'record.json');
+const CONFIG = join(dirname(RECORD), 'config.json');
 const STACK = 'github.com/octo/widgets/21';
 const SINGLE = 'github.com/octo/widgets/30';
 
@@ -198,4 +200,19 @@ test('the server answers the terminal app is tested against are the ones it give
   }
   const differs = firstDifference(recorded, now);
   assert.equal(differs, null, `the server now answers ${differs} differently from the record the terminal app's tests read; write it again with LAZYREVIEW_RECORD=1 npm test, then run the Go tests`);
+});
+
+test('the default config the terminal app\'s tests read is the part lazyreview hands it now', () => {
+  const now = JSON.stringify(terminalPart({ path: STAND_IN_CONFIG, values: configFrom('', STAND_IN_CONFIG).values }, {}), null, 1) + '\n';
+  if (process.env.LAZYREVIEW_RECORD) {
+    writeFileSync(CONFIG, now);
+    return;
+  }
+  let kept = null;
+  try {
+    kept = readFileSync(CONFIG, 'utf8');
+  } catch (error) {
+    assert.fail(`could not read ${CONFIG}: ${error.message}; write it with LAZYREVIEW_RECORD=1 npm test`);
+  }
+  assert.equal(kept, now, `the terminal app is now handed another default config than ${CONFIG} holds; write it again with LAZYREVIEW_RECORD=1 npm test, then run the Go tests`);
 });
