@@ -34,6 +34,7 @@ export function countWords(compTotals, c, compact) {
   const t = compTotals[c.id] || { files: 0, adds: 0, dels: 0 };
   const n = compact ? fmt(t.files) : english.web.counts.files(t.files);
   if (c.context) return words.unchangedCount(n);
+  if (!t.files) return n;
   return n + ' · +' + fmt(t.adds) + (t.dels ? ' −' + fmt(t.dels) : '');
 }
 
@@ -209,7 +210,7 @@ export function createDiagramMarkup(ctx) {
     pkgList.forEach(p => {
       const b = p.box;
       const tab = p.description ? 50 : 34;
-      out += '<rect class="pkg-frame" x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="6"></rect>';
+      out += '<rect class="pkg-frame" data-comp="' + esc(p.comp) + '" data-pkg="' + esc(p.id) + '" x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="6"></rect>';
       if (p.bare) return;
       out += '<g class="pkg-head" data-comp="' + esc(p.comp) + '" data-pkg="' + esc(p.id) + '" tabindex="-1">' +
         '<path class="pkg-tab" d="M' + (b.x + 0.6) + ',' + (b.y + tab) + ' L' + (b.x + 0.6) + ',' + (b.y + 6) + ' Q' + (b.x + 0.6) + ',' + (b.y + 0.6) + ' ' + (b.x + 6) + ',' + (b.y + 0.6) +

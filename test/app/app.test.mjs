@@ -63,3 +63,28 @@ test('the page data is indexed with the totals of the change and of each compone
   assert.equal(breakable('Sources/A_b.swift'), 'Sources/<wbr>A_<wbr>b.swift');
   assert.equal(english.web.counts.files(1) + ', ' + english.web.counts.files(1200), '1 file, 1,200 files');
 });
+
+test('under the pull request filter, a component counts only the files and lines of that pull request', async () => {
+  const { createPulls } = await import('../../app/context/pulls.mjs');
+  const { countWords } = await import('../../app/presentation/diagram.mjs');
+  const model = {
+    components: [{ id: 'core', tag: 'Swift' }, { id: 'ledger', tag: 'Swift' }, { id: 'context', context: true }],
+    files: [
+      { path: 'Order.swift', component: 'core', adds: 3, dels: 1, pulls: [21, 22], byPull: { 21: [2, 0], 22: [1, 1] } },
+      { path: 'Rules.swift', component: 'core', adds: 4, dels: 0, pulls: [22], byPull: { 22: [4, 0] } },
+      { path: 'Book.swift', component: 'ledger', adds: 5, dels: 2, pulls: [21], byPull: { 21: [5, 2] } },
+    ],
+  };
+  const compTotals = { core: { files: 2, adds: 7, dels: 1 }, ledger: { files: 1, adds: 5, dels: 2 }, context: { files: 1, adds: 0, dels: 0 } };
+  const ctx = { data: { stack: { members: [{ pull: 21 }, { pull: 22 }] }, model, compTotals }, state: { members: [] }, filter: { pull: null } };
+  const pulls = createPulls(ctx);
+  assert.deepEqual(pulls.componentTotals(), compTotals);
+  ctx.filter.pull = 22;
+  const totals = pulls.componentTotals();
+  assert.deepEqual(totals, { core: { files: 2, adds: 5, dels: 1 }, ledger: { files: 0, adds: 0, dels: 0 }, context: { files: 1, adds: 0, dels: 0 } });
+  assert.deepEqual(pulls.ownLines(model.files[0]), [1, 1]);
+  assert.equal(countWords(totals, model.components[0]), '2 files · +5 −1');
+  assert.equal(countWords(totals, model.components[1]), '0 files');
+  assert.equal(countWords(totals, model.components[1], true), '0');
+  assert.equal(countWords(totals, model.components[2]), countWords(compTotals, model.components[2]));
+});

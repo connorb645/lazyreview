@@ -85,7 +85,7 @@ export async function openReview(id) {
   function memberTotals() {
     const t = { files: 0, adds: 0, dels: 0 };
     model.files.filter(f => pulls.onFilter(f.pulls)).forEach(f => {
-      const own = (f.byPull && f.byPull[ctx.filter.pull]) || [0, 0];
+      const own = pulls.ownLines(f);
       t.files++; t.adds += own[0]; t.dels += own[1];
     });
     return t;

@@ -53,7 +53,7 @@ export function createDiffs(ctx) {
   function filteredTotals(list) {
     const t = { files: 0, adds: 0, dels: 0 };
     list.forEach(f => {
-      const own = ctx.filter.pull ? (f.byPull && f.byPull[ctx.filter.pull]) || [0, 0] : [f.adds, f.dels];
+      const own = pulls.ownLines(f);
       t.files++; t.adds += own[0]; t.dels += own[1];
     });
     return t;

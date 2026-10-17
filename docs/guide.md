@@ -100,7 +100,7 @@ each of them.
   packages. Point at a type to see everything it links to and its stored
   properties, each with its type and line; a link that holds a type names the
   properties that hold it. Select a type, or a component, to open its diff. On a stack, each pull request has a colour, and
-  the strip under the bar narrows the diagram and the diffs to one of them.
+  the strip under the bar narrows the diagram, its counts and the diffs to one of them.
 - **Diffs.** Unified or split, wrapped lines, whole files, the unchanged lines
   between hunks, and a Rendered view of each Markdown file.
 - **A line.** Select a line number to open a box on it. For a range, drag

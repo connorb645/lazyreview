@@ -770,7 +770,8 @@ a.pp:hover { background: color-mix(in srgb, var(--pc) 30%, var(--surface)); }
 #diagram.pr-filter .node:not(.pr-on), #diagram.pr-filter .edge:not(.pr-on), #diagram.pr-filter .elabel:not(.pr-on),
 #diagram.pr-filter .summary, #diagram.pr-filter .summary-label, #diagram.pr-filter .pkg-arrow, #diagram.pr-filter .pkg-arrow-label,
 #diagram.pr-filter .group-frame.pr-off, #diagram.pr-filter .group-title.pr-off, #diagram.pr-filter .group-sub.pr-off { opacity: .16; }
-#diagram.pr-filter .comp-frame.pr-off, #diagram.pr-filter .comp-head.pr-off, #diagram.pr-filter .overlay text.pr-off { opacity: .35; }
+#diagram.pr-filter .comp-frame.pr-off, #diagram.pr-filter .comp-head.pr-off, #diagram.pr-filter .overlay text.pr-off,
+#diagram.pr-filter .pkg-frame.pr-off, #diagram.pr-filter .pkg-head.pr-off { opacity: .35; }
 .comp-item.pr-off { opacity: .45; }
 td.lineno.own { box-shadow: inset 3px 0 0 var(--pc); }
 tr.pr-other > td, td.pr-other { opacity: .4; }

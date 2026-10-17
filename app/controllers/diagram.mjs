@@ -12,13 +12,13 @@
  */
 import { baseName } from '../lib/text.mjs';
 import { views, element } from '../views.mjs';
-import { createDiagramMarkup } from '../presentation/diagram.mjs';
+import { createDiagramMarkup, countWords } from '../presentation/diagram.mjs';
 
 const MIN = 0.03, MAX = 2.6, NAMES_SHOWN = 0.45;
 const ZOOM_STRIP = 58;
 
 export function createDiagram(ctx) {
-  const { model, layout, nodes, groupsById } = ctx.data;
+  const { model, layout, nodes, groupsById, comps } = ctx.data;
   const pulls = ctx.pulls;
   const markup = createDiagramMarkup(ctx);
   const svg = views.diagram;
@@ -320,8 +320,8 @@ export function createDiagram(ctx) {
     const on = {};
     model.nodes.forEach(n => { on[n.id] = !!pull && pulls.onFilter(n.pulls); });
     model.groups.forEach(g => { on['group:' + g.id] = g.members.some(id => on[id]); });
-    const compOn = {};
-    model.nodes.forEach(n => { if (on[n.id]) compOn[n.component] = true; });
+    const compOn = {}, pkgOn = {};
+    model.nodes.forEach(n => { if (on[n.id]) compOn[n.component] = pkgOn[n.component + ':' + n.package] = true; });
     model.files.forEach(f => { if (pull && pulls.onFilter(f.pulls)) compOn[f.component] = true; });
     svg.classList.toggle('pr-filter', !!pull);
     svg.querySelectorAll('.node').forEach(g => g.classList.toggle('pr-on', !!on[g.getAttribute('data-id')]));
@@ -333,8 +333,19 @@ export function createDiagram(ctx) {
     svg.querySelectorAll('.comp-frame, .comp-head, .overlay text[data-comp]').forEach(el => {
       el.classList.toggle('pr-off', !!pull && !compOn[el.getAttribute('data-comp')]);
     });
+    svg.querySelectorAll('.pkg-frame[data-pkg], .pkg-head[data-pkg]').forEach(el => {
+      el.classList.toggle('pr-off', !!pull && !pkgOn[el.getAttribute('data-comp') + ':' + el.getAttribute('data-pkg')]);
+    });
     document.querySelectorAll('.comp-item[data-comp]').forEach(el => {
       el.classList.toggle('pr-off', !!pull && !compOn[el.getAttribute('data-comp')]);
+    });
+    const totals = pulls.componentTotals();
+    svg.querySelectorAll('.comp-head[data-comp] .comp-tag').forEach(el => {
+      const c = comps[el.parentNode.getAttribute('data-comp')];
+      el.textContent = c.tag + ' · ' + countWords(totals, c);
+    });
+    document.querySelectorAll('.comp-item[data-comp] .n').forEach(el => {
+      el.textContent = countWords(totals, comps[el.parentNode.getAttribute('data-comp')], true);
     });
   }
   // Zoom to the filtered pull request's types, at a size whose names read.
