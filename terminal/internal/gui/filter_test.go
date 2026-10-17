@@ -64,6 +64,10 @@ func filterStandIn() types.ReviewData {
 				ContextFiles: []server.FileEntry{{Path: "Sources/Clock.swift", Component: "context", Lines: 12}},
 				Nodes:        nodes,
 				Groups:       []server.Group{{ID: "kinds", Title: "Refunds", Members: []string{"Refund", "Return"}}},
+				Edges: []server.Edge{
+					{Source: "Order", Target: "group:kinds", Kind: "has", Properties: []string{"refunds"}},
+					{Source: "Order", Target: "Pricer", Kind: "has", Properties: []string{"pricer"}},
+				},
 			},
 			Layout: server.Layout{
 				Components: map[string]server.Box{"core": box(0, 0), "ledger": box(300, 0), "context": box(600, 0)},
@@ -270,6 +274,14 @@ func TestAnArrowCountsOnlyTheLinksTheFilterShows(t *testing.T) {
 	packages, _ := diagram.Packages(tr, d.Page, "core")
 	if got := words(presentation.FilteredLinks(tr, d, packages.Links, types.PullFilter{21})); got != "prices · 0 links (out)" {
 		t.Errorf("under #21 the arrow between packages reads %q", got)
+	}
+	model := diagram.Types(tr, d.Page, "core", "model")
+	out := map[string]bool{}
+	for _, l := range presentation.FilteredLinks(tr, d, model.Links, types.PullFilter{22}) {
+		out[l.From+">"+l.To] = l.Out
+	}
+	if !out["Order>Pricer"] || out["Order>group:kinds"] {
+		t.Errorf("under #22 the links between types left out are %v", out)
 	}
 	scene := draw.Scene{Level: components, Grid: diagram.Arrange(tr, components.Cards, 4), Focus: -1}
 	c, _, _ := draw.Draw(tr, d, scene, types.PullFilter{22})

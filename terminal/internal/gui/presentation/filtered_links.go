@@ -12,7 +12,8 @@ import (
 
 // FilteredLinks are a level's links under a filter: each link between
 // components or packages worded with the count of its links the filter
-// shows, and out when that is none of them.
+// shows, and out when that is none of them; a link between types out when
+// the filter leaves out either end.
 func FilteredLinks(tr *i18n.TranslationSet, d types.ReviewData, links []diagram.Link, filter types.PullFilter) []diagram.Link {
 	if len(filter) == 0 {
 		return links
@@ -20,6 +21,10 @@ func FilteredLinks(tr *i18n.TranslationSet, d types.ReviewData, links []diagram.
 	out := make([]diagram.Link, len(links))
 	for i, l := range links {
 		out[i] = l
+		if l.Kind != "summary" && l.Kind != "package" {
+			out[i].Out = l.Outside == "" && !(Shows(d, l.From, filter) && Shows(d, l.To, filter))
+			continue
+		}
 		if len(l.Ways) == 0 {
 			continue
 		}
