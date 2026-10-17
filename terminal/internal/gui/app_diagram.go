@@ -11,6 +11,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
@@ -19,55 +20,56 @@ import (
 const labelLetters = "asdfghjklqwertyuiopzxcvbnm"
 
 func (a App) openDiagram() App {
-	if a.review == nil {
+	if a.Review == nil {
 		return a.say(a.c.Tr.NoReviewOpen, true)
 	}
-	a.focus, a.driving = mainPanel, diagramPanel
-	if a.screen == screenDiagram {
+	a.ContextTree = a.Focused(context.MainPanel, context.DiagramPanel)
+	if a.Screen() == context.ScreenDiagram {
 		return a
 	}
 	a = a.leave()
-	a.screen = screenDiagram
+	a.ContextTree = a.Showing(context.ScreenDiagram)
 	return a.diagramShown()
 }
 
 func (a App) showBox(at types.DiagramPlace) App {
-	v := newDiagramView(a.c.Tr, levelAt(a.c.Tr, a.review.Page, at), at.Box)
-	v.All, v.query = a.dg.All, a.dg.query
-	a.dg, a.screen = v, screenDiagram
+	v := context.NewDiagramContext(a.c.Tr, context.LevelAt(a.c.Tr, a.Review.Page, at), at.Box)
+	v.All, v.Query = a.Diagram.All, a.Diagram.Query
+	a.Diagram = v
+	a.ContextTree = a.Showing(context.ScreenDiagram).Closed(context.LabelsKey)
 	return a.diagramShown()
 }
 
 func (a App) diagramShown() App {
-	a.dg = a.dg.shownIn(a.c.Tr, *a.review, a.mainWidth(), a.mainHeight(), a.filter)
+	a.Diagram = a.Diagram.ShownIn(a.c.Tr, *a.Review, a.mainWidth(), a.mainHeight(), a.Filter)
 	return a
 }
 
 func (a App) diagramAction(action string, count int) (tea.Model, tea.Cmd) {
-	if a.review == nil {
+	if a.Review == nil {
 		return a, nil
 	}
-	v := a.dg
+	v := a.Diagram
 	switch action {
 	case "left", "down", "up", "right":
 		dir := map[string]string{"left": "h", "down": "j", "up": "k", "right": "l"}[action]
 		for ; count > 0; count-- {
-			i := v.Grid.Nearest(v.Focus, dir, rowLines)
+			i := v.Grid.Nearest(v.Focus, dir, context.RowLines)
 			if i < 0 {
 				break
 			}
 			v.Focus = i
 		}
-		a.dg = v
+		a.Diagram = v
 		return a.diagramShown(), nil
 	case "next box", "previous box":
 		if action == "previous box" {
 			count = -count
 		}
-		a.dg = v.moved(count)
+		a.Diagram = v.Moved(count)
 		return a.diagramShown(), nil
 	case "top", "bottom":
-		a.dg = v.moved(map[string]int{"top": -len(v.Level.Cards), "bottom": len(v.Level.Cards)}[action])
+		a.Diagram = v.Moved(map[string]int{"top": -len(v.Level.Cards), "bottom": len(v.Level.Cards)}[action])
 		return a.diagramShown(), nil
 	case "open":
 		return a.stepIn()
@@ -85,20 +87,21 @@ func (a App) diagramAction(action string, count int) (tea.Model, tea.Cmd) {
 		return a.boxDiff()
 	case "all links":
 		v.All = !v.All
-		a.dg = v
+		a.Diagram = v
 		return a.diagramShown(), nil
 	case "search", "search back":
-		a.searchBack = action == "search back"
-		return a.ask(map[bool]string{false: "/", true: "?"}[a.searchBack]), nil
+		a.SearchBack = action == "search back"
+		return a.ask(map[bool]string{false: "/", true: "?"}[a.SearchBack]), nil
 	case "next match", "previous match":
-		return a.findBox((action == "previous match") != a.searchBack)
+		return a.findBox((action == "previous match") != a.SearchBack)
 	case "labels":
 		order := v.Grid.Order()
 		v.Labels, v.Typed = map[string]int{}, ""
 		for i, at := range order {
 			v.Labels[label(i, len(order))] = at
 		}
-		a.dg = v
+		a.ContextTree = a.Opened(context.LabelsKey)
+		a.Diagram = v
 	}
 	return a, nil
 }
@@ -111,38 +114,40 @@ func label(i, n int) string {
 }
 
 func (a App) labelKey(name string) App {
-	v := a.dg
+	v := a.Diagram
 	typed := v.Typed + name
 	v.Labels, v.Typed = nil, ""
+	a.ContextTree = a.Closed(context.LabelsKey)
 	if name == "esc" || len([]rune(name)) != 1 {
-		a.dg = v
+		a.Diagram = v
 		return a
 	}
-	labels := a.dg.Labels
+	labels := a.Diagram.Labels
 	if at, ok := labels[typed]; ok {
 		v.Focus = at
-		a.dg = v
+		a.Diagram = v
 		return a.diagramShown()
 	}
 	for l := range labels {
 		if strings.HasPrefix(l, typed) {
 			v.Labels, v.Typed = labels, typed
-			a.dg = v
+			a.ContextTree = a.Opened(context.LabelsKey)
+			a.Diagram = v
 			return a
 		}
 	}
-	a.dg = v
+	a.Diagram = v
 	return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoBoxHasLabel, map[string]string{"label": typed}), true)
 }
 
 func (a App) stepIn() (tea.Model, tea.Cmd) {
-	card, ok := a.dg.Card()
+	card, ok := a.Diagram.Card()
 	if !ok {
 		return a, nil
 	}
 	switch card.Kind {
 	case "component":
-		packages, ok := diagram.Packages(a.c.Tr, a.review.Page, card.ID)
+		packages, ok := diagram.Packages(a.c.Tr, a.Review.Page, card.ID)
 		switch {
 		case ok:
 			return a.showBox(types.DiagramPlace{Level: "packages", Component: card.ID}), nil
@@ -151,7 +156,7 @@ func (a App) stepIn() (tea.Model, tea.Cmd) {
 		}
 		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NoTypesToDraw, map[string]string{"title": card.Title}), true), nil
 	case "package":
-		return a.showBox(types.DiagramPlace{Level: "types", Component: a.dg.Level.Component, Package: card.ID}), nil
+		return a.showBox(types.DiagramPlace{Level: "types", Component: a.Diagram.Level.Component, Package: card.ID}), nil
 	case "group":
 		return a.membersPanel(card), nil
 	}
@@ -159,10 +164,10 @@ func (a App) stepIn() (tea.Model, tea.Cmd) {
 }
 
 func (a App) stepOut() App {
-	l := a.dg.Level
+	l := a.Diagram.Level
 	switch l.Kind {
 	case "types":
-		if _, ok := diagram.Packages(a.c.Tr, a.review.Page, l.Component); ok {
+		if _, ok := diagram.Packages(a.c.Tr, a.Review.Page, l.Component); ok {
 			return a.showBox(types.DiagramPlace{Level: "packages", Component: l.Component, Box: l.Package})
 		}
 		return a.showBox(types.DiagramPlace{Level: "components", Box: l.Component})
@@ -170,12 +175,12 @@ func (a App) stepOut() App {
 		return a.showBox(types.DiagramPlace{Level: "components", Box: l.Component})
 	}
 	a = a.leave()
-	a.screen = screenReview
+	a.ContextTree = a.Showing(context.ScreenReview)
 	return a.relaid()
 }
 
 func (a App) boxDiff() (tea.Model, tea.Cmd) {
-	card, ok := a.dg.Card()
+	card, ok := a.Diagram.Card()
 	if !ok {
 		return a, nil
 	}
@@ -184,7 +189,7 @@ func (a App) boxDiff() (tea.Model, tea.Cmd) {
 		a = a.leave()
 		return a.openPlace(card.ID, nil)
 	case "package":
-		for _, f := range presentation.DiffFiles(*a.review, a.dg.Level.Component, nil) {
+		for _, f := range presentation.DiffFiles(*a.Review, a.Diagram.Level.Component, nil) {
 			if f.Package == card.ID {
 				a = a.leave()
 				return a.openPlace(f.Component, &server.Lines{Path: f.Path, Side: "file:"})
@@ -198,12 +203,12 @@ func (a App) boxDiff() (tea.Model, tea.Cmd) {
 }
 
 func (a App) openNode(id string) (tea.Model, tea.Cmd) {
-	n, ok := presentation.NodeOf(a.review.Page, id)
+	n, ok := presentation.NodeOf(a.Review.Page, id)
 	if !ok {
 		return a, nil
 	}
 	a = a.leave()
-	return a.openPlace(presentation.FileEntry(*a.review, n.File).Component, nodePlace(n))
+	return a.openPlace(presentation.FileEntry(*a.Review, n.File).Component, nodePlace(n))
 }
 
 func nodePlace(n server.Node) *server.Lines {
@@ -225,11 +230,11 @@ func boxOf(n server.Node) types.DiagramPlace {
 }
 
 func (a App) linkRows(out, in bool) []presentation.MenuRow {
-	card, ok := a.dg.Card()
+	card, ok := a.Diagram.Card()
 	if !ok {
 		return nil
 	}
-	l := a.dg.Level
+	l := a.Diagram.Level
 	var outs, ins []presentation.MenuRow
 	for _, link := range l.Links {
 		other, way := link.To, "out"
@@ -240,11 +245,11 @@ func (a App) linkRows(out, in bool) []presentation.MenuRow {
 		default:
 			continue
 		}
-		at := a.dg.place()
+		at := a.Diagram.Place()
 		at.Box = other
 		name, place := a.boxName(other), ""
 		if link.Outside != "" {
-			n, _ := presentation.NodeOf(a.review.Page, other)
+			n, _ := presentation.NodeOf(a.Review.Page, other)
 			at = boxOf(n)
 			place = " · " + utils.ResolvePlaceholderString(a.c.Tr.InPlace, map[string]string{"place": link.OutsidePlace})
 		}
@@ -263,17 +268,17 @@ func (a App) linkRows(out, in bool) []presentation.MenuRow {
 }
 
 func (a App) boxName(id string) string {
-	if n, ok := presentation.NodeOf(a.review.Page, id); ok {
+	if n, ok := presentation.NodeOf(a.Review.Page, id); ok {
 		return n.Name
 	}
-	if i := a.dg.Level.Index(id); i >= 0 {
-		return a.dg.Level.Cards[i].Title
+	if i := a.Diagram.Level.Index(id); i >= 0 {
+		return a.Diagram.Level.Cards[i].Title
 	}
 	return id
 }
 
 func (a App) linksPanel(out, in bool, none string) App {
-	card, ok := a.dg.Card()
+	card, ok := a.Diagram.Card()
 	if !ok {
 		return a
 	}
@@ -285,12 +290,12 @@ func (a App) linksPanel(out, in bool, none string) App {
 	if !out {
 		title = utils.ResolvePlaceholderString(a.c.Tr.WhatLinksTo, map[string]string{"name": a.boxName(card.ID)})
 	}
-	a.menu = &menu{Menu: presentation.Menu{Title: title, Rows: rows}}
+	a = a.withMenu(context.MenuContext{Menu: presentation.Menu{Title: title, Rows: rows}})
 	return a
 }
 
 func (a App) follow() (tea.Model, tea.Cmd) {
-	card, ok := a.dg.Card()
+	card, ok := a.Diagram.Card()
 	if !ok {
 		return a, nil
 	}
@@ -302,30 +307,30 @@ func (a App) follow() (tea.Model, tea.Cmd) {
 		a = a.leave()
 		return a.showBox(*rows[0].Open.Box), nil
 	}
-	a.menu = &menu{Menu: presentation.Menu{Title: utils.ResolvePlaceholderString(a.c.Tr.LinksTo, map[string]string{"name": a.boxName(card.ID)}), Rows: rows}}
+	a = a.withMenu(context.MenuContext{Menu: presentation.Menu{Title: utils.ResolvePlaceholderString(a.c.Tr.LinksTo, map[string]string{"name": a.boxName(card.ID)}), Rows: rows}})
 	return a, nil
 }
 
 func (a App) membersPanel(card diagram.Card) App {
-	pn := menu{Menu: presentation.Menu{Title: card.Title + " · " + utils.Plural(len(card.Members), a.c.Tr.MemberNoun)}}
+	pn := context.MenuContext{Menu: presentation.Menu{Title: card.Title + " · " + utils.Plural(len(card.Members), a.c.Tr.MemberNoun)}}
 	for _, id := range card.Members {
-		n, ok := presentation.NodeOf(a.review.Page, id)
+		n, ok := presentation.NodeOf(a.Review.Page, id)
 		if !ok {
 			continue
 		}
 		pn.Rows = append(pn.Rows, presentation.MenuRow{Left: n.Name, Right: path.Base(n.File) + "  " + diagram.StateWord(a.c.Tr, n.State), Open: &presentation.Item{Kind: "line", Place: nodePlace(n)}})
 	}
-	a.menu = &pn
+	a = a.withMenu(pn)
 	return a
 }
 
 func (a App) propertiesPanel() App {
-	card, ok := a.dg.Card()
+	card, ok := a.Diagram.Card()
 	if !ok {
 		return a
 	}
 	tr := a.c.Tr
-	n, ok := presentation.NodeOf(a.review.Page, card.ID)
+	n, ok := presentation.NodeOf(a.Review.Page, card.ID)
 	if !ok || card.Kind != "type" {
 		return a.say(tr.OnlyTypeHasProperties, true)
 	}
@@ -333,9 +338,9 @@ func (a App) propertiesPanel() App {
 		return a.say(utils.ResolvePlaceholderString(tr.NoStoredProperties, map[string]string{"name": n.Name}), true)
 	}
 	holds := map[string]string{}
-	for _, e := range a.review.Page.Model.Edges {
+	for _, e := range a.Review.Page.Model.Edges {
 		if e.Source == n.ID && e.Kind == "has" {
-			target, _ := presentation.NodeOf(a.review.Page, e.Target)
+			target, _ := presentation.NodeOf(a.Review.Page, e.Target)
 			for _, p := range e.Properties {
 				holds[p] = tr.LinkHolds + " " + target.Name
 			}
@@ -349,7 +354,7 @@ func (a App) propertiesPanel() App {
 		typeWidth = max(typeWidth, len([]rune(p.Type)))
 		lineWidth = max(lineWidth, len(lineAt(p.Line)))
 	}
-	pn := menu{Menu: presentation.Menu{Title: n.Name + " · " + utils.Plural(len(n.Properties), tr.PropertyNoun)}}
+	pn := context.MenuContext{Menu: presentation.Menu{Title: n.Name + " · " + utils.Plural(len(n.Properties), tr.PropertyNoun)}}
 	for _, p := range n.Properties {
 		inferred := ""
 		if p.Inferred {
@@ -358,16 +363,16 @@ func (a App) propertiesPanel() App {
 		right := fmt.Sprintf("%-*s  %-8s  %-*s  %s", typeWidth, p.Type, inferred, lineWidth, lineAt(p.Line), holds[p.Name])
 		pn.Rows = append(pn.Rows, presentation.MenuRow{Left: p.Name, Right: strings.TrimRight(right, " "), Open: &presentation.Item{Kind: "line", Place: &server.Lines{Path: n.File, Side: "RIGHT", Line: p.Line}}})
 	}
-	a.menu = &pn
+	a = a.withMenu(pn)
 	return a
 }
 
 func (a App) findBox(back bool) (tea.Model, tea.Cmd) {
-	query := strings.ToLower(a.dg.query)
+	query := strings.ToLower(a.Diagram.Query)
 	if query == "" {
 		return a, nil
 	}
-	nodes := a.review.Page.Model.Nodes
+	nodes := a.Review.Page.Model.Nodes
 	var hits []int
 	for i, n := range nodes {
 		if strings.Contains(strings.ToLower(n.Name), query) || strings.Contains(strings.ToLower(path.Base(n.File)), query) {
@@ -375,9 +380,9 @@ func (a App) findBox(back bool) (tea.Model, tea.Cmd) {
 		}
 	}
 	if len(hits) == 0 {
-		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NothingIsCalled, map[string]string{"query": strconv.Quote(a.dg.query)}), true), nil
+		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NothingIsCalled, map[string]string{"query": strconv.Quote(a.Diagram.Query)}), true), nil
 	}
-	here := a.dg.place()
+	here := a.Diagram.Place()
 	from, to := -1, len(nodes)
 	for i, n := range nodes {
 		if at := boxOf(n); here.Level == "types" && at == here {
@@ -403,17 +408,17 @@ func (a App) findBox(back bool) (tea.Model, tea.Cmd) {
 	}
 	a = a.leave()
 	a = a.showBox(boxOf(nodes[hits[pick]]))
-	return a.say(utils.ResolvePlaceholderString(a.c.Tr.MatchOfFor, map[string]string{"at": utils.Itoa(pick + 1), "total": utils.Itoa(len(hits)), "query": strconv.Quote(a.dg.query)}), false), nil
+	return a.say(utils.ResolvePlaceholderString(a.c.Tr.MatchOfFor, map[string]string{"at": utils.Itoa(pick + 1), "total": utils.Itoa(len(hits)), "query": strconv.Quote(a.Diagram.Query)}), false), nil
 }
 
 func (a App) showType() (tea.Model, tea.Cmd) {
-	v := a.diff
+	v := a.Diff
 	if v.Cursor >= len(v.Rows) {
 		return a, nil
 	}
 	r := v.Rows[v.Cursor]
 	var types []server.Node
-	for _, n := range a.review.Page.Model.Nodes {
+	for _, n := range a.Review.Page.Model.Nodes {
 		if n.File == r.Path {
 			types = append(types, n)
 		}
@@ -424,12 +429,12 @@ func (a App) showType() (tea.Model, tea.Cmd) {
 	}
 	sort.SliceStable(types, func(i, j int) bool { return types[i].Line < types[j].Line })
 	if r.Kind == "file" {
-		pn := menu{Menu: presentation.Menu{Title: utils.ResolvePlaceholderString(tr.TypesIn, map[string]string{"file": path.Base(r.Path)})}}
+		pn := context.MenuContext{Menu: presentation.Menu{Title: utils.ResolvePlaceholderString(tr.TypesIn, map[string]string{"file": path.Base(r.Path)})}}
 		for _, n := range types {
 			at := boxOf(n)
 			pn.Rows = append(pn.Rows, presentation.MenuRow{Left: n.Name, Right: n.Kind + " · " + utils.ResolvePlaceholderString(tr.LineAt, map[string]string{"line": utils.Itoa(n.Line)}), Open: &presentation.Item{Kind: "box", Box: &at}})
 		}
-		a.menu = &pn
+		a = a.withMenu(pn)
 		return a, nil
 	}
 	_, line, ok := r.At()
@@ -448,7 +453,7 @@ func (a App) showType() (tea.Model, tea.Cmd) {
 
 func (a App) diagramHints() [][2]string {
 	tr := a.c.Tr
-	card, _ := a.dg.Card()
+	card, _ := a.Diagram.Card()
 	switch card.Kind {
 	case "type", "file":
 		return [][2]string{{"Enter", tr.Diff}, {"gd", tr.Follow}, {"Space l", tr.Links}, {"Space p", tr.Properties}, {"-", tr.Out}}
@@ -456,7 +461,7 @@ func (a App) diagramHints() [][2]string {
 		return [][2]string{{"Enter", tr.Members}, {"gd", tr.Follow}, {"Space l", tr.Links}, {"-", tr.Out}}
 	}
 	out := tr.Out
-	if a.dg.Level.Kind == "components" {
+	if a.Diagram.Level.Kind == "components" {
 		out = tr.ReviewView
 	}
 	return [][2]string{{"h j k l", tr.Move}, {"Enter", tr.In}, {"Space d", tr.Diff}, {"/", tr.Find}, {"f", tr.Labels}, {"-", out}}

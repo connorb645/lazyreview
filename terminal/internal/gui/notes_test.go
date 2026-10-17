@@ -6,21 +6,23 @@ import (
 	"testing"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
 
 func onBasket(t *testing.T, set ...func(*Options)) App {
 	t.Helper()
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30, set...)
 	a = typed(t, press(t, a, "space", "f"), "Basket/Basket")
-	if a.screen != screenDiff || cursorAt(a) != "Sources/Basket/Basket.swift file" {
-		t.Fatalf("the finder opened %v at %s", a.screen, cursorAt(a))
+	if a.Screen() != context.ScreenDiff || cursorAt(a) != "Sources/Basket/Basket.swift file" {
+		t.Fatalf("the finder opened %v at %s", a.Screen(), cursorAt(a))
 	}
 	return a
 }
 
 func noteKeyAt(a App) string {
-	r := a.diff.Rows[a.diff.Cursor]
+	r := a.Diff.Rows[a.Diff.Cursor]
 	return r.Kind + " " + r.Key
 }
 
@@ -34,7 +36,7 @@ func TestNotesShowUnderTheirLines(t *testing.T) {
 	a = press(t, a, "z", "a", "]", "n", "z", "a")
 	screenIs(t, a, "notes-open")
 	a = press(t, a, "[", "n", "z", "a")
-	if a.diff.NoteOpen(presentation.Note{Key: "conversation:1", Kind: "conversation"}) {
+	if a.Diff.NoteOpen(presentation.Note{Key: "conversation:1", Kind: "conversation"}) {
 		t.Fatal("za folds the conversation again")
 	}
 }
@@ -52,8 +54,8 @@ func TestACommentIsWrittenInTheEditorAndQueued(t *testing.T) {
 	if string(file) != want {
 		t.Fatalf("the editor was given:\n%s\nnot:\n%s", file, want)
 	}
-	if a.notice != "Queued: A comment on Sources/Basket/Basket.swift, line 3" || a.bad {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Notice != "Queued: A comment on Sources/Basket/Basket.swift, line 3" || a.Bad {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 	screenIs(t, a, "comment-queued")
 }
@@ -70,10 +72,10 @@ func TestASelectionIsCommentedOnAsARange(t *testing.T) {
 		t.Fatalf("o keeps the same lines: %+v", at)
 	}
 	a = press(t, a, "c")
-	if a.bad || a.diff.Selecting {
-		t.Fatalf("the range was not queued: %q", a.notice)
+	if a.Bad || a.Diff.Selecting {
+		t.Fatalf("the range was not queued: %q", a.Notice)
 	}
-	if n, ok := presentation.NoteOf(*a.review, "Sources/Catalog/MemoryCatalog.swift", "queued:4"); !ok || n.At.StartLine != 7 || n.At.Line != 9 {
+	if n, ok := presentation.NoteOf(*a.Review, "Sources/Catalog/MemoryCatalog.swift", "queued:4"); !ok || n.At.StartLine != 7 || n.At.Line != 9 {
 		t.Fatalf("queued comment 4 shows on %+v", n.At)
 	}
 }
@@ -84,8 +86,8 @@ func TestACommentWhereNoneCanGoSaysWhyFirst(t *testing.T) {
 	a = typed(t, press(t, a, "space", "f"), "Catalog/Catalog.swift")
 	a = typed(t, press(t, a, ":"), "1")
 	a = press(t, a, "c")
-	if !a.bad || a.notice != "This file is not in the change, so a comment cannot go on it. Ask Claude about it instead." {
-		t.Fatalf("the status line says %q", a.notice)
+	if !a.Bad || a.Notice != "This file is not in the change, so a comment cannot go on it. Ask Claude about it instead." {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 	if _, err := os.Stat(seen); err == nil {
 		t.Fatal("the editor opened for a comment that cannot go anywhere")
@@ -96,15 +98,15 @@ func TestSavingNothingSendsNothing(t *testing.T) {
 	editor, _ := writer(t, "")
 	a := onBasket(t, editor)
 	a = press(t, typed(t, press(t, a, ":"), "3"), "c")
-	if a.notice != "Nothing was written, so nothing was sent." {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Notice != "Nothing was written, so nothing was sent." {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 }
 
 func TestARefusedEditKeepsItsTextAndSavesOverTheNewVersion(t *testing.T) {
 	editor, _ := writer(t, "Keep the order the items came in.")
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30, editor)
-	state := a.review.State
+	state := a.Review.State
 	queue := *state.Queue
 	queue.Members = append([]server.QueueMember{}, queue.Members...)
 	queue.Members[0].Comments = append([]server.Comment{}, queue.Members[0].Comments...)
@@ -113,24 +115,24 @@ func TestARefusedEditKeepsItsTextAndSavesOverTheNewVersion(t *testing.T) {
 	state.Queue = &queue
 	a = a.withState(state)
 	a = press(t, a, "0", "]", "]")
-	for a.rv.view.items[a.rv.view.cursor].Kind != "comment" {
+	for a.ReviewView.View.Items[a.ReviewView.View.Cursor].Kind != "comment" {
 		a = press(t, a, "j")
 	}
 	a = press(t, a, "e")
-	if !a.bad || !strings.HasPrefix(a.notice, "not changed: comment 1 was changed after this window showed it") {
-		t.Fatalf("the status line says %q", a.notice)
+	if !a.Bad || !strings.HasPrefix(a.Notice, "not changed: comment 1 was changed after this window showed it") {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
-	if a.drafts["edit 1"] != "Keep the order the items came in." {
-		t.Fatalf("the text was not kept: %q", a.drafts)
+	if a.Drafts["edit 1"] != "Keep the order the items came in." {
+		t.Fatalf("the text was not kept: %q", a.Drafts)
 	}
 	keep := Options{}
 	keep.Editor = "true"
 	a.opts.Editor = keep.Editor
 	a = press(t, a, "e")
-	if a.bad || a.notice != "Saved queued comment 1." {
-		t.Fatalf("saving again over the new version: %q", a.notice)
+	if a.Bad || a.Notice != "Saved queued comment 1." {
+		t.Fatalf("saving again over the new version: %q", a.Notice)
 	}
-	if _, ok := a.drafts["edit 1"]; ok {
+	if _, ok := a.Drafts["edit 1"]; ok {
 		t.Fatal("the draft stays after it was saved")
 	}
 }
@@ -144,14 +146,14 @@ func TestDropAsksFirst(t *testing.T) {
 	a = press(t, a, "d", "d")
 	screenIs(t, a, "drop-asks")
 	a = press(t, a, "n")
-	if a.notice != "Kept queued comment 2." {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Notice != "Kept queued comment 2." {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 	a = press(t, a, "d", "d", "y")
-	if a.notice != "Dropped queued comment 2." {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Notice != "Dropped queued comment 2." {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
-	if _, ok := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "queued:2"); ok {
+	if _, ok := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "queued:2"); ok {
 		t.Fatal("the dropped comment still shows")
 	}
 }
@@ -164,8 +166,8 @@ func TestClaudeIsAskedAndAFollowUpGoesInTheConversation(t *testing.T) {
 	if !strings.Contains(string(file), "# A question to Claude about Sources/Basket/Basket.swift, line 3.\n# Claude answers here, in the review. Nothing goes to GitHub.\n") {
 		t.Fatalf("the editor was given:\n%s", file)
 	}
-	if a.notice != "Claude answered." {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Notice != "Claude answered." {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 	screenIs(t, a, "asked")
 	follow, seen := writer(t, "Could it be passed in?")
@@ -179,7 +181,7 @@ func TestClaudeIsAskedAndAFollowUpGoesInTheConversation(t *testing.T) {
 	if !strings.Contains(string(file), "# A follow-up to Claude on Sources/Basket/Basket.swift, line 7.\n# The conversation so far:\n#\n#   You: Could this be passed in?\n") {
 		t.Fatalf("the editor was given:\n%s", file)
 	}
-	if n, _ := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "conversation:1"); len(n.Conversation.Messages) != 4 {
+	if n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "conversation:1"); len(n.Conversation.Messages) != 4 {
 		t.Fatalf("the follow-up and its answer: %+v", n.Conversation.Messages)
 	}
 }
@@ -187,24 +189,24 @@ func TestClaudeIsAskedAndAFollowUpGoesInTheConversation(t *testing.T) {
 func TestClaudesAnswerBecomesTheComment(t *testing.T) {
 	a := onBasket(t, func(o *Options) { o.Editor = "true" })
 	a = press(t, a, "]", "n", "z", "a", "j", "j")
-	if r := a.diff.Rows[a.diff.Cursor]; r.Part != "claude" {
+	if r := a.Diff.Rows[a.Diff.Cursor]; r.Part != "claude" {
 		t.Fatalf("on %+v", r)
 	}
 	a = press(t, a, "c")
-	if a.bad || a.notice != "Queued: A comment on Sources/Basket/Basket.swift, line 7, from Claude's answer" {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Bad || a.Notice != "Queued: A comment on Sources/Basket/Basket.swift, line 7, from Claude's answer" {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 }
 
 func TestALineSeveralPullRequestsShowAsksWhichFirst(t *testing.T) {
 	a := onBasket(t)
-	e := editing{purpose: "comment", at: server.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 2}, key: "comment", about: []string{"A comment on Sources/Basket/Basket.swift, line 2."}}
-	a = send(t, a, checked{e: e, where: server.Where{Words: "Choose the pull request it goes on.", Choose: []server.Choice{{Pull: 21, Path: "Sources/Basket/Basket.swift", Line: 2}, {Pull: 22, Path: "Sources/Basket/Basket.swift", Line: 2}}}})
-	if a.menu == nil || len(a.menu.Rows) != 2 || a.menu.Title != "Choose the pull request it goes on." {
-		t.Fatalf("the choice: %+v", a.menu)
+	e := types.Editing{Purpose: "comment", At: server.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 2}, Key: "comment", About: []string{"A comment on Sources/Basket/Basket.swift, line 2."}}
+	a = send(t, a, types.Checked{E: e, Where: server.Where{Words: "Choose the pull request it goes on.", Choose: []server.Choice{{Pull: 21, Path: "Sources/Basket/Basket.swift", Line: 2}, {Pull: 22, Path: "Sources/Basket/Basket.swift", Line: 2}}}})
+	if !a.menuOpen() || len(a.Menu.Rows) != 2 || a.Menu.Title != "Choose the pull request it goes on." {
+		t.Fatalf("the choice: %+v", a.Menu)
 	}
 	a = press(t, a, "j", "enter")
-	if !strings.Contains(a.notice, "pull=22") {
-		t.Fatalf("the choice was not asked about again with its pull request: %q", a.notice)
+	if !strings.Contains(a.Notice, "pull=22") {
+		t.Fatalf("the choice was not asked about again with its pull request: %q", a.Notice)
 	}
 }

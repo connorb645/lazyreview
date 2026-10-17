@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/keys"
@@ -29,11 +30,11 @@ var sideKeys = keys.Bindings{
 	"1": "focus review", "2": "focus files", "3": "focus notes", "4": "focus diagram",
 }
 
-var sidePanelKeys = [sideCount + 1]keys.Bindings{
-	reviewPanel: {"P": "post", "v": "highlight"},
-	filesPanel:  {"z a": "toggle fold"},
-	notesPanel:  {"e": "edit", "d d": "drop", "P": "post"},
-	diagramPanel: {
+var sidePanelKeys = [context.SideCount + 1]keys.Bindings{
+	context.ReviewPanel: {"P": "post", "v": "highlight"},
+	context.FilesPanel:  {"z a": "toggle fold"},
+	context.NotesPanel:  {"e": "edit", "d d": "drop", "P": "post"},
+	context.DiagramPanel: {
 		"h": "left", "l": "right",
 		"w": "next box", "b": "previous box", "-": "back",
 		"g d": "follow", "g r": "references", "/": "search", "?": "search back", "n": "next match", "N": "previous match",
@@ -86,9 +87,9 @@ func everyViewHelp(tr *i18n.TranslationSet) []presentation.HelpRow {
 	}
 }
 
-func sideHelp(tr *i18n.TranslationSet) [sideCount + 1][]presentation.HelpRow {
-	return [sideCount + 1][]presentation.HelpRow{
-		reviewPanel: {
+func sideHelp(tr *i18n.TranslationSet) [context.SideCount + 1][]presentation.HelpRow {
+	return [context.SideCount + 1][]presentation.HelpRow{
+		context.ReviewPanel: {
 			{Keys: "j k gg G", Words: tr.HelpPullsMove},
 			{Keys: "h l", Words: tr.HelpPanelsRound},
 			{Keys: "Enter", Words: tr.HelpOpenReviewView},
@@ -96,20 +97,20 @@ func sideHelp(tr *i18n.TranslationSet) [sideCount + 1][]presentation.HelpRow {
 			{Keys: "Esc", Words: tr.HelpClearHighlight},
 			{Keys: "P", Words: tr.HelpPostPull},
 		},
-		filesPanel: {
+		context.FilesPanel: {
 			{Keys: "j k gg G", Words: tr.HelpFilesMove},
 			{Keys: "h l", Words: tr.HelpPanels},
 			{Keys: "Enter", Words: tr.HelpOpenFile},
 			{Keys: "za", Words: tr.HelpFoldTree},
 		},
-		notesPanel: {
+		context.NotesPanel: {
 			{Keys: "j k gg G", Words: tr.HelpNotesMove},
 			{Keys: "h l", Words: tr.HelpPanels},
 			{Keys: "Enter", Words: tr.HelpOpenNote},
 			{Keys: "e dd", Words: tr.HelpEditDrop},
 			{Keys: "P", Words: tr.HelpPostComment},
 		},
-		diagramPanel: {
+		context.DiagramPanel: {
 			{Keys: "j k w b gg G", Words: tr.HelpBoxesMove},
 			{Keys: "h l", Words: tr.HelpBoxesSideways},
 			{Keys: "Enter", Words: tr.HelpStepIn},

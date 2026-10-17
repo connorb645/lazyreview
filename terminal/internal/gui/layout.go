@@ -1,14 +1,8 @@
 package gui
 
-import "github.com/connorb645/lazyreview/terminal/internal/gui/views"
-
-const (
-	mainPanel = iota
-	reviewPanel
-	filesPanel
-	notesPanel
-	diagramPanel
-	sideCount = diagramPanel
+import (
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 )
 
 const (
@@ -17,17 +11,17 @@ const (
 )
 
 type layout struct {
-	sides [sideCount + 1]views.Rect
+	sides [context.SideCount + 1]views.Rect
 	main  views.Rect
 	bar   views.Rect
 }
 
-func lay(width, height, focus, driving int, mode screenMode, wants [sideCount + 1]int) layout {
+func lay(width, height, focus, driving int, mode context.ScreenMode, wants [context.SideCount + 1]int) layout {
 	l := layout{bar: views.Rect{Y: height - 1, W: width, H: 1}}
 	h := height - 1
-	if mode == fullScreen || width < narrowest || h < shortest {
+	if mode == context.FullScreen || width < narrowest || h < shortest {
 		whole := views.Rect{W: width, H: h}
-		if focus == mainPanel {
+		if focus == context.MainPanel {
 			l.main = whole
 		} else {
 			l.sides[focus] = whole
@@ -36,18 +30,18 @@ func lay(width, height, focus, driving int, mode screenMode, wants [sideCount + 
 	}
 	side := max(width/3, 24)
 	switch {
-	case mode == halfScreen && focus == mainPanel:
+	case mode == context.HalfScreen && focus == context.MainPanel:
 		side = max(width/5, 16)
-	case mode == halfScreen:
+	case mode == context.HalfScreen:
 		side = width / 2
 	}
 	l.main = views.Rect{X: side, W: width - side, H: h}
-	first := min(wants[reviewPanel]+2, max(3, h/4))
-	l.sides[reviewPanel] = views.Rect{W: side, H: first}
-	heights := shared(h-first, driving-filesPanel, []int{wants[filesPanel] + 2, wants[notesPanel] + 2, wants[diagramPanel] + 2}, 6)
+	first := min(wants[context.ReviewPanel]+2, max(3, h/4))
+	l.sides[context.ReviewPanel] = views.Rect{W: side, H: first}
+	heights := shared(h-first, driving-context.FilesPanel, []int{wants[context.FilesPanel] + 2, wants[context.NotesPanel] + 2, wants[context.DiagramPanel] + 2}, 6)
 	y := first
 	for i, n := range heights {
-		l.sides[filesPanel+i] = views.Rect{Y: y, W: side, H: n}
+		l.sides[context.FilesPanel+i] = views.Rect{Y: y, W: side, H: n}
 		y += n
 	}
 	return l

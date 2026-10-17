@@ -7,11 +7,12 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 func cursorAt(a App) string {
-	r := a.diff.Rows[a.diff.Cursor]
+	r := a.Diff.Rows[a.Diff.Cursor]
 	side, line, ok := r.At()
 	if !ok {
 		return r.Path + " " + r.Kind
@@ -23,8 +24,8 @@ func openedOnComment(t *testing.T) App {
 	t.Helper()
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "0", "]", "]", "]", "]", "j", "j", "enter")
-	if a.screen != screenDiff {
-		t.Fatalf("Enter on a queued comment did not open its diff: %q", a.notice)
+	if a.Screen() != context.ScreenDiff {
+		t.Fatalf("Enter on a queued comment did not open its diff: %q", a.Notice)
 	}
 	return a
 }
@@ -36,19 +37,19 @@ func TestEnterOnAQueuedCommentOpensItsLineInTheDiff(t *testing.T) {
 	}
 	screenIs(t, a, "diff-stack")
 	a = press(t, a, "-")
-	if a.screen != screenReview {
+	if a.Screen() != context.ScreenReview {
 		t.Fatal("- went back to the Review view")
 	}
 	a = press(t, a, "ctrl+o")
-	if a.screen != screenDiff || cursorAt(a) != "Sources/Catalog/MemoryCatalog.swift RIGHT 10" {
-		t.Fatalf("Ctrl-o went back to the diff, at %v", a.screen)
+	if a.Screen() != context.ScreenDiff || cursorAt(a) != "Sources/Catalog/MemoryCatalog.swift RIGHT 10" {
+		t.Fatalf("Ctrl-o went back to the diff, at %v", a.Screen())
 	}
 	a = press(t, a, "ctrl+o")
-	if a.screen != screenReview || a.rv.view.items[a.rv.view.cursor].Comment != 1 {
+	if a.Screen() != context.ScreenReview || a.ReviewView.View.Items[a.ReviewView.View.Cursor].Comment != 1 {
 		t.Fatal("Ctrl-o again went back to the comment in the Review view")
 	}
 	a = press(t, a, "tab")
-	if a.screen != screenDiff {
+	if a.Screen() != context.ScreenDiff {
 		t.Fatal("Ctrl-i went forward to the diff")
 	}
 }
@@ -94,19 +95,19 @@ func TestMovingThroughTheDiffByLineHunkFileAndSearch(t *testing.T) {
 func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 	a := openedOnComment(t)
 	a = press(t, a, "[", "f", "j")
-	if a.diff.Rows[a.diff.Cursor].Kind != "gap" {
-		t.Fatalf("below MemoryCatalog's header is its run of unchanged lines, not %s", a.diff.Rows[a.diff.Cursor].Kind)
+	if a.Diff.Rows[a.Diff.Cursor].Kind != "gap" {
+		t.Fatalf("below MemoryCatalog's header is its run of unchanged lines, not %s", a.Diff.Rows[a.Diff.Cursor].Kind)
 	}
 	a = press(t, a, "z", "o")
-	if got := cursorAt(a); !strings.HasPrefix(got, "Sources/Catalog/MemoryCatalog.swift") || a.diff.Rows[a.diff.Cursor].Kind != "line" {
+	if got := cursorAt(a); !strings.HasPrefix(got, "Sources/Catalog/MemoryCatalog.swift") || a.Diff.Rows[a.Diff.Cursor].Kind != "line" {
 		t.Fatalf("zo opened the run, the cursor on its first line, not %s", got)
 	}
 	a = press(t, a, "z", "c")
-	if a.diff.Rows[a.diff.Cursor].Kind != "gap" {
+	if a.Diff.Rows[a.Diff.Cursor].Kind != "gap" {
 		t.Fatal("zc closed the run again")
 	}
 	a = press(t, a, "z", "M")
-	for _, r := range a.diff.Rows {
+	for _, r := range a.Diff.Rows {
 		if r.Kind != "file" {
 			t.Fatalf("zM closed every file, but a %s row shows", r.Kind)
 		}
@@ -120,7 +121,7 @@ func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 	a = press(t, a, "space", "s", "space", "o")
 	screenIs(t, a, "diff-whole")
 	a = press(t, a, "space", "o", "g", "g", "enter")
-	if !a.diff.Folded["Sources/Basket/Basket.swift"] {
+	if !a.Diff.Folded["Sources/Basket/Basket.swift"] {
 		t.Fatal("Enter on a file's header folds it")
 	}
 }
@@ -128,27 +129,27 @@ func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 func TestThePullRequestFilterDimsWhatItLeavesOut(t *testing.T) {
 	a := openedOnComment(t)
 	a = press(t, a, "]", "p")
-	if got := fmt.Sprint(a.filter); got != "[21]" {
+	if got := fmt.Sprint(a.Filter); got != "[21]" {
 		t.Fatalf("]p chose %s", got)
 	}
-	for _, r := range a.diff.Rows {
+	for _, r := range a.Diff.Rows {
 		if r.Path == "Sources/Basket/Basket.swift" {
 			t.Fatal("the filter to #21 leaves out a file only #22 changed")
 		}
 	}
 	screenIs(t, a, "diff-filtered")
 	a = press(t, a, "[", "p")
-	if got := fmt.Sprint(a.filter); got != "[]" {
+	if got := fmt.Sprint(a.Filter); got != "[]" {
 		t.Fatalf("[p went back to All, not %s", got)
 	}
 	a = press(t, a, ":")
 	a = typed(t, a, "pull 22")
-	if got := fmt.Sprint(a.filter); got != "[22]" {
+	if got := fmt.Sprint(a.Filter); got != "[22]" {
 		t.Fatalf(":pull 22 chose %s", got)
 	}
 	a = press(t, a, ":")
 	a = typed(t, a, "pull all")
-	if got := fmt.Sprint(a.filter); got != "[]" {
+	if got := fmt.Sprint(a.Filter); got != "[]" {
 		t.Fatalf(":pull all chose %s", got)
 	}
 }

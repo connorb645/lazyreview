@@ -7,46 +7,47 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 )
 
 func selectedKey(a App, n int) string {
-	row, _ := a.sides[n].selected()
+	row, _ := a.Side(n).Selected()
 	return row.Key
 }
 
 func TestTheAppOpensOnTheReviewPanelBesideTheReviewView(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
-	if a.focus != reviewPanel || a.screen != screenReview {
-		t.Fatalf("it opens with panel %d on screen %d", a.focus, a.screen)
+	if a.Focus() != context.ReviewPanel || a.Screen() != context.ScreenReview {
+		t.Fatalf("it opens with panel %d on screen %d", a.Focus(), a.Screen())
 	}
 	screenIs(t, a, "panels")
 	a = press(t, a, "j")
-	if got := selectedKey(a, reviewPanel); got != "pull:22" {
+	if got := selectedKey(a, context.ReviewPanel); got != "pull:22" {
 		t.Fatalf("j in the Review panel chose %s", got)
 	}
 	a = press(t, a, "enter")
-	if a.focus != mainPanel || a.screen != screenReview {
-		t.Fatalf("Enter gives the Review view the keys, not panel %d", a.focus)
+	if a.Focus() != context.MainPanel || a.Screen() != context.ScreenReview {
+		t.Fatalf("Enter gives the Review view the keys, not panel %d", a.Focus())
 	}
 	a = press(t, a, "esc")
-	if a.focus != reviewPanel {
-		t.Fatalf("Esc goes back to the Review panel, not %d", a.focus)
+	if a.Focus() != context.ReviewPanel {
+		t.Fatalf("Esc goes back to the Review panel, not %d", a.Focus())
 	}
 	a = press(t, a, "q")
-	if a.notice != "ZZ or :q quits" {
-		t.Fatalf("q with nothing to close says how to quit, not %q", a.notice)
+	if a.Notice != "ZZ or :q quits" {
+		t.Fatalf("q with nothing to close says how to quit, not %q", a.Notice)
 	}
 }
 
 func TestTheFilesPanelShowsTheSelectedFilesDiff(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "2")
-	if a.focus != filesPanel || a.screen != screenDiff || a.diff.Component != "root" {
-		t.Fatalf("2 shows the first component's diff: panel %d, screen %d, %q", a.focus, a.screen, a.diff.Component)
+	if a.Focus() != context.FilesPanel || a.Screen() != context.ScreenDiff || a.Diff.Component != "root" {
+		t.Fatalf("2 shows the first component's diff: panel %d, screen %d, %q", a.Focus(), a.Screen(), a.Diff.Component)
 	}
 	a = press(t, a, "j", "j")
-	if got := selectedKey(a, filesPanel); got != "file:Sources/Basket/Basket.swift" {
+	if got := selectedKey(a, context.FilesPanel); got != "file:Sources/Basket/Basket.swift" {
 		t.Fatalf("j j chose %s", got)
 	}
 	if got := cursorAt(a); got != "Sources/Basket/Basket.swift file" {
@@ -54,19 +55,19 @@ func TestTheFilesPanelShowsTheSelectedFilesDiff(t *testing.T) {
 	}
 	screenIs(t, a, "files")
 	a = press(t, a, "enter", "j")
-	if a.focus != mainPanel || cursorAt(a) == "Sources/Basket/Basket.swift file" {
-		t.Fatalf("Enter gives the diff the keys: panel %d at %s", a.focus, cursorAt(a))
+	if a.Focus() != context.MainPanel || cursorAt(a) == "Sources/Basket/Basket.swift file" {
+		t.Fatalf("Enter gives the diff the keys: panel %d at %s", a.Focus(), cursorAt(a))
 	}
 	a = press(t, a, "]", "f")
-	if got := selectedKey(a, filesPanel); got != "file:Sources/Catalog/MemoryCatalog.swift" {
+	if got := selectedKey(a, context.FilesPanel); got != "file:Sources/Catalog/MemoryCatalog.swift" {
 		t.Fatalf("]f in the diff moves the Files panel with it, to %s", got)
 	}
 	a = press(t, a, "esc", "g", "g", "z", "a")
-	if a.sides[filesPanel].index("file:Sources/Basket/Basket.swift") >= 0 {
+	if a.Side(context.FilesPanel).Index("file:Sources/Basket/Basket.swift") >= 0 {
 		t.Fatal("za on a component folds its files away")
 	}
 	a = press(t, a, "enter")
-	if a.sides[filesPanel].index("file:Sources/Basket/Basket.swift") < 0 {
+	if a.Side(context.FilesPanel).Index("file:Sources/Basket/Basket.swift") < 0 {
 		t.Fatal("Enter on a folded component unfolds it")
 	}
 }
@@ -74,7 +75,7 @@ func TestTheFilesPanelShowsTheSelectedFilesDiff(t *testing.T) {
 func TestTheNotesPanelShowsTheNoteInItsDiff(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "3")
-	if got := selectedKey(a, notesPanel); got != "queued:1" {
+	if got := selectedKey(a, context.NotesPanel); got != "queued:1" {
 		t.Fatalf("3 chose %s", got)
 	}
 	if got := noteKeyAt(a); got != "notehead queued:1" {
@@ -86,37 +87,37 @@ func TestTheNotesPanelShowsTheNoteInItsDiff(t *testing.T) {
 	}
 	screenIs(t, a, "notes-panel")
 	a = press(t, a, "k", "d", "d")
-	if a.confirming == nil || a.confirming.comment != 2 {
-		t.Fatalf("dd in the Notes panel asks to drop the comment chosen: %+v", a.confirming)
+	if !a.Has(context.ConfirmationKey) || a.Confirmation.Comment != 2 {
+		t.Fatalf("dd in the Notes panel asks to drop the comment chosen: %+v", a.Confirmation)
 	}
 	a = press(t, a, "n", "P")
-	if a.posting == nil || a.posting.pull != 22 {
-		t.Fatalf("P posts for the chosen comment's pull request: %+v", a.posting)
+	if !a.Has(context.PostingKey) || a.Posting.Pull != 22 {
+		t.Fatalf("P posts for the chosen comment's pull request: %+v", a.Posting)
 	}
 }
 
 func TestTheDiagramPanelListsTheBoxesInReadingOrder(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "4")
-	if a.screen != screenDiagram || selectedKey(a, diagramPanel) != "box:root" {
-		t.Fatalf("4 shows the diagram: screen %d on %s", a.screen, selectedKey(a, diagramPanel))
+	if a.Screen() != context.ScreenDiagram || selectedKey(a, context.DiagramPanel) != "box:root" {
+		t.Fatalf("4 shows the diagram: screen %d on %s", a.Screen(), selectedKey(a, context.DiagramPanel))
 	}
 	a = press(t, a, "enter")
-	if a.focus != diagramPanel || a.dg.Level.Kind != "packages" {
-		t.Fatalf("Enter steps in and keeps the panel: %d, %s", a.focus, a.dg.Level.Kind)
+	if a.Focus() != context.DiagramPanel || a.Diagram.Level.Kind != "packages" {
+		t.Fatalf("Enter steps in and keeps the panel: %d, %s", a.Focus(), a.Diagram.Level.Kind)
 	}
-	before := a.dg.Focus
+	before := a.Diagram.Focus
 	a = press(t, a, "j")
-	if a.dg.Focus == before || selectedKey(a, diagramPanel) != presentation.BoxKey(a.dg.Level.Cards[a.dg.Focus].ID) {
-		t.Fatalf("j moves the box and the panel together, to %s", selectedKey(a, diagramPanel))
+	if a.Diagram.Focus == before || selectedKey(a, context.DiagramPanel) != presentation.BoxKey(a.Diagram.Level.Cards[a.Diagram.Focus].ID) {
+		t.Fatalf("j moves the box and the panel together, to %s", selectedKey(a, context.DiagramPanel))
 	}
 	screenIs(t, a, "diagram-panel")
 	a = press(t, a, "-")
-	if a.dg.Level.Kind != "components" || a.focus != diagramPanel {
-		t.Fatalf("- steps out: %s, panel %d", a.dg.Level.Kind, a.focus)
+	if a.Diagram.Level.Kind != "components" || a.Focus() != context.DiagramPanel {
+		t.Fatalf("- steps out: %s, panel %d", a.Diagram.Level.Kind, a.Focus())
 	}
 	a = press(t, a, "0")
-	if a.focus != mainPanel {
+	if a.Focus() != context.MainPanel {
 		t.Fatal("0 gives the main panel the keys")
 	}
 }
@@ -126,21 +127,21 @@ func TestHAndLGoToThePanelAboveOrBelowAndHGoesRoundFromTheFirst(t *testing.T) {
 	steps := []struct {
 		key    string
 		panel  int
-		screen screen
+		screen context.Screen
 	}{
-		{"l", filesPanel, screenDiff}, {"l", notesPanel, screenDiff}, {"h", filesPanel, screenDiff},
-		{"h", reviewPanel, screenReview}, {"h", diagramPanel, screenDiagram},
+		{"l", context.FilesPanel, context.ScreenDiff}, {"l", context.NotesPanel, context.ScreenDiff}, {"h", context.FilesPanel, context.ScreenDiff},
+		{"h", context.ReviewPanel, context.ScreenReview}, {"h", context.DiagramPanel, context.ScreenDiagram},
 	}
 	for _, s := range steps {
-		from := a.focus
+		from := a.Focus()
 		a = press(t, a, s.key)
-		if a.focus != s.panel || a.screen != s.screen {
-			t.Fatalf("%s from panel %d went to panel %d, screen %d", s.key, from, a.focus, a.screen)
+		if a.Focus() != s.panel || a.Screen() != s.screen {
+			t.Fatalf("%s from panel %d went to panel %d, screen %d", s.key, from, a.Focus(), a.Screen())
 		}
 	}
 	a = press(t, a, "3", "l")
-	if a.focus != diagramPanel || a.screen != screenDiagram {
-		t.Fatalf("l from Notes enters Diagram, not panel %d", a.focus)
+	if a.Focus() != context.DiagramPanel || a.Screen() != context.ScreenDiagram {
+		t.Fatalf("l from Notes enters Diagram, not panel %d", a.Focus())
 	}
 }
 
@@ -151,19 +152,19 @@ func TestHAndLInTheDiagramPanelGoToTheBoxLeftOrRight(t *testing.T) {
 	for _, s := range []struct{ key, box string }{{"l", "web-src"}, {"l", "web-src"}, {"h", "sources"}, {"h", "sources"}} {
 		a = press(t, a, s.key)
 		focusedOn(t, a, s.box)
-		if a.focus != diagramPanel || selectedKey(a, diagramPanel) != presentation.BoxKey(s.box) {
-			t.Fatalf("%s keeps the Diagram panel and its row on the box: panel %d, %s", s.key, a.focus, selectedKey(a, diagramPanel))
+		if a.Focus() != context.DiagramPanel || selectedKey(a, context.DiagramPanel) != presentation.BoxKey(s.box) {
+			t.Fatalf("%s keeps the Diagram panel and its row on the box: panel %d, %s", s.key, a.Focus(), selectedKey(a, context.DiagramPanel))
 		}
 	}
 	if a.hints()[0] != [2]string{"h j k l", "Move"} {
 		t.Fatalf("the bar names the keys that move: %v", a.hints()[0])
 	}
-	if listed := press(t, a, "space", "?").menu.Rows[2]; listed.Left != "h l" || listed.Right != "the nearest box left or right" {
+	if listed := press(t, a, "space", "?").Menu.Rows[2]; listed.Left != "h l" || listed.Right != "the nearest box left or right" {
 		t.Fatalf("Space ? lists h l as %q: %q", listed.Left, listed.Right)
 	}
 	a = press(t, a, "3")
-	if a.focus != notesPanel {
-		t.Fatalf("3 leaves the Diagram panel for Notes, not panel %d", a.focus)
+	if a.Focus() != context.NotesPanel {
+		t.Fatalf("3 leaves the Diagram panel for Notes, not panel %d", a.Focus())
 	}
 }
 
@@ -176,7 +177,7 @@ func TestBiggerAndSmallerScreenModes(t *testing.T) {
 		t.Fatalf("+ makes the main panel wider: %d, then %d", normal, half)
 	}
 	a = press(t, a, "+")
-	if a.mainWidth() != 98 || a.layout().sides[filesPanel].Shown() {
+	if a.mainWidth() != 98 || a.layout().sides[context.FilesPanel].Shown() {
 		t.Fatalf("+ again gives the main panel the whole screen: %d", a.mainWidth())
 	}
 	screenIs(t, a, "full")
@@ -189,7 +190,7 @@ func TestBiggerAndSmallerScreenModes(t *testing.T) {
 func TestANarrowTerminalShowsOnlyThePanelWithTheKeys(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 50, 12)
 	l := a.layout()
-	if !l.sides[reviewPanel].Shown() || l.main.Shown() || l.sides[filesPanel].Shown() {
+	if !l.sides[context.ReviewPanel].Shown() || l.main.Shown() || l.sides[context.FilesPanel].Shown() {
 		t.Fatalf("at 50 by 12 only the Review panel shows: %+v", l)
 	}
 	a = press(t, a, "2", "j", "j", "enter")
@@ -200,15 +201,15 @@ func TestANarrowTerminalShowsOnlyThePanelWithTheKeys(t *testing.T) {
 
 func TestAClickChoosesARowAndADoubleClickOpensIt(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
-	files := a.layout().sides[filesPanel].Inner()
+	files := a.layout().sides[context.FilesPanel].Inner()
 	click := tea.MouseMsg{X: files.X + 4, Y: files.Y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft}
 	a = send(t, a, click)
-	if a.focus != filesPanel || selectedKey(a, filesPanel) != "file:Sources/Basket/Basket.swift" {
-		t.Fatalf("a click chose panel %d, %s", a.focus, selectedKey(a, filesPanel))
+	if a.Focus() != context.FilesPanel || selectedKey(a, context.FilesPanel) != "file:Sources/Basket/Basket.swift" {
+		t.Fatalf("a click chose panel %d, %s", a.Focus(), selectedKey(a, context.FilesPanel))
 	}
 	a = send(t, a, click)
-	if a.focus != mainPanel || a.screen != screenDiff {
-		t.Fatalf("a double click opens the file's diff: panel %d", a.focus)
+	if a.Focus() != context.MainPanel || a.Screen() != context.ScreenDiff {
+		t.Fatalf("a double click opens the file's diff: panel %d", a.Focus())
 	}
 }
 
@@ -219,18 +220,18 @@ func TestTheKeysOfAPanelAndTheCommandLine(t *testing.T) {
 		t.Fatalf("after the leader, the bar names the keys that can follow:\n%s", a.View())
 	}
 	a = press(t, a, "?")
-	if a.menu == nil || a.menu.Rows[0].Heading != "Review" || a.menu.Rows[a.menu.Cursor].Left != "j k gg G" {
-		t.Fatalf("Space ? lists the Review panel's keys first: %+v", a.menu)
+	if !a.menuOpen() || a.Menu.Rows[0].Heading != "Review" || a.Menu.Rows[a.Menu.Cursor].Left != "j k gg G" {
+		t.Fatalf("Space ? lists the Review panel's keys first: %+v", a.Menu)
 	}
 	screenIs(t, a, "keys")
 	a = press(t, a, "q")
-	if a.menu != nil {
+	if a.menuOpen() {
 		t.Fatal("q did not close the keys")
 	}
 	a = press(t, a, ":")
 	a = typed(t, a, "frob")
-	if a.notice != "not a command: :frob" || !a.bad {
-		t.Fatalf("an unknown command says so, not %q", a.notice)
+	if a.Notice != "not a command: :frob" || !a.Bad {
+		t.Fatalf("an unknown command says so, not %q", a.Notice)
 	}
 	a = press(t, a, ":")
 	for _, r := range "q" {
@@ -243,29 +244,29 @@ func TestTheKeysOfAPanelAndTheCommandLine(t *testing.T) {
 
 func TestAReviewThatWillNotOpenSaysWhyAndTriesAgain(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/99", 80, 20)
-	if a.review != nil || !strings.HasPrefix(a.failed, "could not open github.com/octo/widgets/99") {
-		t.Fatalf("a review the server does not have: %q", a.failed)
+	if a.Review != nil || !strings.HasPrefix(a.Failed, "could not open github.com/octo/widgets/99") {
+		t.Fatalf("a review the server does not have: %q", a.Failed)
 	}
 	screenIs(t, a, "will-not-open")
 	a = press(t, a, "R")
-	if a.review != nil || a.failed == "" || a.loading {
-		t.Fatalf("R tries again, and says why again: %q", a.failed)
+	if a.Review != nil || a.Failed == "" || a.Loading {
+		t.Fatalf("R tries again, and says why again: %q", a.Failed)
 	}
 }
 
 func TestAJumpGivesTheMainPanelTheKeys(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "space", "m", "2")
-	if a.focus != mainPanel || a.keys.Typed() != "2" {
-		t.Fatalf("in the main panel, 2 starts a count: panel %d, typed %q", a.focus, a.keys.Typed())
+	if a.Focus() != context.MainPanel || a.Keys.Typed() != "2" {
+		t.Fatalf("in the main panel, 2 starts a count: panel %d, typed %q", a.Focus(), a.Keys.Typed())
 	}
 	a = press(t, a, "esc", "2")
-	if a.focus != filesPanel || a.screen != screenDiff {
-		t.Fatalf("Esc, then 2, shows the Files panel's diff: panel %d, screen %d", a.focus, a.screen)
+	if a.Focus() != context.FilesPanel || a.Screen() != context.ScreenDiff {
+		t.Fatalf("Esc, then 2, shows the Files panel's diff: panel %d, screen %d", a.Focus(), a.Screen())
 	}
 	a = press(t, a, "ctrl+o")
-	if a.focus != mainPanel || a.screen != screenReview || a.driving != reviewPanel {
-		t.Fatalf("Ctrl-o goes back to the Review view with its keys: panel %d, screen %d", a.focus, a.screen)
+	if a.Focus() != context.MainPanel || a.Screen() != context.ScreenReview || a.Driving() != context.ReviewPanel {
+		t.Fatalf("Ctrl-o goes back to the Review view with its keys: panel %d, screen %d", a.Focus(), a.Screen())
 	}
 }
 

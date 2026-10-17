@@ -9,6 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -20,7 +21,7 @@ func TestTheBindingsOfEachPlace(t *testing.T) {
 	home, _, _ := homeOn(t, "", 100, 30)
 	places["home"] = home.bindings()
 	a, _ := opened(t, stack, 100, 30)
-	for n, name := range map[int]string{reviewPanel: "review panel", filesPanel: "files panel", notesPanel: "notes panel", diagramPanel: "diagram panel"} {
+	for n, name := range map[int]string{context.ReviewPanel: "review panel", context.FilesPanel: "files panel", context.NotesPanel: "notes panel", context.DiagramPanel: "diagram panel"} {
 		places[name] = press(t, a, utils.Itoa(n)).bindings()
 	}
 	places["review view"] = press(t, a, "0").bindings()
@@ -107,25 +108,24 @@ func pressed(a App, name string) App {
 func menuKeys(t *testing.T) map[string]string {
 	a, _ := opened(t, stack, 100, 30)
 	a = a.openFinder()
-	pn := *a.menu
-	pn.Finding, pn.Rows = false, pn.all
-	pn = pn.move(1, a.menuRows())
-	a.menu = &pn
+	pn := a.Menu
+	pn.Finding, pn.Rows = false, pn.All
+	pn = pn.Move(1, a.menuRows())
+	a = a.withMenu(pn)
 	a = a.say("probe", false)
-	closed := a
-	closed.menu = nil
+	closed := a.withoutMenu()
 	opening, _ := a.openRow()
 	out := map[string]string{}
 	for _, name := range probeKeys(t) {
 		b := pressed(a, name)
 		switch {
-		case b.menu != nil && b.menu.Cursor == pn.move(1, a.menuRows()).Cursor:
+		case b.menuOpen() && b.Menu.Cursor == pn.Move(1, a.menuRows()).Cursor:
 			out[name] = "down"
-		case b.menu != nil && b.menu.Cursor == pn.move(-1, a.menuRows()).Cursor:
+		case b.menuOpen() && b.Menu.Cursor == pn.Move(-1, a.menuRows()).Cursor:
 			out[name] = "up"
-		case b.menu == nil && b.keys.Typed() == "" && b.View() == closed.View():
+		case !b.menuOpen() && b.Keys.Typed() == "" && b.View() == closed.View():
 			out[name] = "close"
-		case b.menu == nil && b.keys.Typed() == "" && b.View() == opening.(App).View():
+		case !b.menuOpen() && b.Keys.Typed() == "" && b.View() == opening.(App).View():
 			out[name] = "open"
 		}
 	}
@@ -138,25 +138,24 @@ func menuKeys(t *testing.T) map[string]string {
 func finderKeys(t *testing.T) map[string]string {
 	a, _ := opened(t, stack, 100, 30)
 	a = a.openFinder()
-	pn := a.menu.narrowed("es").move(1, a.menuRows())
-	a.menu = &pn
+	pn := a.Menu.Narrowed("es").Move(1, a.menuRows())
+	a = a.withMenu(pn)
 	a = a.say("probe", false)
-	closed := a
-	closed.menu = nil
+	closed := a.withoutMenu()
 	opening, _ := a.openRow()
 	out := map[string]string{}
 	for _, name := range probeKeys(t) {
 		b := pressed(a, name)
 		switch {
-		case b.menu != nil && b.menu.Query == "es" && b.menu.Cursor == pn.move(1, a.menuRows()).Cursor:
+		case b.menuOpen() && b.Menu.Query == "es" && b.Menu.Cursor == pn.Move(1, a.menuRows()).Cursor:
 			out[name] = "down"
-		case b.menu != nil && b.menu.Query == "es" && b.menu.Cursor == pn.move(-1, a.menuRows()).Cursor:
+		case b.menuOpen() && b.Menu.Query == "es" && b.Menu.Cursor == pn.Move(-1, a.menuRows()).Cursor:
 			out[name] = "up"
-		case b.menu != nil && b.menu.Query == "":
+		case b.menuOpen() && b.Menu.Query == "":
 			out[name] = "clear"
-		case b.menu == nil && b.View() == closed.View():
+		case !b.menuOpen() && b.View() == closed.View():
 			out[name] = "close"
-		case b.menu == nil && b.View() == opening.(App).View():
+		case !b.menuOpen() && b.View() == opening.(App).View():
 			out[name] = "open"
 		}
 	}
@@ -168,27 +167,24 @@ func finderKeys(t *testing.T) map[string]string {
 func postingKeys(t *testing.T) map[string]string {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
 	a = a.openPosting(30).say("probe", false)
-	if len(a.posting.actions) != 3 {
-		t.Fatalf("posting offers %v", a.posting.actions)
+	if len(a.Posting.Actions) != 3 {
+		t.Fatalf("posting offers %v", a.Posting.Actions)
 	}
-	closed := a
-	closed.posting = nil
+	closed := a.withoutPosting()
 	out := map[string]string{}
 	for _, name := range probeKeys(t) {
 		var after []int
-		for choice := range a.posting.actions {
+		for choice := range a.Posting.Actions {
 			from := a
-			pn := *a.posting
-			pn.choice = choice
-			from.posting = &pn
+			from.Posting.Choice = choice
 			b := pressed(from, name)
 			switch {
-			case b.posting == nil && b.View() == closed.View():
+			case !b.Has(context.PostingKey) && b.View() == closed.View():
 				after = append(after, -1)
-			case b.posting != nil && b.posting.confirming && b.posting.choice == choice:
+			case b.Has(context.PostingConfirmationKey) && b.Posting.Choice == choice:
 				after = append(after, -2)
-			case b.posting != nil && !b.posting.confirming:
-				after = append(after, b.posting.choice)
+			case b.Has(context.PostingKey) && !b.Has(context.PostingConfirmationKey):
+				after = append(after, b.Posting.Choice)
 			default:
 				after = append(after, -3)
 			}
@@ -225,16 +221,14 @@ func fmtInts(ns []int) string {
 func postingConfirmationKeys(t *testing.T) map[string]string {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
 	a = a.openPosting(30)
-	pn := *a.posting
-	pn.confirming = true
-	a.posting = &pn
+	a.ContextTree = a.Opened(context.PostingConfirmationKey)
 	out := map[string]string{}
 	for _, name := range probeKeys(t) {
 		b := pressed(a, name)
 		switch {
-		case b.posting == nil && b.notice == "Checking the pull request with GitHub, then sending…":
+		case !b.Has(context.PostingKey) && b.Notice == "Checking the pull request with GitHub, then sending…":
 			out[name] = "post"
-		case b.posting != nil && !b.posting.confirming:
+		case b.Has(context.PostingKey) && !b.Has(context.PostingConfirmationKey):
 			out[name] = "back"
 		}
 	}
@@ -245,10 +239,11 @@ func postingConfirmationKeys(t *testing.T) map[string]string {
 // that drops it; every other key keeps it.
 func confirmationKeys(t *testing.T) map[string]string {
 	a := onBasket(t)
-	a.confirming = &confirmation{comment: 1, pull: 21}
+	a.ContextTree = a.Opened(context.ConfirmationKey)
+	a.Confirmation = context.ConfirmationContext{Comment: 1, Pull: 21}
 	out := map[string]string{}
 	for _, name := range probeKeys(t) {
-		if b := pressed(a, name); b.confirming == nil && b.notice == "Dropping…" {
+		if b := pressed(a, name); !b.Has(context.ConfirmationKey) && b.Notice == "Dropping…" {
 			out[name] = "confirm"
 		}
 	}

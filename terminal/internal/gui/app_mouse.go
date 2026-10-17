@@ -3,25 +3,26 @@ package gui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 )
 
 func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
-	if a.screen == screenHome {
+	if a.Screen() == context.ScreenHome {
 		return a.homeMouse(msg)
 	}
-	if msg.Action != tea.MouseActionPress || a.review == nil {
+	if msg.Action != tea.MouseActionPress || a.Review == nil {
 		return a, nil
 	}
 	l := a.layout()
 	n, at := -1, views.Rect{}
-	for i := reviewPanel; i <= sideCount; i++ {
+	for i := context.ReviewPanel; i <= context.SideCount; i++ {
 		if r := l.sides[i]; r.Shown() && r.Holds(msg.X, msg.Y) {
 			n, at = i, r.Inner()
 		}
 	}
 	if r := l.main; r.Shown() && r.Holds(msg.X, msg.Y) {
-		n, at = mainPanel, r.Inner()
+		n, at = context.MainPanel, r.Inner()
 	}
 	if n < 0 {
 		return a, nil
@@ -33,26 +34,26 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		if msg.Button == tea.MouseButtonWheelUp {
 			by = -3
 		}
-		if n != mainPanel {
-			a.sides[n] = a.sides[n].scroll(by, at.H)
+		if n != context.MainPanel {
+			a.ContextTree = a.WithSide(n, a.Side(n).Scroll(by, at.H))
 			return a, nil
 		}
-		switch a.screen {
-		case screenReview:
-			a.rv.view = a.rv.view.scroll(by, at.H)
-		case screenDiff:
-			a.diff = a.diff.scroll(by, at.H)
-		case screenDiagram:
-			a.dg = a.dg.scrolled(a.c.Tr, *a.review, 0, by, at.W, at.H, a.filter)
+		switch a.Screen() {
+		case context.ScreenReview:
+			a.ReviewView.View = a.ReviewView.View.Scroll(by, at.H)
+		case context.ScreenDiff:
+			a.Diff = a.Diff.Scroll(by, at.H)
+		case context.ScreenDiagram:
+			a.Diagram = a.Diagram.Scrolled(a.c.Tr, *a.Review, 0, by, at.W, at.H, a.Filter)
 		}
 		return a, nil
 	case tea.MouseButtonWheelLeft, tea.MouseButtonWheelRight:
-		if n == mainPanel && a.screen == screenDiagram {
+		if n == context.MainPanel && a.Screen() == context.ScreenDiagram {
 			by := 6
 			if msg.Button == tea.MouseButtonWheelLeft {
 				by = -6
 			}
-			a.dg = a.dg.scrolled(a.c.Tr, *a.review, by, 0, at.W, at.H, a.filter)
+			a.Diagram = a.Diagram.Scrolled(a.c.Tr, *a.Review, by, 0, at.W, at.H, a.Filter)
 		}
 		return a, nil
 	case tea.MouseButtonLeft:
@@ -60,24 +61,24 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			return a, nil
 		}
 		now := a.opts.Now()
-		double := msg.Y == a.clickedY && now.Sub(a.clickedAt) < doubleClick
-		a.clickedAt, a.clickedY = now, msg.Y
-		if n != mainPanel {
+		double := msg.Y == a.ClickedY && now.Sub(a.ClickedAt) < doubleClick
+		a.ClickedAt, a.ClickedY = now, msg.Y
+		if n != context.MainPanel {
 			return a.sideClicked(n, y, double)
 		}
-		a.focus = mainPanel
+		a.ContextTree = a.Focused(context.MainPanel, a.Driving())
 		return a.mainClicked(x, y, double)
 	}
 	return a, nil
 }
 
 func (a App) sideClicked(n, y int, double bool) (tea.Model, tea.Cmd) {
-	i := a.sides[n].at(y)
-	a.focus, a.driving = n, n
+	i := a.Side(n).At(y)
+	a.ContextTree = a.Focused(n, n)
 	if i < 0 {
 		return a.relaid(), nil
 	}
-	a.sides[n] = a.sides[n].to(i, a.sideHeight(n))
+	a.ContextTree = a.WithSide(n, a.Side(n).To(i, a.sideHeight(n)))
 	next, cmd := a.relaid().followed()
 	if !double {
 		return next, cmd
@@ -88,27 +89,27 @@ func (a App) sideClicked(n, y int, double bool) (tea.Model, tea.Cmd) {
 
 func (a App) mainClicked(x, y int, double bool) (tea.Model, tea.Cmd) {
 	h := a.mainHeight()
-	switch a.screen {
-	case screenDiagram:
-		if i := a.dg.boxAt(a.c.Tr, *a.review, x, y, a.filter); i >= 0 {
-			a.dg.Focus = i
+	switch a.Screen() {
+	case context.ScreenDiagram:
+		if i := a.Diagram.BoxAt(a.c.Tr, *a.Review, x, y, a.Filter); i >= 0 {
+			a.Diagram.Focus = i
 			a = a.diagramShown()
 			if double {
 				return a.stepIn()
 			}
 		}
 		return a.mirrored(), nil
-	case screenDiff:
-		if i := a.diff.rowAt(y); i >= 0 {
-			a.diff = a.diff.to(i, h)
+	case context.ScreenDiff:
+		if i := a.Diff.RowAt(y); i >= 0 {
+			a.Diff = a.Diff.To(i, h)
 			if double {
 				return a.diffAction("open", 1, false, h)
 			}
 		}
 		return a.mirrored(), nil
 	}
-	if i := a.rv.view.at(y); i >= 0 {
-		a.rv.view = a.rv.view.to(i, h)
+	if i := a.ReviewView.View.At(y); i >= 0 {
+		a.ReviewView.View = a.ReviewView.View.To(i, h)
 		if double {
 			return a.reviewAction("open", 1, h)
 		}

@@ -25,15 +25,15 @@ func TestAMarkdownFileShowsRendered(t *testing.T) {
 	a := onGuide(t)
 	screenIs(t, a, "rendered")
 	a = press(t, a, "space", "r")
-	if a.diff.Rendered["docs/guide.md"] {
+	if a.Diff.Rendered["docs/guide.md"] {
 		t.Fatal("Space r goes back to the diff")
 	}
 }
 
 func TestAFileWithNoRenderedViewSaysSo(t *testing.T) {
 	a := press(t, onBasket(t), "space", "r")
-	if !a.bad || a.notice != "Space r shows a Markdown file rendered, and this file has no rendered view" {
-		t.Fatalf("the status line says %q", a.notice)
+	if !a.Bad || a.Notice != "Space r shows a Markdown file rendered, and this file has no rendered view" {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 }
 
@@ -43,28 +43,28 @@ func TestASelectionOfBlocksIsCommentedOnByItsSourceLines(t *testing.T) {
 	a = press(t, a, "j", "j", "V", "j")
 	screenIs(t, a, "rendered-visual")
 	a = press(t, a, "c")
-	if a.bad {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Bad {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 	file := readFile(t, seen)
 	if !strings.Contains(file, "# Goes on #30, removed line 3 to line 3.\n#\n#      3 - The catalog lists items.\n#      3 + The catalog lists every item.\n") {
 		t.Fatalf("the editor was given:\n%s", file)
 	}
-	if n, ok := presentation.NoteOf(*a.review, "docs/guide.md", "queued:2"); !ok || n.At.StartSide != "LEFT" {
+	if n, ok := presentation.NoteOf(*a.Review, "docs/guide.md", "queued:2"); !ok || n.At.StartSide != "LEFT" {
 		t.Fatalf("the comment on the passage: %+v", n.At)
 	}
-	if r := a.diff.Rows[a.diff.Cursor]; r.Block == nil || r.Block.StartLine != 3 || r.Block.Side != "RIGHT" {
+	if r := a.Diff.Rows[a.Diff.Cursor]; r.Block == nil || r.Block.StartLine != 3 || r.Block.Side != "RIGHT" {
 		t.Fatalf("after queueing, the cursor is on %+v", r)
 	}
 }
 
 func TestAWrittenReviewsDiagramIsSaidNotDrawn(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
-	state := a.review.State
+	state := a.Review.State
 	state.Written = &server.Written{Title: "Fix the guide wording", Sections: []server.Section{{ID: "shape", Title: "Shape", Markdown: "Before.\n\n<svg viewBox=\"0 0 10 10\"><rect width=\"4\"/></svg>\n\nAfter."}}}
 	a = a.withState(state)
 	var text []string
-	for _, l := range a.rv.view.lines {
+	for _, l := range a.ReviewView.View.Lines {
 		text = append(text, utils.Stripped(l.Text))
 	}
 	got := strings.Join(strings.Fields(strings.Join(text, " ")), " ")
@@ -76,7 +76,7 @@ func TestAWrittenReviewsDiagramIsSaidNotDrawn(t *testing.T) {
 func TestTheCursorStaysOnItsBlock(t *testing.T) {
 	a := press(t, onGuide(t), "j", "j", "j")
 	a = send(t, a, tea.WindowSizeMsg{Width: 90, Height: 30})
-	if r := a.diff.Rows[a.diff.Cursor]; r.Block == nil || r.Block.StartLine != 3 || r.Block.Side != "RIGHT" {
+	if r := a.Diff.Rows[a.Diff.Cursor]; r.Block == nil || r.Block.StartLine != 3 || r.Block.Side != "RIGHT" {
 		t.Fatalf("the cursor moved to %+v", r)
 	}
 }

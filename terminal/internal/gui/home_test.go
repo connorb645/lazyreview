@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -29,7 +30,7 @@ func homeOn(t *testing.T, variant string, width, height int) (App, *[]string, *c
 }
 
 func selectedPull(a App) string {
-	repo, _, m, ok := a.home.pull()
+	repo, _, m, ok := a.Home.Pull()
 	if !ok {
 		return ""
 	}
@@ -38,12 +39,12 @@ func selectedPull(a App) string {
 
 func TestTheHomeScreenGivesEachRepositoryAPanelOfItsPullRequests(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
-	if a.screen != screenHome || a.review != nil {
-		t.Fatalf("with no review it opens on screen %d", a.screen)
+	if a.Screen() != context.ScreenHome || a.Review != nil {
+		t.Fatalf("with no review it opens on screen %d", a.Screen())
 	}
 	var titles []string
-	for _, p := range a.home.panels {
-		titles = append(titles, p.title)
+	for _, p := range a.Home.Panels {
+		titles = append(titles, p.Title)
 	}
 	if strings.Join(titles, ", ") != "octo/gadgets, octo/widgets, reviewer-home/notes" {
 		t.Fatalf("the panels: %s", strings.Join(titles, ", "))
@@ -72,8 +73,8 @@ func TestMovingOnTheHomeScreenRunsThroughEveryRepository(t *testing.T) {
 			t.Fatalf("%s went to %s, not %s", s.keys, got, s.at)
 		}
 	}
-	if a.home.focus != 2 {
-		t.Fatalf("the panel with the keys follows the pull request: %d", a.home.focus)
+	if a.Home.Focus != 2 {
+		t.Fatalf("the panel with the keys follows the pull request: %d", a.Home.Focus)
 	}
 }
 
@@ -89,8 +90,8 @@ func TestHAndLGoToTheRepositoryAboveOrBelowAndRoundAtTheEnds(t *testing.T) {
 			t.Fatalf("%s went to %s, not %s", s.keys, got, s.at)
 		}
 	}
-	if a.home.focus != 1 {
-		t.Fatalf("the panel with the keys is the repository chosen: %d", a.home.focus)
+	if a.Home.Focus != 1 {
+		t.Fatalf("the panel with the keys is the repository chosen: %d", a.Home.Focus)
 	}
 }
 
@@ -108,22 +109,22 @@ func TestTheMainPanelSaysWhatInvolvesYouAndWhatEnterDoes(t *testing.T) {
 func TestEnterOpensTheStacksReviewAndSpaceHComesBack(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
 	a = press(t, a, "2", "j", "enter")
-	if a.screen != screenReview || a.review == nil || a.review.ID != "github.com/octo/widgets/21" {
-		t.Fatalf("Enter on #22 opens the stack's review: screen %d, %v", a.screen, a.review)
+	if a.Screen() != context.ScreenReview || a.Review == nil || a.Review.ID != "github.com/octo/widgets/21" {
+		t.Fatalf("Enter on #22 opens the stack's review: screen %d, %v", a.Screen(), a.Review)
 	}
 	a = press(t, a, "2", "j")
-	left := selectedKey(a, filesPanel)
+	left := selectedKey(a, context.FilesPanel)
 	a = press(t, a, "space", "h")
-	if a.screen != screenHome || selectedPull(a) != "octo/widgets#22" {
-		t.Fatalf("Space h goes home, where it was: screen %d at %s", a.screen, selectedPull(a))
+	if a.Screen() != context.ScreenHome || selectedPull(a) != "octo/widgets#22" {
+		t.Fatalf("Space h goes home, where it was: screen %d at %s", a.Screen(), selectedPull(a))
 	}
 	a = press(t, a, "k", "enter")
-	if a.screen != screenDiff || a.focus != filesPanel || selectedKey(a, filesPanel) != left {
-		t.Fatalf("Enter on the open review goes back where it was: screen %d, panel %d, %s", a.screen, a.focus, selectedKey(a, filesPanel))
+	if a.Screen() != context.ScreenDiff || a.Focus() != context.FilesPanel || selectedKey(a, context.FilesPanel) != left {
+		t.Fatalf("Enter on the open review goes back where it was: screen %d, panel %d, %s", a.Screen(), a.Focus(), selectedKey(a, context.FilesPanel))
 	}
 	a = press(t, a, "space", "h", "space", "v")
-	if a.screen != screenReview || a.focus != mainPanel {
-		t.Fatalf("Space v from home is the Review view of the review open: screen %d, panel %d", a.screen, a.focus)
+	if a.Screen() != context.ScreenReview || a.Focus() != context.MainPanel {
+		t.Fatalf("Space v from home is the Review view of the review open: screen %d, panel %d", a.Screen(), a.Focus())
 	}
 }
 
@@ -132,20 +133,20 @@ func TestEnterLoadsAPullRequestNoReviewHoldsThenOpensIt(t *testing.T) {
 	a = press(t, a, "2", "j", "j")
 	next, cmd := a.Update(keyMsg("enter"))
 	loading := next.(App)
-	if loading.home.loading != "octo/widgets#30" || loading.homeStatus() != "Loading octo/widgets #30 from GitHub…" {
-		t.Fatalf("Enter starts loading #30: %q, %q", loading.home.loading, loading.homeStatus())
+	if loading.Home.Loading != "octo/widgets#30" || loading.homeStatus() != "Loading octo/widgets #30 from GitHub…" {
+		t.Fatalf("Enter starts loading #30: %q, %q", loading.Home.Loading, loading.homeStatus())
 	}
 	screenIs(t, loading, "home-loading")
 	again := press(t, loading, "enter")
-	if again.notice != "One load at a time: octo/widgets #30 is loading" {
-		t.Fatalf("a second load waits: %q", again.notice)
+	if again.Notice != "One load at a time: octo/widgets #30 is loading" {
+		t.Fatalf("a second load waits: %q", again.Notice)
 	}
 	a = drive(t, loading, cmd)
-	if a.screen != screenReview || a.review == nil || a.review.ID != "github.com/octo/widgets/30" {
-		t.Fatalf("once loaded, it opens: screen %d, %v", a.screen, a.review)
+	if a.Screen() != context.ScreenReview || a.Review == nil || a.Review.ID != "github.com/octo/widgets/30" {
+		t.Fatalf("once loaded, it opens: screen %d, %v", a.Screen(), a.Review)
 	}
 	a = press(t, a, "space", "h")
-	if _, u, m, _ := a.home.pull(); u.Review != "github.com/octo/widgets/30" || m.Review != "github.com/octo/widgets/30" {
+	if _, u, m, _ := a.Home.Pull(); u.Review != "github.com/octo/widgets/30" || m.Review != "github.com/octo/widgets/30" {
 		t.Fatalf("the list marks it loaded: %q", u.Review)
 	}
 }
@@ -153,19 +154,19 @@ func TestEnterLoadsAPullRequestNoReviewHoldsThenOpensIt(t *testing.T) {
 func TestALoadThatFailsSaysWhyAndStaysHome(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
 	a = press(t, a, "enter")
-	if a.screen != screenHome || a.home.loading != "" || !a.bad ||
-		a.notice != "Could not load octo/gadgets #7: GitHub refused GET repos/octo/gadgets/pulls/7: HTTP 404: Not Found (fake gh has no GET repos/octo/gadgets/pulls/7)" {
-		t.Fatalf("a failed load: screen %d, %q", a.screen, a.notice)
+	if a.Screen() != context.ScreenHome || a.Home.Loading != "" || !a.Bad ||
+		a.Notice != "Could not load octo/gadgets #7: GitHub refused GET repos/octo/gadgets/pulls/7: HTTP 404: Not Found (fake gh has no GET repos/octo/gadgets/pulls/7)" {
+		t.Fatalf("a failed load: screen %d, %q", a.Screen(), a.Notice)
 	}
 }
 
 func TestADraftInTheReviewOpenKeepsAnotherFromOpening(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
 	a = press(t, a, "2", "enter")
-	a.drafts = map[string]string{"comment x": "Half written."}
+	a.Drafts = map[string]string{"comment x": "Half written."}
 	a = press(t, a, "space", "h", "j", "j", "enter")
-	if a.screen != screenHome || a.home.loading != "" || a.notice != "Your draft in Stack #21 to #22 is not sent yet: Space v goes back to it" {
-		t.Fatalf("a draft keeps the review open: screen %d, %q", a.screen, a.notice)
+	if a.Screen() != context.ScreenHome || a.Home.Loading != "" || a.Notice != "Your draft in Stack #21 to #22 is not sent yet: Space v goes back to it" {
+		t.Fatalf("a draft keeps the review open: screen %d, %q", a.Screen(), a.Notice)
 	}
 }
 
@@ -197,17 +198,17 @@ func TestRReadsGitHubAgainAndKeepsTheListMeanwhile(t *testing.T) {
 	changed.set("GET /api/pulls", recorded(t)["GET /api/pulls#one unreachable"])
 	next, cmd := a.Update(keyMsg("R"))
 	reading := next.(App)
-	if !reading.home.reading || reading.homeStatus() != "Reading GitHub…" || selectedPull(reading) != "octo/widgets#22" {
-		t.Fatalf("R reads again and keeps the list: %v, %q", reading.home.reading, reading.homeStatus())
+	if !reading.Home.Reading || reading.homeStatus() != "Reading GitHub…" || selectedPull(reading) != "octo/widgets#22" {
+		t.Fatalf("R reads again and keeps the list: %v, %q", reading.Home.Reading, reading.homeStatus())
 	}
 	a = drive(t, reading, cmd)
-	if a.home.reading || selectedPull(a) != "octo/widgets#22" || a.home.panels[0].title != "Not read from GitHub" {
-		t.Fatalf("the list read again keeps the place: %s, %s", selectedPull(a), a.home.panels[0].title)
+	if a.Home.Reading || selectedPull(a) != "octo/widgets#22" || a.Home.Panels[0].Title != "Not read from GitHub" {
+		t.Fatalf("the list read again keeps the place: %s, %s", selectedPull(a), a.Home.Panels[0].Title)
 	}
 	changed.set("GET /api/pulls", answer{Status: 409, Body: []byte(`{"error":"settings.json needs \"accounts\""}`)})
 	a = press(t, a, "R")
-	if !a.bad || a.notice != `Could not read GitHub again: settings.json needs "accounts"` || selectedPull(a) != "octo/widgets#22" {
-		t.Fatalf("a read that fails keeps the list and says why: %q", a.notice)
+	if !a.Bad || a.Notice != `Could not read GitHub again: settings.json needs "accounts"` || selectedPull(a) != "octo/widgets#22" {
+		t.Fatalf("a read that fails keeps the list and says why: %q", a.Notice)
 	}
 }
 
@@ -215,8 +216,8 @@ func TestAListThatCannotBeReadSaysWhy(t *testing.T) {
 	changed := &changes{answers: map[string]answer{}}
 	changed.set("GET /api/pulls", answer{Status: 409, Body: []byte(`{"error":"settings.json gives account 1 no GitHub login"}`)})
 	a, _ := openedOn(t, changed, "", 100, 30)
-	if a.home.failed != "settings.json gives account 1 no GitHub login" {
-		t.Fatalf("the failure: %q", a.home.failed)
+	if a.Home.Failed != "settings.json gives account 1 no GitHub login" {
+		t.Fatalf("the failure: %q", a.Home.Failed)
 	}
 	screenIs(t, a, "home-failed")
 }
@@ -228,16 +229,16 @@ func TestTheHomeScreensOtherKeys(t *testing.T) {
 		t.Fatalf("gx opens the pull request: %v", *visited)
 	}
 	a = press(t, a, "q")
-	if a.notice != "ZZ or :q quits" {
-		t.Fatalf("q on the home screen: %q", a.notice)
+	if a.Notice != "ZZ or :q quits" {
+		t.Fatalf("q on the home screen: %q", a.Notice)
 	}
 	a = press(t, a, "space", "v")
-	if a.notice != "No review is open yet: Enter opens one" {
-		t.Fatalf("Space v with no review: %q", a.notice)
+	if a.Notice != "No review is open yet: Enter opens one" {
+		t.Fatalf("Space v with no review: %q", a.Notice)
 	}
 	screenIs(t, press(t, a, "space", "?"), "home-keys")
 	a = press(t, a, "+")
-	if l := a.homeLayout(); l.panels[0].W != 66 || l.main.W != 34 || a.mode != halfScreen {
+	if l := a.homeLayout(); l.panels[0].W != 66 || l.main.W != 34 || a.Mode != context.HalfScreen {
 		t.Fatalf("+ gives the list two thirds: %d and %d", l.panels[0].W, l.main.W)
 	}
 	a = press(t, a, "+")
@@ -255,8 +256,8 @@ func TestAClickChoosesAPullRequestAndADoubleClickOpensIt(t *testing.T) {
 		t.Fatalf("a click chose %s", selectedPull(a))
 	}
 	a = send(t, a, tea.MouseMsg{X: 5, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
-	if a.screen != screenReview || a.review == nil || a.review.ID != "github.com/octo/widgets/21" {
-		t.Fatalf("a double click opens it: screen %d, opening %q, %q", a.screen, a.opening, a.failed)
+	if a.Screen() != context.ScreenReview || a.Review == nil || a.Review.ID != "github.com/octo/widgets/21" {
+		t.Fatalf("a double click opens it: screen %d, opening %q, %q", a.Screen(), a.Opening, a.Failed)
 	}
 }
 
@@ -265,7 +266,7 @@ func TestManyRepositoriesFoldToTheirTitlesAndTheListFollowsTheKeys(t *testing.T)
 	for i := range wants {
 		wants[i] = 5
 	}
-	l := layHome(80, 24, 4, normalScreen, wants)
+	l := layHome(80, 24, 4, context.NormalScreen, wants)
 	var heights []int
 	for _, r := range l.panels {
 		heights = append(heights, r.H)
@@ -277,7 +278,7 @@ func TestManyRepositoriesFoldToTheirTitlesAndTheListFollowsTheKeys(t *testing.T)
 	for i := range many {
 		many[i] = 5
 	}
-	l = layHome(80, 24, 20, normalScreen, many)
+	l = layHome(80, 24, 20, context.NormalScreen, many)
 	shown := 0
 	for i, r := range l.panels {
 		if r.H > 0 {

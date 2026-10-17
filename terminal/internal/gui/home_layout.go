@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -13,13 +14,13 @@ type homeLayout struct {
 	bar    views.Rect
 }
 
-func layHome(width, height, focus int, mode screenMode, wants []int) homeLayout {
+func layHome(width, height, focus int, mode context.ScreenMode, wants []int) homeLayout {
 	l := homeLayout{bar: views.Rect{Y: height - 1, W: width, H: 1}, panels: make([]views.Rect, len(wants))}
 	h := height - 1
 	side := width
-	if mode != fullScreen && width >= narrowest && h >= shortest {
+	if mode != context.FullScreen && width >= narrowest && h >= shortest {
 		side = max(width/3, min(width/2, listWidth))
-		if mode == halfScreen {
+		if mode == context.HalfScreen {
 			side = width * 2 / 3
 		}
 		l.main = views.Rect{X: side, W: width - side, H: h}

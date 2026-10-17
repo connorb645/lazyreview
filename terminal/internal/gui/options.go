@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"context"
+	stdcontext "context"
 	"os/exec"
 	"time"
 
@@ -27,5 +27,5 @@ type Options struct {
 	Home     string
 	Editor   string
 	Exec     func(*exec.Cmd, tea.ExecCallback) tea.Cmd
-	Listen   func(ctx context.Context, c *server.Client, id string) <-chan tea.Msg
+	Listen   func(ctx stdcontext.Context, c *server.Client, id string) <-chan tea.Msg
 }

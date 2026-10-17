@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"context"
+	stdcontext "context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
 
 const stack = "github.com/octo/widgets/21"
@@ -44,17 +46,17 @@ func TestAChangeElsewhereShowsAtOnce(t *testing.T) {
 	a = press(t, onBasketFrom(t, a), ":")
 	a = typed(t, a, "3")
 	folded := map[string]bool{"Sources/Catalog/MemoryCatalog.swift": true}
-	a.diff.Folded = folded
-	a = send(t, a, liveNotice{id: stack, notice: server.Notice{State: a.review.State.Version}})
-	if _, ok := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "queued:3"); ok {
+	a.Diff.Folded = folded
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{State: a.Review.State.Version}})
+	if _, ok := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "queued:3"); ok {
 		t.Fatal("a notice of the state the app holds read it again")
 	}
-	a = send(t, a, liveNotice{id: stack, notice: server.Notice{State: version}})
-	if _, ok := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "queued:3"); !ok {
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{State: version}})
+	if _, ok := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "queued:3"); !ok {
 		t.Fatal("the comment queued elsewhere does not show")
 	}
-	if cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 3" || !a.diff.Folded["Sources/Catalog/MemoryCatalog.swift"] {
-		t.Fatalf("the place and the folds moved: %s %v", cursorAt(a), a.diff.Folded)
+	if cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 3" || !a.Diff.Folded["Sources/Catalog/MemoryCatalog.swift"] {
+		t.Fatalf("the place and the folds moved: %s %v", cursorAt(a), a.Diff.Folded)
 	}
 	screenIs(t, a, "live-state")
 }
@@ -75,18 +77,18 @@ func TestANewBuildLoadsInPlaceUnlessADraftIsOpen(t *testing.T) {
 	a, _, changed := openedWith(t, stack, 100, 30)
 	changed.set("GET /api/reviews/"+stack+"/page", answer{Status: 200, Body: body})
 	a = press(t, a, "space", "m", "enter", "enter", "j")
-	a.drafts = map[string]string{"comment x": "Half written."}
-	a = send(t, a, liveNotice{id: stack, notice: server.Notice{Build: "0123456789ab"}})
-	if a.review.Page.Build == "0123456789ab" || a.notice != "This review was loaded again. R loads it here; your drafts stay." {
-		t.Fatalf("with a draft open: %s %q", a.review.Page.Build, a.notice)
+	a.Drafts = map[string]string{"comment x": "Half written."}
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{Build: "0123456789ab"}})
+	if a.Review.Page.Build == "0123456789ab" || a.Notice != "This review was loaded again. R loads it here; your drafts stay." {
+		t.Fatalf("with a draft open: %s %q", a.Review.Page.Build, a.Notice)
 	}
-	a.drafts = nil
-	a = send(t, a, liveNotice{id: stack, notice: server.Notice{Build: "0123456789ab"}})
-	if a.review.Page.Build != "0123456789ab" || a.notice != "Loaded again." {
-		t.Fatalf("with no draft open: %s %q", a.review.Page.Build, a.notice)
+	a.Drafts = nil
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{Build: "0123456789ab"}})
+	if a.Review.Page.Build != "0123456789ab" || a.Notice != "Loaded again." {
+		t.Fatalf("with no draft open: %s %q", a.Review.Page.Build, a.Notice)
 	}
-	if a.screen != screenDiagram {
-		t.Fatalf("the reload left the diagram for %v", a.screen)
+	if a.Screen() != context.ScreenDiagram {
+		t.Fatalf("the reload left the diagram for %v", a.Screen())
 	}
 	focusedOn(t, a, "Basket")
 }
@@ -94,19 +96,19 @@ func TestANewBuildLoadsInPlaceUnlessADraftIsOpen(t *testing.T) {
 func TestRLoadsTheReviewAgainInPlace(t *testing.T) {
 	a := onGuide(t)
 	a = press(t, a, "R")
-	if a.notice != "Loaded again." || a.bad {
-		t.Fatalf("the status line says %q", a.notice)
+	if a.Notice != "Loaded again." || a.Bad {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
-	if a.screen != screenDiff || !a.diff.Rendered["docs/guide.md"] || cursorAt(a) != "docs/guide.md file" {
-		t.Fatalf("R left the rendered guide: %v %s", a.screen, cursorAt(a))
+	if a.Screen() != context.ScreenDiff || !a.Diff.Rendered["docs/guide.md"] || cursorAt(a) != "docs/guide.md file" {
+		t.Fatalf("R left the rendered guide: %v %s", a.Screen(), cursorAt(a))
 	}
 }
 
 func TestAStoppedStreamSaysSo(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
-	a = send(t, a, liveStopped{id: stack, err: errString("the server ended the stream of changes")})
-	if !a.bad || a.notice != "Stopped hearing changes made elsewhere: the server ended the stream of changes. R loads the review again." {
-		t.Fatalf("the status line says %q", a.notice)
+	a = send(t, a, types.LiveStopped{ID: stack, Err: errString("the server ended the stream of changes")})
+	if !a.Bad || a.Notice != "Stopped hearing changes made elsewhere: the server ended the stream of changes. R loads the review again." {
+		t.Fatalf("the status line says %q", a.Notice)
 	}
 }
 
@@ -127,13 +129,13 @@ func TestListeningComesBackAfterTheStreamEnds(t *testing.T) {
 	if err := os.WriteFile(file, record, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	ctx, stop := context.WithCancel(context.Background())
+	ctx, stop := stdcontext.WithCancel(stdcontext.Background())
 	defer stop()
 	heard := listen(ctx, server.NewClient(testCommon(), file), stack)
 	for _, want := range []string{"v1", "v2"} {
 		select {
 		case msg := <-heard:
-			if n, ok := msg.(liveNotice); !ok || n.notice.State != want {
+			if n, ok := msg.(types.LiveNotice); !ok || n.Notice.State != want {
 				t.Fatalf("heard %+v, not %s", msg, want)
 			}
 		case <-time.After(5 * time.Second):
@@ -144,12 +146,12 @@ func TestListeningComesBackAfterTheStreamEnds(t *testing.T) {
 
 func TestAQuestionAskedElsewhereShowsAsWaiting(t *testing.T) {
 	a := onBasket(t)
-	state := a.review.State
+	state := a.Review.State
 	state.Threads = append([]server.Conversation{}, state.Threads...)
 	state.Threads = append(state.Threads, server.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Why here?"}}})
 	a = a.withState(state)
-	n, _ := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "conversation:9")
-	if head, _ := presentation.NoteHead(a.c.Tr, *a.review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
+	n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "conversation:9")
+	if head, _ := presentation.NoteHead(a.c.Tr, *a.Review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
 		t.Fatalf("the conversation's head reads %q", head)
 	}
 }

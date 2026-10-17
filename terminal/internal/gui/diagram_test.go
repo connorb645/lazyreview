@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
@@ -21,7 +22,7 @@ func onDiagram(t *testing.T) App {
 
 func focusedOn(t *testing.T, a App, want string) {
 	t.Helper()
-	if card, _ := a.dg.Card(); card.ID != want {
+	if card, _ := a.Diagram.Card(); card.ID != want {
 		t.Fatalf("the focus is on %q, not %q", card.ID, want)
 	}
 }
@@ -39,12 +40,12 @@ func TestTheDiagramStepsInAndOutOfItsLevels(t *testing.T) {
 	a = press(t, a, "-")
 	focusedOn(t, a, "root")
 	a = press(t, a, "j", "enter")
-	if a.dg.Level.Kind != "types" || a.dg.Level.Package != "top" {
-		t.Fatalf("a component of one package steps straight to its types: %+v", a.dg.Level)
+	if a.Diagram.Level.Kind != "types" || a.Diagram.Level.Package != "top" {
+		t.Fatalf("a component of one package steps straight to its types: %+v", a.Diagram.Level)
 	}
 	a = press(t, a, "-", "-")
-	if a.screen != screenReview {
-		t.Fatalf("out of the components is the Review view: %v", a.screen)
+	if a.Screen() != context.ScreenReview {
+		t.Fatalf("out of the components is the Review view: %v", a.Screen())
 	}
 }
 
@@ -74,14 +75,14 @@ func TestTheFocusedBoxListsItsLinksAndProperties(t *testing.T) {
 	screenIs(t, a, "diagram-links")
 	a = press(t, a, "j", "enter")
 	focusedOn(t, a, "Search")
-	if a.menu != nil {
+	if a.menuOpen() {
 		t.Fatal("going to a link's other end closes the list")
 	}
 	a = press(t, a, "k", "space", "p")
 	screenIs(t, a, "diagram-properties")
 	a = press(t, a, "enter")
-	if a.screen != screenDiff || cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 2" {
-		t.Fatalf("a property goes to its line: %v %s", a.screen, cursorAt(a))
+	if a.Screen() != context.ScreenDiff || cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 2" {
+		t.Fatalf("a property goes to its line: %v %s", a.Screen(), cursorAt(a))
 	}
 }
 
@@ -89,8 +90,8 @@ func TestGdFollowsALinkAndGrListsWhatLinksIn(t *testing.T) {
 	a := onDiagram(t)
 	a = typed(t, press(t, a, "/"), "Catalog")
 	focusedOn(t, a, "Catalog")
-	if a.dg.Level.Component != "context" {
-		t.Fatalf("a match in another component shows its level: %+v", a.dg.Level)
+	if a.Diagram.Level.Component != "context" {
+		t.Fatalf("a match in another component shows its level: %+v", a.Diagram.Level)
 	}
 	a = press(t, a, "g", "d")
 	focusedOn(t, a, "Item")
@@ -108,33 +109,33 @@ func TestGdFollowsALinkAndGrListsWhatLinksIn(t *testing.T) {
 
 func TestEnterOpensATypesDiffAndDashComesBack(t *testing.T) {
 	a := press(t, onDiagram(t), "j", "enter")
-	if a.screen != screenDiff || cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 1" {
-		t.Fatalf("Enter on a type opens its line: %v %s", a.screen, cursorAt(a))
+	if a.Screen() != context.ScreenDiff || cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 1" {
+		t.Fatalf("Enter on a type opens its line: %v %s", a.Screen(), cursorAt(a))
 	}
 	a = press(t, a, "-")
-	if a.screen != screenDiagram {
-		t.Fatalf("- goes back to the diagram: %v", a.screen)
+	if a.Screen() != context.ScreenDiagram {
+		t.Fatalf("- goes back to the diagram: %v", a.Screen())
 	}
 	focusedOn(t, a, "Basket")
 	a = press(t, a, "g", "d")
-	if a.screen != screenDiagram || a.menu == nil || len(a.menu.Rows) != 2 {
-		t.Fatalf("Basket links to two types, so gd lists them: %+v", a.menu)
+	if a.Screen() != context.ScreenDiagram || !a.menuOpen() || len(a.Menu.Rows) != 2 {
+		t.Fatalf("Basket links to two types, so gd lists them: %+v", a.Menu)
 	}
 }
 
 func TestGdInTheDiffShowsTheTypeAtTheCursor(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = typed(t, press(t, a, "space", "f"), "Catalog/Search")
-	if a.screen != screenDiff || cursorAt(a) != "Sources/Catalog/Search.swift file" {
-		t.Fatalf("the finder opens a file at its header: %v %s", a.screen, cursorAt(a))
+	if a.Screen() != context.ScreenDiff || cursorAt(a) != "Sources/Catalog/Search.swift file" {
+		t.Fatalf("the finder opens a file at its header: %v %s", a.Screen(), cursorAt(a))
 	}
 	a = press(t, a, "g", "d")
-	if a.menu == nil || a.menu.Title != "Types in Search.swift" {
-		t.Fatalf("gd on a file's header lists its types: %+v", a.menu)
+	if !a.menuOpen() || a.Menu.Title != "Types in Search.swift" {
+		t.Fatalf("gd on a file's header lists its types: %+v", a.Menu)
 	}
 	a = press(t, a, "esc", "]", "c", "g", "d")
-	if a.screen != screenDiagram {
-		t.Fatalf("gd on a line shows its type: %v %q", a.screen, a.notice)
+	if a.Screen() != context.ScreenDiagram {
+		t.Fatalf("gd on a line shows its type: %v %q", a.Screen(), a.Notice)
 	}
 	focusedOn(t, a, "Search")
 }
@@ -147,12 +148,12 @@ func TestTheFinderNarrowsAsItIsTyped(t *testing.T) {
 	}
 	screenIs(t, a, "finder")
 	a = send(t, a, tea.KeyMsg{Type: tea.KeyBackspace})
-	if a.menu.Query != "bas" {
-		t.Fatalf("Backspace takes back a letter: %q", a.menu.Query)
+	if a.Menu.Query != "bas" {
+		t.Fatalf("Backspace takes back a letter: %q", a.Menu.Query)
 	}
 	a = send(t, a, tea.KeyMsg{Type: tea.KeyEnter})
-	if a.screen != screenDiagram {
-		t.Fatalf("Enter on a type shows it: %v", a.screen)
+	if a.Screen() != context.ScreenDiagram {
+		t.Fatalf("Enter on a type shows it: %v", a.Screen())
 	}
 	focusedOn(t, a, "Basket")
 }
@@ -162,13 +163,13 @@ func TestLabelsJumpToABox(t *testing.T) {
 	screenIs(t, a, "diagram-labels")
 	a = press(t, a, "d")
 	focusedOn(t, a, "Search")
-	if a.dg.Labels != nil {
+	if a.Diagram.Labels != nil {
 		t.Fatal("the labels go once one is typed")
 	}
 	a = press(t, a, "f", "x")
 	focusedOn(t, a, "Search")
-	if !a.bad || a.dg.Labels != nil {
-		t.Fatalf("a label no box has stops the labels: %q", a.notice)
+	if !a.Bad || a.Diagram.Labels != nil {
+		t.Fatalf("a label no box has stops the labels: %q", a.Notice)
 	}
 }
 
@@ -194,12 +195,12 @@ func drawnAt(t *testing.T, a App, text string) (int, int) {
 
 func TestThePullRequestFilterDimsTheTypesItLeavesOut(t *testing.T) {
 	a := press(t, onDiagram(t), "]", "p")
-	if got := fmt.Sprint(a.filter); got != "[21]" {
+	if got := fmt.Sprint(a.Filter); got != "[21]" {
 		t.Fatalf("the filter: %s", got)
 	}
-	c, tops, _ := diagram.Draw(a.c.Tr, *a.review, a.dg.Scene, a.filter)
+	c, tops, _ := diagram.Draw(a.c.Tr, *a.Review, a.Diagram.Scene, a.Filter)
 	titleStyle := func(id string) string {
-		s := a.dg.Grid.Spots[a.dg.Level.Index(id)]
+		s := a.Diagram.Grid.Spots[a.Diagram.Level.Index(id)]
 		return c.Cells[tops[s.Row]+1][s.Col+2].Style
 	}
 	if titleStyle("Basket") != "dim" || titleStyle("Search") != "title" {
@@ -255,7 +256,8 @@ func standIn() types.ReviewData {
 func standInApp(width, height int) App {
 	a := New(testCommon(), Options{})
 	d := standIn()
-	a.review, a.loading, a.width, a.height, a.focus = &d, false, width, height, mainPanel
+	a.Review, a.Loading, a.Width, a.Height = &d, false, width, height
+	a.ContextTree = a.Focused(context.MainPanel, a.Driving())
 	return a
 }
 
@@ -301,7 +303,8 @@ func pathsStandIn() types.ReviewData {
 func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 	d := pathsStandIn()
 	a := New(testCommon(), Options{})
-	a.review, a.loading, a.width, a.height, a.focus, a.driving = &d, false, 80, 24, diagramPanel, diagramPanel
+	a.Review, a.Loading, a.Width, a.Height = &d, false, 80, 24
+	a.ContextTree = a.Focused(context.DiagramPanel, context.DiagramPanel)
 	a = a.showBox(types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"}).relaid()
 	screenIs(t, a, "paths-packages")
 	shown := a.View()
@@ -319,7 +322,7 @@ func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 			t.Errorf("the types show no %q", want)
 		}
 	}
-	a.focus = filesPanel
+	a.ContextTree = a.Focused(context.FilesPanel, a.Driving())
 	if shown := a.relaid().View(); !strings.Contains(shown, "│   ▾ …/Experiments ") || !strings.Contains(shown, "│   ▾ …/Checkout ") {
 		t.Errorf("the Files panel's folders keep their ends:\n%s", shown)
 	}

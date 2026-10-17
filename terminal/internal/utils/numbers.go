@@ -10,3 +10,9 @@ func Clamp(n, low, high int) int {
 	}
 	return n
 }
+
+// Around is n wrapped round into 0 to size-1, so it goes round at either
+// end.
+func Around(n, size int) int {
+	return (n%size + size) % size
+}

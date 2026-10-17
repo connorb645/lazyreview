@@ -11,17 +11,17 @@ func TestTheReviewViewOfAStack(t *testing.T) {
 	a, visited := opened(t, "github.com/octo/widgets/21", 100, 60)
 	screenIs(t, a, "review-stack")
 	a = press(t, a, "0", "]", "]", "]", "]")
-	if got := a.rv.sectionAt(); got != "queue" {
+	if got := a.ReviewView.SectionAt(); got != "queue" {
 		t.Fatalf("]] twice from the top stopped in %q", got)
 	}
 	a = press(t, a, "z", "a")
 	screenIs(t, a, "review-stack-queue-folded")
 	a = press(t, a, "z", "a", "j")
-	if it := a.rv.view.items[a.rv.view.cursor]; it.Kind != "pull" || it.Pull != 21 {
+	if it := a.ReviewView.View.Items[a.ReviewView.View.Cursor]; it.Kind != "pull" || it.Pull != 21 {
 		t.Fatalf("j from the queue's heading stopped on %+v", it)
 	}
 	a = press(t, a, "j")
-	if it := a.rv.view.items[a.rv.view.cursor]; it.Kind != "comment" || it.Comment != 1 {
+	if it := a.ReviewView.View.Items[a.ReviewView.View.Cursor]; it.Kind != "comment" || it.Comment != 1 {
 		t.Fatalf("j from #21 stopped on %+v", it)
 	}
 	a = press(t, a, "g", "x")
@@ -33,7 +33,7 @@ func TestTheReviewViewOfAStack(t *testing.T) {
 		t.Fatalf("gX opens the review in the web app, not %s", (*visited)[1])
 	}
 	a = press(t, a, "G")
-	if it := a.rv.view.items[a.rv.view.cursor]; it.Kind != "component" {
+	if it := a.ReviewView.View.Items[a.ReviewView.View.Cursor]; it.Kind != "component" {
 		t.Fatalf("G stops on the last item, the change's last component, not %+v", it)
 	}
 }
@@ -43,10 +43,10 @@ func TestTheReviewViewOfAPullRequestScrollsToTheCursor(t *testing.T) {
 	screenIs(t, a, "review-single")
 	a = press(t, a, "0", "G")
 	screenIs(t, a, "review-single-end")
-	bottom := a.rv.view.top
+	bottom := a.ReviewView.View.Top
 	main := a.layout().main.Inner()
 	a = send(t, a, tea.MouseMsg{X: main.X + 2, Y: main.Y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonWheelUp})
-	if a.rv.view.top >= bottom {
+	if a.ReviewView.View.Top >= bottom {
 		t.Fatalf("the wheel did not scroll up from %d", bottom)
 	}
 }

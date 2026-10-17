@@ -2,7 +2,7 @@ package gui
 
 import (
 	"bytes"
-	"context"
+	stdcontext "context"
 	"encoding/json"
 	"flag"
 	"io"
@@ -199,7 +199,7 @@ func drive(t *testing.T, a App, cmd tea.Cmd) App {
 	return a
 }
 
-func heardNothing(context.Context, *server.Client, string) <-chan tea.Msg {
+func heardNothing(stdcontext.Context, *server.Client, string) <-chan tea.Msg {
 	none := make(chan tea.Msg)
 	close(none)
 	return none

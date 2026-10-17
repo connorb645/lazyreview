@@ -1,19 +1,21 @@
 package gui
 
 import (
-	"context"
+	stdcontext "context"
 	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
 const liveTries = 5
 
-func listen(ctx context.Context, c *server.Client, id string) <-chan tea.Msg {
+func listen(ctx stdcontext.Context, c *server.Client, id string) <-chan tea.Msg {
 	out := make(chan tea.Msg)
 	give := func(msg tea.Msg) bool {
 		select {
@@ -36,7 +38,7 @@ func listen(ctx context.Context, c *server.Client, id string) <-chan tea.Msg {
 				select {
 				case n := <-notices:
 					failures = 0
-					if !give(liveNotice{id: id, notice: n}) {
+					if !give(types.LiveNotice{ID: id, Notice: n}) {
 						return
 					}
 				case err = <-stopped:
@@ -48,7 +50,7 @@ func listen(ctx context.Context, c *server.Client, id string) <-chan tea.Msg {
 			}
 			failures++
 			if failures >= liveTries {
-				give(liveStopped{id: id, err: err})
+				give(types.LiveStopped{ID: id, Err: err})
 				return
 			}
 			select {
@@ -75,30 +77,30 @@ func nextNotice(live <-chan tea.Msg) tea.Cmd {
 }
 
 func (a App) listenTo(id string) (App, tea.Cmd) {
-	if a.liveFor == id {
+	if a.LiveFor == id {
 		return a, nil
 	}
-	if a.stopLive != nil {
-		a.stopLive()
+	if a.StopLive != nil {
+		a.StopLive()
 	}
-	ctx, stop := context.WithCancel(context.Background())
-	a.live, a.stopLive, a.liveFor = a.opts.Listen(ctx, a.opts.Server, id), stop, id
-	return a, nextNotice(a.live)
+	ctx, stop := stdcontext.WithCancel(stdcontext.Background())
+	a.Live, a.StopLive, a.LiveFor = a.opts.Listen(ctx, a.opts.Server, id), stop, id
+	return a, nextNotice(a.Live)
 }
 
-func (a App) afterNotice(msg liveNotice) (tea.Model, tea.Cmd) {
-	next := nextNotice(a.live)
-	if a.review == nil || msg.id != a.review.ID {
+func (a App) afterNotice(msg types.LiveNotice) (tea.Model, tea.Cmd) {
+	next := nextNotice(a.Live)
+	if a.Review == nil || msg.ID != a.Review.ID {
 		return a, next
 	}
 	var cmds []tea.Cmd
-	switch n := msg.notice; {
-	case n.Build != "" && n.Build != a.review.Page.Build && (a.editingNow || len(a.drafts) > 0):
+	switch n := msg.Notice; {
+	case n.Build != "" && n.Build != a.Review.Page.Build && (a.EditingNow || len(a.Drafts) > 0):
 		a = a.say(a.c.Tr.LoadedElsewhere, false)
-	case n.Build != "" && n.Build != a.review.Page.Build:
-		cmds = append(cmds, reloadReview(a.c.Tr, a.opts.Server, a.review.ID, false))
-	case n.State != "" && n.State != a.review.State.Version:
-		cmds = append(cmds, loadState(a.opts.Server, a.review.ID))
+	case n.Build != "" && n.Build != a.Review.Page.Build:
+		cmds = append(cmds, reloadReview(a.c.Tr, a.opts.Server, a.Review.ID, false))
+	case n.State != "" && n.State != a.Review.State.Version:
+		cmds = append(cmds, loadState(a.opts.Server, a.Review.ID))
 	}
 	return a, tea.Batch(append(cmds, next)...)
 }
@@ -109,37 +111,37 @@ func reloadReview(tr *i18n.TranslationSet, c *server.Client, id string, refresh 
 		if refresh {
 			var err error
 			if notes, err = c.Refresh(id); err != nil {
-				return reviewReloaded{err: err}
+				return types.ReviewReloaded{Err: err}
 			}
 		}
-		loaded, ok := loadReview(tr, c, id)().(reviewLoaded)
-		if !ok || loaded.err != nil {
-			return reviewReloaded{err: loaded.err}
+		loaded, ok := loadReview(tr, c, id)().(types.ReviewLoaded)
+		if !ok || loaded.Err != nil {
+			return types.ReviewReloaded{Err: loaded.Err}
 		}
-		return reviewReloaded{data: loaded.data, notes: notes}
+		return types.ReviewReloaded{Data: loaded.Data, Notes: notes}
 	}
 }
 
-func (a App) afterReload(msg reviewReloaded) (tea.Model, tea.Cmd) {
-	if msg.err != nil {
-		return a.say(msg.err.Error(), true), nil
+func (a App) afterReload(msg types.ReviewReloaded) (tea.Model, tea.Cmd) {
+	if msg.Err != nil {
+		return a.say(msg.Err.Error(), true), nil
 	}
-	if a.review == nil || msg.data.ID != a.review.ID {
+	if a.Review == nil || msg.Data.ID != a.Review.ID {
 		return a, nil
 	}
 	words := a.c.Tr.LoadedAgain
-	if len(msg.notes) > 0 {
-		words += " " + strings.Join(msg.notes, " ")
+	if len(msg.Notes) > 0 {
+		words += " " + strings.Join(msg.Notes, " ")
 	}
-	a.review = &msg.data
-	a.files = map[string]server.File{}
+	a.Review = &msg.Data
+	a.Files = map[string]server.File{}
 	a = a.keptFilter()
-	switch a.screen {
-	case screenDiff:
-		next, cmd := a.openPlace(a.diff.Component, a.diff.place())
+	switch a.Screen() {
+	case context.ScreenDiff:
+		next, cmd := a.openPlace(a.Diff.Component, a.Diff.Place())
 		return next.(App).say(words, false), cmd
-	case screenDiagram:
-		return a.showBox(a.dg.place()).say(words, false), nil
+	case context.ScreenDiagram:
+		return a.showBox(a.Diagram.Place()).say(words, false), nil
 	}
 	return a.relaid().say(words, false), nil
 }

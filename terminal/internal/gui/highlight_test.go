@@ -10,20 +10,22 @@ import (
 	"github.com/muesli/termenv"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 )
 
 func filterIs(t *testing.T, a App, want string) {
 	t.Helper()
-	if got := fmt.Sprint(a.filter); got != want {
+	if got := fmt.Sprint(a.Filter); got != want {
 		t.Fatalf("the filter is %s, not %s", got, want)
 	}
 }
 
 func rowKeys(a App, n int) []string {
 	var keys []string
-	for _, r := range a.sides[n].rows {
+	for _, r := range a.Side(n).Rows {
 		if !r.Heading {
 			keys = append(keys, r.Key)
 		}
@@ -34,12 +36,12 @@ func rowKeys(a App, n int) []string {
 func onThreeStack(t *testing.T) App {
 	t.Helper()
 	a, _ := opened(t, stack, 100, 30)
-	d := *a.review
+	d := *a.Review
 	stacked := *d.Page.Stack
 	stacked.Members = append(append([]server.StackMember{}, stacked.Members...), server.StackMember{Pull: 23, Head: "f00d"})
 	d.Page.Stack = &stacked
 	d.State.Members = append(append([]server.Member{}, d.State.Members...), server.Member{Pull: 23, Title: "Price the basket", Color: 3})
-	a.review = &d
+	a.Review = &d
 	return a.relaid()
 }
 
@@ -50,18 +52,18 @@ func TestVHighlightsAPullRequestAndJAndKGrowOrShrinkIt(t *testing.T) {
 	if !strings.Contains(a.View(), "VISUAL · 1 of 2─╯") {
 		t.Fatalf("the Review panel's foot does not say VISUAL:\n%s", a.View())
 	}
-	for _, key := range rowKeys(a, filesPanel) {
+	for _, key := range rowKeys(a, context.FilesPanel) {
 		if key == "file:Sources/Basket/Basket.swift" || key == "file:web/src/cart.ts" {
 			t.Fatalf("the Files panel shows %s, which only #22 changed", key)
 		}
 	}
-	if got := strings.Join(rowKeys(a, notesPanel), " "); got != "queued:1 thread:T1" {
+	if got := strings.Join(rowKeys(a, context.NotesPanel), " "); got != "queued:1 thread:T1" {
 		t.Fatalf("the Notes panel shows %s, not only #21's notes", got)
 	}
 	screenIs(t, a, "highlight-one")
 	a = press(t, a, "j")
 	filterIs(t, a, "[21 22]")
-	if got := strings.Join(rowKeys(a, notesPanel), " "); got != "queued:1 queued:2 conversation:1 thread:T1 thread:T2" {
+	if got := strings.Join(rowKeys(a, context.NotesPanel), " "); got != "queued:1 queued:2 conversation:1 thread:T1 thread:T2" {
 		t.Fatalf("with both highlighted the Notes panel shows %s", got)
 	}
 	screenIs(t, a, "highlight-both")
@@ -95,7 +97,7 @@ func TestTheHighlightStaysWhenTheKeysLeaveTheReviewPanel(t *testing.T) {
 		a = press(t, a, "v", "j")
 		a = press(t, a, keys...)
 		filterIs(t, a, "[21 22]")
-		if a.growFrom != 0 || strings.Contains(a.View(), "VISUAL ·") {
+		if a.GrowFrom != 0 || strings.Contains(a.View(), "VISUAL ·") {
 			t.Fatalf("after %v the highlight still grows", keys)
 		}
 		a = press(t, a, "j", "k")
@@ -108,26 +110,26 @@ func TestBackInTheReviewPanelJAndKMoveAndEscShowsTheWholeStack(t *testing.T) {
 	a = press(t, a, "j", "v", "2", "1")
 	filterIs(t, a, "[22]")
 	a = press(t, a, "k")
-	if got := selectedKey(a, reviewPanel); got != "pull:21" {
+	if got := selectedKey(a, context.ReviewPanel); got != "pull:21" {
 		t.Fatalf("k back in the Review panel moved to %s", got)
 	}
 	filterIs(t, a, "[22]")
 	screenIs(t, a, "highlight-kept")
 	a = press(t, a, "esc")
 	filterIs(t, a, "[]")
-	if a.notice != "" {
-		t.Fatalf("Esc that shows the whole stack says %q", a.notice)
+	if a.Notice != "" {
+		t.Fatalf("Esc that shows the whole stack says %q", a.Notice)
 	}
 	a = press(t, a, "v")
 	filterIs(t, a, "[21]")
 	a = press(t, a, "esc")
 	filterIs(t, a, "[]")
-	if a.growFrom != 0 {
+	if a.GrowFrom != 0 {
 		t.Fatal("Esc left the highlight growing")
 	}
 	a = press(t, a, "esc")
-	if a.notice != "ZZ or :q quits" {
-		t.Fatalf("Esc with nothing highlighted says %q", a.notice)
+	if a.Notice != "ZZ or :q quits" {
+		t.Fatalf("Esc with nothing highlighted says %q", a.Notice)
 	}
 }
 
@@ -136,7 +138,7 @@ func TestBracketPSetsTheHighlightToOnePullRequestOrAll(t *testing.T) {
 	filterIs(t, a, "[22 23]")
 	a = press(t, a, "[", "p")
 	filterIs(t, a, "[21]")
-	if a.growFrom != 0 {
+	if a.GrowFrom != 0 {
 		t.Fatal("[p left the highlight growing")
 	}
 	if !strings.Contains(a.View(), "[1]─Review - #21─") {
@@ -155,7 +157,7 @@ func TestVDoesNothingOnOnePullRequest(t *testing.T) {
 	before := a.View()
 	a = press(t, a, "v")
 	filterIs(t, a, "[]")
-	if a.growFrom != 0 || a.View() != before {
+	if a.GrowFrom != 0 || a.View() != before {
 		t.Fatalf("v changed a review of one pull request:\n%s", a.View())
 	}
 }
@@ -163,13 +165,13 @@ func TestVDoesNothingOnOnePullRequest(t *testing.T) {
 func TestTheHighlightIsKeptAcrossAReload(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
 	a = press(t, a, "v", "j", "2")
-	a = send(t, a, reviewReloaded{data: *a.review})
+	a = send(t, a, types.ReviewReloaded{Data: *a.Review})
 	filterIs(t, a, "[21 22]")
-	d := *a.review
+	d := *a.Review
 	stacked := *d.Page.Stack
 	stacked.Members = stacked.Members[:1]
 	d.Page.Stack = &stacked
-	a = send(t, a, reviewReloaded{data: d})
+	a = send(t, a, types.ReviewReloaded{Data: d})
 	filterIs(t, a, "[21]")
 }
 
@@ -196,10 +198,10 @@ func TestACommentQueuedWhileHighlightedGoesWhereTheServerSays(t *testing.T) {
 	a = press(t, a, "v", "2", "j", "enter")
 	a = typed(t, press(t, a, ":"), "7")
 	a = press(t, a, "V", "j", "j", "c")
-	if a.bad || a.diff.Selecting {
-		t.Fatalf("the range was not queued: %q", a.notice)
+	if a.Bad || a.Diff.Selecting {
+		t.Fatalf("the range was not queued: %q", a.Notice)
 	}
-	if n, ok := presentation.NoteOf(*a.review, "Sources/Catalog/MemoryCatalog.swift", "queued:4"); !ok || n.Pull != 21 {
+	if n, ok := presentation.NoteOf(*a.Review, "Sources/Catalog/MemoryCatalog.swift", "queued:4"); !ok || n.Pull != 21 {
 		t.Fatalf("queued comment 4 goes on %+v", n)
 	}
 	filterIs(t, a, "[21]")
@@ -210,24 +212,24 @@ func TestHighlightedRowsDrawApartFromTheCursorRow(t *testing.T) {
 	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
 	for _, dark := range []bool{true, false} {
 		th := commonFor(dark).Theme
-		s := sidePanel{cursor: 1, rows: []presentation.SideRow{{Key: "a", Text: "#21", Lit: true}, {Key: "b", Text: "#22", Lit: true}, {Key: "c", Text: "#23"}}}
-		focused, _ := presentation.SideContent(testCommon().Tr, th, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, true)
+		s := context.SideContext{Cursor: 1, Rows: []presentation.SideRow{{Key: "a", Text: "#21", Lit: true}, {Key: "b", Text: "#22", Lit: true}, {Key: "c", Text: "#23"}}}
+		focused, _ := presentation.SideContent(testCommon().Tr, th, s.Rows, s.Cursor, s.Top, views.Rect{W: 20, H: 3}, true)
 		if !strings.HasPrefix(focused[0], th.VisualSelectionBg) || !strings.HasPrefix(focused[1], th.SelectedLineBg) || strings.HasPrefix(focused[2], th.VisualSelectionBg) {
 			t.Fatalf("with the keys, a lit row, the cursor and an unlit row draw as %q", focused)
 		}
 		if th.VisualSelectionBg == th.SelectedLineBg || th.VisualSelectionBg == th.InactiveViewSelectedLineBg {
 			t.Fatalf("the highlight's colour is the cursor's: %q", th.VisualSelectionBg)
 		}
-		away, _ := presentation.SideContent(testCommon().Tr, th, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, false)
+		away, _ := presentation.SideContent(testCommon().Tr, th, s.Rows, s.Cursor, s.Top, views.Rect{W: 20, H: 3}, false)
 		if !strings.HasPrefix(away[1], th.VisualSelectionBg) {
 			t.Fatalf("without the keys, the cursor's lit row draws as %q", away[1])
 		}
 	}
 	plain := testCommon().Theme
 	plain.Plain = true
-	s := sidePanel{cursor: 1, rows: []presentation.SideRow{{Key: "a", Text: "#21", Lit: true}, {Key: "b", Text: "#22", Lit: true}, {Key: "c", Text: "#23"}}}
-	focused, _ := presentation.SideContent(testCommon().Tr, plain, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, true)
-	away, _ := presentation.SideContent(testCommon().Tr, plain, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, false)
+	s := context.SideContext{Cursor: 1, Rows: []presentation.SideRow{{Key: "a", Text: "#21", Lit: true}, {Key: "b", Text: "#22", Lit: true}, {Key: "c", Text: "#23"}}}
+	focused, _ := presentation.SideContent(testCommon().Tr, plain, s.Rows, s.Cursor, s.Top, views.Rect{W: 20, H: 3}, true)
+	away, _ := presentation.SideContent(testCommon().Tr, plain, s.Rows, s.Cursor, s.Top, views.Rect{W: 20, H: 3}, false)
 	if !strings.HasPrefix(focused[0], "┃") || !strings.HasPrefix(focused[1], "▌") || !strings.HasPrefix(away[1], "┃") || !strings.HasPrefix(focused[2], " ") {
 		t.Fatalf("with no colour, the rows draw as %q, then without the keys %q", focused, away)
 	}
@@ -244,8 +246,8 @@ func TestPathTitlesReadTheSameUnderAHighlight(t *testing.T) {
 	if title(lit) != title(whole) || !strings.Contains(title(lit), "widgets › Sources─") {
 		t.Fatalf("with #22 highlighted the diagram is titled %q, not %q", title(lit), title(whole))
 	}
-	for _, card := range lit.dg.Level.Cards {
-		if row := lit.sides[diagramPanel].rows[lit.sides[diagramPanel].index(presentation.BoxKey(card.ID))]; row.Title != card.Title {
+	for _, card := range lit.Diagram.Level.Cards {
+		if row := lit.Side(context.DiagramPanel).Rows[lit.Side(context.DiagramPanel).Index(presentation.BoxKey(card.ID))]; row.Title != card.Title {
 			t.Fatalf("the Diagram panel titles %s as %q", card.ID, row.Title)
 		}
 	}

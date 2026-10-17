@@ -3,108 +3,109 @@ package gui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-func panelNames(tr *i18n.TranslationSet) [sideCount + 1]string {
-	return [sideCount + 1]string{tr.MainTitle, tr.ReviewTitle, tr.FilesTitle, tr.NotesTitle, tr.DiagramTitle}
+func panelNames(tr *i18n.TranslationSet) [context.SideCount + 1]string {
+	return [context.SideCount + 1]string{tr.MainTitle, tr.ReviewTitle, tr.FilesTitle, tr.NotesTitle, tr.DiagramTitle}
 }
 
 func (a App) panelName() string {
 	tr := a.c.Tr
-	if a.focus != mainPanel {
-		return panelNames(tr)[a.focus]
+	if a.Focus() != context.MainPanel {
+		return panelNames(tr)[a.Focus()]
 	}
-	return map[screen]string{screenReview: tr.ReviewTitle, screenDiff: tr.DiffTitle, screenDiagram: tr.DiagramTitle}[a.screen]
+	return map[context.Screen]string{context.ScreenReview: tr.ReviewTitle, context.ScreenDiff: tr.DiffTitle, context.ScreenDiagram: tr.DiagramTitle}[a.Screen()]
 }
 
 func (a App) focusOn(n int) (tea.Model, tea.Cmd) {
-	if a.review == nil {
+	if a.Review == nil {
 		return a, nil
 	}
-	if n == mainPanel {
-		a.focus = mainPanel
+	if n == context.MainPanel {
+		a.ContextTree = a.Focused(context.MainPanel, a.Driving())
 		return a.relaid(), nil
 	}
-	a.focus, a.driving = n, n
+	a.ContextTree = a.Focused(n, n)
 	a = a.relaid()
 	return a.followed()
 }
 
 func (a App) sidesBuilt() App {
-	d, tr, th := *a.review, a.c.Tr, a.c.Theme
-	built := [sideCount + 1][]presentation.SideRow{
-		reviewPanel:  presentation.ReviewRows(th, d, a.filter),
-		filesPanel:   presentation.FileRows(tr, th, d, a.tree, a.filter),
-		notesPanel:   presentation.NoteListRows(tr, th, d, a.filter),
-		diagramPanel: presentation.BoxRows(tr, th, d, a.dg.Level, a.dg.Grid, a.filter),
+	d, tr, th := *a.Review, a.c.Tr, a.c.Theme
+	built := [context.SideCount + 1][]presentation.SideRow{
+		context.ReviewPanel:  presentation.ReviewRows(th, d, a.Filter),
+		context.FilesPanel:   presentation.FileRows(tr, th, d, a.FilesPanel.Folded, a.Filter),
+		context.NotesPanel:   presentation.NoteListRows(tr, th, d, a.Filter),
+		context.DiagramPanel: presentation.BoxRows(tr, th, d, a.Diagram.Level, a.Diagram.Grid, a.Filter),
 	}
-	for n := reviewPanel; n <= sideCount; n++ {
-		a.sides[n] = a.sides[n].reset(built[n])
+	for n := context.ReviewPanel; n <= context.SideCount; n++ {
+		a.ContextTree = a.WithSide(n, a.Side(n).Reset(built[n]))
 	}
-	for n := reviewPanel; n <= sideCount; n++ {
-		a.sides[n] = a.sides[n].shown(a.sideHeight(n))
+	for n := context.ReviewPanel; n <= context.SideCount; n++ {
+		a.ContextTree = a.WithSide(n, a.Side(n).Shown(a.sideHeight(n)))
 	}
 	return a
 }
 
 func (a App) mirrored() App {
-	if a.review == nil || a.width == 0 {
+	if a.Review == nil || a.Width == 0 {
 		return a
 	}
 	pick := func(n int, key string) {
-		if (n == a.focus && n != diagramPanel) || key == "" {
+		if (n == a.Focus() && n != context.DiagramPanel) || key == "" {
 			return
 		}
-		s := a.sides[n]
-		if i := s.index(key); i >= 0 {
-			a.sides[n] = s.to(i, a.sideHeight(n))
+		s := a.Side(n)
+		if i := s.Index(key); i >= 0 {
+			a.ContextTree = a.WithSide(n, s.To(i, a.sideHeight(n)))
 		}
 	}
-	switch a.screen {
-	case screenReview:
-		if v := a.rv.view; v.cursor < len(v.items) && v.items[v.cursor].Pull != 0 {
-			pick(reviewPanel, presentation.PullKey(v.items[v.cursor].Pull))
+	switch a.Screen() {
+	case context.ScreenReview:
+		if v := a.ReviewView.View; v.Cursor < len(v.Items) && v.Items[v.Cursor].Pull != 0 {
+			pick(context.ReviewPanel, presentation.PullKey(v.Items[v.Cursor].Pull))
 		}
-	case screenDiff:
-		if path := a.diff.file(); path != "" {
-			pick(filesPanel, a.shownFile(path))
+	case context.ScreenDiff:
+		if path := a.Diff.File(); path != "" {
+			pick(context.FilesPanel, a.shownFile(path))
 		}
-		if v := a.diff; v.Cursor < len(v.Rows) && (v.Rows[v.Cursor].Kind == "notehead" || v.Rows[v.Cursor].Kind == "notetext") {
-			pick(notesPanel, v.Rows[v.Cursor].Key)
+		if v := a.Diff; v.Cursor < len(v.Rows) && (v.Rows[v.Cursor].Kind == "notehead" || v.Rows[v.Cursor].Kind == "notetext") {
+			pick(context.NotesPanel, v.Rows[v.Cursor].Key)
 		}
-	case screenDiagram:
+	case context.ScreenDiagram:
 		a = a.sidesBuilt()
-		if card, ok := a.dg.Card(); ok {
-			pick(diagramPanel, presentation.BoxKey(card.ID))
+		if card, ok := a.Diagram.Card(); ok {
+			pick(context.DiagramPanel, presentation.BoxKey(card.ID))
 		}
 	}
 	return a
 }
 
 func (a App) shownFile(path string) string {
-	if a.sides[filesPanel].index(presentation.FileKey(path)) >= 0 {
+	if a.Side(context.FilesPanel).Index(presentation.FileKey(path)) >= 0 {
 		return presentation.FileKey(path)
 	}
 	component := a.componentOf(path)
-	if dir := presentation.DirKey(component, path); a.sides[filesPanel].index(dir) >= 0 {
+	if dir := presentation.DirKey(component, path); a.Side(context.FilesPanel).Index(dir) >= 0 {
 		return dir
 	}
 	return presentation.ComponentKey(component)
 }
 
 func (a App) followed() (tea.Model, tea.Cmd) {
-	row, ok := a.sides[a.focus].selected()
+	row, ok := a.Side(a.Focus()).Selected()
 	if !ok {
 		return a, nil
 	}
-	switch a.focus {
-	case reviewPanel:
-		a.screen = screenReview
+	switch a.Focus() {
+	case context.ReviewPanel:
+		a.ContextTree = a.Showing(context.ScreenReview)
 		return a.grown(row).relaid(), nil
-	case filesPanel:
+	case context.FilesPanel:
 		place := row.Item.Place
 		if row.Item.Kind == "component" {
 			place = nil
@@ -112,17 +113,17 @@ func (a App) followed() (tea.Model, tea.Cmd) {
 		next, cmd := a.openPlace(row.Item.Component, place)
 		if place != nil && cmd == nil {
 			after := next.(App)
-			after.diff = after.diff.find(*place).atTop(after.mainHeight())
+			after.Diff = after.Diff.Find(*place).AtTop(after.mainHeight())
 			return after.mirrored(), nil
 		}
 		return next.(App).mirrored(), cmd
-	case notesPanel:
+	case context.NotesPanel:
 		return a.toNote(row)
-	case diagramPanel:
-		if i := a.dg.Level.Index(row.Item.Box.Box); i >= 0 {
-			a.dg.Focus = i
+	case context.DiagramPanel:
+		if i := a.Diagram.Level.Index(row.Item.Box.Box); i >= 0 {
+			a.Diagram.Focus = i
 		}
-		a.screen = screenDiagram
+		a.ContextTree = a.Showing(context.ScreenDiagram)
 		return a.diagramShown().mirrored(), nil
 	}
 	return a, nil
@@ -139,48 +140,48 @@ func (a App) toNote(row presentation.SideRow) (tea.Model, tea.Cmd) {
 		return next, cmd
 	}
 	a = next.(App)
-	a.diff = a.diff.copied()
-	a.diff.Notes[row.Key] = true
-	a.diff = a.diff.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, a.mainHeight())
-	if i := a.diff.first(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
-		a.diff = a.diff.to(i, a.mainHeight()).placed(a.mainHeight())
+	a.Diff = a.Diff.Copied()
+	a.Diff.Notes[row.Key] = true
+	a.Diff = a.Diff.Rebuilt(a.c.Tr, a.md, a.opts.Location, *a.Review, a.Filter, a.mainHeight())
+	if i := a.Diff.First(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
+		a.Diff = a.Diff.To(i, a.mainHeight()).Placed(a.mainHeight())
 	}
 	return a.mirrored(), nil
 }
 
 func (a App) sideAction(action string, count int) (tea.Model, tea.Cmd) {
-	s, h := a.sides[a.focus], a.sideHeight(a.focus)
-	row, selected := s.selected()
-	if a.focus == diagramPanel {
+	s, h := a.Side(a.Focus()), a.sideHeight(a.Focus())
+	row, selected := s.Selected()
+	if a.Focus() == context.DiagramPanel {
 		return a.boxAction(action, count)
 	}
 	switch action {
 	case "down":
-		a.sides[a.focus] = s.move(count, h)
+		a.ContextTree = a.WithSide(a.Focus(), s.Move(count, h))
 		return a.followed()
 	case "up":
-		a.sides[a.focus] = s.move(-count, h)
+		a.ContextTree = a.WithSide(a.Focus(), s.Move(-count, h))
 		return a.followed()
 	case "top":
-		a.sides[a.focus] = s.to(0, h)
+		a.ContextTree = a.WithSide(a.Focus(), s.To(0, h))
 		return a.followed()
 	case "bottom":
-		a.sides[a.focus] = s.to(s.landing(len(s.rows)-1, -1), h)
+		a.ContextTree = a.WithSide(a.Focus(), s.To(s.Landing(len(s.Rows)-1, -1), h))
 		return a.followed()
 	case "open":
 		if !selected {
 			return a, nil
 		}
-		if a.focus == filesPanel && (row.Item.Kind == "component" || row.Item.Kind == "dir") {
+		if a.Focus() == context.FilesPanel && (row.Item.Kind == "component" || row.Item.Kind == "dir") {
 			return a.treeFolded(row)
 		}
 		a = a.leave()
-		a.focus = mainPanel
+		a.ContextTree = a.Focused(context.MainPanel, a.Driving())
 		return a.relaid(), nil
 	case "next panel":
-		return a.focusOn(reviewPanel + around(a.focus-reviewPanel+1, sideCount))
+		return a.focusOn(context.ReviewPanel + utils.Around(a.Focus()-context.ReviewPanel+1, context.SideCount))
 	case "previous panel":
-		return a.focusOn(reviewPanel + around(a.focus-reviewPanel-1, sideCount))
+		return a.focusOn(context.ReviewPanel + utils.Around(a.Focus()-context.ReviewPanel-1, context.SideCount))
 	case "toggle fold":
 		if selected && (row.Item.Kind == "component" || row.Item.Kind == "dir") {
 			return a.treeFolded(row)
@@ -202,8 +203,8 @@ func (a App) sideAction(action string, count int) (tea.Model, tea.Cmd) {
 }
 
 func (a App) treeFolded(row presentation.SideRow) (tea.Model, tea.Cmd) {
-	a.tree = copyBools(a.tree)
-	a.tree[row.Key] = !a.tree[row.Key]
+	a.FilesPanel.Folded = utils.CopyBools(a.FilesPanel.Folded)
+	a.FilesPanel.Folded[row.Key] = !a.FilesPanel.Folded[row.Key]
 	return a.relaid(), nil
 }
 
@@ -214,11 +215,11 @@ func (a App) boxAction(action string, count int) (tea.Model, tea.Cmd) {
 	case "up":
 		action = "previous box"
 	}
-	a.screen = screenDiagram
+	a.ContextTree = a.Showing(context.ScreenDiagram)
 	next, cmd := a.diagramAction(action, count)
 	after := next.(App)
-	if after.screen != screenDiagram {
-		after.focus = mainPanel
+	if after.Screen() != context.ScreenDiagram {
+		after.ContextTree = after.Focused(context.MainPanel, after.Driving())
 	}
 	return after.relaid(), cmd
 }
