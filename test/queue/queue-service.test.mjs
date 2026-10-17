@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { workbench } from '../support/workbench.mjs';
-import { PullRef } from '../../src/github/pull-ref.mjs';
+import { PullRef } from '../../src/models/pull-ref.mjs';
 import { queueView } from '../../src/queue/queue-rules.mjs';
-import { GitHub } from '../../src/github/github.mjs';
+import { GitHub } from '../../src/commands/github/github.mjs';
 
 const ref = n => new PullRef('github.com', 'octo/widgets', n);
 const built = (w, n) => w.store.pageBuild(ref(n));

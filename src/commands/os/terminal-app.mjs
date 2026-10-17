@@ -15,7 +15,7 @@ import { readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const FOLDER = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal');
+const FOLDER = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'terminal');
 const BUILD_TIMEOUT = 10 * 60_000;
 
 export class TerminalApp {

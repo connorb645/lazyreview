@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { DataHome } from '../../src/store/data-home.mjs';
 import { ReviewStore } from '../../src/store/review-store.mjs';
 import { withLocks } from '../../src/store/file-lock.mjs';
-import { PullRef } from '../../src/github/pull-ref.mjs';
+import { PullRef } from '../../src/models/pull-ref.mjs';
 
 function scratch() {
   const root = mkdtempSync(join(tmpdir(), 'lazyreview-store-'));

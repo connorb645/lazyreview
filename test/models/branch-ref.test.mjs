@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BranchRef, repositoryName } from '../../src/local/branch-ref.mjs';
+import { BranchRef, repositoryName } from '../../src/models/branch-ref.mjs';
 
 test('a branch review id names the repository and the branch, and reads back', () => {
   const ref = BranchRef.of('/work/widgets/.git', 'feature/search');

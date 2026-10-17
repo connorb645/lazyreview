@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PullRef } from '../../src/github/pull-ref.mjs';
+import { PullRef } from '../../src/models/pull-ref.mjs';
 
 test('a pull request is read from its address, its review id or its short form', () => {
   for (const text of ['https://github.com/octo/widgets/pull/12', 'https://github.com/octo/widgets/pull/12/files#diff-1', 'github.com/octo/widgets/12', 'octo/widgets#12']) {

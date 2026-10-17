@@ -8,9 +8,9 @@ import { workbench } from '../support/workbench.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { AppServer } from '../../src/server/app-server.mjs';
 import { ThreadService } from '../../src/ask/thread-service.mjs';
-import { Claude } from '../../src/ask/claude.mjs';
+import { Claude } from '../../src/commands/claude/claude.mjs';
 import { BranchLoader } from '../../src/loader/branch-loader.mjs';
-import { PullRef } from '../../src/github/pull-ref.mjs';
+import { PullRef } from '../../src/models/pull-ref.mjs';
 import { OpenPulls } from '../../src/home/open-pulls.mjs';
 import { SETTINGS, homeRoutes } from '../support/home-routes.mjs';
 

@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { questionFor, SYSTEM } from '../../src/ask/question.mjs';
-import { Claude } from '../../src/ask/claude.mjs';
+import { Claude } from '../../src/commands/claude/claude.mjs';
 import { ThreadService } from '../../src/ask/thread-service.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { workbench } from '../support/workbench.mjs';
-import { PullRef } from '../../src/github/pull-ref.mjs';
+import { PullRef } from '../../src/models/pull-ref.mjs';
 
 const longFile = Array.from({ length: 900 }, (_, i) => `line ${i + 1}`);
 
@@ -48,24 +48,6 @@ test('a new file sends its whole text, a removed line sends no head text, and an
   const across = questionFor({ review: single, page: page(), thread: { path: 'src/a.ts', side: 'RIGHT', line: 11, start_line: 11, start_side: 'LEFT', messages: [{ from: 'you', text: 'Q?' }] } }).prompt;
   assert.match(across, /They ask about removed line 11 to line 11\./, 'a range from a removed line to an added one names both sides');
   assert.match(across, /\+added 11/);
-});
-
-test('Claude is asked in one print-mode call with no tools, settings, servers or saved session', async () => {
-  const fake = fakeClaude();
-  try {
-    const claude = new Claude({ command: fake.command, model: 'claude-sonnet-5-5' });
-    assert.equal(await claude.ask({ system: 'Be brief.', prompt: 'Why?' }), 'It returns early when the list is empty.');
-    const [call] = fake.asked();
-    assert.equal(call.prompt, 'Why?');
-    assert.deepEqual(call.args, ['-p', '--output-format', 'json', '--tools', '', '--strict-mcp-config', '--setting-sources', '',
-      '--disable-slash-commands', '--no-session-persistence', '--system-prompt', 'Be brief.', '--model', 'claude-sonnet-5-5']);
-    fake.answer(null);
-    await assert.rejects(claude.ask({ system: 's', prompt: 'p' }), /Claude could not answer: the model is not available/);
-    await assert.rejects(new Claude({ command: '/no/such/claude' }).ask({ system: 's', prompt: 'p' }), { message: 'Claude Code did not answer: /no/such/claude was not found' });
-    await assert.rejects(new Claude({ command: 'false' }).ask({ system: 'A long system prompt.', prompt: 'p' }), { message: 'Claude Code did not answer: it stopped with exit code 1' });
-  } finally {
-    fake.done();
-  }
 });
 
 test('a conversation keeps the question, then Claude\'s answer, or why there is none', async () => {

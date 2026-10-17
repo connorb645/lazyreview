@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { workbench } from '../support/workbench.mjs';
-import { PullRef } from '../../src/github/pull-ref.mjs';
+import { PullRef } from '../../src/models/pull-ref.mjs';
 import { reviewState } from '../../src/server/review-state.mjs';
 
 const ref = n => new PullRef('github.com', 'octo/widgets', n);

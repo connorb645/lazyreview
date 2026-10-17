@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, utimesSync, chmodSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { TerminalApp } from '../../src/terminal/terminal-app.mjs';
+import { TerminalApp } from '../../../src/commands/os/terminal-app.mjs';
 
 // A terminal folder whose program records how it was run, built by a stand-in for go.
 function folder() {

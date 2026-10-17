@@ -5,8 +5,8 @@
  * reviewRef(id) is pure. It returns a BranchRef or a PullRef, and throws for
  * an id that is neither.
  */
-import { PullRef } from '../github/pull-ref.mjs';
-import { BranchRef } from '../local/branch-ref.mjs';
+import { PullRef } from './pull-ref.mjs';
+import { BranchRef } from './branch-ref.mjs';
 
 export function reviewRef(id) {
   const parts = id.split('/').map(decodeURIComponent);

@@ -22,7 +22,6 @@ import { fakeGh } from './fake-gh.mjs';
 import { githubRoutes } from './github-routes.mjs';
 import { DataHome } from '../../src/store/data-home.mjs';
 import { ReviewStore } from '../../src/store/review-store.mjs';
-import { Clones } from '../../src/clone/clones.mjs';
 import { Loader } from '../../src/loader/loader.mjs';
 import { QueueService } from '../../src/queue/queue-service.mjs';
 
@@ -71,7 +70,7 @@ export function workbench() {
   const now = () => new Date(Date.UTC(2026, 9, 15, 12, 0, tick++)).toISOString();
   return {
     repo, gh, home, store, routes,
-    loader: new Loader({ store, clones: new Clones(home), now }),
+    loader: new Loader({ store, now }),
     queue: new QueueService({ store, now }),
     env: { ...gh.env, LAZYREVIEW_HOME: root },
     link: n => `https://github.com/octo/widgets/pull/${n}`,

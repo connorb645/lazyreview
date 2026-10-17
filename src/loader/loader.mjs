@@ -20,10 +20,17 @@
  * pull requests move into it, those reviews then pointing at it. Every file
  * is written or none, and it returns {ref, review, counts, notes}: `counts`
  * of the files, lines, components and types it drew.
+ *
+ * Each repository has one bare clone under the data home, which only one
+ * load at a time fetches into.
  */
-import { PullRef } from '../github/pull-ref.mjs';
-import { GitHub } from '../github/github.mjs';
-import { Git } from '../build/git/git.mjs';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { PullRef } from '../models/pull-ref.mjs';
+import { GitHub } from '../commands/github/github.mjs';
+import { Git } from '../commands/git/git.mjs';
+import { Clones } from '../commands/git/clones.mjs';
+import { withLocks } from '../store/file-lock.mjs';
 import { readConfig } from '../build/config/config.mjs';
 import { buildPage } from '../build/page-builder.mjs';
 import { pullsSubject } from '../build/page/heading.mjs';
@@ -32,18 +39,21 @@ import { regroup } from '../queue/regroup.mjs';
 import { readThreads, placeThreads } from '../review/github-threads.mjs';
 
 const DESCRIPTION = 2000;
+const CLONE_WAIT = 15 * 60_000;
 
 export class Loader {
   #store;
   #clones;
   #github;
+  #git;
   #elk;
   #now;
 
-  constructor({ store, clones, github = options => new GitHub(options), elk = defaultElk(), now = () => new Date().toISOString() }) {
+  constructor({ store, clones = new Clones(), github = options => new GitHub(options), git = repo => new Git(repo), elk = defaultElk(), now = () => new Date().toISOString() }) {
     this.#store = store;
     this.#clones = clones;
     this.#github = github;
+    this.#git = git;
     this.#elk = elk;
     this.#now = now;
   }
@@ -80,12 +90,12 @@ export class Loader {
       if (!pulls.includes(m.pull)) leaving[m.pull] = stateOf(await gh.pull(repo, m.pull));
     }
     const bottom = found[0];
-    const clone = await this.#clones.prepare({
-      host, repo, url: (await gh.repository(repo)).clone_url, base: bottom.base.ref, pulls,
+    const clone = await this.#clone(host, repo, {
+      url: (await gh.repository(repo)).clone_url, base: bottom.base.ref, pulls,
       commits: [bottom.base.sha, ...found.map(f => f.head.sha)], environment: await gh.environment(),
     });
     const built = await buildPage({
-      git: new Git(clone),
+      git: this.#git(clone),
       base: bottom.base.sha,
       members: found.map(f => ({ pull: f.number, head: f.head.sha })),
       baseBranch: bottom.base.ref,
@@ -143,6 +153,12 @@ export class Loader {
     for (const m of review.members) if (stateOf(await gh.pull(review.repo, m.pull)).state === 'open') open.push(m);
     const keep = review.members.length > 1 && open.length ? open : review.members;
     return this.load({ links: keep.map(m => ref.withPull(m.pull).id) });
+  }
+
+  async #clone(host, repo, fetched) {
+    const path = this.#store.home.clone(host, repo);
+    mkdirSync(dirname(path), { recursive: true });
+    return withLocks([`${path}.lock`], () => this.#clones.prepare(path, fetched), { wait: CLONE_WAIT });
   }
 
   // A stack's review lives with its lowest pull request that has a review;

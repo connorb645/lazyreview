@@ -10,7 +10,7 @@ import { lineEntry } from '../../src/build/stack/line-map.mjs';
 import { buildPage } from '../../src/build/page-builder.mjs';
 import { pullsSubject } from '../../src/build/page/heading.mjs';
 import { readConfig } from '../../src/build/config/config.mjs';
-import { Git } from '../../src/build/git/git.mjs';
+import { Git } from '../../src/commands/git/git.mjs';
 
 const ELK = createRequire(import.meta.url)('../../vendor/elk-0.9.3.bundled.js');
 

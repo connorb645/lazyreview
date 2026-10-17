@@ -14,8 +14,8 @@ import { dirname, join } from 'node:path';
 import { withLocks } from './file-lock.mjs';
 import { writeWhole, readText, readJSON, parseJSON } from './whole-file.mjs';
 import { pageBuild } from './page-build.mjs';
-import { PullRef } from '../github/pull-ref.mjs';
-import { BranchRef } from '../local/branch-ref.mjs';
+import { PullRef } from '../models/pull-ref.mjs';
+import { BranchRef } from '../models/branch-ref.mjs';
 
 export class ReviewStore {
   #home;

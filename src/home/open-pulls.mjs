@@ -24,8 +24,8 @@
  * account or its team, `review` the review holding it, or null, and a unit's
  * `review` is the one review holding every member, or null.
  */
-import { PullRef } from '../github/pull-ref.mjs';
-import { GitHub } from '../github/github.mjs';
+import { PullRef } from '../models/pull-ref.mjs';
+import { GitHub } from '../commands/github/github.mjs';
 import { readAccounts } from '../settings/settings.mjs';
 import { stacks } from './stacks.mjs';
 

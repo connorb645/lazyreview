@@ -1,39 +1,30 @@
 /**
- * Keeps a bare clone of each repository a review reads, under the data home.
+ * Fetches into a bare clone of a repository, through git.
  *
- * clones.prepare({host, repo, url, base, pulls, commits, environment}) makes
- * the clone the first time, then fetches the base branch and each pull
- * request's head into it, and makes sure every commit in `commits` is there,
- * fetching any missing one by its id. It returns the clone's path. Network
- * calls go through gh as git's credential helper, as the account
+ * clones.prepare(path, {url, base, pulls, commits, environment}) makes the
+ * bare clone at `path` the first time, then fetches the base branch and each
+ * pull request's head into it, and makes sure every commit in `commits` is
+ * there, fetching any missing one by its id. It returns the clone's path.
+ * Network calls go through gh as git's credential helper, as the account
  * `environment` names, so a private repository needs nothing set up beyond
  * gh itself. A clone only ever holds what lazyreview fetched into it, so
- * fetching overwrites its refs freely; one fetch at a time runs in it.
+ * fetching overwrites its refs freely. It takes no lock: the caller keeps
+ * one fetch at a time in a clone.
  */
 import { execFile } from 'node:child_process';
-import { existsSync, mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { withLocks } from '../store/file-lock.mjs';
+import { existsSync } from 'node:fs';
 
 const TIMEOUT = 15 * 60_000;
 const CREDENTIALS = ['-c', 'credential.helper=', '-c', 'credential.helper=!gh auth git-credential'];
 
 export class Clones {
-  #home;
   #run;
 
-  constructor(home, run = runGit) {
-    this.#home = home;
+  constructor(run = runGit) {
     this.#run = run;
   }
 
-  async prepare({ host, repo, url, base, pulls, commits, environment = {} }) {
-    const path = this.#home.clone(host, repo);
-    mkdirSync(dirname(path), { recursive: true });
-    return withLocks([`${path}.lock`], () => this.#fetch(path, { url, base, pulls, commits, environment }), { wait: TIMEOUT });
-  }
-
-  async #fetch(path, { url, base, pulls, commits, environment }) {
+  async prepare(path, { url, base, pulls, commits, environment = {} }) {
     if (!existsSync(path)) {
       await this.#git(null, ['init', '--quiet', '--bare', path]);
       await this.#git(path, ['remote', 'add', 'origin', url]);

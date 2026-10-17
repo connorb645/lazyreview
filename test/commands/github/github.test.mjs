@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GitHub } from '../../src/github/github.mjs';
+import { GitHub } from '../../../src/commands/github/github.mjs';
 
 test('an answer from GitHub that is not JSON is named in the error', async () => {
   const gh = new GitHub({ run: async () => ({ code: 0, stdout: '{"login":', stderr: '', timedOut: false }) });

@@ -19,8 +19,8 @@
  */
 import { realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { BranchRef, repositoryName } from '../local/branch-ref.mjs';
-import { Git } from '../build/git/git.mjs';
+import { BranchRef, repositoryName } from '../models/branch-ref.mjs';
+import { Git } from '../commands/git/git.mjs';
 import { readConfig } from '../build/config/config.mjs';
 import { buildPage } from '../build/page-builder.mjs';
 import { branchSubject } from '../build/page/heading.mjs';
@@ -28,18 +28,20 @@ import { defaultElk } from '../build/layout/elk.mjs';
 
 export class BranchLoader {
   #store;
+  #git;
   #elk;
   #now;
 
-  constructor({ store, elk = defaultElk(), now = () => new Date().toISOString() }) {
+  constructor({ store, git = repo => new Git(repo), elk = defaultElk(), now = () => new Date().toISOString() }) {
     this.#store = store;
+    this.#git = git;
     this.#elk = elk;
     this.#now = now;
   }
 
   async load({ repo, base, head, title, config, context }) {
     const path = resolve(repo);
-    const git = new Git(path);
+    const git = this.#git(path);
     const shared = realpathSync(git.sharedFolder());
     const branch = git.branchOf(head);
     if (!branch) throw new Error(`"${head}" is not a branch of ${path}; give a branch, so loading it again updates the same review`);

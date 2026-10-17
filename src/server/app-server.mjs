@@ -25,8 +25,8 @@
 import { createServer } from 'node:http';
 import { createReadStream, readFileSync } from 'node:fs';
 import { timingSafeEqual } from 'node:crypto';
-import { BranchRef } from '../local/branch-ref.mjs';
-import { reviewRef } from '../review/review-ref.mjs';
+import { BranchRef } from '../models/branch-ref.mjs';
+import { reviewRef } from '../models/review-ref.mjs';
 import { reviewState, reviewSummary } from './review-state.mjs';
 import { pageView } from '../review/page-view.mjs';
 import { fileView } from '../review/file-view.mjs';

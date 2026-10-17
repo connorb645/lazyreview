@@ -23,7 +23,7 @@
  * creates a review and its comments in one request, so a failure there posts
  * nothing.
  */
-import { GitHub } from '../github/github.mjs';
+import { GitHub } from '../commands/github/github.mjs';
 import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, placeProblem, liveMember, nextId, findComment, checkVersion } from './queue-rules.mjs';
 import { commentTarget } from './comment-target.mjs';
 import { quotedCode } from '../review/quoted-code.mjs';

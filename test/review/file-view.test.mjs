@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { workbench } from '../support/workbench.mjs';
-import { PullRef } from '../../src/github/pull-ref.mjs';
+import { PullRef } from '../../src/models/pull-ref.mjs';
 import { fileView } from '../../src/review/file-view.mjs';
 import { pageView } from '../../src/review/page-view.mjs';
 
