@@ -2,6 +2,7 @@ package gui
 
 import (
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"sort"
@@ -10,27 +11,32 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-// The keys each place takes, and what each does: the home screen, the four
-// panels, the three main views from their bindings, and the popups from what
-// a press of each key does to them. A change to any key in any place shows.
+// The keys each place takes, and what each does, from the bindings of the
+// context with the keys in each: the home screen, the four panels, the three
+// main views and the popups. A change to any key in any place shows. Each
+// popup is also pressed with every key, to see it does what its bindings
+// say.
 func TestTheBindingsOfEachPlace(t *testing.T) {
 	places := map[string]map[string]string{}
 	home, _, _ := homeOn(t, "", 100, 30)
-	places["home"] = home.bindings()
+	places["home"] = placeBindings(home)
 	a, _ := opened(t, stack, 100, 30)
 	for n, name := range map[int]string{context.ReviewPanel: "review panel", context.FilesPanel: "files panel", context.NotesPanel: "notes panel", context.DiagramPanel: "diagram panel"} {
-		places[name] = press(t, a, utils.Itoa(n)).bindings()
+		places[name] = placeBindings(press(t, a, utils.Itoa(n)))
 	}
-	places["review view"] = press(t, a, "0").bindings()
-	places["diff"] = onBasket(t).bindings()
-	places["diagram"] = press(t, a, "space", "m").bindings()
-	for name, probe := range map[string]func(*testing.T) map[string]string{
-		"menu": menuKeys, "finder": finderKeys, "posting": postingKeys, "posting confirmation": postingConfirmationKeys, "confirmation": confirmationKeys,
-	} {
-		places[name] = probe(t)
+	places["review view"] = placeBindings(press(t, a, "0"))
+	places["diff"] = placeBindings(onBasket(t))
+	places["diagram"] = placeBindings(press(t, a, "space", "m"))
+	popups := map[string]context.ContextKey{
+		"menu": context.MenuKey, "finder": context.FinderKey, "posting": context.PostingKey,
+		"posting confirmation": context.PostingConfirmationKey, "confirmation": context.ConfirmationKey,
+	}
+	for name, key := range popups {
+		places[name] = controllers.Sequences(a.controllers.Bindings(a.controllers.For(key)))
 	}
 	got, err := json.MarshalIndent(places, "", " ")
 	if err != nil {
@@ -50,19 +56,26 @@ func TestTheBindingsOfEachPlace(t *testing.T) {
 	if string(want) != string(got)+"\n" {
 		t.Errorf("the bindings differ.\n--- kept\n%s\n--- now\n%s", want, got)
 	}
+	keys := probeKeys(t, places)
+	for name, probe := range map[string]func(*testing.T, []string) map[string]string{
+		"menu": menuKeys, "finder": finderKeys, "posting": postingKeys, "posting confirmation": postingConfirmationKeys, "confirmation": confirmationKeys,
+	} {
+		if pressed := probe(t, keys); !maps.Equal(pressed, places[name]) {
+			t.Errorf("the %s's keys do %v, but its bindings say %v", name, pressed, places[name])
+		}
+	}
+}
+
+func placeBindings(a App) map[string]string {
+	return controllers.Sequences(a.controllers.Bindings(a.controllers.Place(a.ContextTree)))
 }
 
 // probeKeys are the keys tried on each popup: every key any place binds, and
 // a few that none does.
-func probeKeys(t *testing.T) []string {
+func probeKeys(t *testing.T, places map[string]map[string]string) []string {
 	t.Helper()
 	seen := map[string]bool{"x": true, "y": true, "n": true, "backspace": true, "left": true, "right": true, "ctrl+n": true, "ctrl+p": true}
-	for _, b := range []map[string]string{homeKeys, sideKeys, reviewKeys, diffKeys, diagramKeys, everyView} {
-		for sequence := range b {
-			seen[firstKey(sequence)] = true
-		}
-	}
-	for _, b := range sidePanelKeys {
+	for _, b := range places {
 		for sequence := range b {
 			seen[firstKey(sequence)] = true
 		}
@@ -105,27 +118,27 @@ func pressed(a App, name string) App {
 
 // menuKeys opens a menu whose rows each open a place, with its cursor on the
 // second row, and names each key by what it does to it.
-func menuKeys(t *testing.T) map[string]string {
+func menuKeys(t *testing.T, keys []string) map[string]string {
 	a, _ := opened(t, stack, 100, 30)
-	a = a.openFinder()
+	a = a.with(a.helpers.Menu.OpenFinder(a.ContextTree))
 	pn := a.Menu
 	pn.Finding, pn.Rows = false, pn.All
-	pn = pn.Move(1, a.menuRows())
-	a = a.withMenu(pn)
-	a = a.say("probe", false)
-	closed := a.withoutMenu()
-	opening, _ := a.openRow()
+	pn = pn.Move(1, a.helpers.Window.MenuRows(a.ContextTree))
+	a = a.with(a.WithMenu(pn))
+	a = a.with(a.Said("probe", false))
+	closed := a.with(a.WithoutMenu())
+	opening, _ := a.helpers.Menu.OpenRow(a.ContextTree)
 	out := map[string]string{}
-	for _, name := range probeKeys(t) {
+	for _, name := range keys {
 		b := pressed(a, name)
 		switch {
-		case b.menuOpen() && b.Menu.Cursor == pn.Move(1, a.menuRows()).Cursor:
+		case b.MenuOpen() && b.Menu.Cursor == pn.Move(1, a.helpers.Window.MenuRows(a.ContextTree)).Cursor:
 			out[name] = "down"
-		case b.menuOpen() && b.Menu.Cursor == pn.Move(-1, a.menuRows()).Cursor:
+		case b.MenuOpen() && b.Menu.Cursor == pn.Move(-1, a.helpers.Window.MenuRows(a.ContextTree)).Cursor:
 			out[name] = "up"
-		case !b.menuOpen() && b.Keys.Typed() == "" && b.View() == closed.View():
+		case !b.MenuOpen() && b.Keys.Typed() == "" && b.View() == closed.View():
 			out[name] = "close"
-		case !b.menuOpen() && b.Keys.Typed() == "" && b.View() == opening.(App).View():
+		case !b.MenuOpen() && b.Keys.Typed() == "" && b.View() == a.with(opening).View():
 			out[name] = "open"
 		}
 	}
@@ -135,27 +148,27 @@ func menuKeys(t *testing.T) map[string]string {
 // finderKeys opens the finder with two letters typed and its cursor on the
 // second match, and names each key by what it does to it. Letters and
 // Backspace type, and are not bindings.
-func finderKeys(t *testing.T) map[string]string {
+func finderKeys(t *testing.T, keys []string) map[string]string {
 	a, _ := opened(t, stack, 100, 30)
-	a = a.openFinder()
-	pn := a.Menu.Narrowed("es").Move(1, a.menuRows())
-	a = a.withMenu(pn)
-	a = a.say("probe", false)
-	closed := a.withoutMenu()
-	opening, _ := a.openRow()
+	a = a.with(a.helpers.Menu.OpenFinder(a.ContextTree))
+	pn := a.Menu.Narrowed("es").Move(1, a.helpers.Window.MenuRows(a.ContextTree))
+	a = a.with(a.WithMenu(pn))
+	a = a.with(a.Said("probe", false))
+	closed := a.with(a.WithoutMenu())
+	opening, _ := a.helpers.Menu.OpenRow(a.ContextTree)
 	out := map[string]string{}
-	for _, name := range probeKeys(t) {
+	for _, name := range keys {
 		b := pressed(a, name)
 		switch {
-		case b.menuOpen() && b.Menu.Query == "es" && b.Menu.Cursor == pn.Move(1, a.menuRows()).Cursor:
+		case b.MenuOpen() && b.Menu.Query == "es" && b.Menu.Cursor == pn.Move(1, a.helpers.Window.MenuRows(a.ContextTree)).Cursor:
 			out[name] = "down"
-		case b.menuOpen() && b.Menu.Query == "es" && b.Menu.Cursor == pn.Move(-1, a.menuRows()).Cursor:
+		case b.MenuOpen() && b.Menu.Query == "es" && b.Menu.Cursor == pn.Move(-1, a.helpers.Window.MenuRows(a.ContextTree)).Cursor:
 			out[name] = "up"
-		case b.menuOpen() && b.Menu.Query == "":
+		case b.MenuOpen() && b.Menu.Query == "":
 			out[name] = "clear"
-		case !b.menuOpen() && b.View() == closed.View():
+		case !b.MenuOpen() && b.View() == closed.View():
 			out[name] = "close"
-		case !b.menuOpen() && b.View() == opening.(App).View():
+		case !b.MenuOpen() && b.View() == a.with(opening).View():
 			out[name] = "open"
 		}
 	}
@@ -164,15 +177,16 @@ func finderKeys(t *testing.T) map[string]string {
 
 // postingKeys opens posting's choice of three actions and names each key by
 // what it does from each choice: the next, the previous, or one by place.
-func postingKeys(t *testing.T) map[string]string {
+func postingKeys(t *testing.T, keys []string) map[string]string {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
-	a = a.openPosting(30).say("probe", false)
+	a = a.with(a.helpers.Posting.Open(a.ContextTree, 30))
+	a = a.with(a.Said("probe", false))
 	if len(a.Posting.Actions) != 3 {
 		t.Fatalf("posting offers %v", a.Posting.Actions)
 	}
-	closed := a.withoutPosting()
+	closed := a.with(a.WithoutPosting())
 	out := map[string]string{}
-	for _, name := range probeKeys(t) {
+	for _, name := range keys {
 		var after []int
 		for choice := range a.Posting.Actions {
 			from := a
@@ -218,12 +232,12 @@ func fmtInts(ns []int) string {
 
 // postingConfirmationKeys opens what posting sends, and names each key by
 // what it does: send it, or go back to the choice.
-func postingConfirmationKeys(t *testing.T) map[string]string {
+func postingConfirmationKeys(t *testing.T, keys []string) map[string]string {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
-	a = a.openPosting(30)
+	a = a.with(a.helpers.Posting.Open(a.ContextTree, 30))
 	a.ContextTree = a.Opened(context.PostingConfirmationKey)
 	out := map[string]string{}
-	for _, name := range probeKeys(t) {
+	for _, name := range keys {
 		b := pressed(a, name)
 		switch {
 		case !b.Has(context.PostingKey) && b.Notice == "Checking the pull request with GitHub, then sending…":
@@ -237,12 +251,12 @@ func postingConfirmationKeys(t *testing.T) map[string]string {
 
 // confirmationKeys asks whether to drop a queued comment, and names the key
 // that drops it; every other key keeps it.
-func confirmationKeys(t *testing.T) map[string]string {
+func confirmationKeys(t *testing.T, keys []string) map[string]string {
 	a := onBasket(t)
 	a.ContextTree = a.Opened(context.ConfirmationKey)
 	a.Confirmation = context.ConfirmationContext{Comment: 1, Pull: 21}
 	out := map[string]string{}
-	for _, name := range probeKeys(t) {
+	for _, name := range keys {
 		if b := pressed(a, name); !b.Has(context.ConfirmationKey) && b.Notice == "Dropping…" {
 			out[name] = "confirm"
 		}

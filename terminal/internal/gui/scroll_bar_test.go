@@ -23,7 +23,7 @@ func thumbIn(lines []string, x int) []int {
 }
 
 func mainThumb(a App) []int {
-	r := a.layout().main
+	r := a.helpers.Window.Layout(a.ContextTree).Main
 	return thumbIn(strings.Split(a.View(), "\n")[r.Y+1:r.Y+r.H-1], r.X+r.W-1)
 }
 
@@ -59,7 +59,7 @@ func TestTheThumbIsSizedAndPlacedAsLazygitDoes(t *testing.T) {
 func TestTheDiffShowsWhereItIsInTheMainPanelsBorder(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "2", "0")
-	last := a.mainHeight() - 1
+	last := a.helpers.Window.MainHeight(a.ContextTree) - 1
 	top := mainThumb(a)
 	if len(top) == 0 || top[0] != 0 || top[len(top)-1] == last {
 		t.Fatalf("at the top of the diff, the thumb is on rows %v", top)
@@ -93,7 +93,7 @@ func TestTheRenderedMarkdownShowsTheSameBar(t *testing.T) {
 		t.Fatalf("at the top of the rendered file, the thumb is on rows %v", got)
 	}
 	a = press(t, a, "G")
-	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != a.mainHeight()-1 {
+	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != a.helpers.Window.MainHeight(a.ContextTree)-1 {
 		t.Fatalf("at the end of the rendered file, the thumb is on rows %v", got)
 	}
 }
@@ -104,21 +104,21 @@ func TestTheReviewViewShowsTheSameBar(t *testing.T) {
 		t.Fatalf("at the top of the Review view, the thumb is on rows %v", got)
 	}
 	a = press(t, a, "0", "G")
-	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != a.mainHeight()-1 {
+	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != a.helpers.Window.MainHeight(a.ContextTree)-1 {
 		t.Fatalf("at the end of the Review view, the thumb is on rows %v", got)
 	}
 }
 
 func TestTheDiagramShowsTheSameBarForItsHeight(t *testing.T) {
-	a := standInApp(40, 14).showBox(types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
+	a := showBox(standInApp(40, 14), types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
 	if got := mainThumb(a); len(got) == 0 || got[0] != 0 {
 		t.Fatalf("at the top of the diagram, the thumb is on rows %v", got)
 	}
 	a = press(t, a, "G")
-	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != a.mainHeight()-1 {
+	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != a.helpers.Window.MainHeight(a.ContextTree)-1 {
 		t.Fatalf("on the diagram's last box, the thumb is on rows %v", got)
 	}
-	a = standInApp(110, 40).showBox(types.DiagramPlace{Level: "components", Box: "core"})
+	a = showBox(standInApp(110, 40), types.DiagramPlace{Level: "components", Box: "core"})
 	if got := mainThumb(a); got != nil {
 		t.Fatalf("a diagram that fits shows a thumb on rows %v", got)
 	}

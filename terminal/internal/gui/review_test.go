@@ -44,7 +44,7 @@ func TestTheReviewViewOfAPullRequestScrollsToTheCursor(t *testing.T) {
 	a = press(t, a, "0", "G")
 	screenIs(t, a, "review-single-end")
 	bottom := a.ReviewView.View.Top
-	main := a.layout().main.Inner()
+	main := a.helpers.Window.Layout(a.ContextTree).Main.Inner()
 	a = send(t, a, tea.MouseMsg{X: main.X + 2, Y: main.Y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonWheelUp})
 	if a.ReviewView.View.Top >= bottom {
 		t.Fatalf("the wheel did not scroll up from %d", bottom)

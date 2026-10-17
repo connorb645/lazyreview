@@ -1,109 +1,75 @@
 package gui
 
 import (
+	"strings"
+
+	"github.com/charmbracelet/x/ansi"
+
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-const (
-	narrowest = 60
-	shortest  = 10
-)
-
-type layout struct {
-	sides [context.SideCount + 1]views.Rect
-	main  views.Rect
-	bar   views.Rect
+// View draws the screen: the panels on the left, the main panel on the
+// right, any popup over them, and a bar of the keys that matter here. The
+// home screen has a panel on the left for each repository; a review has its
+// four.
+func (a App) View() string {
+	if a.Width == 0 || a.Height == 0 {
+		return ""
+	}
+	window := a.helpers.Window
+	rows := make([]string, max(0, a.Height-1))
+	place := func(r views.Rect, lines []string) {
+		for i, line := range lines {
+			if y := r.Y + i; y >= 0 && y < len(rows) {
+				rows[y] += line
+			}
+		}
+	}
+	if a.Screen() == context.ScreenHome {
+		l := window.HomeLayout(a.ContextTree)
+		for i, r := range l.Panels {
+			if r.W > 2 && r.H > 0 {
+				place(r, a.homePanelBox(i, r, a.Home.Focus == i && !a.Popped()))
+			}
+		}
+		if r := l.Main; r.Shown() {
+			place(r, a.homeMainBox(r))
+		}
+	} else {
+		l := window.Layout(a.ContextTree)
+		for n := context.ReviewPanel; n <= context.SideCount; n++ {
+			if r := l.Sides[n]; r.W > 2 && r.H > 0 {
+				place(r, a.sideBox(n, r, a.Focus() == n && !a.Popped()))
+			}
+		}
+		if r := l.Main; r.Shown() {
+			place(r, a.mainBox(r, a.Focus() == context.MainPanel && !a.Popped()))
+		}
+	}
+	for i := range rows {
+		rows[i] = utils.Fit(rows[i], a.Width)
+	}
+	if box := a.popup(); len(box) > 0 {
+		w := ansi.StringWidth(box[0])
+		rows = views.Overlay(rows, box, max(0, (a.Width-w)/2), max(0, (len(rows)-len(box))/2), a.c.Theme)
+	}
+	return strings.Join(append(rows, a.barLine()), "\n")
 }
 
-func lay(width, height, focus, driving int, mode context.ScreenMode, wants [context.SideCount + 1]int) layout {
-	l := layout{bar: views.Rect{Y: height - 1, W: width, H: 1}}
-	h := height - 1
-	if mode == context.FullScreen || width < narrowest || h < shortest {
-		whole := views.Rect{W: width, H: h}
-		if focus == context.MainPanel {
-			l.main = whole
-		} else {
-			l.sides[focus] = whole
-		}
-		return l
-	}
-	side := max(width/3, 24)
+func (a App) popup() []string {
+	tr, th, window := a.c.Tr, a.c.Theme, a.helpers.Window
 	switch {
-	case mode == context.HalfScreen && focus == context.MainPanel:
-		side = max(width/5, 16)
-	case mode == context.HalfScreen:
-		side = width / 2
+	case a.Has(context.ConfirmationKey):
+		return presentation.DropBox(tr, th, a.Confirmation.Comment, a.Confirmation.Pull, min(a.Width-4, 56))
+	case a.Has(context.PostingKey):
+		pn := a.Posting
+		m, _ := a.helpers.Posting.QueueMember(a.ContextTree, pn.Pull)
+		return presentation.PostingBox(tr, th, a.Review.State.Queue.Repo, pn.Pull, m, pn.Actions, pn.Choice, a.Has(context.PostingConfirmationKey), window.PopupWidth(a.ContextTree))
+	case a.MenuOpen():
+		return a.Menu.Box(tr, th, a.Width, min(a.Height-3, window.MenuRows(a.ContextTree)+2))
 	}
-	l.main = views.Rect{X: side, W: width - side, H: h}
-	first := min(wants[context.ReviewPanel]+2, max(3, h/4))
-	l.sides[context.ReviewPanel] = views.Rect{W: side, H: first}
-	heights := shared(h-first, driving-context.FilesPanel, []int{wants[context.FilesPanel] + 2, wants[context.NotesPanel] + 2, wants[context.DiagramPanel] + 2}, 6)
-	y := first
-	for i, n := range heights {
-		l.sides[context.FilesPanel+i] = views.Rect{Y: y, W: side, H: n}
-		y += n
-	}
-	return l
-}
-
-func shared(rest, grow int, wants []int, fold int) []int {
-	out := make([]int, len(wants))
-	if len(out) == 0 {
-		return out
-	}
-	if grow < 0 || grow >= len(out) {
-		grow = 0
-	}
-	order := append([]int{grow}, others(len(out), grow)...)
-	total := 0
-	for _, w := range wants {
-		total += w
-	}
-	if total <= rest {
-		copy(out, wants)
-		spread := rest - total
-		for i := range out {
-			out[i] += spread / len(out)
-		}
-		out[len(out)-1] += spread % len(out)
-		return out
-	}
-	fair := rest / len(out)
-	if fair < fold {
-		squashed := 3
-		if rest-squashed*(len(out)-1) < squashed {
-			squashed = 1
-		}
-		for i := range out {
-			out[i] = squashed
-		}
-		out[grow] = rest - squashed*(len(out)-1)
-		return out
-	}
-	left := rest
-	for i := range out {
-		out[i] = max(3, min(wants[i], fair))
-		left -= out[i]
-	}
-	for _, i := range order {
-		more := min(left, max(0, wants[i]-out[i]))
-		out[i] += more
-		left -= more
-	}
-	for i := range out {
-		out[i] += left / len(out)
-	}
-	out[grow] += left % len(out)
-	return out
-}
-
-func others(n, but int) []int {
-	var out []int
-	for i := 0; i < n; i++ {
-		if i != but {
-			out = append(out, i)
-		}
-	}
-	return out
+	return nil
 }

@@ -75,7 +75,7 @@ func TestTheFocusedBoxListsItsLinksAndProperties(t *testing.T) {
 	screenIs(t, a, "diagram-links")
 	a = press(t, a, "j", "enter")
 	focusedOn(t, a, "Search")
-	if a.menuOpen() {
+	if a.MenuOpen() {
 		t.Fatal("going to a link's other end closes the list")
 	}
 	a = press(t, a, "k", "space", "p")
@@ -118,7 +118,7 @@ func TestEnterOpensATypesDiffAndDashComesBack(t *testing.T) {
 	}
 	focusedOn(t, a, "Basket")
 	a = press(t, a, "g", "d")
-	if a.Screen() != context.ScreenDiagram || !a.menuOpen() || len(a.Menu.Rows) != 2 {
+	if a.Screen() != context.ScreenDiagram || !a.MenuOpen() || len(a.Menu.Rows) != 2 {
 		t.Fatalf("Basket links to two types, so gd lists them: %+v", a.Menu)
 	}
 }
@@ -130,7 +130,7 @@ func TestGdInTheDiffShowsTheTypeAtTheCursor(t *testing.T) {
 		t.Fatalf("the finder opens a file at its header: %v %s", a.Screen(), cursorAt(a))
 	}
 	a = press(t, a, "g", "d")
-	if !a.menuOpen() || a.Menu.Title != "Types in Search.swift" {
+	if !a.MenuOpen() || a.Menu.Title != "Types in Search.swift" {
 		t.Fatalf("gd on a file's header lists its types: %+v", a.Menu)
 	}
 	a = press(t, a, "esc", "]", "c", "g", "d")
@@ -182,7 +182,7 @@ func TestAClickFocusesABox(t *testing.T) {
 
 func drawnAt(t *testing.T, a App, text string) (int, int) {
 	t.Helper()
-	main := a.layout().main.Inner()
+	main := a.helpers.Window.Layout(a.ContextTree).Main.Inner()
 	for y, line := range strings.Split(a.View(), "\n") {
 		inside := ansi.TruncateLeft(line, main.X, "")
 		if x := strings.Index(inside, text); x >= 0 && y >= main.Y && y < main.Y+main.H {
@@ -262,11 +262,11 @@ func standInApp(width, height int) App {
 }
 
 func TestLinksRunAroundTheCards(t *testing.T) {
-	a := standInApp(110, 40).showBox(types.DiagramPlace{Level: "components", Box: "core"})
+	a := showBox(standInApp(110, 40), types.DiagramPlace{Level: "components", Box: "core"})
 	screenIs(t, a, "stand-in-components")
-	a = a.showBox(types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
+	a = showBox(a, types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
 	screenIs(t, a, "stand-in-order")
-	a = a.showBox(types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Invoice"})
+	a = showBox(a, types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Invoice"})
 	screenIs(t, a, "stand-in-at-rest")
 	a = press(t, a, "space", "a")
 	screenIs(t, a, "stand-in-every-link")
@@ -305,7 +305,7 @@ func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 	a := New(testCommon(), Options{})
 	a.Review, a.Loading, a.Width, a.Height = &d, false, 80, 24
 	a.ContextTree = a.Focused(context.DiagramPanel, context.DiagramPanel)
-	a = a.showBox(types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"}).relaid()
+	a = relaid(showBox(a, types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"}))
 	screenIs(t, a, "paths-packages")
 	shown := a.View()
 	for _, want := range []string{"┃ …/Remote Overrides/Experiments ", "│ docs/store/help/local ", "▌…/Experiments ", "│ Pricing rules for ever…│",
@@ -314,7 +314,7 @@ func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 			t.Errorf("the packages show no %q", want)
 		}
 	}
-	a = a.showBox(types.DiagramPlace{Level: "types", Component: "shop", Package: "experiments", Box: "ExperimentFlag"}).relaid()
+	a = relaid(showBox(a, types.DiagramPlace{Level: "types", Component: "shop", Package: "experiments", Box: "ExperimentFlag"}))
 	screenIs(t, a, "paths-types")
 	shown = a.View()
 	for _, want := range []string{"[0]─Diagram · Shop › …/Experiments─", "│ Shop › …/Experiments ", "─ExperimentFlag · struct · …erimentFlag.swift · new─╯"} {
@@ -323,7 +323,7 @@ func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 		}
 	}
 	a.ContextTree = a.Focused(context.FilesPanel, a.Driving())
-	if shown := a.relaid().View(); !strings.Contains(shown, "│   ▾ …/Experiments ") || !strings.Contains(shown, "│   ▾ …/Checkout ") {
+	if shown := relaid(a).View(); !strings.Contains(shown, "│   ▾ …/Experiments ") || !strings.Contains(shown, "│   ▾ …/Checkout ") {
 		t.Errorf("the Files panel's folders keep their ends:\n%s", shown)
 	}
 	found := press(t, a, "space", "f").View()
@@ -347,7 +347,7 @@ func TestTheDiffsTitleAndFileHeadersKeepTheFilesName(t *testing.T) {
 }
 
 func TestTheDiagramScrollsToTheFocus(t *testing.T) {
-	a := standInApp(40, 14).showBox(types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
+	a := showBox(standInApp(40, 14), types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
 	a = press(t, a, "G")
 	focusedOn(t, a, "Receipt")
 	screenIs(t, a, "stand-in-scrolled")

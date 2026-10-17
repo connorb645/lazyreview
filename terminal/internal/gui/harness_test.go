@@ -22,6 +22,10 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/common"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 )
@@ -203,6 +207,28 @@ func heardNothing(stdcontext.Context, *server.Client, string) <-chan tea.Msg {
 	none := make(chan tea.Msg)
 	close(none)
 	return none
+}
+
+func (a App) with(s context.ContextTree) App {
+	a.ContextTree = s
+	return a
+}
+
+func showBox(a App, at types.DiagramPlace) App {
+	return a.with(a.helpers.Diagram.ShowBox(a.ContextTree, at))
+}
+
+func relaid(a App) App {
+	return a.with(a.helpers.Refresh.Relaid(a.ContextTree))
+}
+
+func withEditor(a App, set func(*Options)) App {
+	var opts Options
+	set(&opts)
+	c := *a.c
+	c.Editor = opts.Editor
+	a.c, a.helpers, a.controllers = &c, helpers.NewHelpers(&c), controllers.NewControllers(&c)
+	return a
 }
 
 func writer(t *testing.T, text string) (func(*Options), string) {

@@ -163,7 +163,7 @@ func TestAMarkdownFileOfAPullRequest(t *testing.T) {
 func TestTheWheelReachesTheEndOfAWrappedDiff(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "2", "0", "space", "w")
-	main := a.layout().main.Inner()
+	main := a.helpers.Window.Layout(a.ContextTree).Main.Inner()
 	for i := 0; i < 30; i++ {
 		a = send(t, a, tea.MouseMsg{X: main.X + 2, Y: main.Y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonWheelDown})
 	}

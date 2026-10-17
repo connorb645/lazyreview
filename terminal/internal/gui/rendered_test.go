@@ -62,7 +62,7 @@ func TestAWrittenReviewsDiagramIsSaidNotDrawn(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
 	state := a.Review.State
 	state.Written = &server.Written{Title: "Fix the guide wording", Sections: []server.Section{{ID: "shape", Title: "Shape", Markdown: "Before.\n\n<svg viewBox=\"0 0 10 10\"><rect width=\"4\"/></svg>\n\nAfter."}}}
-	a = a.withState(state)
+	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
 	var text []string
 	for _, l := range a.ReviewView.View.Lines {
 		text = append(text, utils.Stripped(l.Text))

@@ -156,8 +156,8 @@ func TestHAndLInTheDiagramPanelGoToTheBoxLeftOrRight(t *testing.T) {
 			t.Fatalf("%s keeps the Diagram panel and its row on the box: panel %d, %s", s.key, a.Focus(), selectedKey(a, context.DiagramPanel))
 		}
 	}
-	if a.hints()[0] != [2]string{"h j k l", "Move"} {
-		t.Fatalf("the bar names the keys that move: %v", a.hints()[0])
+	if a.controllers.Hints(a.ContextTree)[0] != [2]string{"h j k l", "Move"} {
+		t.Fatalf("the bar names the keys that move: %v", a.controllers.Hints(a.ContextTree)[0])
 	}
 	if listed := press(t, a, "space", "?").Menu.Rows[2]; listed.Left != "h l" || listed.Right != "the nearest box left or right" {
 		t.Fatalf("Space ? lists h l as %q: %q", listed.Left, listed.Right)
@@ -171,37 +171,37 @@ func TestHAndLInTheDiagramPanelGoToTheBoxLeftOrRight(t *testing.T) {
 func TestBiggerAndSmallerScreenModes(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "2", "j", "j", "enter")
-	normal := a.mainWidth()
+	normal := a.helpers.Window.MainWidth(a.ContextTree)
 	a = press(t, a, "+")
-	if half := a.mainWidth(); half <= normal {
+	if half := a.helpers.Window.MainWidth(a.ContextTree); half <= normal {
 		t.Fatalf("+ makes the main panel wider: %d, then %d", normal, half)
 	}
 	a = press(t, a, "+")
-	if a.mainWidth() != 98 || a.layout().sides[context.FilesPanel].Shown() {
-		t.Fatalf("+ again gives the main panel the whole screen: %d", a.mainWidth())
+	if a.helpers.Window.MainWidth(a.ContextTree) != 98 || a.helpers.Window.Layout(a.ContextTree).Sides[context.FilesPanel].Shown() {
+		t.Fatalf("+ again gives the main panel the whole screen: %d", a.helpers.Window.MainWidth(a.ContextTree))
 	}
 	screenIs(t, a, "full")
 	a = press(t, a, "_", "_")
-	if a.mainWidth() != normal {
-		t.Fatalf("_ _ goes back: %d", a.mainWidth())
+	if a.helpers.Window.MainWidth(a.ContextTree) != normal {
+		t.Fatalf("_ _ goes back: %d", a.helpers.Window.MainWidth(a.ContextTree))
 	}
 }
 
 func TestANarrowTerminalShowsOnlyThePanelWithTheKeys(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 50, 12)
-	l := a.layout()
-	if !l.sides[context.ReviewPanel].Shown() || l.main.Shown() || l.sides[context.FilesPanel].Shown() {
+	l := a.helpers.Window.Layout(a.ContextTree)
+	if !l.Sides[context.ReviewPanel].Shown() || l.Main.Shown() || l.Sides[context.FilesPanel].Shown() {
 		t.Fatalf("at 50 by 12 only the Review panel shows: %+v", l)
 	}
 	a = press(t, a, "2", "j", "j", "enter")
-	if l := a.layout(); !l.main.Shown() || l.main.W != 50 {
-		t.Fatalf("with the keys, the main panel takes the screen: %+v", l.main)
+	if l := a.helpers.Window.Layout(a.ContextTree); !l.Main.Shown() || l.Main.W != 50 {
+		t.Fatalf("with the keys, the main panel takes the screen: %+v", l.Main)
 	}
 }
 
 func TestAClickChoosesARowAndADoubleClickOpensIt(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
-	files := a.layout().sides[context.FilesPanel].Inner()
+	files := a.helpers.Window.Layout(a.ContextTree).Sides[context.FilesPanel].Inner()
 	click := tea.MouseMsg{X: files.X + 4, Y: files.Y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft}
 	a = send(t, a, click)
 	if a.Focus() != context.FilesPanel || selectedKey(a, context.FilesPanel) != "file:Sources/Basket/Basket.swift" {
@@ -220,12 +220,12 @@ func TestTheKeysOfAPanelAndTheCommandLine(t *testing.T) {
 		t.Fatalf("after the leader, the bar names the keys that can follow:\n%s", a.View())
 	}
 	a = press(t, a, "?")
-	if !a.menuOpen() || a.Menu.Rows[0].Heading != "Review" || a.Menu.Rows[a.Menu.Cursor].Left != "j k gg G" {
+	if !a.MenuOpen() || a.Menu.Rows[0].Heading != "Review" || a.Menu.Rows[a.Menu.Cursor].Left != "j k gg G" {
 		t.Fatalf("Space ? lists the Review panel's keys first: %+v", a.Menu)
 	}
 	screenIs(t, a, "keys")
 	a = press(t, a, "q")
-	if a.menuOpen() {
+	if a.MenuOpen() {
 		t.Fatal("q did not close the keys")
 	}
 	a = press(t, a, ":")

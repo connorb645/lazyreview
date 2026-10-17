@@ -101,8 +101,8 @@ func TestTheMainPanelSaysWhatInvolvesYouAndWhatEnterDoes(t *testing.T) {
 	screenIs(t, a, "home-stack")
 	a = press(t, a, "j")
 	screenIs(t, a, "home-not-loaded")
-	if a.hints()[0] != [2]string{"Enter", "Load and open"} {
-		t.Fatalf("the bar says Enter loads it: %v", a.hints()[0])
+	if a.controllers.Hints(a.ContextTree)[0] != [2]string{"Enter", "Load and open"} {
+		t.Fatalf("the bar says Enter loads it: %v", a.controllers.Hints(a.ContextTree)[0])
 	}
 }
 
@@ -133,8 +133,8 @@ func TestEnterLoadsAPullRequestNoReviewHoldsThenOpensIt(t *testing.T) {
 	a = press(t, a, "2", "j", "j")
 	next, cmd := a.Update(keyMsg("enter"))
 	loading := next.(App)
-	if loading.Home.Loading != "octo/widgets#30" || loading.homeStatus() != "Loading octo/widgets #30 from GitHub…" {
-		t.Fatalf("Enter starts loading #30: %q, %q", loading.Home.Loading, loading.homeStatus())
+	if loading.Home.Loading != "octo/widgets#30" || loading.helpers.Home.Status(loading.ContextTree) != "Loading octo/widgets #30 from GitHub…" {
+		t.Fatalf("Enter starts loading #30: %q, %q", loading.Home.Loading, loading.helpers.Home.Status(loading.ContextTree))
 	}
 	screenIs(t, loading, "home-loading")
 	again := press(t, loading, "enter")
@@ -198,8 +198,8 @@ func TestRReadsGitHubAgainAndKeepsTheListMeanwhile(t *testing.T) {
 	changed.set("GET /api/pulls", recorded(t)["GET /api/pulls#one unreachable"])
 	next, cmd := a.Update(keyMsg("R"))
 	reading := next.(App)
-	if !reading.Home.Reading || reading.homeStatus() != "Reading GitHub…" || selectedPull(reading) != "octo/widgets#22" {
-		t.Fatalf("R reads again and keeps the list: %v, %q", reading.Home.Reading, reading.homeStatus())
+	if !reading.Home.Reading || reading.helpers.Home.Status(reading.ContextTree) != "Reading GitHub…" || selectedPull(reading) != "octo/widgets#22" {
+		t.Fatalf("R reads again and keeps the list: %v, %q", reading.Home.Reading, reading.helpers.Home.Status(reading.ContextTree))
 	}
 	a = drive(t, reading, cmd)
 	if a.Home.Reading || selectedPull(a) != "octo/widgets#22" || a.Home.Panels[0].Title != "Not read from GitHub" {
@@ -238,19 +238,19 @@ func TestTheHomeScreensOtherKeys(t *testing.T) {
 	}
 	screenIs(t, press(t, a, "space", "?"), "home-keys")
 	a = press(t, a, "+")
-	if l := a.homeLayout(); l.panels[0].W != 66 || l.main.W != 34 || a.Mode != context.HalfScreen {
-		t.Fatalf("+ gives the list two thirds: %d and %d", l.panels[0].W, l.main.W)
+	if l := a.helpers.Window.HomeLayout(a.ContextTree); l.Panels[0].W != 66 || l.Main.W != 34 || a.Mode != context.HalfScreen {
+		t.Fatalf("+ gives the list two thirds: %d and %d", l.Panels[0].W, l.Main.W)
 	}
 	a = press(t, a, "+")
-	if l := a.homeLayout(); l.panels[0].W != 100 || l.main.Shown() {
-		t.Fatalf("+ again gives the list the screen: %d", l.panels[0].W)
+	if l := a.helpers.Window.HomeLayout(a.ContextTree); l.Panels[0].W != 100 || l.Main.Shown() {
+		t.Fatalf("+ again gives the list the screen: %d", l.Panels[0].W)
 	}
 	screenIs(t, a, "home-full")
 }
 
 func TestAClickChoosesAPullRequestAndADoubleClickOpensIt(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
-	y := a.homeLayout().panels[1].Y + 2
+	y := a.helpers.Window.HomeLayout(a.ContextTree).Panels[1].Y + 2
 	a = send(t, a, tea.MouseMsg{X: 5, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
 	if selectedPull(a) != "octo/widgets#22" {
 		t.Fatalf("a click chose %s", selectedPull(a))
@@ -258,38 +258,6 @@ func TestAClickChoosesAPullRequestAndADoubleClickOpensIt(t *testing.T) {
 	a = send(t, a, tea.MouseMsg{X: 5, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
 	if a.Screen() != context.ScreenReview || a.Review == nil || a.Review.ID != "github.com/octo/widgets/21" {
 		t.Fatalf("a double click opens it: screen %d, opening %q, %q", a.Screen(), a.Opening, a.Failed)
-	}
-}
-
-func TestManyRepositoriesFoldToTheirTitlesAndTheListFollowsTheKeys(t *testing.T) {
-	wants := make([]int, 12)
-	for i := range wants {
-		wants[i] = 5
-	}
-	l := layHome(80, 24, 4, context.NormalScreen, wants)
-	var heights []int
-	for _, r := range l.panels {
-		heights = append(heights, r.H)
-	}
-	if heights[4] != 12 || heights[0] != 1 || heights[11] != 1 || l.panels[11].Y != 22 {
-		t.Fatalf("eleven panels fold to one row and the twelfth takes the rest: %v", heights)
-	}
-	many := make([]int, 30)
-	for i := range many {
-		many[i] = 5
-	}
-	l = layHome(80, 24, 20, context.NormalScreen, many)
-	shown := 0
-	for i, r := range l.panels {
-		if r.H > 0 {
-			shown++
-			if i == 20 && r.H != 3 {
-				t.Fatalf("the panel with the keys keeps a row: %d", r.H)
-			}
-		}
-	}
-	if shown != 21 || l.panels[0].H != 0 || l.panels[20].H == 0 {
-		t.Fatalf("with more panels than rows, the ones around the keys show: %d shown", shown)
 	}
 }
 

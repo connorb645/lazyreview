@@ -126,6 +126,44 @@ func (t ContextTree) Closed(key ContextKey) ContextTree {
 	return t
 }
 
+// MenuOpen says whether the menu, the keys or the finder is open.
+func (t ContextTree) MenuOpen() bool {
+	return t.Has(MenuKey) || t.Has(FinderKey)
+}
+
+// WithMenu is the tree with a menu open, as the finder when it is one.
+func (t ContextTree) WithMenu(m MenuContext) ContextTree {
+	key := MenuKey
+	if m.Finding {
+		key = FinderKey
+	}
+	t = t.Opened(key)
+	t.Menu = m
+	return t
+}
+
+// WithoutMenu is the tree with no menu or finder open.
+func (t ContextTree) WithoutMenu() ContextTree {
+	return t.Closed(MenuKey).Closed(FinderKey)
+}
+
+// WithoutPosting is the tree with posting and its confirmation closed.
+func (t ContextTree) WithoutPosting() ContextTree {
+	return t.Closed(PostingConfirmationKey).Closed(PostingKey)
+}
+
+// Popped says whether a popup is drawn over the panels, so none of them
+// shows as having the keys.
+func (t ContextTree) Popped() bool {
+	return t.MenuOpen() || t.Has(PostingKey) || t.Has(ConfirmationKey)
+}
+
+// Said is the tree with a notice in the bar, bad or not.
+func (t ContextTree) Said(notice string, bad bool) ContextTree {
+	t.Notice, t.Bad = notice, bad
+	return t
+}
+
 // Side is the context of a panel on the left, by its number.
 func (t ContextTree) Side(n int) SideContext {
 	switch n {

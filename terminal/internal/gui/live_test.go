@@ -14,6 +14,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
@@ -131,7 +132,7 @@ func TestListeningComesBackAfterTheStreamEnds(t *testing.T) {
 	}
 	ctx, stop := stdcontext.WithCancel(stdcontext.Background())
 	defer stop()
-	heard := listen(ctx, server.NewClient(testCommon(), file), stack)
+	heard := helpers.Listen(ctx, server.NewClient(testCommon(), file), stack)
 	for _, want := range []string{"v1", "v2"} {
 		select {
 		case msg := <-heard:
@@ -149,7 +150,7 @@ func TestAQuestionAskedElsewhereShowsAsWaiting(t *testing.T) {
 	state := a.Review.State
 	state.Threads = append([]server.Conversation{}, state.Threads...)
 	state.Threads = append(state.Threads, server.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Why here?"}}})
-	a = a.withState(state)
+	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
 	n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "conversation:9")
 	if head, _ := presentation.NoteHead(a.c.Tr, *a.Review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
 		t.Fatalf("the conversation's head reads %q", head)

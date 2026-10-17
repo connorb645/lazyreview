@@ -42,7 +42,7 @@ func onThreeStack(t *testing.T) App {
 	d.Page.Stack = &stacked
 	d.State.Members = append(append([]server.Member{}, d.State.Members...), server.Member{Pull: 23, Title: "Price the basket", Color: 3})
 	a.Review = &d
-	return a.relaid()
+	return relaid(a)
 }
 
 func TestVHighlightsAPullRequestAndJAndKGrowOrShrinkIt(t *testing.T) {

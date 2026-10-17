@@ -227,6 +227,54 @@ type TranslationSet struct {
 	ConversationNoun   string
 	NotInDiff          string
 
+	CommandLine      string
+	WebApp           string
+	Bigger           string
+	Smaller          string
+	NextPull         string
+	PreviousPull     string
+	JumpBack         string
+	JumpForward      string
+	FocusMain        string
+	Down             string
+	Up               string
+	Top              string
+	Bottom           string
+	PreviousPanel    string
+	NextPanel        string
+	Left             string
+	Right            string
+	NextBox          string
+	PreviousBox      string
+	References       string
+	SearchBack       string
+	NextMatch        string
+	PreviousMatch    string
+	NextSection      string
+	PreviousSection  string
+	HalfPageDown     string
+	HalfPageUp       string
+	PageDown         string
+	PageUp           string
+	NextHunk         string
+	PreviousHunk     string
+	NextFile         string
+	PreviousFile     string
+	OpenFold         string
+	CloseFold        string
+	OpenFolds        string
+	CloseFolds       string
+	ToggleFile       string
+	ShowType         string
+	NextNote         string
+	PreviousNote     string
+	RepositoryNumber string
+	Clear            string
+	ChooseNumber     string
+	QuitCommandKeys  string
+	HelpRefreshKeys  string
+	HelpLineEndsKeys string
+
 	Stale            string
 	QueuedHeading    string
 	Claude           string
@@ -501,8 +549,8 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpFocusPanels:    "the Review, Files, Notes or Diagram panel, from a panel on the left",
 		HelpFocusMain:      "the main panel, on the right",
 		HelpEscape:         "closes the top popup; with none, back to the panel on the left that the main panel shows",
-		HelpScreenMode:     "more of the screen for the panel with the keys, then all of it; _ goes back",
-		HelpCommandLine:    "the command line: :q quits, :q! quits and drops drafts",
+		HelpScreenMode:     "more of the screen for the panel with the keys, then all of it; {{.smaller}} goes back",
+		HelpCommandLine:    "the command line: {{.command}}q quits, {{.command}}q! quits and drops drafts",
 		HelpKeys:           "lists the keys of this panel",
 		HelpRefresh:        "loads the review again: from GitHub, or a branch from its repository",
 		HelpReviewView:     "the Review view",
@@ -514,11 +562,11 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpPullFilter:     "highlights the next or previous pull request on a stack: All, then each one",
 		HelpJumps:          "back and forward through jumps",
 		HelpClose:          "closes the top popup",
-		HelpQuit:           "quits, as :q does",
+		HelpQuit:           "quits, as {{.command}}q does",
 		HelpPullsMove:      "the next, previous, first or last pull request",
-		HelpPanelsRound:    "the panel above or below; h goes round to Diagram",
+		HelpPanelsRound:    "the panel above or below; {{.previousPanel}} goes round to Diagram",
 		HelpOpenReviewView: "the Review view, in the main panel",
-		HelpHighlight:      "on a stack, highlights this pull request; j k grow or shrink the highlight, and the other panels show only what it holds",
+		HelpHighlight:      "on a stack, highlights this pull request; {{.move}} grow or shrink the highlight, and the other panels show only what it holds",
 		HelpClearHighlight: "clears the highlight, to show the whole stack",
 		HelpPostPull:       "post: the actions offered for this pull request",
 		HelpFilesMove:      "the next, previous, first or last file; the main panel shows its diff",
@@ -536,7 +584,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpFollowBox:      "follows a link of the box",
 		HelpReferences:     "lists the boxes that link to it",
 		HelpFindBox:        "find a type or file, forward or back",
-		HelpLabelsKeys:     "f then a label",
+		HelpLabelsKeys:     "{{.labels}} then a label",
 		HelpLabels:         "jumps to the box with that label",
 		HelpBoxLinks:       "lists the box's links, in and out",
 		HelpProperties:     "lists its properties",
@@ -558,11 +606,11 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpFold:           "toggle, open or close the fold at the cursor: a file, a run of unchanged lines or a note",
 		HelpFoldAll:        "open every fold, close every fold",
 		HelpToggleFile:     "on a file's header, toggles the file",
-		HelpSelect:         "selects lines; o goes to the other end; Esc stops",
+		HelpSelect:         "selects lines; {{.otherEnd}} goes to the other end; {{.stop}} stops",
 		HelpComment:        "comments on the line or the selection; on Claude's answer, uses it as the comment",
 		HelpAsk:            "asks Claude about the line or the selection; in a conversation, asks a follow-up",
 		HelpEditAtCursor:   "edits the queued comment at the cursor",
-		HelpDropAtCursor:   "drops the queued comment at the cursor, after y confirms",
+		HelpDropAtCursor:   "drops the queued comment at the cursor, after {{.confirm}} confirms",
 		HelpShowType:       "shows the type at the cursor on the diagram; on a file's header, lists its types",
 		HelpBack:           "goes back to the diagram or the Review view",
 		HelpSplit:          "split or unified",
@@ -577,15 +625,15 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpHomeMove:       "the next or previous pull request, on into the next or previous repository",
 		HelpHomeEnds:       "the first or last pull request",
 		HelpRepositories:   "the repository above or below, going round at the ends",
-		HelpFirstNineKeys:  "1 to 9",
+		HelpFirstNineKeys:  "{{.first}} to {{.last}}",
 		HelpFirstNine:      "the first nine repositories",
 		HelpOpenPull:       "opens the pull request's review; one no review holds yet is loaded from GitHub first",
 		HelpReadAgain:      "reads the open pull requests from GitHub again",
 		HelpGitHubPull:     "opens the pull request on GitHub",
 		HelpWebList:        "opens the web app's list of reviews",
 		HelpReviewOpen:     "the Review view of the review open",
-		HelpListMode:       "more of the screen for the list, then all of it; _ goes back",
-		HelpCommandQuit:    "the command line: :q quits",
+		HelpListMode:       "more of the screen for the list, then all of it; {{.smaller}} goes back",
+		HelpCommandQuit:    "the command line: {{.command}}q quits",
 		MarkWaiting:        "your review is waiting: asked of you, or of your team",
 		MarkLoaded:         "loaded in lazyreview",
 		MarkStack:          "a stack, bottom first, reviewed as one",
@@ -670,6 +718,54 @@ func EnglishTranslationSet() *TranslationSet {
 		ThreadNoun:         "thread",
 		ConversationNoun:   "conversation",
 		NotInDiff:          "{{.path}} is not in this change's diff",
+
+		CommandLine:      "Command line",
+		WebApp:           "Web app",
+		Bigger:           "Bigger",
+		Smaller:          "Smaller",
+		NextPull:         "Next pull request",
+		PreviousPull:     "Previous pull request",
+		JumpBack:         "Jump back",
+		JumpForward:      "Jump forward",
+		FocusMain:        "Main panel",
+		Down:             "Down",
+		Up:               "Up",
+		Top:              "Top",
+		Bottom:           "Bottom",
+		PreviousPanel:    "Previous panel",
+		NextPanel:        "Next panel",
+		Left:             "Left",
+		Right:            "Right",
+		NextBox:          "Next box",
+		PreviousBox:      "Previous box",
+		References:       "References",
+		SearchBack:       "Search back",
+		NextMatch:        "Next match",
+		PreviousMatch:    "Previous match",
+		NextSection:      "Next section",
+		PreviousSection:  "Previous section",
+		HalfPageDown:     "Half a page down",
+		HalfPageUp:       "Half a page up",
+		PageDown:         "Page down",
+		PageUp:           "Page up",
+		NextHunk:         "Next hunk",
+		PreviousHunk:     "Previous hunk",
+		NextFile:         "Next file",
+		PreviousFile:     "Previous file",
+		OpenFold:         "Open fold",
+		CloseFold:        "Close fold",
+		OpenFolds:        "Open every fold",
+		CloseFolds:       "Close every fold",
+		ToggleFile:       "Toggle file",
+		ShowType:         "Show type",
+		NextNote:         "Next note",
+		PreviousNote:     "Previous note",
+		RepositoryNumber: "Repository {{.number}}",
+		Clear:            "Clear",
+		ChooseNumber:     "Choose {{.number}}",
+		QuitCommandKeys:  "{{.command}}q",
+		HelpRefreshKeys:  "{{.refresh}} {{.command}}refresh",
+		HelpLineEndsKeys: "{{.top}} {{.bottom}} {n}{{.bottom}}",
 
 		Stale:            "stale",
 		QueuedHeading:    "Queued",
