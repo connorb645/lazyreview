@@ -56,7 +56,7 @@ func (self *ReviewPanelController) Help(labels presentation.KeyLabels) []HelpSec
 }
 
 // Hints are what the bar shows of the Review panel's keys: growing the
-// highlight while it grows, and clearing it while there is one.
+// highlight while it grows, and on a stack's All row only what works there.
 func (self *ReviewPanelController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
@@ -71,6 +71,6 @@ func (self *ReviewPanelController) Hints(s context.ContextTree, labels presentat
 		case len(s.Filter) > 0:
 			return [][2]string{open, highlight, all, post, github, panels}
 		}
-		return [][2]string{open, highlight, post, github, panels}
+		return [][2]string{open, panels}
 	})
 }

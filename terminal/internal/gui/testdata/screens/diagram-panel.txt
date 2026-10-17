@@ -1,9 +1,10 @@
-╭─[1]─Review - All──────────────╮╭─[0]─Diagram · widgets───────────────────────────────────────────╮
-│ #21 Add search to the catalog ││                                                                 │
-│ #22 Add a basket that uses se…││  ╭────────────╮                ┏━━━━━━━━━━━━┓                   │
-╰────────────────────────1 of 2─╯│  │ Sources    │                ┃ web/src    ┃                   │
-╭─[2]─Files─────────────────────╮│  │ 3 types    │                ┃ 1 file     ┃                   │
-│ ▾ ■ widgets            +15 −1 ││  ╰────────────╯                ┗━━━━━━━━━━━━┛                   │
+╭─[1]─Review────────────────────╮╭─[0]─Diagram · widgets───────────────────────────────────────────╮
+│┃All                           ││                                                                 │
+│ #21 Add search to the catalog ││  ╭────────────╮                ┏━━━━━━━━━━━━┓                   │
+│ #22 Add a basket that uses se…││  │ Sources    │                ┃ web/src    ┃                   │
+╰────────────────────────1 of 3─╯│  │ 3 types    │                ┃ 1 file     ┃                   │
+╭─[2]─Files─────────────────────╮│  ╰────────────╯                ┗━━━━━━━━━━━━┛                   │
+│ ▾ ■ widgets            +15 −1 ││                                                                 │
 │   ▾ Sources/Basket            ││                                                                 │
 │     M Basket.swift          ● ││                                                                 │
 │   ▾ Sources/Catalog           ││                                                                 │
@@ -12,7 +13,6 @@
 │   ▾ web/src                   ││                                                                 │
 │     M cart.ts               ● ││                                                                 │
 │ ▾ ■ Unchanged code  unchanged ││                                                                 │
-│   · Catalog.swift             ││                                                                 │
 ╰───────────────────────1 of 10─╯│                                                                 │
 ╭─[3]─Notes─────────────────────╮│                                                                 │
 │ Queued                      2 ││                                                                 │

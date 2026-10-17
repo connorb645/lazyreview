@@ -1,18 +1,18 @@
-╭─[1]─Review - All──────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
-│ #21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       ▐
-│ #22 Add a basket that uses se…││ reviewed together                                               ▐
-╰────────────────────────1 of 2─╯│ Search, then a basket                                           ▐
-╭─[2]─Files──────────────╭─Find a file, type or component─────────────────╮                        ▐
-│ ▾ ■ widgets            │ › bask▏                                        │ 2 files +11 −0         ▐
-│   ▾ Sources/Basket     │▌type  Basket · Basket.swift                    │                        ▐
-│     M Basket.swift     │ file  Sources/Basket/Basket.swift              │cd3c7027                ▐
-│   ▾ Sources/Catalog    │                                                │                        ▐
-│     M MemoryCatalog.swi│                                                │files +15 −1            ▐
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│┃All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
+│ #21 Add search to the catalog ││ reviewed together                                               ▐
+│ #22 Add a basket that uses se…││ Search, then a basket                                           ▐
+╰────────────────────────╭─Find a file, type or component─────────────────╮                        ▐
+╭─[2]─Files──────────────│ › bask▏                                        │ 2 files +11 −0         ▐
+│ ▾ ■ widgets            │▌type  Basket · Basket.swift                    │                        ▐
+│   ▾ Sources/Basket     │ file  Sources/Basket/Basket.swift              │cd3c7027                ▐
+│     M Basket.swift     │                                                │                        ▐
+│   ▾ Sources/Catalog    │                                                │files +15 −1            ▐
+│     M MemoryCatalog.swi│                                                │                        ▐
 │     A Search.swift     │                                                │                        ▐
-│   ▾ web/src            │                                                │                        ▐
-│     M cart.ts          │                                                │Search.swift:4. #22     ▐
-│ ▾ ■ Unchanged code  unc│                                                │in Basket.swift:7.      ▐
-│   · Catalog.swift      │                                                │                        │
+│   ▾ web/src            │                                                │Search.swift:4. #22     ▐
+│     M cart.ts          │                                                │in Basket.swift:7.      ▐
+│ ▾ ■ Unchanged code  unc│                                                │                        │
 ╰───────────────────────1│                                                │ch.swift line 4         │
 ╭─[3]─Notes──────────────│                                                │t.swift line 7          │
 │ Queued                 │                                                │                        │

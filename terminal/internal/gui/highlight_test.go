@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
@@ -47,9 +46,9 @@ func onThreeStack(t *testing.T) App {
 
 func TestVHighlightsAPullRequestAndJAndKGrowOrShrinkIt(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
-	a = press(t, a, "v")
+	a = press(t, a, "j", "v")
 	filterIs(t, a, "[21]")
-	if !strings.Contains(a.View(), "VISUAL · 1 of 2─╯") {
+	if !strings.Contains(a.View(), "VISUAL · 2 of 3─╯") {
 		t.Fatalf("the Review panel's foot does not say VISUAL:\n%s", a.View())
 	}
 	for _, key := range rowKeys(a, context.FilesPanel) {
@@ -84,9 +83,6 @@ func TestTheHighlightGrowsUpAndDownAThreePullRequestStack(t *testing.T) {
 	filterIs(t, a, "[23]")
 	a = press(t, a, "g", "g")
 	filterIs(t, a, "[21 22 23]")
-	if !strings.Contains(send(t, a, tea.WindowSizeMsg{Width: 80, Height: 24}).View(), "─Review - #21-#23─") {
-		t.Fatalf("at 80 columns the title does not name the highlight as #21-#23:\n%s", send(t, a, tea.WindowSizeMsg{Width: 80, Height: 24}).View())
-	}
 	a = press(t, a, "v", "j")
 	filterIs(t, a, "[21 22]")
 }
@@ -94,7 +90,7 @@ func TestTheHighlightGrowsUpAndDownAThreePullRequestStack(t *testing.T) {
 func TestTheHighlightStaysWhenTheKeysLeaveTheReviewPanel(t *testing.T) {
 	for _, keys := range [][]string{{"2"}, {"3"}, {"4"}, {"h"}, {"l"}, {"0"}, {"enter"}} {
 		a, _ := opened(t, stack, 100, 30)
-		a = press(t, a, "v", "j")
+		a = press(t, a, "j", "v", "j")
 		a = press(t, a, keys...)
 		filterIs(t, a, "[21 22]")
 		if a.GrowFrom != 0 || strings.Contains(a.View(), "VISUAL ·") {
@@ -105,44 +101,30 @@ func TestTheHighlightStaysWhenTheKeysLeaveTheReviewPanel(t *testing.T) {
 	}
 }
 
-func TestBackInTheReviewPanelJAndKMoveAndEscShowsTheWholeStack(t *testing.T) {
+func TestBackInTheReviewPanelTheHighlightHoldsUntilTheCursorMoves(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
-	a = press(t, a, "j", "v", "2", "1")
-	filterIs(t, a, "[22]")
+	a = press(t, a, "j", "v", "j", "2", "1")
+	filterIs(t, a, "[21 22]")
+	screenIs(t, a, "highlight-kept")
 	a = press(t, a, "k")
 	if got := selectedKey(a, context.ReviewPanel); got != "pull:21" {
 		t.Fatalf("k back in the Review panel moved to %s", got)
 	}
-	filterIs(t, a, "[22]")
-	screenIs(t, a, "highlight-kept")
-	a = press(t, a, "esc")
-	filterIs(t, a, "[]")
-	if a.Notice != "" {
-		t.Fatalf("Esc that shows the whole stack says %q", a.Notice)
-	}
-	a = press(t, a, "v")
 	filterIs(t, a, "[21]")
-	a = press(t, a, "esc")
+	a = press(t, a, "v", "j", "esc")
 	filterIs(t, a, "[]")
-	if a.GrowFrom != 0 {
-		t.Fatal("Esc left the highlight growing")
-	}
-	a = press(t, a, "esc")
-	if a.Notice != "ZZ or :q quits" {
-		t.Fatalf("Esc with nothing highlighted says %q", a.Notice)
+	if a.GrowFrom != 0 || a.Notice != "" {
+		t.Fatalf("Esc left the highlight growing, or said %q", a.Notice)
 	}
 }
 
 func TestBracketPSetsTheHighlightToOnePullRequestOrAll(t *testing.T) {
-	a := press(t, onThreeStack(t), "j", "v", "j")
+	a := press(t, onThreeStack(t), "j", "j", "v", "j")
 	filterIs(t, a, "[22 23]")
 	a = press(t, a, "[", "p")
 	filterIs(t, a, "[21]")
 	if a.GrowFrom != 0 {
 		t.Fatal("[p left the highlight growing")
-	}
-	if !strings.Contains(a.View(), "[1]─Review - #21─") {
-		t.Fatalf("with no colour the title names only the pull request highlighted:\n%s", a.View())
 	}
 	a = press(t, a, "]", "p")
 	filterIs(t, a, "[22]")
@@ -164,7 +146,7 @@ func TestVDoesNothingOnOnePullRequest(t *testing.T) {
 
 func TestTheHighlightIsKeptAcrossAReload(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
-	a = press(t, a, "v", "j", "2")
+	a = press(t, a, "j", "v", "j", "2")
 	a = send(t, a, types.ReviewReloaded{Data: *a.Review})
 	filterIs(t, a, "[21 22]")
 	d := *a.Review
@@ -177,7 +159,7 @@ func TestTheHighlightIsKeptAcrossAReload(t *testing.T) {
 
 func TestTheReviewViewShowsOnlyWhatIsHighlighted(t *testing.T) {
 	a, _ := opened(t, stack, 100, 60)
-	a = press(t, a, "j", "v")
+	a = press(t, a, "j", "j", "v")
 	view := a.View()
 	for _, gone := range []string{"Keep the order items came in.", "Should this keep the order"} {
 		if strings.Contains(view, gone) {
@@ -195,7 +177,7 @@ func TestTheReviewViewShowsOnlyWhatIsHighlighted(t *testing.T) {
 func TestACommentQueuedWhileHighlightedGoesWhereTheServerSays(t *testing.T) {
 	editor, _ := writer(t, "One add is enough.")
 	a, _ := opened(t, stack, 100, 30, editor)
-	a = press(t, a, "v", "2", "j", "enter")
+	a = press(t, a, "j", "v", "2", "j", "enter")
 	a = typed(t, press(t, a, ":"), "7")
 	a = press(t, a, "V", "j", "j", "c")
 	if a.Bad || a.Diff.Selecting {
@@ -238,7 +220,7 @@ func TestHighlightedRowsDrawApartFromTheCursorRow(t *testing.T) {
 func TestPathTitlesReadTheSameUnderAHighlight(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
 	whole := press(t, a, "4", "enter", "enter")
-	lit := press(t, a, "j", "v", "4", "enter", "enter")
+	lit := press(t, a, "j", "j", "v", "4", "enter", "enter")
 	title := func(a App) string {
 		top := strings.Split(a.View(), "\n")[0]
 		return top[strings.Index(top, "[0]"):]

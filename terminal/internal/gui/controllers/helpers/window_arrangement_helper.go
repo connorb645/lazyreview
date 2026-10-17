@@ -88,7 +88,7 @@ func lay(width, height, focus, driving int, mode context.ScreenMode, wants [cont
 		side = width / 2
 	}
 	l.Main = views.Rect{X: side, W: width - side, H: h}
-	first := min(wants[context.ReviewPanel]+2, max(3, h/4))
+	first := min(wants[context.ReviewPanel]+2, max(3, (h+3)/4))
 	l.Sides[context.ReviewPanel] = views.Rect{W: side, H: first}
 	heights := shared(h-first, driving-context.FilesPanel, []int{wants[context.FilesPanel] + 2, wants[context.NotesPanel] + 2, wants[context.DiagramPanel] + 2}, 6)
 	y := first

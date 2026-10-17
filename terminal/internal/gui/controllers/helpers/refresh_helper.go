@@ -38,11 +38,12 @@ func (self *RefreshHelper) Relaid(s context.ContextTree) context.ContextTree {
 }
 
 // SidesBuilt is the state with the rows of the four panels on the left
-// built again, each keeping its selection, shown in its height.
+// built again, each keeping its selection, the Review panel's on the
+// filter, shown in its height.
 func (self *RefreshHelper) SidesBuilt(s context.ContextTree) context.ContextTree {
 	d, tr, th := *s.Review, self.c.Tr, self.c.Theme
 	built := [context.SideCount + 1][]presentation.SideRow{
-		context.ReviewPanel:  presentation.ReviewRows(th, d, s.Filter),
+		context.ReviewPanel:  presentation.ReviewRows(tr, th, d, s.Filter),
 		context.FilesPanel:   presentation.FileRows(tr, th, d, s.FilesPanel.Folded, s.Filter),
 		context.NotesPanel:   presentation.NoteListRows(tr, th, d, s.Filter),
 		context.DiagramPanel: presentation.BoxRows(tr, th, d, s.Diagram.Level, s.Diagram.Grid, s.Filter),
@@ -50,6 +51,7 @@ func (self *RefreshHelper) SidesBuilt(s context.ContextTree) context.ContextTree
 	for n := context.ReviewPanel; n <= context.SideCount; n++ {
 		s = s.WithSide(n, s.Side(n).Reset(built[n]))
 	}
+	s = self.c.Helpers.Filter.OnFilter(s)
 	for n := context.ReviewPanel; n <= context.SideCount; n++ {
 		s = s.WithSide(n, s.Side(n).Shown(self.c.Helpers.Window.SideHeight(s, n)))
 	}
@@ -57,8 +59,9 @@ func (self *RefreshHelper) SidesBuilt(s context.ContextTree) context.ContextTree
 }
 
 // Mirrored is the state with the panels on the left selecting what the
-// main panel's cursor is on: its pull request, its file or its note, or the
-// diagram's box. The panel with the keys keeps its own selection.
+// main panel's cursor is on: its file or its note, or the diagram's box.
+// The panel with the keys keeps its own selection, and the Review panel's
+// stays on the filter.
 func (self *RefreshHelper) Mirrored(s context.ContextTree) context.ContextTree {
 	if s.Review == nil || s.Width == 0 {
 		return s
@@ -73,10 +76,6 @@ func (self *RefreshHelper) Mirrored(s context.ContextTree) context.ContextTree {
 		}
 	}
 	switch s.Screen() {
-	case context.ScreenReview:
-		if v := s.ReviewView.View; v.Cursor < len(v.Items) && v.Items[v.Cursor].Pull != 0 {
-			pick(context.ReviewPanel, presentation.PullKey(v.Items[v.Cursor].Pull))
-		}
 	case context.ScreenDiff:
 		if path := s.Diff.File(); path != "" {
 			pick(context.FilesPanel, self.shownFile(s, path))

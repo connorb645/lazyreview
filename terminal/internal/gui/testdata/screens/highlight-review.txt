@@ -1,16 +1,16 @@
-╭─[1]─Review - #22──────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
-│ #21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       │
-│▌#22 Add a basket that uses se…││ reviewed together                                               │
-╰───────────────VISUAL · 2 of 2─╯│ Search, then a basket                                           │
-╭─[2]─Files─────────────────────╮│  #21  Add search to the catalog                                 │
-│ ▾ ■ widgets             +4 −1 ││       by sam · on main · head ec6fb42d · 2 files +11 −0         │
-│   ▾ Sources/Basket            ││  #22  Add a basket that uses search                             │
-│     M Basket.swift          ● ││       by sam · on feature/search · head cd3c7027                │
-│   ▾ web/src                   ││       2 files +4 −1                                             │
-│     M cart.ts               ● ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
-│ ▾ ■ Unchanged code  unchanged ││ Showing #22 only. Esc in the Review panel shows the whole       │
-│   · Catalog.swift             ││ stack.                                                          │
-│                               ││                                                                 │
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│ All                           ││ A stack of 2 pull requests, each built on the one before,       │
+│ #21 Add search to the catalog ││ reviewed together                                               │
+│▌#22 Add a basket that uses se…││ Search, then a basket                                           │
+╰───────────────VISUAL · 3 of 3─╯│  #21  Add search to the catalog                                 │
+╭─[2]─Files─────────────────────╮│       by sam · on main · head ec6fb42d · 2 files +11 −0         │
+│ ▾ ■ widgets             +4 −1 ││  #22  Add a basket that uses search                             │
+│   ▾ Sources/Basket            ││       by sam · on feature/search · head cd3c7027                │
+│     M Basket.swift          ● ││       2 files +4 −1                                             │
+│   ▾ web/src                   ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
+│     M cart.ts               ● ││ Showing #22 only. Esc in the Review panel shows the whole       │
+│ ▾ ■ Unchanged code  unchanged ││ stack.                                                          │
+│   · Catalog.swift             ││                                                                 │
 │                               ││ ▾ What this changes                                             │
 │                               ││   #21 adds a search over the catalog in Search.swift:4. #22     │
 │                               ││   gives the basket a search of its own, in Basket.swift:7.      │
@@ -39,12 +39,12 @@
 │                               ││   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved │
 │                               ││     Could the search be passed in?                              │
 │                               ││                                                                 │
-│                               ││ ▾ Conversations                                                 │
-╰────────────────────────1 of 3─╯│   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
-╭─[4]─Diagram───────────────────╮│     Could this be passed in?                                    │
-│ Components                    ││     It returns early when the list is empty.                    │
-│ ■ widgets                     ││                                                                 │
-│ ■ Unchanged code              ││ ▾ The change                                                    │
+╰────────────────────────1 of 3─╯│ ▾ Conversations                                                 │
+╭─[4]─Diagram───────────────────╮│   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
+│ Components                    ││     Could this be passed in?                                    │
+│ ■ widgets                     ││     It returns early when the list is empty.                    │
+│ ■ Unchanged code              ││                                                                 │
+│                               ││ ▾ The change                                                    │
 │                               ││   ■ widgets  2 files +4 −1                                      │
 │                               ││   ■ Unchanged code  1 file · unchanged                          │
 │                               ││                                                                 │

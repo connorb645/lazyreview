@@ -22,9 +22,9 @@ func TestTheAppOpensOnTheReviewPanelBesideTheReviewView(t *testing.T) {
 		t.Fatalf("it opens with panel %d on screen %d", a.Focus(), a.Screen())
 	}
 	screenIs(t, a, "panels")
-	a = press(t, a, "j")
+	a = press(t, a, "j", "j")
 	if got := selectedKey(a, context.ReviewPanel); got != "pull:22" {
-		t.Fatalf("j in the Review panel chose %s", got)
+		t.Fatalf("j j in the Review panel chose %s", got)
 	}
 	a = press(t, a, "enter")
 	if a.Focus() != context.MainPanel || a.Screen() != context.ScreenReview {
@@ -34,7 +34,7 @@ func TestTheAppOpensOnTheReviewPanelBesideTheReviewView(t *testing.T) {
 	if a.Focus() != context.ReviewPanel {
 		t.Fatalf("Esc goes back to the Review panel, not %d", a.Focus())
 	}
-	a = press(t, a, "q")
+	a = press(t, a, "esc", "q")
 	if a.Notice != "ZZ or :q quits" {
 		t.Fatalf("q with nothing to close says how to quit, not %q", a.Notice)
 	}

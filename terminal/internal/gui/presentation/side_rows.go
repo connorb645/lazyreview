@@ -16,6 +16,9 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
+// AllKey is the key of a stack's All row in the Review panel.
+const AllKey = "all"
+
 // PullKey is the key of a pull request's row.
 func PullKey(pull int) string { return fmt.Sprintf("pull:%d", pull) }
 
@@ -37,14 +40,22 @@ func heading(text, right string, th theme.Theme) SideRow {
 	return SideRow{Heading: true, Text: th.Muted.Render(text), Right: th.Faint.Render(right)}
 }
 
-// ReviewRows are the Review panel's rows: the stack's pull requests, dimmed
-// where the filter leaves them out, or the branch.
-func ReviewRows(th theme.Theme, d types.ReviewData, filter types.PullFilter) []SideRow {
+// ReviewRows are the Review panel's rows: on a stack All, then its pull
+// requests, those the filter shows lit and the others dimmed; or the pull
+// request, or the branch.
+func ReviewRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, filter types.PullFilter) []SideRow {
 	s := d.State
 	if s.Kind == "branch" {
 		return []SideRow{{Key: "branch", Text: th.Text.Render(s.Head.Ref) + th.Muted.Render(" → "+s.Base.Ref), Item: Item{Kind: "branch"}}}
 	}
 	var rows []SideRow
+	if d.Page.Stack != nil {
+		all := th.Text
+		if len(filter) > 0 {
+			all = th.Faint
+		}
+		rows = append(rows, SideRow{Key: AllKey, Text: all.Render(tr.All), Lit: len(filter) == 0, Item: Item{Kind: "all"}})
+	}
 	for _, m := range s.Members {
 		number, title := th.PullRequest(m.Color), th.Text
 		if !filter.Shows(m.Pull) {

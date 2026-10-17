@@ -1,18 +1,18 @@
-╭─[1]─Review - All──────────────╮╭─[0]─Diagram · Unchanged code › Catalog──────────────────────────╮
-│ #21 Add search to the catalog ││                                                                 │
-│ #22 Add a basket that uses se…││───────────────────╮     uses       ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
-╰────────────────────────1 of 2─╯│ocol» Catalog      ├───────────────▶┃ «struct» Item           ┃  │
-╭─[2]─Files─────────────────────╮│og.swift unchanged │                ┃ Catalog.swift unchanged ┃  │
-│ ▾ ■ widgets            +15 −1 ││───────────────────╯                ┗━━━━━━━━━━━━━━━━━━━━━━┯━━┛  │
-│   ▾ Sources/Basket            ││                                                           ├◀─ Me│
-│     M Basket.swift          ● ││                                                           └◀─ Se│
+╭─[1]─Review────────────────────╮╭─[0]─Diagram · Unchanged code › Catalog──────────────────────────╮
+│┃All                           ││                                                                 │
+│ #21 Add search to the catalog ││───────────────────╮     uses       ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
+│ #22 Add a basket that uses se…││ocol» Catalog      ├───────────────▶┃ «struct» Item           ┃  │
+╰────────────────────────1 of 3─╯│og.swift unchanged │                ┃ Catalog.swift unchanged ┃  │
+╭─[2]─Files─────────────────────╮│───────────────────╯                ┗━━━━━━━━━━━━━━━━━━━━━━┯━━┛  │
+│ ▾ ■ widgets            +15 −1 ││                                                           ├◀─ Me│
+│   ▾ Sources/Basket            ││                                                           └◀─ Se│
+│     M Basket.swift          ● ││                                                                 │
 │   ▾ Sources/Catalog           ││                                                                 │
 │     M MemoryCatalog.swift   ● ││                                                                 │
 │     A Search.swift          ● ││                                                                 │
-│   ▾ web/src                   ││                                                                 │
-│     M cart.ts ╭─What links to Item───────────────────────────────────────────────╮               │
-│ ▾ ■ Unchanged │▌in  MemoryCatalog ─ holds stored ─▶ Item · in widgets › Sources  │               │
-│   · Catalog.sw│ in  Search ─ uses ─▶ Item · in widgets › Sources                 │               │
+│   ▾ web/src   ╭─What links to Item───────────────────────────────────────────────╮               │
+│     M cart.ts │▌in  MemoryCatalog ─ holds stored ─▶ Item · in widgets › Sources  │               │
+│ ▾ ■ Unchanged │ in  Search ─ uses ─▶ Item · in widgets › Sources                 │               │
 ╰───────────────│ in  Catalog ─ uses ─▶ Item                                       │               │
 ╭─[3]─Notes─────╰───────────────────────────────────────────────────────────1 of 3─╯               │
 │ Queued                      2 ││                                                                 │

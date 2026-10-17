@@ -1,26 +1,26 @@
-╭─[1]─Review - All──────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
-│ #21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       ▐
-│ #22 Add a basket that uses se…││ reviewed together                                               ▐
-╰────────────────────────1 of 2─╯│ Search, then a basket                                           ▐
-╭─╭─Keys─────────────────────────────────────────────────────────────────────────────────────────╮ ▐
-│ │ Review                                                                                       │ ▐
-│ │▌j k gg G       the next, previous, first or last pull request                                │ ▐
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│┃All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
+│ #21 Add search to the catalog ││ reviewed together                                               ▐
+│ #22 Add a basket that uses se…││ Search, then a basket                                           ▐
+╰─╭─Keys─────────────────────────────────────────────────────────────────────────────────────────╮ ▐
+╭─│ Review                                                                                       │ ▐
+│ │▌j k gg G       the next, previous, first or last pull request, or All on a stack; the other  │ ▐
+│ │▌               panels show only what the cursor is on                                        │ ▐
 │ │ h l            the panel above or below; h goes round to Diagram                             │ ▐
 │ │ Enter          the Review view, in the main panel                                            │ ▐
 │ │ v              on a stack, highlights this pull request; j k grow or shrink the highlight,   │ ▐
 │ │                and the other panels show only what it holds                                  │ ▐
-│ │ Esc            clears the highlight, to show the whole stack                                 │ ▐
+│ │ Esc            goes to All, to show the whole stack                                          │ ▐
 │ │ P              post: the actions offered for this pull request                               │ ▐
-│ │ Every panel                                                                                  │ ▐
-│ │ 1 2 3 4        the Review, Files, Notes or Diagram panel, from a panel on the left           │ │
-╰─│ 0              the main panel, on the right                                                  │ │
-╭─│ Esc            closes the top popup; with none, back to the panel on the left that the main  │ │
+│ │ Every panel                                                                                  │ │
+╰─│ 1 2 3 4        the Review, Files, Notes or Diagram panel, from a panel on the left           │ │
+╭─│ 0              the main panel, on the right                                                  │ │
+│ │ Esc            closes the top popup; with none, back to the panel on the left that the main  │ │
 │ │                panel shows                                                                   │ │
 │ │ + _            more of the screen for the panel with the keys, then all of it; _ goes back   │ │
 │ │ :              the command line: :q quits, :q! quits and drops drafts                        │ │
-│ │ Space ?        lists the keys of this panel                                                  │ │
-│ │ R :refresh     loads the review again: from GitHub, or a branch from its repository          │…│
-│ │ Space v        the Review view                                                               │ │
+│ │ Space ?        lists the keys of this panel                                                  │…│
+│ │ R :refresh     loads the review again: from GitHub, or a branch from its repository          │ │
 ╰─╰──────────────────────────────────────────────────────────────────────────────────────1 of 23─╯ │
 ╭─[4]─Diagram───────────────────╮│ A comment goes on the pull request that last changed its line,  │
 │ Components                    ││ shown as → #number.                                             │

@@ -217,13 +217,16 @@ bar at the bottom lists the keys that matter where you are, and `Space ?`
 lists them all. A count goes before a move in the main panel, such as `5j` or
 `3]c`.
 
-On a stack, `v` in the Review panel highlights pull requests as Vim's visual
-mode highlights lines: `v` starts on the pull request selected, and `j` and
-`k` grow or shrink the highlight. Files, Notes, Diagram and the main panel
-then show only what the highlighted pull requests changed, so you can read
-one pull request, or two together. The highlight stays as you move to other
-panels; back in the Review panel, `Esc` clears it and `v` starts a new one. A
-comment still goes to the pull request that last changed its line.
+On a stack, the Review panel lists All, then each pull request, and its
+cursor chooses what the other panels show. On All they show the whole stack.
+On a pull request, Files, Notes, Diagram and the main panel show only what it
+changed, at once. To read a run of pull requests together, `v` starts a
+highlight on the pull request selected, and `j` and `k` grow or shrink it, as
+Vim's visual mode highlights lines. What the cursor or the highlight chose
+stays as you move to other panels, and when the review loads again. Back in
+the Review panel, `j` and `k` choose again, and `Esc` goes back to All. `]p`
+and `[p` move the cursor from any panel. A comment still goes to the pull
+request that last changed its line.
 
 Every panel:
 
@@ -238,7 +241,7 @@ Every panel:
 | `Space m` | the diagram |
 | `Space f` | finds a file, type or component as you type; `Ctrl-n` `Ctrl-p` move, `Enter` goes there |
 | `R` `:refresh` | loads the review again: from GitHub, or a branch from its repository |
-| `]p` `[p` | highlights the next or previous pull request of a stack, or All |
+| `]p` `[p` | moves the Review panel's cursor to the next or previous pull request of a stack, or All |
 | `Ctrl-o` `Ctrl-i` | back and forward through jumps |
 | `gx` `gX` | opens the pull request on GitHub, or this place in the web app |
 | `q` | closes a popup |
@@ -248,11 +251,11 @@ The panels on the left:
 
 | Key | Does |
 | --- | --- |
-| `j` `k` `gg` `G` | move; the main panel follows |
+| `j` `k` `gg` `G` | move; the main panel follows, and in Review on a stack, every other panel shows only what the cursor is on |
 | `h` `l` | the panel above or below, as Lazygit moves between its panels; `h` in Review goes round to Diagram; in Diagram, the box to the left or right |
 | `Enter` | gives the main panel the keys; in Files, on a component or a folder, folds it; in Diagram, steps in |
 | `v` | in Review, on a stack, highlights the pull request selected; `j` `k` grow or shrink the highlight |
-| `Esc` | in Review, clears the highlight, to show the whole stack |
+| `Esc` | in Review, goes to All, to show the whole stack |
 | `P` | in Review and Notes, posts for the pull request selected |
 | `e` `dd` | in Notes, edits or drops the queued comment |
 | `za` | in Files, folds a component or a folder |

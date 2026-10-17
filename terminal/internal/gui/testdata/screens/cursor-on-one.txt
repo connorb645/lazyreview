@@ -1,0 +1,30 @@
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│ All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
+│▌#21 Add search to the catalog ││ reviewed together                                               ▐
+│ #22 Add a basket that uses se…││ Search, then a basket                                           ▐
+╰────────────────────────2 of 3─╯│  #21  Add search to the catalog                                 ▐
+╭─[2]─Files─────────────────────╮│       by sam · on main · head ec6fb42d · 2 files +11 −0         ▐
+│ ▾ ■ widgets            +11 −0 ││  #22  Add a basket that uses search                             ▐
+│   M MemoryCatalog.swift     ● ││       by sam · on feature/search · head cd3c7027                ▐
+│   A Search.swift            ● ││       2 files +4 −1                                             ▐
+│ ▾ ■ Unchanged code  unchanged ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            ▐
+│   · Catalog.swift             ││ Showing #21 only. Esc in the Review panel shows the whole       ▐
+│                               ││ stack.                                                          ▐
+│                               ││                                                                 ▐
+╰────────────────────────1 of 5─╯│ ▾ What this changes                                             ▐
+╭─[3]─Notes─────────────────────╮│   #21 adds a search over the catalog in Search.swift:4. #22     ▐
+│ Queued                      1 ││   gives the basket a search of its own, in Basket.swift:7.      ▐
+│ 1 MemoryCatalog.swift:8-… #21 ││   [Likely]                                                      ▐
+│ On GitHub                   1 ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
+│ sam MemoryCatalog.swift:9     ││   → Basket.swift:7  Sources/Basket/Basket.swift line 7          │
+│                               ││                                                                 │
+│                               ││ ▾ Risks                                                         │
+╰────────────────────────1 of 2─╯│   MemoryCatalog.swift:9 appends without checking for            │
+╭─[4]─Diagram───────────────────╮│   duplicates. [Guessing]                                        │
+│ Components                    ││   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││ ▾ Queued comments                                               │
+│                               ││ A comment goes on the pull request that last changed its line,  │
+│                               ││ shown as → #number.                                             │
+╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
+ Review: Enter | Highlight: v | All: Esc | Post: P | GitHub: gx | Panels: h l | Keys: Space ?

@@ -77,12 +77,15 @@ func TestTheHandOversKeysAreTheBindings(t *testing.T) {
 	})
 	tr := cmn.Tr
 	a, _ := openedIn(t, cmn, &changes{answers: map[string]answer{}}, stack, 100, 30)
+	a = press(t, a, "j")
 	bound := placeBindings(a)
 	if bound["V"] != "highlight" || bound["Q Q"] != "quit" || bound["v"] != "" || bound["Z Z"] != "" || bound["P"] != "" {
 		t.Fatalf("the Review panel binds %v", bound)
 	}
-	filterIs(t, press(t, a, "V"), "[21]")
-	if b := press(t, a, "v"); len(b.Filter) != 0 {
+	if b := press(t, a, "V"); b.GrowFrom != 21 {
+		t.Fatalf("V does not highlight: %v", b.Filter)
+	}
+	if b := press(t, a, "v"); b.GrowFrom != 0 {
 		t.Fatalf("v still highlights: %v", b.Filter)
 	}
 	if b := press(t, a, "P"); b.Has(context.PostingKey) || b.Notice != "" {
@@ -103,7 +106,7 @@ func TestTheHandOversKeysAreTheBindings(t *testing.T) {
 	if bar := a.View(); !strings.Contains(bar, tr.Highlight+": V") || strings.Contains(bar, tr.Post+":") {
 		t.Fatalf("the bar reads:\n%s", bar)
 	}
-	if b := press(t, a, "q"); b.Notice != "QQ or :q quits" {
+	if b := press(t, a, "k", "q"); b.Notice != "QQ or :q quits" {
 		t.Fatalf("q tells %q", b.Notice)
 	}
 }

@@ -1,18 +1,18 @@
-╭─[1]─Review - #21 - #22────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
-│┃#21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       ▐
-│▌#22 Add a basket that uses se…││ reviewed together                                               ▐
-╰───────────────VISUAL · 2 of 2─╯│ Search, then a basket                                           ▐
-╭─[2]─Files─────────────────────╮│  #21  Add search to the catalog                                 ▐
-│ ▾ ■ widgets            +15 −1 ││       by sam · on main · head ec6fb42d · 2 files +11 −0         ▐
-│   ▾ Sources/Basket            ││  #22  Add a basket that uses search                             ▐
-│     M Basket.swift          ● ││       by sam · on feature/search · head cd3c7027                ▐
-│   ▾ Sources/Catalog           ││       2 files +4 −1                                             ▐
-│     M MemoryCatalog.swift   ● ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            ▐
-│     A Search.swift          ● ││ Showing #21 and #22 only. Esc in the Review panel shows the     ▐
-│   ▾ web/src                   ││ whole stack.                                                    ▐
-│     M cart.ts               ● ││                                                                 ▐
-│ ▾ ■ Unchanged code  unchanged ││ ▾ What this changes                                             ▐
-│   · Catalog.swift             ││   #21 adds a search over the catalog in Search.swift:4. #22     │
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│ All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
+│┃#21 Add search to the catalog ││ reviewed together                                               ▐
+│▌#22 Add a basket that uses se…││ Search, then a basket                                           ▐
+╰───────────────VISUAL · 3 of 3─╯│  #21  Add search to the catalog                                 ▐
+╭─[2]─Files─────────────────────╮│       by sam · on main · head ec6fb42d · 2 files +11 −0         ▐
+│ ▾ ■ widgets            +15 −1 ││  #22  Add a basket that uses search                             ▐
+│   ▾ Sources/Basket            ││       by sam · on feature/search · head cd3c7027                ▐
+│     M Basket.swift          ● ││       2 files +4 −1                                             ▐
+│   ▾ Sources/Catalog           ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            ▐
+│     M MemoryCatalog.swift   ● ││ Showing #21 and #22 only. Esc in the Review panel shows the     ▐
+│     A Search.swift          ● ││ whole stack.                                                    ▐
+│   ▾ web/src                   ││                                                                 ▐
+│     M cart.ts               ● ││ ▾ What this changes                                             ▐
+│ ▾ ■ Unchanged code  unchanged ││   #21 adds a search over the catalog in Search.swift:4. #22     │
 ╰───────────────────────1 of 10─╯│   gives the basket a search of its own, in Basket.swift:7.      │
 ╭─[3]─Notes─────────────────────╮│   [Likely]                                                      │
 │ Queued                      2 ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │

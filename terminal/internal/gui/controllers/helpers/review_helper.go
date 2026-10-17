@@ -137,7 +137,7 @@ func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewRel
 	h := self.c.Helpers
 	s.Review = &msg.Data
 	s.Files = map[string]server.File{}
-	s = h.Filter.KeptFilter(s)
+	s = h.Refresh.SidesBuilt(h.Filter.KeptFilter(s))
 	switch s.Screen() {
 	case context.ScreenDiff:
 		next, cmd := h.Diff.OpenPlace(s, s.Diff.Component, s.Diff.Place())

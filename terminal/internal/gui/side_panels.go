@@ -3,8 +3,6 @@ package gui
 import (
 	"fmt"
 
-	"github.com/charmbracelet/x/ansi"
-
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
@@ -16,15 +14,7 @@ func (a App) sideBox(n int, r views.Rect, focused bool) []string {
 	if n == context.ReviewPanel && a.GrowFrom != 0 {
 		place = tr.Visual + " · " + place
 	}
-	return views.Framed(content, views.Extent{}, r.W, r.H, views.PanelTitle(n, presentation.PanelNames(tr)[n]), a.tabs(n, r.Inner().W), place, focused, a.c.Theme)
-}
-
-func (a App) tabs(n, width int) string {
-	if n != context.ReviewPanel || a.Review == nil || a.Review.Page.Stack == nil {
-		return ""
-	}
-	room := width - ansi.StringWidth(views.PanelTitle(n, presentation.PanelNames(a.c.Tr)[n])) - 3
-	return presentation.Tabs(a.c.Tr, a.c.Theme, *a.Review, a.Filter, room)
+	return views.Framed(content, views.Extent{}, r.W, r.H, views.PanelTitle(n, presentation.PanelNames(tr)[n]), "", place, focused, a.c.Theme)
 }
 
 func (a App) homePanelBox(i int, r views.Rect, focused bool) []string {

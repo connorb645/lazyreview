@@ -1,17 +1,18 @@
-╭─[1]─Review - #21──────────────╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
-│┃#21 Add search to the catalog ││▌▎       10 +     }                                              │
-│ #22 Add a basket that uses se…││              ▾ Queued 1 → #21 · lines 8-10      e edit  dd drop │
-╰────────────────────────1 of 2─╯│                Keep the order items came in.                    │
-╭─[2]─Files─────────────────────╮│     7   11   }                                                  │
-│ ▾ ■ widgets            +11 −0 ││  ▾ Sources/Catalog/Search.swift  new  #21  +7 −0                │
-│   M MemoryCatalog.swift     ● ││   @@ -0,0 +1,7 @@                                               │
-│   A Search.swift            ● ││ ▎        1 + struct Search {                                    │
-│ ▾ ■ Unchanged code  unchanged ││ ▎        2 +     let catalog: Catalog                           │
-│   · Catalog.swift             ││ ▎        3 +                                                    │
-│                               ││ ▎        4 +     func find(_ text: String) -> [Item] {          │
+╭─[1]─Review────────────────────╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
+│ All                           ││▌▎       10 +     }                                              │
+│┃#21 Add search to the catalog ││              ▾ Queued 1 → #21 · lines 8-10      e edit  dd drop │
+│ #22 Add a basket that uses se…││                Keep the order items came in.                    │
+╰────────────────────────2 of 3─╯│     7   11   }                                                  │
+╭─[2]─Files─────────────────────╮│  ▾ Sources/Catalog/Search.swift  new  #21  +7 −0                │
+│ ▾ ■ widgets            +11 −0 ││   @@ -0,0 +1,7 @@                                               │
+│   M MemoryCatalog.swift     ● ││ ▎        1 + struct Search {                                    │
+│   A Search.swift            ● ││ ▎        2 +     let catalog: Catalog                           │
+│ ▾ ■ Unchanged code  unchanged ││ ▎        3 +                                                    │
+│   · Catalog.swift             ││ ▎        4 +     func find(_ text: String) -> [Item] {          │
 │                               ││ ▎        5 +         catalog.items().filter { $0.name.contains(…│
-╰────────────────────────2 of 5─╯│ ▎        6 +     }                                              │
-╭─[3]─Notes─────────────────────╮│ ▎        7 + }                                                  │
+│                               ││ ▎        6 +     }                                              │
+╰────────────────────────2 of 5─╯│ ▎        7 + }                                                  │
+╭─[3]─Notes─────────────────────╮│                                                                 │
 │ Queued                      1 ││                                                                 │
 │ 1 MemoryCatalog.swift:8-… #21 ││                                                                 │
 │ On GitHub                   1 ││                                                                 │
@@ -23,7 +24,6 @@
 │ Components                    ││                                                                 │
 │ ■ widgets                     ││                                                                 │
 │ ■ Unchanged code              ││                                                                 │
-│                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │
 ╰────────────────────────1 of 2─╯╰──line 10 · Changed in #21. A comment here goes on #21, line 10.─╯

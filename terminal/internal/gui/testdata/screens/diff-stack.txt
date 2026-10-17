@@ -1,16 +1,16 @@
-╭─[1]─Review - All──────────────╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
-│ #21 Add search to the catalog ││   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {          │
-│ #22 Add a basket that uses se…││     4    4       func items() -> [Item] {                       │
-╰────────────────────────1 of 2─╯│     5    5           stored                                     │
-╭─[2]─Files─────────────────────╮│     6    6       }                                              │
-│ ▾ ■ widgets            +15 −1 ││ ▎        7 +                                                    │
-│   ▾ Sources/Basket            ││ ▎        8 +     func add(_ item: Item) {                       │
-│     M Basket.swift          ● ││ ▎        9 +         stored.append(item)                        │
-│   ▾ Sources/Catalog           ││              ▸ sam · 1 comment                    gx GitHub  za │
-│     M MemoryCatalog.swift   ● ││▌▎       10 +     }                                              │
-│     A Search.swift          ● ││              ▾ Queued 1 → #21 · lines 8-10      e edit  dd drop │
-│   ▾ web/src                   ││                Keep the order items came in.                    │
-│     M cart.ts               ● ││     7   11   }                                                  │
+╭─[1]─Review────────────────────╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
+│┃All                           ││   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {          │
+│ #21 Add search to the catalog ││     4    4       func items() -> [Item] {                       │
+│ #22 Add a basket that uses se…││     5    5           stored                                     │
+╰────────────────────────1 of 3─╯│     6    6       }                                              │
+╭─[2]─Files─────────────────────╮│ ▎        7 +                                                    │
+│ ▾ ■ widgets            +15 −1 ││ ▎        8 +     func add(_ item: Item) {                       │
+│   ▾ Sources/Basket            ││ ▎        9 +         stored.append(item)                        │
+│     M Basket.swift          ● ││              ▸ sam · 1 comment                    gx GitHub  za │
+│   ▾ Sources/Catalog           ││▌▎       10 +     }                                              │
+│     M MemoryCatalog.swift   ● ││              ▾ Queued 1 → #21 · lines 8-10      e edit  dd drop │
+│     A Search.swift          ● ││                Keep the order items came in.                    │
+│   ▾ web/src                   ││     7   11   }                                                  │
 ╰───────────────────────5 of 10─╯│  ▾ Sources/Catalog/Search.swift  new  #21  +7 −0                ▐
 ╭─[3]─Notes─────────────────────╮│   @@ -0,0 +1,7 @@                                               ▐
 │ Queued                      2 ││ ▎        1 + struct Search {                                    ▐

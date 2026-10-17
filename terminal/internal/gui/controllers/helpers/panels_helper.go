@@ -44,8 +44,7 @@ func (self *PanelsHelper) Followed(s context.ContextTree) (context.ContextTree, 
 	}
 	switch s.Focus() {
 	case context.ReviewPanel:
-		s = s.Showing(context.ScreenReview)
-		return h.Refresh.Relaid(h.Filter.Grown(s, row)), nil
+		return h.Refresh.Relaid(s.Showing(context.ScreenReview)), nil
 	case context.FilesPanel:
 		place := row.Item.Place
 		if row.Item.Kind == "component" {

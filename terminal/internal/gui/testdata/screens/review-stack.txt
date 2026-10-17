@@ -1,19 +1,19 @@
-╭─[1]─Review - All──────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
-│▌#21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       │
-│ #22 Add a basket that uses se…││ reviewed together                                               │
-╰────────────────────────1 of 2─╯│ Search, then a basket                                           │
-╭─[2]─Files─────────────────────╮│  #21  Add search to the catalog                                 │
-│ ▾ ■ widgets            +15 −1 ││       by sam · on main · head ec6fb42d · 2 files +11 −0         │
-│   ▾ Sources/Basket            ││  #22  Add a basket that uses search                             │
-│     M Basket.swift          ● ││       by sam · on feature/search · head cd3c7027                │
-│   ▾ Sources/Catalog           ││       2 files +4 −1                                             │
-│     M MemoryCatalog.swift   ● ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
-│     A Search.swift          ● ││                                                                 │
-│   ▾ web/src                   ││ ▾ What this changes                                             │
-│     M cart.ts               ● ││   #21 adds a search over the catalog in Search.swift:4. #22     │
-│ ▾ ■ Unchanged code  unchanged ││   gives the basket a search of its own, in Basket.swift:7.      │
-│   · Catalog.swift             ││   [Likely]                                                      │
-│                               ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│▌All                           ││ A stack of 2 pull requests, each built on the one before,       │
+│ #21 Add search to the catalog ││ reviewed together                                               │
+│ #22 Add a basket that uses se…││ Search, then a basket                                           │
+╰────────────────────────1 of 3─╯│  #21  Add search to the catalog                                 │
+╭─[2]─Files─────────────────────╮│       by sam · on main · head ec6fb42d · 2 files +11 −0         │
+│ ▾ ■ widgets            +15 −1 ││  #22  Add a basket that uses search                             │
+│   ▾ Sources/Basket            ││       by sam · on feature/search · head cd3c7027                │
+│     M Basket.swift          ● ││       2 files +4 −1                                             │
+│   ▾ Sources/Catalog           ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
+│     M MemoryCatalog.swift   ● ││                                                                 │
+│     A Search.swift          ● ││ ▾ What this changes                                             │
+│   ▾ web/src                   ││   #21 adds a search over the catalog in Search.swift:4. #22     │
+│     M cart.ts               ● ││   gives the basket a search of its own, in Basket.swift:7.      │
+│ ▾ ■ Unchanged code  unchanged ││   [Likely]                                                      │
+│   · Catalog.swift             ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
 │                               ││   → Basket.swift:7  Sources/Basket/Basket.swift line 7          │
 │                               ││                                                                 │
 │                               ││ ▾ Risks                                                         │
@@ -22,17 +22,17 @@
 │                               ││   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
 │                               ││                                                                 │
 │                               ││ ▾ Queued comments                                               │
-╰───────────────────────1 of 10─╯│ A comment goes on the pull request that last changed its line,  │
-╭─[3]─Notes─────────────────────╮│ shown as → #number.                                             │
-│ Queued                      2 ││                                                                 │
-│ 1 MemoryCatalog.swift:8-… #21 ││  #21  Add search to the catalog                                 │
-│ 2 Basket.swift:9-11       #22 ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
-│ Claude                      1 ││     │     func add(_ item: Item) {                              │
-│ Basket.swift:7 Could this be …││     │         stored.append(item)                               │
-│ On GitHub                   2 ││     │     }                                                     │
-│ sam MemoryCatalog.swift:9     ││     Keep the order items came in.                               │
-│ sam Basket.swift:7   resolved ││                                                                 │
-│                               ││  #22  Add a basket that uses search                             │
+│                               ││ A comment goes on the pull request that last changed its line,  │
+╰───────────────────────1 of 10─╯│ shown as → #number.                                             │
+╭─[3]─Notes─────────────────────╮│                                                                 │
+│ Queued                      2 ││  #21  Add search to the catalog                                 │
+│ 1 MemoryCatalog.swift:8-… #21 ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
+│ 2 Basket.swift:9-11       #22 ││     │     func add(_ item: Item) {                              │
+│ Claude                      1 ││     │         stored.append(item)                               │
+│ Basket.swift:7 Could this be …││     │     }                                                     │
+│ On GitHub                   2 ││     Keep the order items came in.                               │
+│ sam MemoryCatalog.swift:9     ││                                                                 │
+│ sam Basket.swift:7   resolved ││  #22  Add a basket that uses search                             │
 │                               ││   2 → #22 Sources/Basket/Basket.swift, removed line 9 to line 11│
 │                               ││     │         0                                                 │
 │                               ││     │         1                                                 │
@@ -41,12 +41,12 @@
 │                               ││ ▾ On GitHub                                                     │
 │                               ││ 2 review threads, 1 unresolved, as GitHub had them when this    │
 │                               ││ review was loaded.                                              │
-╰────────────────────────1 of 5─╯│   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment    │
-╭─[4]─Diagram───────────────────╮│     Should this keep the order items were added in?             │
-│ Components                    ││   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved │
-│ ■ widgets                     ││     Could the search be passed in?                              │
-│ ■ Unchanged code              ││                                                                 │
-│                               ││ ▾ Conversations                                                 │
+│                               ││   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment    │
+╰────────────────────────1 of 5─╯│     Should this keep the order items were added in?             │
+╭─[4]─Diagram───────────────────╮│   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved │
+│ Components                    ││     Could the search be passed in?                              │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││ ▾ Conversations                                                 │
 │                               ││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
 │                               ││     Could this be passed in?                                    │
 │                               ││     It returns early when the list is empty.                    │
@@ -57,4 +57,4 @@
 │                               ││                                                                 │
 │                               ││                                                                 │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
- Review: Enter | Highlight: v | Post: P | GitHub: gx | Panels: h l | Keys: Space ?
+ Review: Enter | Panels: h l | Keys: Space ?

@@ -1,18 +1,18 @@
-╭─[1]─Review - All──────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift────────────────╮
-│ #21 Add search to the catalog ││  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1             ▐
-│ #22 Add a basket that uses se…││   @@ -1,11 +1,13 @@                                             ▐
-╰────────────────────────1 of 2─╯│     1    1   final class Basket {                               ▐
-╭─[2]─Files─────────────────────╮│     2    2       let catalog: Catalog                           ▐
-│ ▾ ■ widgets            +15 −1 ││ ▎        3 +     let search: Search                             ▐
-│   ▾ Sources/Basket            ││     3    4                                                      ▐
-│     M Basket.swift          ● ││     4    5       init(catalog: Catalog) {                       ▐
-│   ▾ Sources/Catalog           ││     5    6           self.catalog = catalog                     ▐
-│     M MemoryCatalog.swift   ● ││ ▎        7 +         self.search = Search(catalog: catalog)     ▐
-│     A Search.swift          ● ││              ▸ Claude · 2 messages · line 7           a ask  za ▐
-│   ▾ web/src                   ││              ▸ sam · 1 comment · resolved         gx GitHub  za ▐
-│     M cart.ts       ╭─Drop comment 2───────────────────────────────────────╮                     ▐
-│ ▾ ■ Unchanged code  │ Drop queued comment 2 on #22? Its text is gone once  │                     ▐
-│   · Catalog.swift   │ dropped.                                             │                     ▐
+╭─[1]─Review────────────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift────────────────╮
+│┃All                           ││  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1             ▐
+│ #21 Add search to the catalog ││   @@ -1,11 +1,13 @@                                             ▐
+│ #22 Add a basket that uses se…││     1    1   final class Basket {                               ▐
+╰────────────────────────1 of 3─╯│     2    2       let catalog: Catalog                           ▐
+╭─[2]─Files─────────────────────╮│ ▎        3 +     let search: Search                             ▐
+│ ▾ ■ widgets            +15 −1 ││     3    4                                                      ▐
+│   ▾ Sources/Basket            ││     4    5       init(catalog: Catalog) {                       ▐
+│     M Basket.swift          ● ││     5    6           self.catalog = catalog                     ▐
+│   ▾ Sources/Catalog           ││ ▎        7 +         self.search = Search(catalog: catalog)     ▐
+│     M MemoryCatalog.swift   ● ││              ▸ Claude · 2 messages · line 7           a ask  za ▐
+│     A Search.swift          ● ││              ▸ sam · 1 comment · resolved         gx GitHub  za ▐
+│   ▾ web/src         ╭─Drop comment 2───────────────────────────────────────╮                     ▐
+│     M cart.ts       │ Drop queued comment 2 on #22? Its text is gone once  │                     ▐
+│ ▾ ■ Unchanged code  │ dropped.                                             │                     ▐
 ╰─────────────────────╰──────────────────────y drop · any other key keeps it─╯                     ▐
 ╭─[3]─Notes─────────────────────╮│ ▎       11 +         1                                          │
 │ 2 Basket.swift:9-11       #22 ││              ▾ Queued 2 → #22 · removed line 9 to line 11       │
