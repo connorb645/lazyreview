@@ -26,5 +26,5 @@
 │ MemoryCatalog         changed ││                                                                 │
 │ Basket                changed ││                                                                 │
 │ «struct» Search           new ││                                                                 │
-╰────────────────────────1 of 3─╯╰─MemoryCatalog · class · Sources/Catalog/MemoryCatalog.swift · …─╯
+╰────────────────────────1 of 3─╯╰──MemoryCatalog · class · …/MemoryCatalog.swift · changed in #21─╯
  Diff: Enter | Follow: gd | Links: Space l | Properties: Space p | Out: - | Keys: Space ?

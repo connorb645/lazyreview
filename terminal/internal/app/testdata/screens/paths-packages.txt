@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Diagram · Shop─────────────────────────────────╮
+│ feature/pricing → main ││                                                    │
+╰─────────────────1 of 1─╯│              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
+╭─[2]─Files──────────────╮│              ┃ …/Remote Overrides/Experiments   ┃  │
+│ ▾ ■ Shop         +6 −0 ││              ┃ 1 type                           ┃  │
+│   ▾ …/Checkout         ││              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛  │
+│     A CheckoutFlow.swi…││                                                    │
+│   ▾ …/Experiments      ││                                                    │
+│     A ExperimentFlag.s…││────────╮                ╭──────────────────────────│
+│                        ││p/local │                │ Pricing rules for every b│
+╰─────────────────1 of 5─╯│        │                │ 0 files                  │
+╭─[3]─Notes──────────────╮│────────╯                ╰──────────────────────────│
+│ Nothing queued or aske…││                                                    │
+│                        ││                                                    │
+╰─────────────────0 of 0─╯│                                                    │
+╭─[4]─Diagram────────────╮│                                                    │
+│ Shop                   ││                                                    │
+│ Checkout               ││                                                    │
+│▌…/Experiments          ││                                                    │
+│ docs/store/help/local  ││                                                    │
+│ Pricing rules for ever…││                                                    │
+│                        ││                                                    │
+╰─────────────────2 of 4─╯╰──…/Remote Overrides/Experiments · package · 1 type─╯
+ Move: h j k l | In: Enter | Out: - | Panels: 1 2 3 | Keys: Space ?

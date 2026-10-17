@@ -99,7 +99,7 @@ function folderPackages(paths, componentId, taken, splitAbove = 3) {
   const baseName = base ? humanize(base.split('/').pop()) : 'Repository root';
   return groups.map(g => {
     const relative = g.folder === base ? '' : base ? g.folder.slice(base.length + 1) : g.folder;
-    const title = relative ? relative.split('/').map(humanize).join(' / ') : groups.length > 1 && base ? `${baseName}, top level` : baseName;
+    const title = relative ? relative.split('/').map(humanize).join('/') : groups.length > 1 && base ? `${baseName}, top level` : baseName;
     return { id: uniqueId(slug(relative || 'top'), used), title, paths: g.paths };
   });
 }

@@ -162,7 +162,11 @@ func (pn menu) drawRow(r menuRow, selected bool, left, inner int, p palette) []s
 		if i == 0 {
 			key = r.left
 		}
-		line := " " + p.Key.Render(key) + strings.Repeat(" ", max(0, gap-ansi.StringWidth(key))) + p.Ink.Render(ansi.Truncate(text, room, "…"))
+		fitted := ansi.Truncate(text, room, "…")
+		if pn.finding {
+			fitted = fitTitle(text, room)
+		}
+		line := " " + p.Key.Render(key) + strings.Repeat(" ", max(0, gap-ansi.StringWidth(key))) + p.Ink.Render(fitted)
 		if selected {
 			line = p.highlight(line, inner, true)
 		}

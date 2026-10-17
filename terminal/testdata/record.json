@@ -655,7 +655,7 @@
  "GET /api/reviews/github.com/octo/widgets/21/page": {
   "status": 200,
   "body": {
-   "build": "e4f74f751668",
+   "build": "6249f3ae3ed5",
    "model": {
     "components": [
      {
@@ -677,7 +677,7 @@
        },
        {
         "id": "web-src",
-        "title": "web / src",
+        "title": "web/src",
         "description": "",
         "path": "web/src/",
         "bare": false
@@ -1095,9 +1095,9 @@
     "areas": {},
     "components": {
      "root": {
-      "x": 266,
+      "x": 274.5,
       "y": 170,
-      "w": 530,
+      "w": 513,
       "h": 482
      },
      "context": {
@@ -1109,33 +1109,33 @@
     },
     "boxes": {
      "pkg:root:sources": {
-      "x": 302,
+      "x": 310.5,
       "y": 290,
       "w": 188,
       "h": 326
      },
      "Basket": {
-      "x": 320,
+      "x": 328.5,
       "y": 434,
       "w": 120,
       "h": 62
      },
      "MemoryCatalog": {
-      "x": 320,
+      "x": 328.5,
       "y": 346,
       "w": 152,
       "h": 62
      },
      "Search": {
-      "x": 320,
+      "x": 328.5,
       "y": 536,
       "w": 120,
       "h": 62
      },
      "pkg:root:web-src": {
-      "x": 560,
+      "x": 568.5,
       "y": 290,
-      "w": 200,
+      "w": 183,
       "h": 120
      },
      "file:web/src/cart.ts": {
@@ -1172,11 +1172,11 @@
       "key": false,
       "points": [
        [
-        380,
+        388.5,
         496
        ],
        [
-        380,
+        388.5,
         536
        ]
       ],
@@ -1238,7 +1238,7 @@
    }
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FBasket%2FBasket.swift": {
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=6249f3ae3ed5&path=Sources%2FBasket%2FBasket.swift": {
   "status": 200,
   "body": {
    "path": "Sources/Basket/Basket.swift",
@@ -1384,7 +1384,7 @@
    "rendered": null
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FCatalog%2FMemoryCatalog.swift": {
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=6249f3ae3ed5&path=Sources%2FCatalog%2FMemoryCatalog.swift": {
   "status": 200,
   "body": {
    "path": "Sources/Catalog/MemoryCatalog.swift",
@@ -1487,7 +1487,7 @@
    "rendered": null
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FCatalog%2FSearch.swift": {
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=6249f3ae3ed5&path=Sources%2FCatalog%2FSearch.swift": {
   "status": 200,
   "body": {
    "path": "Sources/Catalog/Search.swift",
@@ -1571,7 +1571,7 @@
    "rendered": null
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=web%2Fsrc%2Fcart.ts": {
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=6249f3ae3ed5&path=web%2Fsrc%2Fcart.ts": {
   "status": 200,
   "body": {
    "path": "web/src/cart.ts",
@@ -1628,7 +1628,7 @@
    "rendered": null
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/file?build=e4f74f751668&path=Sources%2FCatalog%2FCatalog.swift": {
+ "GET /api/reviews/github.com/octo/widgets/21/file?build=6249f3ae3ed5&path=Sources%2FCatalog%2FCatalog.swift": {
   "status": 200,
   "body": {
    "path": "Sources/Catalog/Catalog.swift",
@@ -2335,7 +2335,7 @@
    }
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/where?build=e4f74f751668&line=3&path=Sources%2FBasket%2FBasket.swift&side=RIGHT": {
+ "GET /api/reviews/github.com/octo/widgets/21/where?build=6249f3ae3ed5&line=3&path=Sources%2FBasket%2FBasket.swift&side=RIGHT": {
   "status": 200,
   "body": {
    "goes": {
@@ -2349,7 +2349,7 @@
    "words": "Goes on #22, line 3."
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/where?build=e4f74f751668&line=9&path=Sources%2FCatalog%2FMemoryCatalog.swift&side=RIGHT&start_line=7&start_side=RIGHT": {
+ "GET /api/reviews/github.com/octo/widgets/21/where?build=6249f3ae3ed5&line=9&path=Sources%2FCatalog%2FMemoryCatalog.swift&side=RIGHT&start_line=7&start_side=RIGHT": {
   "status": 200,
   "body": {
    "goes": {
@@ -2363,13 +2363,13 @@
    "words": "Goes on #21, lines 7-9."
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/where?build=e4f74f751668&line=1&path=Sources%2FCatalog%2FCatalog.swift&side=RIGHT": {
+ "GET /api/reviews/github.com/octo/widgets/21/where?build=6249f3ae3ed5&line=1&path=Sources%2FCatalog%2FCatalog.swift&side=RIGHT": {
   "status": 200,
   "body": {
    "refused": "This file is not in the change, so a comment cannot go on it. Ask Claude about it instead."
   }
  },
- "GET /api/reviews/github.com/octo/widgets/21/where?build=e4f74f751668&line=7&path=Sources%2FBasket%2FBasket.swift&side=RIGHT": {
+ "GET /api/reviews/github.com/octo/widgets/21/where?build=6249f3ae3ed5&line=7&path=Sources%2FBasket%2FBasket.swift&side=RIGHT": {
   "status": 200,
   "body": {
    "goes": {
@@ -2411,7 +2411,7 @@
    "words": "Goes on #30, removed line 3 to line 3."
   }
  },
- "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"Name the search for what it finds.\",\"build\":\"e4f74f751668\",\"line\":3,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\"}": {
+ "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"Name the search for what it finds.\",\"build\":\"6249f3ae3ed5\",\"line\":3,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\"}": {
   "status": 200,
   "body": {
    "comment": {
@@ -2710,7 +2710,7 @@
    }
   }
  },
- "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"One add is enough.\",\"build\":\"e4f74f751668\",\"line\":9,\"path\":\"Sources/Catalog/MemoryCatalog.swift\",\"side\":\"RIGHT\",\"start_line\":7,\"start_side\":\"RIGHT\"}": {
+ "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"One add is enough.\",\"build\":\"6249f3ae3ed5\",\"line\":9,\"path\":\"Sources/Catalog/MemoryCatalog.swift\",\"side\":\"RIGHT\",\"start_line\":7,\"start_side\":\"RIGHT\"}": {
   "status": 200,
   "body": {
    "comment": {
@@ -3031,7 +3031,7 @@
    }
   }
  },
- "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"It returns early when the list is empty.\",\"build\":\"e4f74f751668\",\"line\":7,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\"}": {
+ "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"It returns early when the list is empty.\",\"build\":\"6249f3ae3ed5\",\"line\":7,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\"}": {
   "status": 200,
   "body": {
    "comment": {
@@ -3362,13 +3362,13 @@
    }
   }
  },
- "PATCH /api/reviews/github.com/octo/widgets/21/comments/1 {\"body\":\"Keep the order the items came in.\",\"build\":\"e4f74f751668\",\"version\":\"stale1\"}": {
+ "PATCH /api/reviews/github.com/octo/widgets/21/comments/1 {\"body\":\"Keep the order the items came in.\",\"build\":\"6249f3ae3ed5\",\"version\":\"stale1\"}": {
   "status": 409,
   "body": {
    "error": "not changed: comment 1 was changed after this window showed it, and now reads \"Keep the order items came in.\""
   }
  },
- "PATCH /api/reviews/github.com/octo/widgets/21/comments/1 {\"body\":\"Keep the order the items came in.\",\"build\":\"e4f74f751668\",\"version\":\"af53367c504f\"}": {
+ "PATCH /api/reviews/github.com/octo/widgets/21/comments/1 {\"body\":\"Keep the order the items came in.\",\"build\":\"6249f3ae3ed5\",\"version\":\"af53367c504f\"}": {
   "status": 200,
   "body": {
    "state": {
@@ -3685,7 +3685,7 @@
    }
   }
  },
- "DELETE /api/reviews/github.com/octo/widgets/21/comments/2?build=e4f74f751668&version=4c6cde0aa1ee": {
+ "DELETE /api/reviews/github.com/octo/widgets/21/comments/2?build=6249f3ae3ed5&version=4c6cde0aa1ee": {
   "status": 200,
   "body": {
    "state": {
@@ -3984,7 +3984,7 @@
    }
   }
  },
- "POST /api/reviews/github.com/octo/widgets/21/threads {\"build\":\"e4f74f751668\",\"line\":3,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\",\"text\":\"Why keep a search here?\"}": {
+ "POST /api/reviews/github.com/octo/widgets/21/threads {\"build\":\"6249f3ae3ed5\",\"line\":3,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\",\"text\":\"Why keep a search here?\"}": {
   "status": 200,
   "body": {
    "thread": {
@@ -4008,7 +4008,7 @@
    }
   }
  },
- "POST /api/reviews/github.com/octo/widgets/21/threads/1/messages {\"build\":\"e4f74f751668\",\"text\":\"Could it be passed in?\"}": {
+ "POST /api/reviews/github.com/octo/widgets/21/threads/1/messages {\"build\":\"6249f3ae3ed5\",\"text\":\"Could it be passed in?\"}": {
   "status": 200,
   "body": {
    "thread": {

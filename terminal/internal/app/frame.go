@@ -90,7 +90,11 @@ func sideLine(row sideRow, width int) string {
 		right = " " + right + " "
 	}
 	room := max(1, width-1-ansi.StringWidth(right))
-	return " " + fit(ansi.Truncate(row.text, room, "…"), room) + right
+	text := row.text
+	if row.title != "" {
+		text += row.titleStyle.Render(fitTitle(row.title, room-ansi.StringWidth(text)))
+	}
+	return " " + fit(ansi.Truncate(text, room, "…"), room) + right
 }
 
 func (a App) tabs(n, width int) string {
@@ -152,26 +156,27 @@ func (a App) mainBox(r rect, focused bool) []string {
 		}
 		shown = v.extent()
 	}
-	return framed(content, shown, r.w, r.h, a.mainTitle(), "", a.placeWords(), focused, a.p)
+	return framed(content, shown, r.w, r.h, a.mainTitle(r.w-4), "", a.placeWords(r.w-4), focused, a.p)
 }
 
-func (a App) mainTitle() string {
-	title := panelTitle(mainPanel, "Review")
+func (a App) mainTitle(width int) string {
+	title, path := panelTitle(mainPanel, "Review"), ""
 	d := a.review
 	switch {
 	case d == nil:
 	case a.screen == screenDiagram:
-		title = panelTitle(mainPanel, a.diagramTitle())
+		head, in := a.diagramTitle()
+		title, path = panelTitle(mainPanel, head), in
 	case a.screen == screenDiff:
 		title = panelTitle(mainPanel, "Diff · "+componentTitle(*d, a.diff.component))
-		if path := a.diff.file(); path != "" {
-			title += " › " + path
+		if path = a.diff.file(); path != "" {
+			title += " › "
 		}
 	}
-	return title
+	return fitPathIn(title, path, "", width)
 }
 
-func (a App) placeWords() string {
+func (a App) placeWords(width int) string {
 	if a.review == nil {
 		return ""
 	}
@@ -182,10 +187,10 @@ func (a App) placeWords() string {
 		}
 		return a.diffPlace()
 	case screenDiagram:
-		return a.boxWords()
+		return a.boxWords(width)
 	}
 	if v := a.rv.view; v.cursor < len(v.items) && a.focus == mainPanel {
-		return itemWords(v.items[v.cursor])
+		return itemWords(v.items[v.cursor], width)
 	}
 	return ""
 }
@@ -363,7 +368,7 @@ func (a App) diffPlace() string {
 	return words
 }
 
-func itemWords(it item) string {
+func itemWords(it item, width int) string {
 	switch it.kind {
 	case "section":
 		return it.title
@@ -371,7 +376,7 @@ func itemWords(it item) string {
 		return fmt.Sprintf("queued comment %d", it.comment)
 	case "link", "thread", "conversation":
 		if it.place != nil {
-			return fmt.Sprintf("%s %s", it.place.Path, linesWords(it.place.Side, it.place.Line, it.place.StartLine, it.place.StartSide))
+			return fitPathIn("", it.place.Path, " "+linesWords(it.place.Side, it.place.Line, it.place.StartLine, it.place.StartSide), width)
 		}
 		return it.kind
 	case "component", "pull":

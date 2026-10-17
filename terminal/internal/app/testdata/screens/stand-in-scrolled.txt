@@ -10,5 +10,5 @@
 │           ┃ Receipt.swift changed ┃  ▐
 │           ┗━━━━━━━━━━━━━━━━━━━━━━━┛  ▐
 │                                      ▐
-╰─Receipt · class · Sources/Core/Rece…─╯
+╰─Receipt · class · …t.swift · changed─╯
  Diff: Enter | Keys: Space ?

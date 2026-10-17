@@ -240,7 +240,7 @@ export function createDiffs(ctx) {
       '<p class="nav-totals">' + (c.context ? plural(t.files, 'file') + ', unchanged at ' + esc(short(model.heading.head)) + ', read only'
         : (ctx.filter.pull ? pulls.pullPill(ctx.filter.pull) + ' ' : '') + plural(t.files, 'file') + ' &nbsp;<span class="plus">+' + fmt(t.adds) + '</span> <span class="minus">&minus;' + fmt(t.dels) + '</span>') + '</p>' +
       pkgs.map(p =>
-        (p.bare ? '' : '<div class="nav-pkg"><div class="nav-pkg-t">' + esc(p.title) + '</div><div class="nav-pkg-p">' + breakable(p.path || '/') + '</div></div>') +
+        (p.bare ? '' : '<div class="nav-pkg"><div class="nav-pkg-t">' + breakable(p.title) + '</div><div class="nav-pkg-p">' + breakable(p.path || '/') + '</div></div>') +
         p.files.map(f => {
           const own = ctx.filter.pull && f.byPull ? f.byPull[ctx.filter.pull] || [0, 0] : [f.adds, f.dels];
           const dots = f.pulls && f.pulls.length ? '<span class="pdots" aria-label="' + esc(f.pulls.map(p => '#' + p).join(', ')) + '">' +
@@ -252,7 +252,7 @@ export function createDiffs(ctx) {
       (model.components.length > 1 ? '<div class="nav-other"><p class="rail-h">Other components</p>' + model.components.filter(o => o.id !== cid).map(o =>
         '<button data-comp="' + esc(o.id) + '"><span class="swatch-i" style="background:' + ctx.diagram.compColor(o.id) + '"></span>' + esc(o.title) + '</button>').join('') + '</div>' : '');
     main.innerHTML = pkgs.map(p =>
-      (p.bare ? '' : '<div class="pkg-sep"><h2>' + esc(p.title) + '</h2><span>' + breakable(p.path || '/') + '</span>' +
+      (p.bare ? '' : '<div class="pkg-sep"><h2>' + breakable(p.title) + '</h2><span>' + breakable(p.path || '/') + '</span>' +
         (p.description ? '<p>' + esc(p.description) + '</p>' : '') + '</div>') +
       p.files.map(f => fileHTML(f.path, !c.context && !f.collapsed)).join('')).join('') ||
       '<p class="filter-empty">No file in ' + esc(c.title) + ' changed in #' + esc(ctx.filter.pull) + '. <button type="button" data-clear-filter>Show every pull request</button></p>';

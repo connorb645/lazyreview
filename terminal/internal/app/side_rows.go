@@ -80,7 +80,7 @@ func fileRows(d reviewData, folded map[string]bool, filter int, p palette) []sid
 			if dir != "." && len(dirs) > 1 {
 				dk := dirKey(c.ID, inDir[dir][0].Path)
 				first := server.Lines{Path: inDir[dir][0].Path, Side: "file:"}
-				rows = append(rows, sideRow{key: dk, text: "  " + foldMark(folded[dk], p) + " " + p.Muted.Render(dir), it: item{kind: "dir", component: c.ID, place: &first}})
+				rows = append(rows, sideRow{key: dk, text: "  " + foldMark(folded[dk], p) + " ", title: dir, titleStyle: p.Muted, it: item{kind: "dir", component: c.ID, place: &first}})
 				if folded[dk] {
 					continue
 				}
@@ -213,10 +213,12 @@ func boxRows(d reviewData, v diagramView, filter int, p palette) []sideRow {
 	if l.Component != "" {
 		where = componentTitle(d, l.Component)
 	}
+	top := heading(where, "", p)
 	if l.Kind == "types" {
-		where += " › " + packageTitle(d.page, l.Component, l.Package)
+		top = heading(where+" › ", "", p)
+		top.title, top.titleStyle = packageTitle(d.page, l.Component, l.Package), p.Muted
 	}
-	rows := []sideRow{heading(where, "", p)}
+	rows := []sideRow{top}
 	for _, i := range v.grid.Order() {
 		card := l.Cards[i]
 		title, mark := p.Ink, ""
@@ -231,7 +233,7 @@ func boxRows(d reviewData, v diagramView, filter int, p palette) []sideRow {
 			title = p.Faint
 		}
 		at := diagramPlace{level: l.Kind, component: l.Component, pkg: l.Package, box: card.ID}
-		rows = append(rows, sideRow{key: boxKey(card.ID), text: mark + title.Render(card.Title), right: stateStyle.Render(diagram.StateWord(card.State)), it: item{kind: "box", box: &at}})
+		rows = append(rows, sideRow{key: boxKey(card.ID), text: mark, title: card.Title, titleStyle: title, right: stateStyle.Render(diagram.StateWord(card.State)), it: item{kind: "box", box: &at}})
 	}
 	return rows
 }

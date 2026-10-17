@@ -1,7 +1,7 @@
 ╭─[1]─Review - All - #21 - #22──╮╭─[0]─Diagram · widgets───────────────────────────────────────────╮
 │ #21 Add search to the catalog ││                                                                 │
 │ #22 Add a basket that uses se…││  ╭────────────╮                ┏━━━━━━━━━━━━┓                   │
-╰────────────────────────1 of 2─╯│  │ Sources    │                ┃ web / src  ┃                   │
+╰────────────────────────1 of 2─╯│  │ Sources    │                ┃ web/src    ┃                   │
 ╭─[2]─Files─────────────────────╮│  │ 3 types    │                ┃ 1 file     ┃                   │
 │ ▾ ■ widgets            +15 −1 ││  ╰────────────╯                ┗━━━━━━━━━━━━┛                   │
 │   ▾ Sources/Basket            ││                                                                 │
@@ -25,6 +25,6 @@
 ╭─[4]─Diagram───────────────────╮│                                                                 │
 │ widgets                       ││                                                                 │
 │ Sources                       ││                                                                 │
-│▌web / src                     ││                                                                 │
-╰────────────────────────2 of 2─╯╰────────────────────────────────────web / src · package · 1 file─╯
+│▌web/src                       ││                                                                 │
+╰────────────────────────2 of 2─╯╰──────────────────────────────────────web/src · package · 1 file─╯
  Move: h j k l | In: Enter | Out: - | Panels: 1 2 3 | Follow: gd | Links: Space l | Keys: Space ?

@@ -47,7 +47,7 @@ test('a folder one subfolder dominates splits into that subfolder\'s parts, with
 test('a small diff with no config is one component named after the repository', () => {
   const { components } = placeFiles(['Sources/Core/A.swift', 'Tests/CoreTests/ATests.swift'], readConfig(undefined), { rootTitle: 'core' });
   assert.deepEqual(components.map(c => [c.id, c.title]), [['root', 'core']]);
-  assert.deepEqual(components[0].packages.map(p => p.title), ['Sources / Core', 'Tests / Core Tests']);
+  assert.deepEqual(components[0].packages.map(p => p.title), ['Sources/Core', 'Tests/Core Tests'], 'a package of folders is titled as their path, with no spaces round its slashes');
 });
 
 test('without a config, files are grouped by folder into components and packages', () => {

@@ -447,7 +447,7 @@ func (a App) showType() (tea.Model, tea.Cmd) {
 	return a.showBox(boxOf(at)), nil
 }
 
-func (a App) boxWords() string {
+func (a App) boxWords(width int) string {
 	card, ok := a.dg.card()
 	if !ok {
 		return "nothing to draw"
@@ -456,7 +456,7 @@ func (a App) boxWords() string {
 	case "component":
 		return card.Title + " · component · " + card.Detail
 	case "package":
-		return card.Title + " · package · " + card.Detail
+		return fitPathIn("", card.Title, " · package · "+card.Detail, width)
 	case "group":
 		return card.Title + " · " + card.Detail
 	}
@@ -465,30 +465,30 @@ func (a App) boxWords() string {
 	if kind == "artifact" {
 		kind = "file"
 	}
-	words := n.Name + " · " + kind + " · " + n.File
+	tail := ""
 	if state := diagram.StateWord(n.State); state != "" {
-		words += " · " + state
+		tail = " · " + state
 		if len(n.Pulls) > 0 && a.review.page.Stack != nil {
 			pulls := make([]string, len(n.Pulls))
 			for i, p := range n.Pulls {
 				pulls[i] = fmt.Sprintf("#%d", p)
 			}
-			words += " in " + strings.Join(pulls, ", ")
+			tail += " in " + strings.Join(pulls, ", ")
 		}
 	}
-	return words
+	return fitPathIn(n.Name+" · "+kind+" · ", n.File, tail, width)
 }
 
-func (a App) diagramTitle() string {
+func (a App) diagramTitle() (string, string) {
 	l := a.dg.level
 	out := "Diagram"
 	if l.Component != "" {
 		out += " · " + componentTitle(*a.review, l.Component)
 	}
 	if l.Kind == "types" {
-		out += " › " + packageTitle(a.review.page, l.Component, l.Package)
+		return out + " › ", packageTitle(a.review.page, l.Component, l.Package)
 	}
-	return out
+	return out, ""
 }
 
 func packageTitle(page server.Page, component, id string) string {

@@ -595,7 +595,7 @@ func drawCard(c canvas, d reviewData, lvl diagram.Level, card diagram.Card, s di
 		titleStyle, detailStyle = "dim", "dim"
 	}
 	room := w - 4
-	c.text(x+2, y+1, ansi.Truncate(card.Title, room, "…"), titleStyle)
+	c.text(x+2, y+1, fitTitle(card.Title, room), titleStyle)
 	state := diagram.StateWord(card.State)
 	c.text(x+2, y+2, ansi.Truncate(card.Detail, room-ansi.StringWidth(state)-1, "…"), detailStyle)
 	if state != "" {

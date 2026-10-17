@@ -271,6 +271,75 @@ func TestLinksRunAroundTheCards(t *testing.T) {
 	screenIs(t, a, "stand-in-group")
 }
 
+func pathsStandIn() reviewData {
+	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
+	pkg := func(id, title string) server.Package { return server.Package{ID: id, Title: title} }
+	file := func(path, pkg string) server.FileEntry {
+		return server.FileEntry{Path: path, Status: "A", Adds: 3, Component: "shop", Package: pkg}
+	}
+	flag := "Sources/Store/Web/BasketFlow/Pricing/RemoteOverrides/Experiments/ExperimentFlag.swift"
+	return reviewData{id: "paths", state: server.State{Kind: "branch", Base: server.Ref{Ref: "main"}, Head: server.Ref{Ref: "feature/pricing"}}, page: server.Page{
+		Model: server.Model{
+			Components: []server.Component{{ID: "shop", Title: "Shop", Color: "blue", Packages: []server.Package{
+				pkg("checkout", "Checkout"), pkg("experiments", "Pricing/Remote Overrides/Experiments"),
+				pkg("local", "docs/store/help/local"), pkg("pricing", "Pricing rules for every basket kind"),
+			}}},
+			Files: []server.FileEntry{file("Sources/Store/Web/BasketFlow/Checkout/CheckoutFlow.swift", "checkout"), file(flag, "experiments")},
+			Nodes: []server.Node{{ID: "ExperimentFlag", Name: "ExperimentFlag", Kind: "struct", File: flag, Line: 1, Component: "shop", Package: "experiments", State: "new"}},
+		},
+		Layout: server.Layout{
+			Components: map[string]server.Box{"shop": box(0, 0)},
+			Boxes: map[string]server.Box{"pkg:shop:checkout": box(0, 0), "pkg:shop:experiments": box(400, 0),
+				"pkg:shop:local": box(0, 200), "pkg:shop:pricing": box(400, 200), "ExperimentFlag": box(0, 0)},
+		},
+	}}
+}
+
+func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
+	d := pathsStandIn()
+	a := New(Options{Dark: true})
+	a.review, a.loading, a.width, a.height, a.focus, a.driving = &d, false, 80, 24, diagramPanel, diagramPanel
+	a = a.showBox(diagramPlace{level: "packages", component: "shop", box: "experiments"}).relaid()
+	screenIs(t, a, "paths-packages")
+	shown := a.View()
+	for _, want := range []string{"┃ …/Remote Overrides/Experiments ", "│ docs/store/help/local ", "▌…/Experiments ", "│ Pricing rules for ever…│",
+		"─…/Remote Overrides/Experiments · package · 1 type─╯"} {
+		if !strings.Contains(shown, want) {
+			t.Errorf("the packages show no %q", want)
+		}
+	}
+	a = a.showBox(diagramPlace{level: "types", component: "shop", pkg: "experiments", box: "ExperimentFlag"}).relaid()
+	screenIs(t, a, "paths-types")
+	shown = a.View()
+	for _, want := range []string{"[0]─Diagram · Shop › …/Experiments─", "│ Shop › …/Experiments ", "─ExperimentFlag · struct · …erimentFlag.swift · new─╯"} {
+		if !strings.Contains(shown, want) {
+			t.Errorf("the types show no %q", want)
+		}
+	}
+	a.focus = filesPanel
+	if shown := a.relaid().View(); !strings.Contains(shown, "│   ▾ …/Experiments ") || !strings.Contains(shown, "│   ▾ …/Checkout ") {
+		t.Errorf("the Files panel's folders keep their ends:\n%s", shown)
+	}
+	found := press(t, a, "space", "f").View()
+	for _, want := range []string{" Sources/Store/Web/BasketFlow/Checkout/CheckoutFlow.swift ", " …/Pricing/RemoteOverrides/Experiments/ExperimentFlag.swift "} {
+		if !strings.Contains(found, want) {
+			t.Errorf("the finder shows no %q:\n%s", want, found)
+		}
+	}
+}
+
+func TestTheDiffsTitleAndFileHeadersKeepTheFilesName(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 80, 24)
+	a = press(t, a, "2", "j", "j", "j", "j")
+	shown := strings.Split(a.View(), "\n")
+	if !strings.Contains(shown[0], "[0]─Diff · widgets › …/Catalog/MemoryCatalog.swift─") {
+		t.Fatalf("the diff's title cuts its path at the start: %s", shown[0])
+	}
+	if !strings.Contains(shown[1], "│  ▾ …/MemoryCatalog.swift  changed  #21  +") {
+		t.Fatalf("a file's header cuts its path at the start: %s", shown[1])
+	}
+}
+
 func TestTheDiagramScrollsToTheFocus(t *testing.T) {
 	a := standInApp(40, 14).showBox(diagramPlace{level: "types", component: "core", pkg: "model", box: "Order"})
 	a = press(t, a, "G")

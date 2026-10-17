@@ -54,6 +54,32 @@ func fit(line string, width int) string {
 	return cut
 }
 
+func fitTitle(title string, width int) string {
+	switch {
+	case width <= 0:
+		return ""
+	case ansi.StringWidth(title) <= width:
+		return title
+	case !strings.Contains(title, "/"):
+		return ansi.Truncate(title, width, "…")
+	}
+	parts := strings.Split(title, "/")
+	for i := 1; i < len(parts); i++ {
+		if tail := "…/" + strings.Join(parts[i:], "/"); ansi.StringWidth(tail) <= width {
+			return tail
+		}
+	}
+	return ansi.TruncateLeft(title, ansi.StringWidth(title)-width+1, "…")
+}
+
+func fitPathIn(head, path, tail string, width int) string {
+	room := width - ansi.StringWidth(head) - ansi.StringWidth(tail)
+	if room < 1 {
+		return head + path + tail
+	}
+	return head + fitTitle(path, room) + tail
+}
+
 func wrap(text string, width int) []string {
 	if width < 8 {
 		width = 8

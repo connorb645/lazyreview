@@ -115,20 +115,26 @@ func fileHeader(d reviewData, v diffView, r diffRow, p palette) string {
 		fold = "▸"
 	}
 	entry := fileEntry(d, r.path)
-	out := " " + p.Muted.Render(fold) + " " + p.Bold.Render(r.path) + "  " + p.Muted.Render(badges[entry.Status])
+	head, tail := " "+p.Muted.Render(fold)+" ", "  "+p.Muted.Render(badges[entry.Status])
 	for _, pull := range entry.Pulls {
-		out += "  " + p.pull(memberColor(d.state, pull)).Render(fmt.Sprintf("#%d", pull))
+		tail += "  " + p.pull(memberColor(d.state, pull)).Render(fmt.Sprintf("#%d", pull))
 	}
 	if v.whole[r.path] {
-		out += "  " + p.Accent.Render("whole")
+		tail += "  " + p.Accent.Render("whole")
 	}
 	if v.rendered[r.path] {
-		out += "  " + p.Accent.Render("rendered")
+		tail += "  " + p.Accent.Render("rendered")
 	}
 	if entry.Status == "" {
-		return out + "  " + p.Muted.Render(plural(entry.Lines, "line"))
+		tail += "  " + p.Muted.Render(plural(entry.Lines, "line"))
+	} else {
+		tail += "  " + p.Add.Render(fmt.Sprintf("+%d", entry.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", entry.Dels))
 	}
-	return out + "  " + p.Add.Render(fmt.Sprintf("+%d", entry.Adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", entry.Dels))
+	path := r.path
+	if room := v.width - 1 - ansi.StringWidth(head+tail); room > 0 {
+		path = fitTitle(path, room)
+	}
+	return head + p.Bold.Render(path) + tail
 }
 
 func unifiedRow(d reviewData, v diffView, r diffRow, mark string, filter int, p palette) []string {
