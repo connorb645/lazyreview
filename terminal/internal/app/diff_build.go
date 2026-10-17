@@ -7,10 +7,10 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
 
-func diffFiles(d reviewData, component string, filter int) []server.FileEntry {
+func diffFiles(d reviewData, component string, filter pullFilter) []server.FileEntry {
 	var out []server.FileEntry
 	for _, f := range d.page.Model.Files {
-		if f.Component == component && (filter == 0 || containsInt(f.Pulls, filter)) {
+		if f.Component == component && filter.showsAny(f.Pulls) {
 			out = append(out, f)
 		}
 	}
@@ -22,7 +22,7 @@ func diffFiles(d reviewData, component string, filter int) []server.FileEntry {
 	return out
 }
 
-func buildDiff(d reviewData, v diffView, filter int) []diffRow {
+func buildDiff(d reviewData, v diffView, filter pullFilter) []diffRow {
 	var rows []diffRow
 	for _, f := range diffFiles(d, v.component, filter) {
 		rows = append(rows, diffRow{kind: "file", path: f.Path, text: f.Path})

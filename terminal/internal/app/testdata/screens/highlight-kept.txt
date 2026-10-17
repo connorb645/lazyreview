@@ -1,0 +1,30 @@
+╭─[1]─Review - #22──────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│▌#21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       ▐
+│┃#22 Add a basket that uses se…││ reviewed together                                               ▐
+╰────────────────────────1 of 2─╯│ Search, then a basket                                           ▐
+╭─[2]─Files─────────────────────╮│  #21  Add search to the catalog                                 ▐
+│ ▾ ■ widgets             +4 −1 ││       by sam · on main · head ec6fb42d · 2 files +11 −0         ▐
+│   ▾ Sources/Basket            ││  #22  Add a basket that uses search                             ▐
+│     M Basket.swift          ● ││       by sam · on feature/search · head cd3c7027                ▐
+│   ▾ web/src                   ││       2 files +4 −1                                             ▐
+│     M cart.ts               ● ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            ▐
+│ ▾ ■ Unchanged code  unchanged ││ Showing #22 only. Esc in the Review panel shows the whole       ▐
+│   · Catalog.swift             ││ stack.                                                          ▐
+│                               ││                                                                 ▐
+╰────────────────────────3 of 7─╯│ ▾ What this changes                                             ▐
+╭─[3]─Notes─────────────────────╮│   #21 adds a search over the catalog in Search.swift:4. #22     ▐
+│ Queued                      1 ││   gives the basket a search of its own, in Basket.swift:7.      ▐
+│ 2 Basket.swift:9-11       #22 ││   [Likely]                                                      │
+│ Claude                      1 ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
+│ Basket.swift:7 Could this be …││   → Basket.swift:7  Sources/Basket/Basket.swift line 7          │
+│ On GitHub                   1 ││                                                                 │
+│ sam Basket.swift:7   resolved ││ ▾ Risks                                                         │
+│                               ││   MemoryCatalog.swift:9 appends without checking for            │
+╰────────────────────────1 of 3─╯│   duplicates. [Guessing]                                        │
+╭─[4]─Diagram───────────────────╮│   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││ ▾ Queued comments                                               │
+│ ■ Unchanged code              ││ A comment goes on the pull request that last changed its line,  │
+│                               ││ shown as → #number.                                             │
+╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
+ Review: Enter | Highlight: v | All: Esc | Post: P | GitHub: gx | Panels: h l | Keys: Space ?

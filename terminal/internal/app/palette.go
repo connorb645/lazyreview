@@ -29,6 +29,7 @@ type palette struct {
 	reset      string
 	selected   string
 	faded      string
+	visual     string
 }
 
 func newPalette(dark bool) palette {
@@ -57,6 +58,7 @@ func newPalette(dark bool) palette {
 		s.reset = ansi.ResetStyle
 		s.selected = background(profile, string(pick("#3a3270", "#dcd4ff")))
 		s.faded = background(profile, string(pick("#26233d", "#efebfb")))
+		s.visual = background(profile, string(pick("#45475a", "#c9cbd6")))
 	}
 	if dark {
 		s.pulls = [8]string{"#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"}
@@ -94,10 +96,24 @@ func (s palette) highlight(line string, width int, active bool) string {
 		}
 		return line
 	}
-	on := s.faded
 	if active {
-		on = s.selected
+		return s.under(line, s.selected)
 	}
+	return s.under(line, s.faded)
+}
+
+func (s palette) lit(line string, width int) string {
+	line = fit(line, width)
+	if s.plain {
+		if strings.HasPrefix(line, " ") {
+			return "┃" + line[1:]
+		}
+		return line
+	}
+	return s.under(line, s.visual)
+}
+
+func (s palette) under(line, on string) string {
 	for _, reset := range []string{"\x1b[0m", "\x1b[m", "\x1b[49m"} {
 		line = strings.ReplaceAll(line, reset, reset+on)
 	}

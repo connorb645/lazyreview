@@ -14,7 +14,7 @@ const gutter = 14
 
 var badges = map[string]string{"A": "new", "D": "deleted", "R": "renamed", "M": "changed", "": "unchanged"}
 
-func diffLines(d reviewData, v diffView, height, filter int, p palette, active bool) []string {
+func diffLines(d reviewData, v diffView, height int, filter pullFilter, p palette, active bool) []string {
 	var out []string
 	for i := v.top; i < len(v.rows) && len(out) < height; i++ {
 		lines := drawRow(d, v, i, filter, p, active)
@@ -31,7 +31,7 @@ func diffLines(d reviewData, v diffView, height, filter int, p palette, active b
 	return out
 }
 
-func drawRow(d reviewData, v diffView, i, filter int, p palette, active bool) []string {
+func drawRow(d reviewData, v diffView, i int, filter pullFilter, p palette, active bool) []string {
 	r := v.rows[i]
 	mark := " "
 	switch {
@@ -137,7 +137,7 @@ func fileHeader(d reviewData, v diffView, r diffRow, p palette) string {
 	return head + p.Bold.Render(path) + tail
 }
 
-func unifiedRow(d reviewData, v diffView, r diffRow, mark string, filter int, p palette) []string {
+func unifiedRow(d reviewData, v diffView, r diffRow, mark string, filter pullFilter, p palette) []string {
 	l := r.line
 	sign := map[string]string{"add": "+", "del": "-", "same": " ", "note": " "}[l.Kind]
 	if r.added {
@@ -154,7 +154,7 @@ func unifiedRow(d reviewData, v diffView, r diffRow, mark string, filter int, p 
 	return out
 }
 
-func splitRow(d reviewData, v diffView, r diffRow, mark string, filter int, p palette) []string {
+func splitRow(d reviewData, v diffView, r diffRow, mark string, filter pullFilter, p palette) []string {
 	half := (v.width - 3) / 2
 	side := func(l *server.Row, old bool) []string {
 		if l == nil {
@@ -210,8 +210,8 @@ func stripe(d reviewData, l *server.Row, p palette) string {
 	return p.pull(memberColor(d.state, l.Owner)).Render("▎")
 }
 
-func rowStyle(l *server.Row, added bool, filter int, p palette) lipgloss.Style {
-	if filter != 0 && l.Kind != "same" && l.Owner != filter {
+func rowStyle(l *server.Row, added bool, filter pullFilter, p palette) lipgloss.Style {
+	if l.Kind != "same" && !filter.shows(l.Owner) {
 		return p.Muted
 	}
 	switch {

@@ -60,15 +60,22 @@ func (a App) popped() bool {
 
 func (a App) sideBox(n int, r rect, focused bool) []string {
 	content, place := sideContent(a.sides[n], r.inner(), focused, a.p)
+	if n == reviewPanel && a.growFrom != 0 {
+		place = "VISUAL · " + place
+	}
 	return framed(content, extent{}, r.w, r.h, panelTitle(n, panelNames[n]), a.tabs(n, r.inner().w), place, focused, a.p)
 }
 
 func sideContent(s sidePanel, in rect, focused bool, p palette) ([]string, string) {
 	var content []string
 	for i := s.top; i < s.top+in.h && i < len(s.rows); i++ {
-		line := sideLine(s.rows[i], in.w)
-		if i == s.cursor && !s.rows[i].heading {
+		row := s.rows[i]
+		line := sideLine(row, in.w)
+		switch {
+		case i == s.cursor && !row.heading && (focused || !row.lit):
 			line = p.highlight(line, in.w, focused)
+		case row.lit:
+			line = p.lit(line, in.w)
 		}
 		content = append(content, line)
 	}
@@ -108,25 +115,33 @@ func (a App) tabs(n, width int) string {
 		}
 		return p.Muted.Render(name)
 	}
-	names := []string{"All"}
+	names, on := []string{"All"}, []bool{len(a.filter) == 0}
 	for _, m := range a.review.state.Members {
 		names = append(names, fmt.Sprintf("#%d", m.Pull))
+		on = append(on, containsInt(a.filter, m.Pull))
 	}
-	var all []string
-	active := ""
+	var all, active []string
 	for i, name := range names {
-		on := (i == 0 && a.filter == 0) || name == fmt.Sprintf("#%d", a.filter)
-		all = append(all, tab(name, on))
-		if on {
-			active = tab(name, true)
+		all = append(all, tab(name, on[i]))
+		if on[i] {
+			active = append(active, tab(name, true))
 		}
 	}
 	sep := p.Border.Render(" - ")
-	out := sep + strings.Join(all, sep)
-	if ansi.StringWidth(out)+ansi.StringWidth(panelTitle(n, panelNames[n]))+3 > width {
-		return sep + active
+	room := width - ansi.StringWidth(panelTitle(n, panelNames[n])) - 3
+	fits := []string{sep + strings.Join(all, sep), sep + strings.Join(active, sep)}
+	if p.plain {
+		fits = fits[1:]
 	}
-	return out
+	if len(active) > 2 {
+		fits = append(fits, sep+active[0]+p.Muted.Render("-")+active[len(active)-1])
+	}
+	for _, out := range fits[:len(fits)-1] {
+		if ansi.StringWidth(out) <= room {
+			return out
+		}
+	}
+	return fits[len(fits)-1]
 }
 
 func (a App) mainBox(r rect, focused bool) []string {
@@ -277,7 +292,7 @@ func (a App) hints() [][2]string {
 	var hints [][2]string
 	switch a.focus {
 	case reviewPanel:
-		hints = [][2]string{{"Enter", "Review"}, {"P", "Post"}, {"gx", "GitHub"}, {"h l", "Panels"}}
+		hints = a.reviewPanelHints()
 	case filesPanel:
 		hints = [][2]string{{"Enter", "Diff"}, {"za", "Fold"}, {"]p [p", "Pull request"}, {"h l", "Panels"}}
 	case notesPanel:
@@ -288,6 +303,19 @@ func (a App) hints() [][2]string {
 		hints = a.mainHints()
 	}
 	return append(hints, keysHint)
+}
+
+func (a App) reviewPanelHints() [][2]string {
+	panels := [2]string{"h l", "Panels"}
+	switch {
+	case a.growFrom != 0:
+		return [][2]string{{"j k", "Grow, shrink"}, {"Esc", "All"}, panels}
+	case a.review.page.Stack == nil:
+		return [][2]string{{"Enter", "Review"}, {"P", "Post"}, {"gx", "GitHub"}, panels}
+	case len(a.filter) > 0:
+		return [][2]string{{"Enter", "Review"}, {"v", "Highlight"}, {"Esc", "All"}, {"P", "Post"}, {"gx", "GitHub"}, panels}
+	}
+	return [][2]string{{"Enter", "Review"}, {"v", "Highlight"}, {"P", "Post"}, {"gx", "GitHub"}, panels}
 }
 
 func (a App) mainHints() [][2]string {

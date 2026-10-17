@@ -180,7 +180,7 @@ func (a App) boxDiff() (tea.Model, tea.Cmd) {
 		a = a.leave()
 		return a.openPlace(card.ID, nil)
 	case "package":
-		for _, f := range diffFiles(*a.review, a.dg.level.Component, 0) {
+		for _, f := range diffFiles(*a.review, a.dg.level.Component, nil) {
 			if f.Package == card.ID {
 				a = a.leave()
 				return a.openPlace(f.Component, &server.Lines{Path: f.Path, Side: "file:"})

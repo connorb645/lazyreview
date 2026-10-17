@@ -29,7 +29,7 @@ func (a App) sidesBuilt() App {
 	built := [sideCount + 1][]sideRow{
 		reviewPanel:  reviewRows(d, a.filter, a.p),
 		filesPanel:   fileRows(d, a.tree, a.filter, a.p),
-		notesPanel:   noteListRows(d, a.p),
+		notesPanel:   noteListRows(d, a.filter, a.p),
 		diagramPanel: boxRows(d, a.dg, a.filter, a.p),
 	}
 	for n := reviewPanel; n <= sideCount; n++ {
@@ -94,7 +94,7 @@ func (a App) followed() (tea.Model, tea.Cmd) {
 	switch a.focus {
 	case reviewPanel:
 		a.screen = screenReview
-		return a.relaid(), nil
+		return a.grown(row).relaid(), nil
 	case filesPanel:
 		place := row.it.place
 		if row.it.kind == "component" {
@@ -179,6 +179,10 @@ func (a App) sideAction(action string, count int) (tea.Model, tea.Cmd) {
 	case "post":
 		if selected {
 			return a.openPosting(row.it.pull), nil
+		}
+	case "highlight":
+		if selected {
+			return a.highlight(row), nil
 		}
 	case "edit":
 		return a.editQueued()

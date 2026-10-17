@@ -56,9 +56,9 @@ func (b *builder) add(it item, texts ...string) {
 	}
 }
 
-func buildReview(d reviewData, folded map[string]bool, width int, p palette, md *markdown, loc *time.Location) ([]line, []item) {
+func buildReview(d reviewData, filter pullFilter, folded map[string]bool, width int, p palette, md *markdown, loc *time.Location) ([]line, []item) {
 	b := &builder{width: width, p: p}
-	reviewHeader(b, d)
+	reviewHeader(b, d, filter)
 	section := func(id, title, summary string, body func()) {
 		b.text("")
 		mark := "▾ "
@@ -101,40 +101,58 @@ func buildReview(d reviewData, folded map[string]bool, width int, p palette, md 
 	if q := d.state.Queue; q != nil {
 		count := 0
 		for _, m := range q.Members {
-			count += len(m.Comments)
+			if filter.shows(m.Pull) {
+				count += len(m.Comments)
+			}
 		}
-		section("queue", "Queued comments", plural(count, "comment"), func() { queueLines(b, d, loc) })
+		section("queue", "Queued comments", plural(count, "comment"), func() { queueLines(b, d, filter, loc) })
 	}
-	if len(d.state.GitHub) > 0 {
-		open := 0
-		for _, t := range d.state.GitHub {
+	var threads []server.GitHubThread
+	open := 0
+	for _, t := range d.state.GitHub {
+		if filter.shows(t.Pull) {
+			threads = append(threads, t)
 			if !t.Resolved {
 				open++
 			}
 		}
-		section("github", "On GitHub", plural(len(d.state.GitHub), "thread"), func() {
-			b.prose(" ", p.Muted, fmt.Sprintf("%s, %d unresolved, as GitHub had them when this review was loaded.", plural(len(d.state.GitHub), "review thread"), open))
-			for _, t := range d.state.GitHub {
+	}
+	if len(threads) > 0 {
+		section("github", "On GitHub", plural(len(threads), "thread"), func() {
+			b.prose(" ", p.Muted, fmt.Sprintf("%s, %d unresolved, as GitHub had them when this review was loaded.", plural(len(threads), "review thread"), open))
+			for _, t := range threads {
 				githubLines(b, d, t)
 			}
 		})
 	}
-	if len(d.state.Threads) > 0 {
-		section("conversations", "Conversations", plural(len(d.state.Threads), "conversation"), func() {
-			for _, t := range d.state.Threads {
+	var asked []server.Conversation
+	for _, t := range d.state.Threads {
+		if filter.showsFile(d, t.Path) {
+			asked = append(asked, t)
+		}
+	}
+	if len(asked) > 0 {
+		section("conversations", "Conversations", plural(len(asked), "conversation"), func() {
+			for _, t := range asked {
 				conversationLines(b, t, loc)
 			}
 		})
 	}
-	section("change", "The change", plural(len(d.page.Model.Components), "component"), func() {
-		for _, c := range d.page.Model.Components {
-			b.add(item{kind: "component", title: c.Title, section: "change", component: c.ID}, "   "+p.componentColor(c.Color).Render("■ ")+p.Ink.Render(c.Title)+"  "+p.Muted.Render(componentWords(d, c)))
+	var components []server.Component
+	for _, c := range d.page.Model.Components {
+		if len(diffFiles(d, c.ID, filter)) > 0 {
+			components = append(components, c)
+		}
+	}
+	section("change", "The change", plural(len(components), "component"), func() {
+		for _, c := range components {
+			b.add(item{kind: "component", title: c.Title, section: "change", component: c.ID}, "   "+p.componentColor(c.Color).Render("■ ")+p.Ink.Render(c.Title)+"  "+p.Muted.Render(componentWords(d, c, filter)))
 		}
 	})
 	return b.lines, b.items
 }
 
-func reviewHeader(b *builder, d reviewData) {
+func reviewHeader(b *builder, d reviewData, filter pullFilter) {
 	p, s := b.p, d.state
 	title := s.Title
 	if s.Written != nil && s.Written.Title != "" {
@@ -156,7 +174,11 @@ func reviewHeader(b *builder, d reviewData) {
 			if m.State != "" && m.State != "open" {
 				parts = append(parts, p.Del.Render(m.State))
 			}
-			head := "  " + p.pull(m.Color).Render(fmt.Sprintf("#%d", m.Pull)) + "  " + p.Ink.Render(m.Title)
+			number, name := p.pull(m.Color), p.Ink
+			if !filter.shows(m.Pull) {
+				number, name = p.Faint, p.Faint
+			}
+			head := "  " + number.Render(fmt.Sprintf("#%d", m.Pull)) + "  " + name.Render(m.Title)
 			if tail := strings.Join(parts, p.Muted.Render(" · ")); ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {
 				b.text(head + "  " + tail)
 				continue
@@ -168,6 +190,9 @@ func reviewHeader(b *builder, d reviewData) {
 		b.parts(" ", p.Muted.Render("Base "+s.Base.Ref), p.Muted.Render("Head "+short(top.Head)), p.Muted.Render("Combined: ")+totals)
 		for _, w := range d.page.Stack.Warnings {
 			b.prose(" ", p.Warn, w)
+		}
+		if len(filter) > 0 {
+			b.prose(" ", p.Accent, "Showing "+filter.words()+" only. Esc in the Review panel shows the whole stack.")
 		}
 	default:
 		m := s.Members[0]
@@ -189,7 +214,7 @@ func reviewHeader(b *builder, d reviewData) {
 	}
 }
 
-func queueLines(b *builder, d reviewData, loc *time.Location) {
+func queueLines(b *builder, d reviewData, filter pullFilter, loc *time.Location) {
 	p, q := b.p, d.state.Queue
 	if q.Moved != nil {
 		b.prose(" ", p.Muted, "This review moved to "+q.Moved.To+". Its queued comments moved there.")
@@ -201,6 +226,9 @@ func queueLines(b *builder, d reviewData, loc *time.Location) {
 	}
 	groups := append(append([]server.QueueMember{}, q.Members...), q.Earlier...)
 	for i, m := range groups {
+		if !filter.shows(m.Pull) {
+			continue
+		}
 		left := i >= len(q.Members)
 		color := memberColor(d.state, m.Pull)
 		if stacked {
@@ -338,7 +366,7 @@ func changeTotals(p palette, files []server.FileEntry) string {
 	return p.Muted.Render(plural(len(files), "file")+" ") + p.Add.Render(fmt.Sprintf("+%d", adds)) + " " + p.Del.Render(fmt.Sprintf("−%d", dels))
 }
 
-func componentWords(d reviewData, c server.Component) string {
+func componentWords(d reviewData, c server.Component, filter pullFilter) string {
 	if c.Context {
 		n := 0
 		for _, f := range d.page.Model.ContextFiles {
@@ -350,7 +378,7 @@ func componentWords(d reviewData, c server.Component) string {
 	}
 	n, adds, dels := 0, 0, 0
 	for _, f := range d.page.Model.Files {
-		if f.Component == c.ID {
+		if f.Component == c.ID && filter.showsAny(f.Pulls) {
 			n, adds, dels = n+1, adds+f.Adds, dels+f.Dels
 		}
 	}

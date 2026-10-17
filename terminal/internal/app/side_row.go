@@ -9,5 +9,6 @@ type sideRow struct {
 	titleStyle lipgloss.Style
 	right      string
 	heading    bool
+	lit        bool
 	it         item
 }

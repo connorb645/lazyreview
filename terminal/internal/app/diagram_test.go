@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -191,8 +192,8 @@ func drawnAt(t *testing.T, a App, text string) (int, int) {
 
 func TestThePullRequestFilterDimsTheTypesItLeavesOut(t *testing.T) {
 	a := press(t, onDiagram(t), "]", "p")
-	if a.filter != 21 {
-		t.Fatalf("the filter: %d", a.filter)
+	if got := fmt.Sprint(a.filter); got != "[21]" {
+		t.Fatalf("the filter: %s", got)
 	}
 	c, tops, _ := drawDiagram(*a.review, a.dg, a.filter)
 	titleStyle := func(id string) string {

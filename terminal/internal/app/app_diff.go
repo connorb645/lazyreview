@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -19,7 +18,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 		a.cameFrom = a.screen
 	}
 	var missing []string
-	for _, f := range diffFiles(*a.review, component, 0) {
+	for _, f := range diffFiles(*a.review, component, nil) {
 		if _, ok := a.files[f.Path]; !ok {
 			missing = append(missing, f.Path)
 		}
@@ -296,42 +295,6 @@ func (a App) matchNext(back bool) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 	return a.say(fmt.Sprintf("no more of %q", query), true), nil
-}
-
-func (a App) filterBy(by int) App {
-	if a.review == nil || a.review.page.Stack == nil {
-		return a.say("only a stack has pull requests to filter by", true)
-	}
-	order := []int{0}
-	for _, m := range a.review.page.Stack.Members {
-		order = append(order, m.Pull)
-	}
-	at := 0
-	for i, pull := range order {
-		if pull == a.filter {
-			at = i
-		}
-	}
-	return a.setFilter(order[((at+by)%len(order)+len(order))%len(order)])
-}
-
-func (a App) setFilter(pull int) App {
-	a.filter = pull
-	return a.relaid()
-}
-
-func (a App) pullCommand(arg string) App {
-	if a.review == nil || a.review.page.Stack == nil {
-		return a.say("only a stack has pull requests to filter by", true)
-	}
-	if arg == "all" {
-		return a.setFilter(0)
-	}
-	n, err := strconv.Atoi(strings.TrimPrefix(arg, "#"))
-	if err != nil || stackMember(a.review.page.Stack, n).Head == "" {
-		return a.say("no pull request #"+arg+" in this stack", true)
-	}
-	return a.setFilter(n)
 }
 
 func (a App) here() jump {

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -125,8 +126,8 @@ func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 func TestThePullRequestFilterDimsWhatItLeavesOut(t *testing.T) {
 	a := openedOnComment(t)
 	a = press(t, a, "]", "p")
-	if a.filter != 21 {
-		t.Fatalf("]p chose %d", a.filter)
+	if got := fmt.Sprint(a.filter); got != "[21]" {
+		t.Fatalf("]p chose %s", got)
 	}
 	for _, r := range a.diff.rows {
 		if r.path == "Sources/Basket/Basket.swift" {
@@ -135,18 +136,18 @@ func TestThePullRequestFilterDimsWhatItLeavesOut(t *testing.T) {
 	}
 	screenIs(t, a, "diff-filtered")
 	a = press(t, a, "[", "p")
-	if a.filter != 0 {
-		t.Fatalf("[p went back to All, not %d", a.filter)
+	if got := fmt.Sprint(a.filter); got != "[]" {
+		t.Fatalf("[p went back to All, not %s", got)
 	}
 	a = press(t, a, ":")
 	a = typed(t, a, "pull 22")
-	if a.filter != 22 {
-		t.Fatalf(":pull 22 chose %d", a.filter)
+	if got := fmt.Sprint(a.filter); got != "[22]" {
+		t.Fatalf(":pull 22 chose %s", got)
 	}
 	a = press(t, a, ":")
 	a = typed(t, a, "pull all")
-	if a.filter != 0 {
-		t.Fatalf(":pull all chose %d", a.filter)
+	if got := fmt.Sprint(a.filter); got != "[]" {
+		t.Fatalf(":pull all chose %s", got)
 	}
 }
 

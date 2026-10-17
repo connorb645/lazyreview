@@ -48,7 +48,8 @@ type App struct {
 	dg         diagramView
 	styles     map[string]lipgloss.Style
 	files      map[string]server.File
-	filter     int
+	filter     pullFilter
+	growFrom   int
 	cameFrom   screen
 	jumps      []jump
 	jumpAt     int
@@ -140,7 +141,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if a.screen != screenHome {
 			a.screen = screenReview
 		}
-		a.files, a.diff, a.filter = map[string]server.File{}, diffView{}, 0
+		a.files, a.diff, a.filter, a.growFrom = map[string]server.File{}, diffView{}, nil, 0
 		a.dg = newDiagramView(levelAt(msg.data.page, diagramPlace{level: "components"}), "")
 		var listening tea.Cmd
 		a, listening = a.listenTo(msg.data.id)
@@ -192,9 +193,11 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case reviewReloaded:
 		return a.afterReload(msg)
 	case tea.MouseMsg:
-		return a.mouse(msg)
+		next, cmd := a.mouse(msg)
+		return next.(App).growingInReview(), cmd
 	case tea.KeyMsg:
-		return a.key(msg)
+		next, cmd := a.key(msg)
+		return next.(App).growingInReview(), cmd
 	}
 	if a.prompting != "" {
 		var cmd tea.Cmd
@@ -350,6 +353,8 @@ func (a App) closed() App {
 		a.menu = nil
 	case a.screen == screenHome:
 		return a.say("ZZ or :q quits", false)
+	case a.focus == reviewPanel && len(a.filter) > 0:
+		return a.setFilter(nil)
 	case a.screen == screenDiff && a.diff.selecting:
 		a.diff.selecting = false
 	case a.focus == mainPanel && a.review != nil:
@@ -572,7 +577,7 @@ func (a App) relaid() App {
 		a.diff.width = a.mainWidth()
 		a.diff = a.diff.rebuilt(*a.review, a.filter, h)
 	}
-	a.rv = a.rv.rebuilt(*a.review, a.mainWidth(), h, a.p, a.md, a.opts.Location)
+	a.rv = a.rv.rebuilt(*a.review, a.filter, a.mainWidth(), h, a.p, a.md, a.opts.Location)
 	return a.mirrored()
 }
 

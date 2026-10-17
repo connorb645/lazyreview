@@ -26,7 +26,7 @@ var sideKeys = keys.Bindings{
 }
 
 var sidePanelKeys = [sideCount + 1]keys.Bindings{
-	reviewPanel: {"P": "post"},
+	reviewPanel: {"P": "post", "v": "highlight"},
 	filesPanel:  {"z a": "toggle fold"},
 	notesPanel:  {"e": "edit", "d d": "drop", "P": "post"},
 	diagramPanel: {
@@ -74,7 +74,7 @@ var everyViewHelp = []helpRow{
 	{"Space f", "finds a file, type or component by name"},
 	{"gx", "opens the pull request, or the thread at the cursor, on GitHub"},
 	{"gX", "opens this place in the web app"},
-	{"]p [p", "the next or previous pull request filter on a stack: All, then each one"},
+	{"]p [p", "highlights the next or previous pull request on a stack: All, then each one"},
 	{"Ctrl-o Ctrl-i", "back and forward through jumps"},
 	{"q", "closes the top popup"},
 	{"ZZ", "quits, as :q does"},
@@ -85,6 +85,8 @@ var sideHelp = [sideCount + 1][]helpRow{
 		{"j k gg G", "the next, previous, first or last pull request"},
 		{"h l", "the panel above or below; h goes round to Diagram"},
 		{"Enter", "the Review view, in the main panel"},
+		{"v", "on a stack, highlights this pull request; j k grow or shrink the highlight, and the other panels show only what it holds"},
+		{"Esc", "clears the highlight, to show the whole stack"},
 		{"P", "post: the actions offered for this pull request"},
 	},
 	filesPanel: {

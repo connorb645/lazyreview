@@ -24,7 +24,7 @@ func heading(text, right string, p palette) sideRow {
 	return sideRow{heading: true, text: p.Muted.Render(text), right: p.Faint.Render(right)}
 }
 
-func reviewRows(d reviewData, filter int, p palette) []sideRow {
+func reviewRows(d reviewData, filter pullFilter, p palette) []sideRow {
 	s := d.state
 	if s.Kind == "branch" {
 		return []sideRow{{key: "branch", text: p.Ink.Render(s.Head.Ref) + p.Muted.Render(" → "+s.Base.Ref), it: item{kind: "branch"}}}
@@ -32,7 +32,7 @@ func reviewRows(d reviewData, filter int, p palette) []sideRow {
 	var rows []sideRow
 	for _, m := range s.Members {
 		number, title := p.pull(m.Color), p.Ink
-		if filter != 0 && filter != m.Pull {
+		if !filter.shows(m.Pull) {
 			number, title = p.Faint, p.Faint
 		}
 		right := ""
@@ -40,12 +40,12 @@ func reviewRows(d reviewData, filter int, p palette) []sideRow {
 			right = p.Muted.Render(m.State)
 		}
 		rows = append(rows, sideRow{key: pullKey(m.Pull), text: number.Render(fmt.Sprintf("#%d", m.Pull)) + " " + title.Render(m.Title), right: right,
-			it: item{kind: "pull", pull: m.Pull, url: m.URL, title: m.Title}})
+			lit: containsInt(filter, m.Pull), it: item{kind: "pull", pull: m.Pull, url: m.URL, title: m.Title}})
 	}
 	return rows
 }
 
-func fileRows(d reviewData, folded map[string]bool, filter int, p palette) []sideRow {
+func fileRows(d reviewData, folded map[string]bool, filter pullFilter, p palette) []sideRow {
 	var rows []sideRow
 	for _, c := range d.page.Model.Components {
 		files := diffFiles(d, c.ID, filter)
@@ -124,12 +124,15 @@ func foldMark(folded bool, p palette) string {
 	return p.Muted.Render("▾")
 }
 
-func noteListRows(d reviewData, p palette) []sideRow {
+func noteListRows(d reviewData, filter pullFilter, p palette) []sideRow {
 	var rows []sideRow
 	stacked := d.page.Stack != nil
 	if q := d.state.Queue; q != nil && q.Moved == nil {
 		var queued []sideRow
 		for _, m := range q.Members {
+			if !filter.shows(m.Pull) {
+				continue
+			}
 			for _, c := range m.Comments {
 				at := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
 				if c.Shown != nil {
@@ -150,9 +153,15 @@ func noteListRows(d reviewData, p palette) []sideRow {
 			rows = append(append(rows, heading("Queued", itoa(len(queued)), p)), queued...)
 		}
 	}
-	if len(d.state.Threads) > 0 {
-		rows = append(rows, heading("Claude", itoa(len(d.state.Threads)), p))
-		for _, t := range d.state.Threads {
+	var asked []server.Conversation
+	for _, t := range d.state.Threads {
+		if filter.showsFile(d, t.Path) {
+			asked = append(asked, t)
+		}
+	}
+	if len(asked) > 0 {
+		rows = append(rows, heading("Claude", itoa(len(asked)), p))
+		for _, t := range asked {
 			at := server.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
 			right := ""
 			if m := t.Messages; len(m) > 0 && m[len(m)-1].From == "you" {
@@ -166,9 +175,15 @@ func noteListRows(d reviewData, p palette) []sideRow {
 				it: item{kind: "conversation", place: &at}})
 		}
 	}
-	if len(d.state.GitHub) > 0 {
-		rows = append(rows, heading("On GitHub", itoa(len(d.state.GitHub)), p))
-		for _, t := range d.state.GitHub {
+	var threads []server.GitHubThread
+	for _, t := range d.state.GitHub {
+		if filter.shows(t.Pull) {
+			threads = append(threads, t)
+		}
+	}
+	if len(threads) > 0 {
+		rows = append(rows, heading("On GitHub", itoa(len(threads)), p))
+		for _, t := range threads {
 			at := server.Lines{Path: t.Path, Side: "file:"}
 			if t.At != nil && !t.File {
 				at = *t.At
@@ -190,6 +205,9 @@ func noteListRows(d reviewData, p palette) []sideRow {
 				it: item{kind: "thread", pull: t.Pull, url: url, place: &at}})
 		}
 	}
+	if len(rows) == 0 && len(filter) > 0 {
+		rows = append(rows, heading("Nothing on "+filter.words()+" yet", "", p))
+	}
 	if len(rows) == 0 {
 		rows = append(rows, heading("Nothing queued or asked yet", "", p))
 	}
@@ -207,7 +225,7 @@ func lineName(at server.Lines) string {
 	return fmt.Sprintf("%s:%d", name, at.Line)
 }
 
-func boxRows(d reviewData, v diagramView, filter int, p palette) []sideRow {
+func boxRows(d reviewData, v diagramView, filter pullFilter, p palette) []sideRow {
 	l := v.level
 	where := "Components"
 	if l.Component != "" {

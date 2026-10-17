@@ -132,6 +132,7 @@ func (a App) afterReload(msg reviewReloaded) (tea.Model, tea.Cmd) {
 	}
 	a.review = &msg.data
 	a.files = map[string]server.File{}
+	a = a.keptFilter()
 	switch a.screen {
 	case screenDiff:
 		next, cmd := a.openPlace(a.diff.component, a.diff.place())

@@ -71,12 +71,12 @@ func (v diagramView) moved(by int) diagramView {
 	return v
 }
 
-func (v diagramView) lines(d reviewData, width, height, filter int, styles map[string]lipgloss.Style) ([]string, extent) {
+func (v diagramView) lines(d reviewData, width, height int, filter pullFilter, styles map[string]lipgloss.Style) ([]string, extent) {
 	c, _, _ := drawDiagram(d, v, filter)
 	return c.lines(v.left, v.top, width, height, styles), extent{lines: c.h, top: v.top}
 }
 
-func (v diagramView) boxAt(d reviewData, x, y, filter int) int {
+func (v diagramView) boxAt(d reviewData, x, y int, filter pullFilter) int {
 	_, tops, _ := drawDiagram(d, v, filter)
 	x, y = x+v.left, y+v.top
 	for i, s := range v.grid.Spots {
@@ -87,14 +87,14 @@ func (v diagramView) boxAt(d reviewData, x, y, filter int) int {
 	return -1
 }
 
-func (v diagramView) scrolled(d reviewData, across, by, width, height, filter int) diagramView {
+func (v diagramView) scrolled(d reviewData, across, by, width, height int, filter pullFilter) diagramView {
 	c, _, _ := drawDiagram(d, v, filter)
 	v.left = clamp(v.left+across, 0, max(0, c.w-width))
 	v.top = clamp(v.top+by, 0, max(0, c.h-height))
 	return v
 }
 
-func (v diagramView) shownIn(d reviewData, width, height, filter int) diagramView {
+func (v diagramView) shownIn(d reviewData, width, height int, filter pullFilter) diagramView {
 	if _, ok := v.card(); !ok {
 		return v
 	}

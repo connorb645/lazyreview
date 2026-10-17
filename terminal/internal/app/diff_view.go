@@ -32,7 +32,7 @@ func newDiffView(component string, files map[string]server.File, loc *time.Locat
 	return diffView{component: component, files: files, loc: loc, md: md, rendered: map[string]bool{}, notes: map[string]bool{}, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
 }
 
-func (v diffView) rebuilt(d reviewData, filter, height int) diffView {
+func (v diffView) rebuilt(d reviewData, filter pullFilter, height int) diffView {
 	was := v.place()
 	v.rows = buildDiff(d, v, filter)
 	v.cursor = 0

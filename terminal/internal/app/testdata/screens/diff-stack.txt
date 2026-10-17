@@ -1,4 +1,4 @@
-╭─[1]─Review - All - #21 - #22──╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
+╭─[1]─Review - All──────────────╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
 │ #21 Add search to the catalog ││   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {          │
 │ #22 Add a basket that uses se…││     4    4       func items() -> [Item] {                       │
 ╰────────────────────────1 of 2─╯│     5    5           stored                                     │

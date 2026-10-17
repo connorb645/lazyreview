@@ -1,0 +1,60 @@
+╭─[1]─Review - #22──────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│ #21 Add search to the catalog ││ A stack of 2 pull requests, each built on the one before,       │
+│▌#22 Add a basket that uses se…││ reviewed together                                               │
+╰───────────────VISUAL · 2 of 2─╯│ Search, then a basket                                           │
+╭─[2]─Files─────────────────────╮│  #21  Add search to the catalog                                 │
+│ ▾ ■ widgets             +4 −1 ││       by sam · on main · head ec6fb42d · 2 files +11 −0         │
+│   ▾ Sources/Basket            ││  #22  Add a basket that uses search                             │
+│     M Basket.swift          ● ││       by sam · on feature/search · head cd3c7027                │
+│   ▾ web/src                   ││       2 files +4 −1                                             │
+│     M cart.ts               ● ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
+│ ▾ ■ Unchanged code  unchanged ││ Showing #22 only. Esc in the Review panel shows the whole       │
+│   · Catalog.swift             ││ stack.                                                          │
+│                               ││                                                                 │
+│                               ││ ▾ What this changes                                             │
+│                               ││   #21 adds a search over the catalog in Search.swift:4. #22     │
+│                               ││   gives the basket a search of its own, in Basket.swift:7.      │
+│                               ││   [Likely]                                                      │
+│                               ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
+│                               ││   → Basket.swift:7  Sources/Basket/Basket.swift line 7          │
+│                               ││                                                                 │
+│                               ││ ▾ Risks                                                         │
+│                               ││   MemoryCatalog.swift:9 appends without checking for            │
+│                               ││   duplicates. [Guessing]                                        │
+╰────────────────────────1 of 7─╯│   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
+╭─[3]─Notes─────────────────────╮│                                                                 │
+│ Queued                      1 ││ ▾ Queued comments                                               │
+│ 2 Basket.swift:9-11       #22 ││ A comment goes on the pull request that last changed its line,  │
+│ Claude                      1 ││ shown as → #number.                                             │
+│ Basket.swift:7 Could this be …││                                                                 │
+│ On GitHub                   1 ││  #22  Add a basket that uses search                             │
+│ sam Basket.swift:7   resolved ││   2 → #22 Sources/Basket/Basket.swift, removed line 9 to line 11│
+│                               ││     │         0                                                 │
+│                               ││     │         1                                                 │
+│                               ││     Why one?                                                    │
+│                               ││                                                                 │
+│                               ││ ▾ On GitHub                                                     │
+│                               ││ 1 review thread, 0 unresolved, as GitHub had them when this     │
+│                               ││ review was loaded.                                              │
+│                               ││   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved │
+│                               ││     Could the search be passed in?                              │
+│                               ││                                                                 │
+│                               ││ ▾ Conversations                                                 │
+╰────────────────────────1 of 3─╯│   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
+╭─[4]─Diagram───────────────────╮│     Could this be passed in?                                    │
+│ Components                    ││     It returns early when the list is empty.                    │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││ ▾ The change                                                    │
+│                               ││   ■ widgets  2 files +4 −1                                      │
+│                               ││   ■ Unchanged code  1 file · unchanged                          │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
+ Grow, shrink: j k | All: Esc | Panels: h l | Keys: Space ?

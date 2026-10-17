@@ -12,7 +12,7 @@ import (
 
 const noLane = -1
 
-func drawDiagram(d reviewData, v diagramView, filter int) (canvas, []int, stubs) {
+func drawDiagram(d reviewData, v diagramView, filter pullFilter) (canvas, []int, stubs) {
 	lvl, g := v.level, v.grid
 	stubLines := stubWords(lvl, v)
 	routes, lanes := routesOf(lvl, g, v.focus, v.all, len(stubLines) > 0)
@@ -338,11 +338,11 @@ func sideBySide(g diagram.Grid, a, b int) bool {
 	return false
 }
 
-func dimmed(card diagram.Card, filter int) bool {
-	if filter == 0 || card.Kind == "component" || card.Kind == "package" {
+func dimmed(card diagram.Card, filter pullFilter) bool {
+	if card.Kind == "component" || card.Kind == "package" {
 		return false
 	}
-	return !containsInt(card.Pulls, filter)
+	return !filter.showsAny(card.Pulls)
 }
 
 func routeStyle(r route) string {
