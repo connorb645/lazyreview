@@ -3,7 +3,7 @@
 // package, as rows and columns of cards read from the layout's own places.
 package diagram
 
-import "github.com/connorb645/lazyreview/terminal/internal/server"
+import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
 
 // Card is one box of a level: a component, a package, a type, a file with
 // no types, or a group of look-alike types. Title and Detail are its two

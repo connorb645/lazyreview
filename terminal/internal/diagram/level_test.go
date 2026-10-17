@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/connorb645/lazyreview/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 )
 
 func recordedPage(t *testing.T) server.Page {

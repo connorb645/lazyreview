@@ -1,0 +1,14 @@
+package gui
+
+import "github.com/charmbracelet/lipgloss"
+
+type sideRow struct {
+	key        string
+	text       string
+	title      string
+	titleStyle lipgloss.Style
+	right      string
+	heading    bool
+	lit        bool
+	it         item
+}

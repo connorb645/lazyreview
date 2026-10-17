@@ -8,21 +8,8 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-
 	"github.com/connorb645/lazyreview/terminal/internal/app"
-	"github.com/connorb645/lazyreview/terminal/internal/server"
 )
-
-func editor() string {
-	for _, name := range []string{"LAZYREVIEW_EDITOR", "VISUAL", "EDITOR"} {
-		if command := os.Getenv(name); command != "" {
-			return command
-		}
-	}
-	return "vi"
-}
 
 func main() {
 	serverFile := flag.String("server-file", "", "the lazyreview server's own record, server.json, holding its address and token")
@@ -34,9 +21,7 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
-	opts := app.Options{Server: server.NewClient(*serverFile), Review: flag.Arg(0), Dark: lipgloss.HasDarkBackground(), Editor: editor()}
-	program := tea.NewProgram(app.New(opts), tea.WithAltScreen(), tea.WithMouseCellMotion())
-	if _, err := program.Run(); err != nil {
+	if err := app.Run(*serverFile, flag.Arg(0)); err != nil {
 		fmt.Fprintln(os.Stderr, "lazyreview terminal:", err)
 		os.Exit(1)
 	}

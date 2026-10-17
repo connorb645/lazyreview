@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/connorb645/lazyreview/terminal/internal/server"
+	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 )
 
 var kindWords = map[string]string{"has": "holds", "realize": "conforms to", "inherit": "inherits from", "extend": "extends", "use": "uses", "test": "tests"}
