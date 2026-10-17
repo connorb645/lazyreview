@@ -3,7 +3,10 @@
  *
  * compColor(comps, id), swatch(comps, c, cls) and countWords(compTotals, c,
  * compact) are a component's colour, its swatch and its count of files and
- * lines, which other views draw too.
+ * lines, which other views draw too. summaryLines(s, counts) are the words of
+ * an arrow between components, each way with its count of links, or as the
+ * server wrote them for the whole stack when counts is null; packageCount(n)
+ * is an arrow between packages' count of links.
  *
  * createDiagramMarkup(ctx) returns, from the page data:
  *   diagram()            the whole diagram, drawn once
@@ -36,6 +39,15 @@ export function countWords(compTotals, c, compact) {
   if (c.context) return words.unchangedCount(n);
   if (!t.files) return n;
   return n + ' · +' + fmt(t.adds) + (t.dels ? ' −' + fmt(t.dels) : '');
+}
+
+export function summaryLines(s, counts) {
+  if (!counts) return s.lines;
+  return s.ways.map((w, i) => english.diagram.summaryLine(w.arrow, w.label, counts[i]));
+}
+
+export function packageCount(n) {
+  return english.diagram.links(n);
 }
 
 function markersFor(kind, prefix) {
@@ -165,20 +177,20 @@ export function createDiagramMarkup(ctx) {
     });
   });
 
-  function summarySVG(s) {
+  function summarySVG(s, i) {
     const c = comps[s.source] ? comps[s.source].color : 'grey';
     const at = s.labelAt || longestMidpoint(s.points);
     const top = at[1] - (s.lines.length - 1) * 15 + 8;
-    return '<path class="summary" d="' + polyPath(s.points) + '" style="stroke:var(--c-' + c + ')" marker-end="url(#m-pkg-' + c + ')"' +
+    return '<path class="summary" data-i="' + i + '" d="' + polyPath(s.points) + '" style="stroke:var(--c-' + c + ')" marker-end="url(#m-pkg-' + c + ')"' +
       (s.both ? ' marker-start="url(#m-pkgs-' + c + ')"' : '') + '></path>' +
-      '<text class="summary-label" x="' + at[0] + '" y="' + top + '" style="fill:var(--c-' + c + ')">' +
+      '<text class="summary-label" data-i="' + i + '" x="' + at[0] + '" y="' + top + '" style="fill:var(--c-' + c + ')">' +
       s.lines.map((l, i) => '<tspan x="' + at[0] + '" dy="' + (i ? 30 : 0) + '">' + esc(l) + '</tspan>').join('') + '</text>';
   }
-  function pkgArrowSVG(a) {
+  function pkgArrowSVG(a, i) {
     const c = comps[a.comp].color;
     const lp = a.labelAt || longestMidpoint(a.points);
-    return '<path class="pkg-arrow" d="' + polyPath(a.points) + '" style="stroke:var(--c-' + c + ')" marker-end="url(#m-pkg-' + c + ')"></path>' +
-      '<text class="pkg-arrow-label" x="' + lp[0] + '" y="' + (lp[1] + 5) + '" style="fill:var(--c-' + c + ')">' +
+    return '<path class="pkg-arrow" data-i="' + i + '" d="' + polyPath(a.points) + '" style="stroke:var(--c-' + c + ')" marker-end="url(#m-pkg-' + c + ')"></path>' +
+      '<text class="pkg-arrow-label" data-i="' + i + '" x="' + lp[0] + '" y="' + (lp[1] + 5) + '" style="fill:var(--c-' + c + ')">' +
       (a.words ? esc(a.words) + ' <tspan class="sub">· ' + esc(a.countText) + '</tspan>' : '<tspan class="sub">' + esc(a.countText) + '</tspan>') + '</text>';
   }
 

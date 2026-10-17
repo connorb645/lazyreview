@@ -8,7 +8,9 @@
  * farTitle}.
  * `boxes` holds every type, group and package frame by id; `routes` are the
  * links drawn at rest, with the points ELK routed them along and where their
- * label sits.
+ * label sits. An arrow between packages, in `pkgArrows`, and each way of an
+ * arrow between components, in `summaries`, keep the links between types
+ * they count, as [source, target].
  */
 import { measure, nodeSize, farTitleRoom, PACKAGE_HEAD, PACKAGE_HEAD_WITH_NOTE, COMPONENT_HEAD, FAR_TITLE } from './sizes.mjs';
 import { sectionPoints, labelCentre, offsetRoute, shiftToWidth } from './geometry.mjs';
@@ -137,9 +139,10 @@ async function layoutComponent(component, model, elk, nodes, groups, laidAs, hom
     if (!a || !b || a.component !== component.id || b.component !== component.id || a.package === b.package) continue;
     if (testPackages.has(a.package) || testPackages.has(b.package)) continue;
     const key = `${a.package}>${b.package}`;
-    if (!pairs.has(key)) pairs.set(key, { from: a.package, to: b.package, count: 0, tests: 0, labels: [] });
+    if (!pairs.has(key)) pairs.set(key, { from: a.package, to: b.package, count: 0, tests: 0, labels: [], links: [] });
     const p = pairs.get(key);
     p.count++;
+    p.links.push([e.source, e.target]);
     if (e.kind === 'test') p.tests++;
     if (e.key && e.label) p.labels.push(e.label);
   }
@@ -194,7 +197,7 @@ async function layoutComponent(component, model, elk, nodes, groups, laidAs, hom
     const laid = byId.get(`p${i}`);
     const points = sectionPoints(laid);
     if (!points) return null;
-    return { from: p.from, to: p.to, count: p.count, words: p.words, countText: p.countText, points, labelAt: labelCentre(laid) };
+    return { from: p.from, to: p.to, count: p.count, words: p.words, countText: p.countText, links: p.links, points, labelAt: labelCentre(laid) };
   }).filter(Boolean);
   return { w: out.width, h: out.height, boxes, routes, pkgArrows };
 }

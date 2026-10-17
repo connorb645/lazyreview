@@ -17,7 +17,8 @@ import (
 
 // filterStandIn is a made-up stack of #21 and #22: Order.swift changed by
 // both, Rules.swift by #22 alone and Book.swift by #21 alone, with an
-// unchanged Clock.swift for context.
+// unchanged Clock.swift for context. Core links to Clock three times, and
+// Ledger to Core once.
 func filterStandIn() types.ReviewData {
 	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
 	file := func(path, component, pkg string, adds, dels int, byPull map[int][2]int) server.FileEntry {
@@ -42,6 +43,7 @@ func filterStandIn() types.ReviewData {
 		node("Return", "Sources/Core/Order.swift", "core", "model", 22),
 		node("Rule", "Sources/Core/Rules/Rules.swift", "core", "rules", 22),
 		node("Book", "Sources/Ledger/Book.swift", "ledger", "books", 21),
+		{ID: "Clock", Name: "Clock", Kind: "class", File: "Sources/Clock.swift", Line: 1, Component: "context", Package: "clocks", State: "context"},
 	}
 	nodes[2].Group, nodes[3].Group = "kinds", "kinds"
 	return types.ReviewData{ID: "filter-stand-in",
@@ -52,7 +54,7 @@ func filterStandIn() types.ReviewData {
 				Components: []server.Component{
 					{ID: "core", Title: "Core", Color: "teal", Packages: []server.Package{{ID: "model", Title: "Model"}, {ID: "rules", Title: "Rules"}}},
 					{ID: "ledger", Title: "Ledger", Color: "blue", Packages: []server.Package{{ID: "books", Title: "Books", Bare: true}}},
-					{ID: "context", Title: "Unchanged code", Color: "grey", Context: true},
+					{ID: "context", Title: "Unchanged code", Color: "grey", Context: true, Packages: []server.Package{{ID: "clocks", Title: "Clocks", Bare: true}}},
 				},
 				Files: []server.FileEntry{
 					file("Sources/Core/Order.swift", "core", "model", 3, 1, map[int][2]int{21: {2, 0}, 22: {1, 1}}),
@@ -65,8 +67,13 @@ func filterStandIn() types.ReviewData {
 			},
 			Layout: server.Layout{
 				Components: map[string]server.Box{"core": box(0, 0), "ledger": box(300, 0), "context": box(600, 0)},
-				Boxes: map[string]server.Box{"pkg:core:model": box(0, 0), "pkg:core:rules": box(300, 0),
-					"Order": box(0, 0), "Pricer": box(200, 0), "group:kinds": box(400, 0)},
+				Boxes: map[string]server.Box{"pkg:core:model": box(0, 0), "pkg:core:rules": box(300, 0), "pkg:context:clocks": box(600, 0),
+					"Order": box(0, 0), "Pricer": box(200, 0), "group:kinds": box(400, 0), "Clock": box(0, 0)},
+				Summaries: []server.ComponentArrow{
+					{Source: "core", Target: "context", Lines: []string{"→ 3 links"}, Ways: []server.ArrowWay{{Arrow: "→", Links: [][2]string{{"Order", "Clock"}, {"group:kinds", "Clock"}, {"Pricer", "Clock"}}}}},
+					{Source: "ledger", Target: "core", Lines: []string{"→ books · 1 link"}, Ways: []server.ArrowWay{{Arrow: "→", Label: "books", Links: [][2]string{{"Book", "Order"}}}}},
+				},
+				PkgArrows: []server.PackageArrow{{Component: "core", From: "model", To: "rules", Words: "prices", CountText: "1 link", Links: [][2]string{{"Order", "Rule"}}}},
 			},
 		}}
 }
@@ -103,7 +110,7 @@ func TestAComponentCardCountsOnlyWhatTheFilterShows(t *testing.T) {
 			t.Errorf("under %v the component cards read %v, not %v", f, got, want)
 		}
 	}
-	if got := dimmedCards(l, types.PullFilter{22}); got != "ledger context" {
+	if got := dimmedCards(l, types.PullFilter{22}); got != "ledger" {
 		t.Errorf("under #22 the cards dimmed are %q", got)
 	}
 	if got := dimmedCards(l, nil); got != "" {
@@ -215,6 +222,59 @@ func TestWithNoColourWhatTheFilterLeavesOutIsMarked(t *testing.T) {
 	out, _ := presentation.SideContent(tr, plain, []presentation.SideRow{{Key: "a", Text: "Order"}, {Key: "b", Text: "Pricer", Out: true}}, 0, 0, views.Rect{W: 20, H: 2}, false)
 	if !strings.HasPrefix(out[1], "·Pricer") {
 		t.Fatalf("with no colour a row the filter leaves out reads %q", out[1])
+	}
+}
+
+func TestUnchangedCodeIsNeverLeftOutByAFilter(t *testing.T) {
+	d := filterStandIn()
+	tr := testCommon().Tr
+	l := diagram.Components(tr, d.Page)
+	if got := dimmedCards(l, types.PullFilter{22}); got != "ledger" {
+		t.Errorf("under #22 the component cards dimmed are %q", got)
+	}
+	clocks := diagram.Types(tr, d.Page, "context", "clocks")
+	if got := dimmedCards(clocks, types.PullFilter{22}); got != "" {
+		t.Errorf("under #22 the unchanged types dimmed are %q", got)
+	}
+	for _, row := range presentation.BoxRows(tr, testCommon().Theme, d, l, diagram.Arrange(tr, l.Cards, 4), types.PullFilter{22}) {
+		if row.Out && row.Key == presentation.BoxKey("context") {
+			t.Errorf("under #22 the Diagram panel marks Unchanged code as left out")
+		}
+	}
+}
+
+func TestAnArrowCountsOnlyTheLinksTheFilterShows(t *testing.T) {
+	d := filterStandIn()
+	tr := testCommon().Tr
+	words := func(links []diagram.Link) string {
+		var out []string
+		for _, l := range links {
+			mark := ""
+			if l.Out {
+				mark = " (out)"
+			}
+			out = append(out, l.Words+mark)
+		}
+		return strings.Join(out, " | ")
+	}
+	components := diagram.Components(tr, d.Page)
+	for filter, want := range map[string]string{
+		"":   "→ 3 links | → books · 1 link",
+		"21": "→ 1 link | → books · 1 link",
+		"22": "→ 2 links | → books · 0 links (out)",
+	} {
+		if got := words(presentation.FilteredLinks(tr, d, components.Links, filterOf(filter))); got != want {
+			t.Errorf("under %q the arrows between components read %q, not %q", filter, got, want)
+		}
+	}
+	packages, _ := diagram.Packages(tr, d.Page, "core")
+	if got := words(presentation.FilteredLinks(tr, d, packages.Links, types.PullFilter{21})); got != "prices · 0 links (out)" {
+		t.Errorf("under #21 the arrow between packages reads %q", got)
+	}
+	scene := draw.Scene{Level: components, Grid: diagram.Arrange(tr, components.Cards, 4), Focus: -1}
+	c, _, _ := draw.Draw(tr, d, scene, types.PullFilter{22})
+	if drawn := strings.Join(c.Lines(0, 0, c.W, c.H, draw.Styles(testCommon().Theme)), "\n"); !strings.Contains(drawn, "→ 2 links") || strings.Contains(drawn, "→ 3 links") {
+		t.Errorf("under #22 the diagram draws:\n%s", drawn)
 	}
 }
 

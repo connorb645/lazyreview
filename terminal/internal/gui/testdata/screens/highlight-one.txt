@@ -23,7 +23,7 @@
 ╭─[4]─Diagram───────────────────╮│   duplicates. [Guessing]                                        │
 │ Components                    ││   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
 │ ■ widgets                     ││                                                                 │
-│·■ Unchanged code              ││ ▾ Queued comments                                               │
+│ ■ Unchanged code              ││ ▾ Queued comments                                               │
 │                               ││ A comment goes on the pull request that last changed its line,  │
 │                               ││ shown as → #number.                                             │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯

@@ -59,7 +59,7 @@ test('the layout gives every type, package and component a place, and nothing ov
       { source: 'Client', target: 'Cache', kind: 'has', key: false, label: null },
     ],
     groups: [],
-    summary: [{ source: 'app', target: 'sdk', count: 1, label: 'calls' }],
+    summary: [{ source: 'app', target: 'sdk', count: 1, label: 'calls', links: [['Store', 'Client']] }],
   };
   const layout = await layoutModel(model, new ELK());
   for (const n of model.nodes) assert.ok(layout.boxes[n.id], `no box for ${n.id}`);
@@ -72,6 +72,8 @@ test('the layout gives every type, package and component a place, and nothing ov
   assert.ok(layout.summaries[0].points.length >= 2);
   assert.ok(layout.routes.some(r => r.label === 'opens' && r.labelAt), 'a named link inside a package carries its label');
   assert.ok(layout.pkgArrows.some(a => a.words === 'reads' && a.from === 'ui' && a.to === 'data'), 'a named link between packages names the arrow');
+  assert.deepEqual(layout.summaries[0].ways, [{ arrow: '→', label: 'calls', links: [['Store', 'Client']] }], 'an arrow between components names the links it counts, each way');
+  assert.deepEqual(layout.pkgArrows.find(a => a.from === 'ui').links, [['Detail', 'Store']], 'an arrow between packages names the links it counts');
   assert.ok(layout.w > 0 && layout.h > 0);
   for (const c of model.components) assert.ok(layout.components[c.id].w >= farTitleRoom(c.title), `${c.id} is too narrow for its far title`);
   assert.deepEqual(layout.farTitle, { size: 150, overhang: 200 });

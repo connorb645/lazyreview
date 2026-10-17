@@ -8,6 +8,10 @@
  * [added, removed] lines of a file the filter shows: all of them, or those
  * its pull request changed. componentTotals() are each component's files
  * and lines the filter shows; an unchanged component keeps its own count.
+ * shows(id) says whether the filter shows a type or a group: unchanged code
+ * always, a type its pull request changed, a group one of its members.
+ * countShown(links) counts the links, as [source, target], whose ends it
+ * shows.
  */
 export function createPulls(ctx) {
   const stack = ctx.data.stack;
@@ -42,5 +46,19 @@ export function createPulls(ctx) {
     return totals;
   }
 
-  return { stack, members, memberOf, pullColor, onFilter, ownLines, componentTotals };
+  function shows(id) {
+    const { model, comps } = ctx.data;
+    if (!ctx.filter.pull) return true;
+    if (id.startsWith('group:')) {
+      const g = model.groups.find(x => 'group:' + x.id === id);
+      return !g || g.members.some(shows);
+    }
+    const n = model.nodes.find(x => x.id === id);
+    return !n || !!(comps[n.component] && comps[n.component].context) || onFilter(n.pulls);
+  }
+  function countShown(links) {
+    return links.filter(([source, target]) => shows(source) && shows(target)).length;
+  }
+
+  return { stack, members, memberOf, pullColor, onFilter, ownLines, componentTotals, shows, countShown };
 }

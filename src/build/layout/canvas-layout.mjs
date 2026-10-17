@@ -207,7 +207,7 @@ function snap(points, index, frame, side) {
 }
 
 function summary(pair, r) {
-  return { source: pair.fwd.source, target: pair.fwd.target, both: !!pair.rev, lines: pair.lines, points: r.points, labelAt: r.labelAt };
+  return { source: pair.fwd.source, target: pair.fwd.target, both: !!pair.rev, lines: pair.lines, ways: pair.ways, points: r.points, labelAt: r.labelAt };
 }
 
 // Drops points that repeat the one before, so a run on from a port joins the
@@ -226,7 +226,9 @@ function labelledEdge(id, source, target, lines) {
 }
 
 // One arrow per pair of components; a pair that links both ways shares one
-// arrow with a head at each end and a line of words for each way.
+// arrow with a head at each end and a line of words for each way. Each way
+// keeps its arrow, its label and the links between types it counts, so an
+// app can count them again under a pull request filter.
 function summaryPairs(summary) {
   const byKey = new Map(summary.map(s => [`${s.source}>${s.target}`, s]));
   const pairs = [];
@@ -234,7 +236,12 @@ function summaryPairs(summary) {
     const rev = byKey.get(`${s.target}>${s.source}`);
     if (rev && (rev.count > s.count || (rev.count === s.count && rev.source < s.source))) continue;
     const words = (x, arrow) => english.diagram.summaryLine(arrow, x.label, x.count);
-    pairs.push({ fwd: s, rev: rev || null, lines: rev ? [words(s, '→'), words(rev, '←')] : [words(s, '→')] });
+    const way = (x, arrow) => ({ arrow, label: x.label, links: x.links });
+    pairs.push({
+      fwd: s, rev: rev || null,
+      lines: rev ? [words(s, '→'), words(rev, '←')] : [words(s, '→')],
+      ways: rev ? [way(s, '→'), way(rev, '←')] : [way(s, '→')],
+    });
   }
   return pairs;
 }

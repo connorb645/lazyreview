@@ -21,11 +21,13 @@ import (
 const noLane = -1
 
 // Draw draws a scene of the diagram on a canvas as large as it needs, the
-// cards the filter leaves out dimmed, and gives the canvas, the top line of
-// each row of cards, and the lines of links leaving the level that hang
-// below the focused card.
+// cards and arrows the filter leaves out dimmed, each arrow between
+// components or packages counting the links it shows, and gives the canvas,
+// the top line of each row of cards, and the lines of links leaving the
+// level that hang below the focused card.
 func Draw(tr *i18n.TranslationSet, d types.ReviewData, v Scene, filter types.PullFilter) (views.Canvas, []int, Stubs) {
 	lvl, g := v.Level, v.Grid
+	lvl.Links = presentation.FilteredLinks(tr, d, lvl.Links, filter)
 	stubLines := stubWords(tr, lvl, v)
 	routes, lanes := routesOf(lvl, g, v.Focus, v.All, len(stubLines) > 0)
 	focusRow := -1
@@ -151,7 +153,7 @@ func routesOf(lvl model.Level, g model.Grid, focus int, all, stubbed bool) ([]ro
 		if i, ok := at[[2]int{from, to}]; ok {
 			r := &routes[i]
 			r.lit = r.lit || lit
-			r.faint = r.faint && !lit && !l.AtRest
+			r.faint = r.faint && !lit && (!l.AtRest || l.Out)
 			if words != "" && r.words != "" {
 				r.words += " · " + words
 			} else if words != "" {
@@ -160,7 +162,7 @@ func routesOf(lvl model.Level, g model.Grid, focus int, all, stubbed bool) ([]ro
 			continue
 		}
 		at[[2]int{from, to}] = len(routes)
-		routes = append(routes, route{from: from, to: to, words: words, lit: lit, faint: !lit && !l.AtRest})
+		routes = append(routes, route{from: from, to: to, words: words, lit: lit, faint: !lit && (!l.AtRest || l.Out)})
 	}
 	centre := func(i int) int { return g.Spots[i].Col + g.Spots[i].Width/2 }
 	for i := range routes {

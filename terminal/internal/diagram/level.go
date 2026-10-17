@@ -45,9 +45,9 @@ func Components(tr *i18n.TranslationSet, page server.Page) Level {
 	}
 	for _, s := range page.Layout.Summaries {
 		words := strings.Join(s.Lines, " · ")
-		l.Links = append(l.Links, Link{From: s.Source, To: s.Target, Kind: "summary", Words: words, AtRest: true})
+		l.Links = append(l.Links, Link{From: s.Source, To: s.Target, Kind: "summary", Words: words, AtRest: true, Ways: s.Ways})
 		if s.Both {
-			l.Links = append(l.Links, Link{From: s.Target, To: s.Source, Kind: "summary", AtRest: true})
+			l.Links = append(l.Links, Link{From: s.Target, To: s.Source, Kind: "summary", AtRest: true, Ways: s.Ways})
 		}
 	}
 	return l
@@ -86,7 +86,11 @@ func Packages(tr *i18n.TranslationSet, page server.Page, component string) (Leve
 			if a.Words != "" {
 				words = a.Words + " · " + a.CountText
 			}
-			l.Links = append(l.Links, Link{From: a.From, To: a.To, Kind: "package", Words: words, AtRest: true})
+			link := Link{From: a.From, To: a.To, Kind: "package", Words: words, AtRest: true}
+			if a.Links != nil {
+				link.Ways = []server.ArrowWay{{Label: a.Words, Links: a.Links}}
+			}
+			l.Links = append(l.Links, link)
 		}
 	}
 	return l, len(l.Cards) > 1

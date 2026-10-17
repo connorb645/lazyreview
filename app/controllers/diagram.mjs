@@ -12,7 +12,7 @@
  */
 import { baseName } from '../lib/text.mjs';
 import { views, element } from '../views.mjs';
-import { createDiagramMarkup, countWords } from '../presentation/diagram.mjs';
+import { createDiagramMarkup, countWords, summaryLines, packageCount } from '../presentation/diagram.mjs';
 
 const MIN = 0.03, MAX = 2.6, NAMES_SHOWN = 0.45;
 const ZOOM_STRIP = 58;
@@ -318,9 +318,10 @@ export function createDiagram(ctx) {
   /* ---------- the pull request filter ---------- */
   function filterTo(pull) {
     const on = {};
-    model.nodes.forEach(n => { on[n.id] = !!pull && pulls.onFilter(n.pulls); });
+    model.nodes.forEach(n => { on[n.id] = !!pull && pulls.shows(n.id); });
     model.groups.forEach(g => { on['group:' + g.id] = g.members.some(id => on[id]); });
     const compOn = {}, pkgOn = {};
+    model.components.forEach(c => { if (pull && c.context) compOn[c.id] = true; });
     model.nodes.forEach(n => { if (on[n.id]) compOn[n.component] = pkgOn[n.component + ':' + n.package] = true; });
     model.files.forEach(f => { if (pull && pulls.onFilter(f.pulls)) compOn[f.component] = true; });
     svg.classList.toggle('pr-filter', !!pull);
@@ -338,6 +339,18 @@ export function createDiagram(ctx) {
     });
     document.querySelectorAll('.comp-item[data-comp]').forEach(el => {
       el.classList.toggle('pr-off', !!pull && !compOn[el.getAttribute('data-comp')]);
+    });
+    layout.summaries.forEach((s, i) => {
+      const counts = pull && s.ways ? s.ways.map(w => pulls.countShown(w.links)) : null;
+      const lit = !counts || counts.some(n => n > 0);
+      svg.querySelectorAll('.summary[data-i="' + i + '"], .summary-label[data-i="' + i + '"]').forEach(el => el.classList.toggle('pr-on', lit));
+      const lines = summaryLines(s, counts);
+      svg.querySelectorAll('.summary-label[data-i="' + i + '"] tspan').forEach((el, k) => { el.textContent = lines[k]; });
+    });
+    layout.pkgArrows.forEach((a, i) => {
+      const count = pull && a.links ? pulls.countShown(a.links) : a.count;
+      svg.querySelectorAll('.pkg-arrow[data-i="' + i + '"], .pkg-arrow-label[data-i="' + i + '"]').forEach(el => el.classList.toggle('pr-on', count > 0));
+      svg.querySelectorAll('.pkg-arrow-label[data-i="' + i + '"] .sub').forEach(el => { el.textContent = (a.words ? '· ' : '') + packageCount(count); });
     });
     const totals = pulls.componentTotals();
     svg.querySelectorAll('.comp-head[data-comp] .comp-tag').forEach(el => {

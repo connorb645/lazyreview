@@ -167,6 +167,11 @@ test('the model: ids, placement, named links, groups and arrows between componen
   assert.deepEqual([named.label, named.key], ['reads with', true]);
   assert.deepEqual(model.summary.map(s => [s.source, s.target, s.count, s.label]),
     [['app', 'sdk', 2, 'shows what the SDK reads'], ['context', 'sdk', 1, null]]);
+  const componentOf = id => model.nodes.find(n => n.id === id)?.component;
+  for (const s of model.summary) {
+    assert.equal(s.links.length, s.count, 'a summary names each link it counts');
+    for (const [source, target] of s.links) assert.deepEqual([componentOf(source), componentOf(target)], [s.source, s.target]);
+  }
   assert.equal(model.nodes.find(n => n.id === 'Payload').stereotype, '«protocol»');
   assert.deepEqual(model.contextFiles, [{ path: 'Sources/Monitor.swift', component: 'context', package: 'top' }]);
   assert.deepEqual(model.components.map(c => c.packages.map(p => p.bare)), [[true], [true], [true]]);

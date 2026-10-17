@@ -88,3 +88,31 @@ test('under the pull request filter, a component counts only the files and lines
   assert.equal(countWords(totals, model.components[1], true), '0');
   assert.equal(countWords(totals, model.components[2]), countWords(compTotals, model.components[2]));
 });
+
+test('under the pull request filter, unchanged code is never left out, and an arrow counts only the links whose ends it shows', async () => {
+  const { createPulls } = await import('../../app/context/pulls.mjs');
+  const { summaryLines, packageCount } = await import('../../app/presentation/diagram.mjs');
+  const model = {
+    components: [{ id: 'core' }, { id: 'context', context: true }],
+    nodes: [
+      { id: 'Order', component: 'core', pulls: [21, 22] }, { id: 'Rule', component: 'core', pulls: [22] },
+      { id: 'Book', component: 'core', pulls: [21] }, { id: 'Clock', component: 'context', pulls: [] },
+    ],
+    groups: [{ id: 'rules', members: ['Rule'] }],
+    files: [],
+  };
+  const comps = { core: model.components[0], context: model.components[1] };
+  const ctx = { data: { stack: { members: [{ pull: 21 }, { pull: 22 }] }, model, comps, compTotals: {} }, state: { members: [] }, filter: { pull: 22 } };
+  const pulls = createPulls(ctx);
+  assert.deepEqual(['Order', 'Rule', 'Book', 'Clock', 'group:rules'].map(pulls.shows), [true, true, false, true, true]);
+  const summary = { lines: ['→ 3 links', '← 1 link'], ways: [
+    { arrow: '→', label: null, links: [['Order', 'Clock'], ['Book', 'Clock'], ['group:rules', 'Clock']] },
+    { arrow: '←', label: 'ticks', links: [['Clock', 'Book']] },
+  ] };
+  assert.deepEqual(summary.ways.map(w => pulls.countShown(w.links)), [2, 0]);
+  assert.deepEqual(summaryLines(summary, [2, 0]), ['→ 2 links', '← ticks · 0 links']);
+  assert.deepEqual(summaryLines(summary, null), summary.lines);
+  assert.equal(packageCount(1), '1 link');
+  ctx.filter.pull = null;
+  assert.equal(pulls.countShown(summary.ways[0].links), 3);
+});

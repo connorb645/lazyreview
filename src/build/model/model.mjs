@@ -8,7 +8,8 @@
  * unchanged context), the files' imports and the read config. It returns the
  * model the page draws, with nothing in it the page does not use. On a
  * stack's page, files and nodes carry `pulls`, the pull requests that changed
- * them, and files `byPull`, each one's added and removed lines.
+ * them, and files `byPull`, each one's added and removed lines. Each arrow
+ * between components in `summary` keeps the links it counts, as `links`.
  */
 import { placeFiles, CONTEXT_COMPONENT } from '../placement/placement.mjs';
 import { findRelations } from './relations.mjs';
@@ -175,14 +176,15 @@ function summarize(edges, componentOf, labels, componentCount) {
     const a = componentOf(e.source), b = componentOf(e.target);
     if (a === b) continue;
     const key = `${a}>${b}`;
-    pairs.set(key, (pairs.get(key) || 0) + 1);
+    if (!pairs.has(key)) pairs.set(key, []);
+    pairs.get(key).push([e.source, e.target]);
   }
   const named = new Map(labels.map(l => [`${l.from}>${l.to}`, l.label]));
   return [...pairs.entries()]
-    .filter(([key, count]) => count >= 2 || named.has(key) || componentCount <= 4)
-    .map(([key, count]) => {
+    .filter(([key, links]) => links.length >= 2 || named.has(key) || componentCount <= 4)
+    .map(([key, links]) => {
       const [source, target] = key.split('>');
-      return { source, target, count, label: named.get(key) || null };
+      return { source, target, count: links.length, label: named.get(key) || null, links };
     })
     .sort((a, b) => a.source.localeCompare(b.source) || a.target.localeCompare(b.target));
 }
