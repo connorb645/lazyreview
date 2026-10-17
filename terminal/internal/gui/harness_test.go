@@ -7,7 +7,6 @@ import (
 	"flag"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -128,7 +127,7 @@ func (c *changes) get(key string) (answer, bool) {
 func served(t *testing.T, changed *changes) *server.Client {
 	t.Helper()
 	answers := recorded(t)
-	stand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	stand := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if r.Method != http.MethodGet && r.Header.Get("Authorization") != "Bearer test-token" {
 			w.WriteHeader(http.StatusForbidden)
@@ -153,14 +152,20 @@ func served(t *testing.T, changed *changes) *server.Client {
 		}
 		w.WriteHeader(answer.Status)
 		_, _ = w.Write(answer.Body)
-	}))
-	t.Cleanup(stand.Close)
+	})
+	return servedBy(t, stand)
+}
+
+// servedBy is a client of a stand-in server that answers with a handler in
+// the test's own process.
+func servedBy(t *testing.T, handler http.Handler) *server.Client {
+	t.Helper()
 	file := filepath.Join(t.TempDir(), "server.json")
-	record, _ := json.Marshal(server.Record{Address: stand.URL, Token: "test-token"})
+	record, _ := json.Marshal(server.Record{Address: "http://stand-in", Token: "test-token"})
 	if err := os.WriteFile(file, record, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	return server.NewClient(testCommon(), file)
+	return server.NewClientThrough(testCommon(), file, inProcess{handler: handler})
 }
 
 func sortedFields(t *testing.T, body io.Reader) string {

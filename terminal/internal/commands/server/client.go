@@ -43,7 +43,14 @@ type Client struct {
 // NewClient returns a client of the server that records itself in file, the
 // data home's server.json.
 func NewClient(cmn *common.Common, file string) *Client {
-	return &Client{tr: cmn.Tr, file: file, http: &http.Client{}}
+	return NewClientThrough(cmn, file, http.DefaultTransport)
+}
+
+// NewClientThrough returns a client of the server that records itself in
+// file, which reaches it through transport, such as one that answers in the
+// same process.
+func NewClientThrough(cmn *common.Common, file string, transport http.RoundTripper) *Client {
+	return &Client{tr: cmn.Tr, file: file, http: &http.Client{Transport: transport}}
 }
 
 // Address is where the server answers, such as http://127.0.0.1:4747.

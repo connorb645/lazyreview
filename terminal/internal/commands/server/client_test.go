@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,7 +16,7 @@ import (
 func streaming(t *testing.T, streams ...[]string) *Client {
 	t.Helper()
 	connected := 0
-	stand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	stand := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/reviews/github.com/octo/widgets/21/events" || r.Header.Get("Accept") != "text/event-stream" {
 			http.NotFound(w, r)
 			return
@@ -30,14 +29,13 @@ func streaming(t *testing.T, streams ...[]string) *Client {
 			}
 		}
 		connected++
-	}))
-	t.Cleanup(stand.Close)
+	})
 	file := filepath.Join(t.TempDir(), "server.json")
-	record, _ := json.Marshal(Record{Address: stand.URL, Token: "test-token"})
+	record, _ := json.Marshal(Record{Address: "http://stand-in", Token: "test-token"})
 	if err := os.WriteFile(file, record, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	return NewClient(&common.Common{Tr: i18n.EnglishTranslationSet()}, file)
+	return NewClientThrough(&common.Common{Tr: i18n.EnglishTranslationSet()}, file, inProcess{handler: stand})
 }
 
 func TestEventsSendsEachNoticeAndSaysWhyItStopped(t *testing.T) {

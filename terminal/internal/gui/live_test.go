@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -119,20 +116,14 @@ func (e errString) Error() string { return string(e) }
 
 func TestListeningComesBackAfterTheStreamEnds(t *testing.T) {
 	connected := 0
-	stand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client := servedBy(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		connected++
 		fmt.Fprintf(w, "retry: 1000\n\ndata: {\"state\":\"v%d\"}\n\n", connected)
 	}))
-	t.Cleanup(stand.Close)
-	file := filepath.Join(t.TempDir(), "server.json")
-	record, _ := json.Marshal(server.Record{Address: stand.URL, Token: "test-token"})
-	if err := os.WriteFile(file, record, 0o600); err != nil {
-		t.Fatal(err)
-	}
 	ctx, stop := stdcontext.WithCancel(stdcontext.Background())
 	defer stop()
-	heard := helpers.Listen(ctx, server.NewClient(testCommon(), file), stack)
+	heard := helpers.Listen(ctx, client, stack)
 	for _, want := range []string{"v1", "v2"} {
 		select {
 		case msg := <-heard:
