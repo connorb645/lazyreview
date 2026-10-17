@@ -17,51 +17,47 @@ func TestTheColourScreens(t *testing.T) {
 	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
 	screens := []struct {
 		name string
-		draw func(t *testing.T, light func(*Options)) App
+		draw func(t *testing.T, open func(review string, set ...func(*Options)) App) App
 	}{
-		{"review-stack", func(t *testing.T, light func(*Options)) App {
-			a, _ := opened(t, stack, 100, 30, light)
-			return press(t, a, "0", "j")
+		{"review-stack", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			return press(t, open(stack), "0", "j")
 		}},
-		{"diff-split-visual", func(t *testing.T, light func(*Options)) App {
-			a, _ := opened(t, stack, 100, 30, light)
-			a = typed(t, press(t, a, "space", "f"), "Basket/Basket")
+		{"diff-split-visual", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			a := typed(t, press(t, open(stack), "space", "f"), "Basket/Basket")
 			a = typed(t, press(t, a, "space", "s", ":"), "7")
 			return press(t, a, "V", "j")
 		}},
-		{"diagram-components", func(t *testing.T, light func(*Options)) App {
-			a, _ := opened(t, stack, 100, 30, light)
-			return press(t, a, "space", "m")
+		{"diagram-components", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			return press(t, open(stack), "space", "m")
 		}},
-		{"diagram-types", func(t *testing.T, light func(*Options)) App {
-			a, _ := opened(t, stack, 100, 30, light)
-			return press(t, a, "space", "m", "enter", "enter")
+		{"diagram-types", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			return press(t, open(stack), "space", "m", "enter", "enter")
 		}},
-		{"home", func(t *testing.T, light func(*Options)) App {
-			a, _ := openedOn(t, &changes{answers: map[string]answer{}}, "", 100, 30, light, func(o *Options) { o.Home = "/home/reviewer" })
-			return press(t, a, "j")
+		{"home", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			return press(t, open("", func(o *Options) { o.Home = "/home/reviewer" }), "j")
 		}},
-		{"posting-confirm", func(t *testing.T, light func(*Options)) App {
-			a, _ := opened(t, "github.com/octo/widgets/30", 100, 30, light)
-			return press(t, a, "P", "j", "enter")
+		{"posting-confirm", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			return press(t, open("github.com/octo/widgets/30"), "P", "j", "enter")
 		}},
-		{"finder", func(t *testing.T, light func(*Options)) App {
-			a, _ := opened(t, stack, 100, 30, light)
-			a = press(t, a, "space", "f")
+		{"finder", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			a := press(t, open(stack), "space", "f")
 			for _, r := range "bask" {
 				a = send(t, a, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{r}})
 			}
 			return a
 		}},
-		{"keys", func(t *testing.T, light func(*Options)) App {
-			a, _ := opened(t, stack, 100, 30, light)
-			return press(t, a, "space", "?")
+		{"keys", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			return press(t, open(stack), "space", "?")
 		}},
 	}
 	for _, s := range screens {
 		for _, theme := range []string{"dark", "light"} {
-			light := func(o *Options) { o.Dark = theme == "dark" }
-			colourScreenIs(t, s.draw(t, light), s.name+"-"+theme)
+			cmn := commonFor(theme == "dark")
+			open := func(review string, set ...func(*Options)) App {
+				a, _ := openedIn(t, cmn, &changes{answers: map[string]answer{}}, review, 100, 30, set...)
+				return a
+			}
+			colourScreenIs(t, s.draw(t, open), s.name+"-"+theme)
 		}
 	}
 }

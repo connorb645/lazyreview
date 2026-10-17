@@ -108,7 +108,7 @@ func menuKeys(t *testing.T) map[string]string {
 	a, _ := opened(t, stack, 100, 30)
 	a = a.openFinder()
 	pn := *a.menu
-	pn.finding, pn.rows = false, pn.all
+	pn.Finding, pn.Rows = false, pn.all
 	pn = pn.move(1, a.menuRows())
 	a.menu = &pn
 	a = a.say("probe", false)
@@ -119,9 +119,9 @@ func menuKeys(t *testing.T) map[string]string {
 	for _, name := range probeKeys(t) {
 		b := pressed(a, name)
 		switch {
-		case b.menu != nil && b.menu.cursor == pn.move(1, a.menuRows()).cursor:
+		case b.menu != nil && b.menu.Cursor == pn.move(1, a.menuRows()).Cursor:
 			out[name] = "down"
-		case b.menu != nil && b.menu.cursor == pn.move(-1, a.menuRows()).cursor:
+		case b.menu != nil && b.menu.Cursor == pn.move(-1, a.menuRows()).Cursor:
 			out[name] = "up"
 		case b.menu == nil && b.keys.Typed() == "" && b.View() == closed.View():
 			out[name] = "close"
@@ -148,11 +148,11 @@ func finderKeys(t *testing.T) map[string]string {
 	for _, name := range probeKeys(t) {
 		b := pressed(a, name)
 		switch {
-		case b.menu != nil && b.menu.query == "es" && b.menu.cursor == pn.move(1, a.menuRows()).cursor:
+		case b.menu != nil && b.menu.Query == "es" && b.menu.Cursor == pn.move(1, a.menuRows()).Cursor:
 			out[name] = "down"
-		case b.menu != nil && b.menu.query == "es" && b.menu.cursor == pn.move(-1, a.menuRows()).cursor:
+		case b.menu != nil && b.menu.Query == "es" && b.menu.Cursor == pn.move(-1, a.menuRows()).Cursor:
 			out[name] = "up"
-		case b.menu != nil && b.menu.query == "":
+		case b.menu != nil && b.menu.Query == "":
 			out[name] = "clear"
 		case b.menu == nil && b.View() == closed.View():
 			out[name] = "close"

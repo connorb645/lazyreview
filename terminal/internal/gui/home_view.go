@@ -2,7 +2,10 @@ package gui
 
 import (
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/theme"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 type homeView struct {
@@ -18,21 +21,23 @@ type homeView struct {
 	fromDriving int
 }
 
-func (h homeView) rebuilt(tr *i18n.TranslationSet, p palette) homeView {
+func (h homeView) rebuilt(tr *i18n.TranslationSet, th theme.Theme) homeView {
 	was, _ := h.selected()
 	kept := map[string]sidePanel{}
 	for _, panel := range h.panels {
 		kept[panel.title] = panel.rows
 	}
-	panels := homePanels(tr, h, p)
-	for i, panel := range panels {
+	var panels []homePanel
+	for _, p := range presentation.HomePanels(tr, th, h.list, h.failed) {
+		panel := homePanel{title: p.Title, number: p.Number, repo: p.Repo, waiting: p.Waiting, rows: sidePanel{}.reset(p.Rows)}
 		if rows, ok := kept[panel.title]; ok {
-			panels[i].rows = rows.reset(panel.rows.rows)
+			panel.rows = rows.reset(p.Rows)
 		}
+		panels = append(panels, panel)
 	}
-	h.panels, h.focus = panels, clamp(h.focus, 0, len(panels)-1)
+	h.panels, h.focus = panels, utils.Clamp(h.focus, 0, len(panels)-1)
 	for i, panel := range panels {
-		if was.key != "" && panel.rows.index(was.key) >= 0 {
+		if was.Key != "" && panel.rows.index(was.Key) >= 0 {
 			h.focus = i
 		}
 	}
@@ -46,19 +51,19 @@ func (h homeView) focusedRows() sidePanel {
 	return h.panels[h.focus].rows
 }
 
-func (h homeView) selected() (sideRow, bool) {
+func (h homeView) selected() (presentation.SideRow, bool) {
 	return h.focusedRows().selected()
 }
 
 func (h homeView) pull() (server.PullRepo, server.Unit, server.OpenPull, bool) {
 	row, ok := h.selected()
-	if !ok || row.it.kind != "pull" || h.list == nil {
+	if !ok || row.Item.Kind != "pull" || h.list == nil {
 		return server.PullRepo{}, server.Unit{}, server.OpenPull{}, false
 	}
 	repo := h.list.Repos[h.panels[h.focus].repo]
 	for _, u := range repo.Units {
 		for _, m := range u.Members {
-			if m.Number == row.it.pull {
+			if m.Number == row.Item.Pull {
 				return repo, u, m, true
 			}
 		}
@@ -163,7 +168,7 @@ func (h homeView) withReview(unit, id string) homeView {
 	for r, repo := range list.Repos {
 		repo.Units = append([]server.Unit{}, repo.Units...)
 		for u, un := range repo.Units {
-			if unitKey(repo, un) != unit {
+			if presentation.UnitKey(repo, un) != unit {
 				continue
 			}
 			un.Review = id

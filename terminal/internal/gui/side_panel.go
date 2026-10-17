@@ -1,15 +1,20 @@
 package gui
 
+import (
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
+)
+
 type sidePanel struct {
-	rows   []sideRow
+	rows   []presentation.SideRow
 	cursor int
 	top    int
 }
 
-func (s sidePanel) reset(rows []sideRow) sidePanel {
+func (s sidePanel) reset(rows []presentation.SideRow) sidePanel {
 	next := sidePanel{rows: rows, top: s.top, cursor: -1}
 	if was, ok := s.selected(); ok {
-		next.cursor = next.index(was.key)
+		next.cursor = next.index(was.Key)
 	}
 	if next.cursor < 0 {
 		next.cursor = next.landing(min(s.cursor, len(rows)-1), 1)
@@ -17,16 +22,16 @@ func (s sidePanel) reset(rows []sideRow) sidePanel {
 	return next
 }
 
-func (s sidePanel) selected() (sideRow, bool) {
-	if s.cursor < 0 || s.cursor >= len(s.rows) || s.rows[s.cursor].heading {
-		return sideRow{}, false
+func (s sidePanel) selected() (presentation.SideRow, bool) {
+	if s.cursor < 0 || s.cursor >= len(s.rows) || s.rows[s.cursor].Heading {
+		return presentation.SideRow{}, false
 	}
 	return s.rows[s.cursor], true
 }
 
 func (s sidePanel) index(key string) int {
 	for i, r := range s.rows {
-		if r.key == key && !r.heading {
+		if r.Key == key && !r.Heading {
 			return i
 		}
 	}
@@ -35,12 +40,12 @@ func (s sidePanel) index(key string) int {
 
 func (s sidePanel) landing(from, by int) int {
 	for i := max(0, from); i >= 0 && i < len(s.rows); i += by {
-		if !s.rows[i].heading {
+		if !s.rows[i].Heading {
 			return i
 		}
 	}
 	for i := min(from, len(s.rows)-1); i >= 0 && i < len(s.rows); i -= by {
-		if !s.rows[i].heading {
+		if !s.rows[i].Heading {
 			return i
 		}
 	}
@@ -72,19 +77,15 @@ func (s sidePanel) to(i, height int) sidePanel {
 	return s.shown(height)
 }
 
-func (s sidePanel) toKey(key string, height int) sidePanel {
-	return s.to(s.index(key), height)
-}
-
 func (s sidePanel) scroll(by, height int) sidePanel {
-	s.top = clamp(s.top+by, 0, max(0, len(s.rows)-height))
+	s.top = utils.Clamp(s.top+by, 0, max(0, len(s.rows)-height))
 	return s
 }
 
 func (s sidePanel) shown(height int) sidePanel {
 	if s.cursor >= 0 {
 		top := s.cursor
-		for top > 0 && s.rows[top-1].heading && s.cursor-top+1 < height {
+		for top > 0 && s.rows[top-1].Heading && s.cursor-top+1 < height {
 			top--
 		}
 		s.top = min(s.top, top)
@@ -92,12 +93,12 @@ func (s sidePanel) shown(height int) sidePanel {
 			s.top = s.cursor - height + 1
 		}
 	}
-	s.top = clamp(s.top, 0, max(0, len(s.rows)-height))
+	s.top = utils.Clamp(s.top, 0, max(0, len(s.rows)-height))
 	return s
 }
 
 func (s sidePanel) at(y int) int {
-	if i := s.top + y; i >= 0 && i < len(s.rows) && !s.rows[i].heading {
+	if i := s.top + y; i >= 0 && i < len(s.rows) && !s.rows[i].Heading {
 		return i
 	}
 	return -1

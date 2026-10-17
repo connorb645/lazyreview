@@ -9,6 +9,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation/diagram"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
 
 func onDiagram(t *testing.T) App {
@@ -19,7 +21,7 @@ func onDiagram(t *testing.T) App {
 
 func focusedOn(t *testing.T, a App, want string) {
 	t.Helper()
-	if card, _ := a.dg.card(); card.ID != want {
+	if card, _ := a.dg.Card(); card.ID != want {
 		t.Fatalf("the focus is on %q, not %q", card.ID, want)
 	}
 }
@@ -37,8 +39,8 @@ func TestTheDiagramStepsInAndOutOfItsLevels(t *testing.T) {
 	a = press(t, a, "-")
 	focusedOn(t, a, "root")
 	a = press(t, a, "j", "enter")
-	if a.dg.level.Kind != "types" || a.dg.level.Package != "top" {
-		t.Fatalf("a component of one package steps straight to its types: %+v", a.dg.level)
+	if a.dg.Level.Kind != "types" || a.dg.Level.Package != "top" {
+		t.Fatalf("a component of one package steps straight to its types: %+v", a.dg.Level)
 	}
 	a = press(t, a, "-", "-")
 	if a.screen != screenReview {
@@ -87,8 +89,8 @@ func TestGdFollowsALinkAndGrListsWhatLinksIn(t *testing.T) {
 	a := onDiagram(t)
 	a = typed(t, press(t, a, "/"), "Catalog")
 	focusedOn(t, a, "Catalog")
-	if a.dg.level.Component != "context" {
-		t.Fatalf("a match in another component shows its level: %+v", a.dg.level)
+	if a.dg.Level.Component != "context" {
+		t.Fatalf("a match in another component shows its level: %+v", a.dg.Level)
 	}
 	a = press(t, a, "g", "d")
 	focusedOn(t, a, "Item")
@@ -115,7 +117,7 @@ func TestEnterOpensATypesDiffAndDashComesBack(t *testing.T) {
 	}
 	focusedOn(t, a, "Basket")
 	a = press(t, a, "g", "d")
-	if a.screen != screenDiagram || a.menu == nil || len(a.menu.rows) != 2 {
+	if a.screen != screenDiagram || a.menu == nil || len(a.menu.Rows) != 2 {
 		t.Fatalf("Basket links to two types, so gd lists them: %+v", a.menu)
 	}
 }
@@ -127,7 +129,7 @@ func TestGdInTheDiffShowsTheTypeAtTheCursor(t *testing.T) {
 		t.Fatalf("the finder opens a file at its header: %v %s", a.screen, cursorAt(a))
 	}
 	a = press(t, a, "g", "d")
-	if a.menu == nil || a.menu.title != "Types in Search.swift" {
+	if a.menu == nil || a.menu.Title != "Types in Search.swift" {
 		t.Fatalf("gd on a file's header lists its types: %+v", a.menu)
 	}
 	a = press(t, a, "esc", "]", "c", "g", "d")
@@ -145,8 +147,8 @@ func TestTheFinderNarrowsAsItIsTyped(t *testing.T) {
 	}
 	screenIs(t, a, "finder")
 	a = send(t, a, tea.KeyMsg{Type: tea.KeyBackspace})
-	if a.menu.query != "bas" {
-		t.Fatalf("Backspace takes back a letter: %q", a.menu.query)
+	if a.menu.Query != "bas" {
+		t.Fatalf("Backspace takes back a letter: %q", a.menu.Query)
 	}
 	a = send(t, a, tea.KeyMsg{Type: tea.KeyEnter})
 	if a.screen != screenDiagram {
@@ -160,12 +162,12 @@ func TestLabelsJumpToABox(t *testing.T) {
 	screenIs(t, a, "diagram-labels")
 	a = press(t, a, "d")
 	focusedOn(t, a, "Search")
-	if a.dg.labels != nil {
+	if a.dg.Labels != nil {
 		t.Fatal("the labels go once one is typed")
 	}
 	a = press(t, a, "f", "x")
 	focusedOn(t, a, "Search")
-	if !a.bad || a.dg.labels != nil {
+	if !a.bad || a.dg.Labels != nil {
 		t.Fatalf("a label no box has stops the labels: %q", a.notice)
 	}
 }
@@ -179,11 +181,11 @@ func TestAClickFocusesABox(t *testing.T) {
 
 func drawnAt(t *testing.T, a App, text string) (int, int) {
 	t.Helper()
-	main := a.layout().main.inner()
+	main := a.layout().main.Inner()
 	for y, line := range strings.Split(a.View(), "\n") {
-		inside := ansi.TruncateLeft(line, main.x, "")
-		if x := strings.Index(inside, text); x >= 0 && y >= main.y && y < main.y+main.h {
-			return main.x + ansi.StringWidth(inside[:x]), y
+		inside := ansi.TruncateLeft(line, main.X, "")
+		if x := strings.Index(inside, text); x >= 0 && y >= main.Y && y < main.Y+main.H {
+			return main.X + ansi.StringWidth(inside[:x]), y
 		}
 	}
 	t.Fatalf("%q is not drawn in the main panel", text)
@@ -195,17 +197,17 @@ func TestThePullRequestFilterDimsTheTypesItLeavesOut(t *testing.T) {
 	if got := fmt.Sprint(a.filter); got != "[21]" {
 		t.Fatalf("the filter: %s", got)
 	}
-	c, tops, _ := drawDiagram(a.c.Tr, *a.review, a.dg, a.filter)
+	c, tops, _ := diagram.Draw(a.c.Tr, *a.review, a.dg.Scene, a.filter)
 	titleStyle := func(id string) string {
-		s := a.dg.grid.Spots[a.dg.level.Index(id)]
-		return c.cells[tops[s.Row]+1][s.Col+2].style
+		s := a.dg.Grid.Spots[a.dg.Level.Index(id)]
+		return c.Cells[tops[s.Row]+1][s.Col+2].Style
 	}
 	if titleStyle("Basket") != "dim" || titleStyle("Search") != "title" {
 		t.Fatalf("#21 changed Search and not Basket: %q %q", titleStyle("Basket"), titleStyle("Search"))
 	}
 }
 
-func standIn() reviewData {
+func standIn() types.ReviewData {
 	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
 	node := func(id, file string, line int) server.Node {
 		return server.Node{ID: id, Name: id, Kind: "class", File: "Sources/Core/" + file, Line: line, Component: "core", Package: "model", State: "changed"}
@@ -215,7 +217,7 @@ func standIn() reviewData {
 		node("Refund", "Refund.swift", 1), node("Return", "Refund.swift", 9)}
 	nodes[6].Group, nodes[7].Group = "kinds", "kinds"
 	nodes = append(nodes, server.Node{ID: "Store", Name: "Store", Kind: "protocol", File: "Sources/Shop/Store.swift", Line: 1, Component: "shop", Package: "top", State: "same"})
-	return reviewData{id: "stand-in", page: server.Page{
+	return types.ReviewData{ID: "stand-in", Page: server.Page{
 		Model: server.Model{
 			Components: []server.Component{
 				{ID: "core", Title: "Core", Color: "teal", Area: "money", Packages: []server.Package{{ID: "model", Title: "Model"}}},
@@ -251,18 +253,18 @@ func standIn() reviewData {
 }
 
 func standInApp(width, height int) App {
-	a := New(testCommon(), Options{Dark: true})
+	a := New(testCommon(), Options{})
 	d := standIn()
 	a.review, a.loading, a.width, a.height, a.focus = &d, false, width, height, mainPanel
 	return a
 }
 
 func TestLinksRunAroundTheCards(t *testing.T) {
-	a := standInApp(110, 40).showBox(diagramPlace{level: "components", box: "core"})
+	a := standInApp(110, 40).showBox(types.DiagramPlace{Level: "components", Box: "core"})
 	screenIs(t, a, "stand-in-components")
-	a = a.showBox(diagramPlace{level: "types", component: "core", pkg: "model", box: "Order"})
+	a = a.showBox(types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
 	screenIs(t, a, "stand-in-order")
-	a = a.showBox(diagramPlace{level: "types", component: "core", pkg: "model", box: "Invoice"})
+	a = a.showBox(types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Invoice"})
 	screenIs(t, a, "stand-in-at-rest")
 	a = press(t, a, "space", "a")
 	screenIs(t, a, "stand-in-every-link")
@@ -272,14 +274,14 @@ func TestLinksRunAroundTheCards(t *testing.T) {
 	screenIs(t, a, "stand-in-group")
 }
 
-func pathsStandIn() reviewData {
+func pathsStandIn() types.ReviewData {
 	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
 	pkg := func(id, title string) server.Package { return server.Package{ID: id, Title: title} }
 	file := func(path, pkg string) server.FileEntry {
 		return server.FileEntry{Path: path, Status: "A", Adds: 3, Component: "shop", Package: pkg}
 	}
 	flag := "Sources/Store/Web/BasketFlow/Pricing/RemoteOverrides/Experiments/ExperimentFlag.swift"
-	return reviewData{id: "paths", state: server.State{Kind: "branch", Base: server.Ref{Ref: "main"}, Head: server.Ref{Ref: "feature/pricing"}}, page: server.Page{
+	return types.ReviewData{ID: "paths", State: server.State{Kind: "branch", Base: server.Ref{Ref: "main"}, Head: server.Ref{Ref: "feature/pricing"}}, Page: server.Page{
 		Model: server.Model{
 			Components: []server.Component{{ID: "shop", Title: "Shop", Color: "blue", Packages: []server.Package{
 				pkg("checkout", "Checkout"), pkg("experiments", "Pricing/Remote Overrides/Experiments"),
@@ -298,9 +300,9 @@ func pathsStandIn() reviewData {
 
 func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 	d := pathsStandIn()
-	a := New(testCommon(), Options{Dark: true})
+	a := New(testCommon(), Options{})
 	a.review, a.loading, a.width, a.height, a.focus, a.driving = &d, false, 80, 24, diagramPanel, diagramPanel
-	a = a.showBox(diagramPlace{level: "packages", component: "shop", box: "experiments"}).relaid()
+	a = a.showBox(types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"}).relaid()
 	screenIs(t, a, "paths-packages")
 	shown := a.View()
 	for _, want := range []string{"┃ …/Remote Overrides/Experiments ", "│ docs/store/help/local ", "▌…/Experiments ", "│ Pricing rules for ever…│",
@@ -309,7 +311,7 @@ func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 			t.Errorf("the packages show no %q", want)
 		}
 	}
-	a = a.showBox(diagramPlace{level: "types", component: "shop", pkg: "experiments", box: "ExperimentFlag"}).relaid()
+	a = a.showBox(types.DiagramPlace{Level: "types", Component: "shop", Package: "experiments", Box: "ExperimentFlag"}).relaid()
 	screenIs(t, a, "paths-types")
 	shown = a.View()
 	for _, want := range []string{"[0]─Diagram · Shop › …/Experiments─", "│ Shop › …/Experiments ", "─ExperimentFlag · struct · …erimentFlag.swift · new─╯"} {
@@ -342,7 +344,7 @@ func TestTheDiffsTitleAndFileHeadersKeepTheFilesName(t *testing.T) {
 }
 
 func TestTheDiagramScrollsToTheFocus(t *testing.T) {
-	a := standInApp(40, 14).showBox(diagramPlace{level: "types", component: "core", pkg: "model", box: "Order"})
+	a := standInApp(40, 14).showBox(types.DiagramPlace{Level: "types", Component: "core", Package: "model", Box: "Order"})
 	a = press(t, a, "G")
 	focusedOn(t, a, "Receipt")
 	screenIs(t, a, "stand-in-scrolled")

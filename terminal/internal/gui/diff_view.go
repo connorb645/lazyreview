@@ -5,39 +5,26 @@ import (
 	"time"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 type diffView struct {
-	loc       *time.Location
-	md        *markdown
-	rendered  map[string]bool
-	notes     map[string]bool
-	selecting bool
-	anchor    int
-	component string
-	files     map[string]server.File
-	folded    map[string]bool
-	opened    map[string]bool
-	whole     map[string]bool
-	split     bool
-	wrap      bool
-	rows      []diffRow
-	cursor    int
-	top       int
-	query     string
-	width     int
+	presentation.DiffView
+	query string
 }
 
-func newDiffView(component string, files map[string]server.File, loc *time.Location, md *markdown) diffView {
-	return diffView{component: component, files: files, loc: loc, md: md, rendered: map[string]bool{}, notes: map[string]bool{}, folded: map[string]bool{}, opened: map[string]bool{}, whole: map[string]bool{}}
+func newDiffView(component string, files map[string]server.File) diffView {
+	return diffView{DiffView: presentation.DiffView{Component: component, Files: files, Rendered: map[string]bool{}, Notes: map[string]bool{}, Folded: map[string]bool{}, Opened: map[string]bool{}, Whole: map[string]bool{}}}
 }
 
-func (v diffView) rebuilt(tr *i18n.TranslationSet, d reviewData, filter pullFilter, height int) diffView {
+func (v diffView) rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown, loc *time.Location, d types.ReviewData, filter types.PullFilter, height int) diffView {
 	was := v.place()
-	v.rows = buildDiff(tr, d, v, filter)
-	v.cursor = 0
+	v.Rows = presentation.BuildDiff(tr, md, loc, d, v.DiffView, filter)
+	v.Cursor = 0
 	if was != nil {
 		v = v.find(*was)
 	}
@@ -45,51 +32,51 @@ func (v diffView) rebuilt(tr *i18n.TranslationSet, d reviewData, filter pullFilt
 }
 
 func (v diffView) place() *server.Lines {
-	if v.cursor >= len(v.rows) {
+	if v.Cursor >= len(v.Rows) {
 		return nil
 	}
-	r := v.rows[v.cursor]
-	if r.kind == "block" {
-		return &server.Lines{Path: r.path, Side: r.block.Side, Line: r.block.StartLine}
+	r := v.Rows[v.Cursor]
+	if r.Kind == "block" {
+		return &server.Lines{Path: r.Path, Side: r.Block.Side, Line: r.Block.StartLine}
 	}
-	side, line, ok := r.at()
+	side, line, ok := r.At()
 	if !ok {
-		return &server.Lines{Path: r.path, Side: r.kind + ":" + r.key}
+		return &server.Lines{Path: r.Path, Side: r.Kind + ":" + r.Key}
 	}
-	return &server.Lines{Path: r.path, Side: side, Line: line}
+	return &server.Lines{Path: r.Path, Side: side, Line: line}
 }
 
 func (v diffView) find(at server.Lines) diffView {
 	header := -1
-	for i, r := range v.rows {
-		if r.path != at.Path {
+	for i, r := range v.Rows {
+		if r.Path != at.Path {
 			continue
 		}
 		if header < 0 {
 			header = i
 		}
-		side, line, ok := r.at()
+		side, line, ok := r.At()
 		if ok && line == at.Line && (side == at.Side || sameLine(r, at)) {
-			v.cursor = i
+			v.Cursor = i
 			return v
 		}
-		if !ok && r.kind+":"+r.key == at.Side {
-			v.cursor = i
+		if !ok && r.Kind+":"+r.Key == at.Side {
+			v.Cursor = i
 			return v
 		}
-		if b := r.block; b != nil && b.Side == at.Side && at.Line >= b.StartLine && at.Line <= b.Line {
-			v.cursor = i
+		if b := r.Block; b != nil && b.Side == at.Side && at.Line >= b.StartLine && at.Line <= b.Line {
+			v.Cursor = i
 			return v
 		}
 	}
 	if header >= 0 {
-		v.cursor = header
+		v.Cursor = header
 	}
 	return v
 }
 
-func sameLine(r diffRow, at server.Lines) bool {
-	for _, l := range []*server.Row{r.line, r.left, r.right} {
+func sameLine(r presentation.DiffRow, at server.Lines) bool {
+	for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
 		if l != nil && l.Kind == "same" && ((at.Side == "LEFT" && l.Old == at.Line) || (at.Side == "RIGHT" && l.New == at.Line)) {
 			return true
 		}
@@ -98,82 +85,82 @@ func sameLine(r diffRow, at server.Lines) bool {
 }
 
 func (v diffView) move(by, height int) diffView {
-	if len(v.rows) == 0 {
+	if len(v.Rows) == 0 {
 		return v
 	}
-	v.cursor = clamp(v.cursor+by, 0, len(v.rows)-1)
+	v.Cursor = utils.Clamp(v.Cursor+by, 0, len(v.Rows)-1)
 	return v.shown(height)
 }
 
 func (v diffView) to(i, height int) diffView {
-	return v.move(i-v.cursor, height)
+	return v.move(i-v.Cursor, height)
 }
 
 func (v diffView) scroll(by, height int) diffView {
-	v.top = clamp(v.top+by, 0, v.lastTop(height))
+	v.Top = utils.Clamp(v.Top+by, 0, v.lastTop(height))
 	return v
 }
 
 func (v diffView) placed(height int) diffView {
 	used := func(from, to int) int {
 		n := 0
-		for i := from; i <= to && i < len(v.rows); i++ {
-			n += rowHeight(v.rows[i], v)
+		for i := from; i <= to && i < len(v.Rows); i++ {
+			n += presentation.RowHeight(v.Rows[i], v.DiffView)
 		}
 		return n
 	}
-	v.top = v.cursor
-	for v.top > 0 && used(v.top-1, v.cursor-1) < height/3 {
-		v.top--
+	v.Top = v.Cursor
+	for v.Top > 0 && used(v.Top-1, v.Cursor-1) < height/3 {
+		v.Top--
 	}
-	v.top = min(v.top, v.lastTop(height))
+	v.Top = min(v.Top, v.lastTop(height))
 	return v
 }
 
 func (v diffView) atTop(height int) diffView {
-	v.top = min(v.cursor, v.lastTop(height))
+	v.Top = min(v.Cursor, v.lastTop(height))
 	return v
 }
 
 func (v diffView) lastTop(height int) int {
 	used := 0
-	for i := len(v.rows) - 1; i >= 0; i-- {
-		if used += rowHeight(v.rows[i], v); used > height {
-			return min(i+1, len(v.rows)-1)
+	for i := len(v.Rows) - 1; i >= 0; i-- {
+		if used += presentation.RowHeight(v.Rows[i], v.DiffView); used > height {
+			return min(i+1, len(v.Rows)-1)
 		}
 	}
 	return 0
 }
 
 func (v diffView) shown(height int) diffView {
-	if v.cursor < v.top {
-		v.top = v.cursor
+	if v.Cursor < v.Top {
+		v.Top = v.Cursor
 	}
-	for v.top < v.cursor {
+	for v.Top < v.Cursor {
 		used := 0
-		for i := v.top; i <= v.cursor; i++ {
-			used += rowHeight(v.rows[i], v)
+		for i := v.Top; i <= v.Cursor; i++ {
+			used += presentation.RowHeight(v.Rows[i], v.DiffView)
 		}
 		if used <= height {
 			break
 		}
-		v.top++
+		v.Top++
 	}
-	v.top = clamp(v.top, 0, max(0, len(v.rows)-1))
+	v.Top = utils.Clamp(v.Top, 0, max(0, len(v.Rows)-1))
 	return v
 }
 
-func (v diffView) next(back bool, holds func(diffRow) bool) int {
-	for i := v.cursor + step(back); i >= 0 && i < len(v.rows); i += step(back) {
-		if holds(v.rows[i]) {
+func (v diffView) next(back bool, holds func(presentation.DiffRow) bool) int {
+	for i := v.Cursor + step(back); i >= 0 && i < len(v.Rows); i += step(back) {
+		if holds(v.Rows[i]) {
 			return i
 		}
 	}
 	return -1
 }
 
-func (v diffView) first(holds func(diffRow) bool) int {
-	for i, r := range v.rows {
+func (v diffView) first(holds func(presentation.DiffRow) bool) int {
+	for i, r := range v.Rows {
 		if holds(r) {
 			return i
 		}
@@ -181,21 +168,21 @@ func (v diffView) first(holds func(diffRow) bool) int {
 	return -1
 }
 
-func (v diffView) extent() extent {
-	var at extent
-	for i, r := range v.rows {
-		if i == v.top {
-			at.top = at.lines
+func (v diffView) extent() views.Extent {
+	var at views.Extent
+	for i, r := range v.Rows {
+		if i == v.Top {
+			at.Top = at.Lines
 		}
-		at.lines += rowHeight(r, v)
+		at.Lines += presentation.RowHeight(r, v.DiffView)
 	}
 	return at
 }
 
 func (v diffView) rowAt(y int) int {
 	line := 0
-	for i := v.top; i < len(v.rows); i++ {
-		line += rowHeight(v.rows[i], v)
+	for i := v.Top; i < len(v.Rows); i++ {
+		line += presentation.RowHeight(v.Rows[i], v.DiffView)
 		if y < line {
 			return i
 		}
@@ -204,14 +191,14 @@ func (v diffView) rowAt(y int) int {
 }
 
 func (v diffView) file() string {
-	if v.cursor < len(v.rows) {
-		return v.rows[v.cursor].path
+	if v.Cursor < len(v.Rows) {
+		return v.Rows[v.Cursor].Path
 	}
 	return ""
 }
 
 func (v diffView) copied() diffView {
-	v.folded, v.opened, v.whole, v.notes, v.rendered = copyBools(v.folded), copyBools(v.opened), copyBools(v.whole), copyBools(v.notes), copyBools(v.rendered)
+	v.Folded, v.Opened, v.Whole, v.Notes, v.Rendered = copyBools(v.Folded), copyBools(v.Opened), copyBools(v.Whole), copyBools(v.Notes), copyBools(v.Rendered)
 	return v
 }
 
@@ -223,12 +210,12 @@ func copyBools(m map[string]bool) map[string]bool {
 	return out
 }
 
-func matches(r diffRow, query string) bool {
+func matches(r presentation.DiffRow, query string) bool {
 	if query == "" {
 		return false
 	}
-	texts := []string{utils.Stripped(r.text)}
-	for _, l := range []*server.Row{r.line, r.left, r.right} {
+	texts := []string{utils.Stripped(r.Text)}
+	for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
 		if l != nil {
 			texts = append(texts, l.Text)
 		}

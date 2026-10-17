@@ -23,6 +23,7 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/common"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/theme"
 )
 
 var update = flag.Bool("update", false, "write the screens the tests compare against")
@@ -33,7 +34,15 @@ func TestMain(m *testing.M) {
 }
 
 func testCommon() *common.Common {
-	return &common.Common{Tr: i18n.EnglishTranslationSet()}
+	return commonFor(true)
+}
+
+func commonFor(dark bool) *common.Common {
+	colours := theme.LightColours()
+	if dark {
+		colours = theme.DarkColours()
+	}
+	return &common.Common{Tr: i18n.EnglishTranslationSet(), Theme: theme.New(colours, dark, lipgloss.ColorProfile())}
 }
 
 type answer struct {
@@ -137,9 +146,14 @@ func openedWith(t *testing.T, review string, width, height int, set ...func(*Opt
 
 func openedOn(t *testing.T, changed *changes, review string, width, height int, set ...func(*Options)) (App, *[]string) {
 	t.Helper()
+	return openedIn(t, testCommon(), changed, review, width, height, set...)
+}
+
+func openedIn(t *testing.T, cmn *common.Common, changed *changes, review string, width, height int, set ...func(*Options)) (App, *[]string) {
+	t.Helper()
 	var visited []string
 	opts := Options{
-		Server: served(t, changed), Review: review, Dark: true,
+		Server: served(t, changed), Review: review,
 		Open:     func(address string) error { visited = append(visited, address); return nil },
 		Now:      func() time.Time { return time.Date(2026, 10, 15, 14, 0, 0, 0, time.UTC) },
 		Location: time.UTC,
@@ -149,7 +163,7 @@ func openedOn(t *testing.T, changed *changes, review string, width, height int, 
 	for _, s := range set {
 		s(&opts)
 	}
-	a := New(testCommon(), opts)
+	a := New(cmn, opts)
 	a = drive(t, a, a.Init())
 	a = send(t, a, tea.WindowSizeMsg{Width: width, Height: height})
 	return a, &visited

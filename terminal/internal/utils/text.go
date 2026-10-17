@@ -1,5 +1,6 @@
-// Package utils holds small text helpers every layer of the terminal app
-// shares: fitting a line or a title to a width, wrapping, counting words.
+// Package utils holds small helpers every layer of the terminal app
+// shares: fitting a line or a title to a width, wrapping, counting words,
+// filling a string's placeholders, keeping a number in a range.
 package utils
 
 import (
@@ -119,4 +120,14 @@ func PlainText(markdown string) string {
 	out = listMark.ReplaceAllString(out, "")
 	out = strings.NewReplacer("`", "", "*", "", "_", "", ">", "", "#", "").Replace(out)
 	return strings.Join(strings.Fields(out), " ")
+}
+
+// Spread puts words on the left and on the right of a width, cutting the
+// left ones when both do not fit.
+func Spread(left, right string, width int) string {
+	gap := width - ansi.StringWidth(left) - ansi.StringWidth(right)
+	if gap < 1 {
+		return Fit(left, width)
+	}
+	return left + strings.Repeat(" ", gap) + right
 }

@@ -10,45 +10,46 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 const cutLine = "# ------------------------ >8 ------------------------"
 
-func (a App) noteAt() (note, diffRow, bool) {
+func (a App) noteAt() (presentation.Note, presentation.DiffRow, bool) {
 	v := a.diff
-	if a.screen != screenDiff || v.cursor >= len(v.rows) {
-		return note{}, diffRow{}, false
+	if a.screen != screenDiff || v.Cursor >= len(v.Rows) {
+		return presentation.Note{}, presentation.DiffRow{}, false
 	}
-	r := v.rows[v.cursor]
-	if r.kind != "notehead" && r.kind != "notetext" {
-		return note{}, r, false
+	r := v.Rows[v.Cursor]
+	if r.Kind != "notehead" && r.Kind != "notetext" {
+		return presentation.Note{}, r, false
 	}
-	n, ok := noteOf(*a.review, r.path, r.key)
+	n, ok := presentation.NoteOf(*a.review, r.Path, r.Key)
 	return n, r, ok
 }
 
 func (a App) selected() (server.Lines, []string, bool) {
 	v := a.diff
-	if v.cursor >= len(v.rows) {
+	if v.Cursor >= len(v.Rows) {
 		return server.Lines{}, nil, false
 	}
-	from, to := v.cursor, v.cursor
-	if v.selecting {
-		from, to = min(v.anchor, v.cursor), max(v.anchor, v.cursor)
+	from, to := v.Cursor, v.Cursor
+	if v.Selecting {
+		from, to = min(v.Anchor, v.Cursor), max(v.Anchor, v.Cursor)
 	}
 	var first, last server.Lines
 	var firstBlock, seen *server.Block
 	var code []string
 	for i := from; i <= to; i++ {
-		r := v.rows[i]
+		r := v.Rows[i]
 		var start, end server.Lines
-		switch side, line, ok := r.at(); {
-		case r.kind == "block":
-			b := r.block
-			start = server.Lines{Path: r.path, Side: b.Side, Line: b.StartLine}
-			end = server.Lines{Path: r.path, Side: b.Side, Line: b.Line}
+		switch side, line, ok := r.At(); {
+		case r.Kind == "block":
+			b := r.Block
+			start = server.Lines{Path: r.Path, Side: b.Side, Line: b.StartLine}
+			end = server.Lines{Path: r.Path, Side: b.Side, Line: b.Line}
 			if b != seen {
 				code = append(code, blockCode(b)...)
 				seen = b
@@ -57,13 +58,13 @@ func (a App) selected() (server.Lines, []string, bool) {
 				firstBlock = b
 			}
 		case ok:
-			start = server.Lines{Path: r.path, Side: side, Line: line}
+			start = server.Lines{Path: r.Path, Side: side, Line: line}
 			end = start
 			code = append(code, codeLine(r))
 		default:
 			continue
 		}
-		if first.Path != "" && r.path != first.Path {
+		if first.Path != "" && r.Path != first.Path {
 			return server.Lines{}, nil, false
 		}
 		if first.Path == "" {
@@ -95,12 +96,12 @@ func blockCode(b *server.Block) []string {
 	return out
 }
 
-func codeLine(r diffRow) string {
-	l := r.line
+func codeLine(r presentation.DiffRow) string {
+	l := r.Line
 	if l == nil {
-		l = r.right
-		if l == nil || l.Kind == "same" && r.left != nil {
-			l = r.left
+		l = r.Right
+		if l == nil || l.Kind == "same" && r.Left != nil {
+			l = r.Left
 		}
 	}
 	sign := map[string]string{"add": "+", "del": "-"}[l.Kind]
@@ -111,7 +112,7 @@ func codeLine(r diffRow) string {
 	if l.Kind == "del" {
 		n = l.Old
 	}
-	return fmt.Sprintf("%4d %s %s", n, sign, expandTabs(l.Text))
+	return fmt.Sprintf("%4d %s %s", n, sign, presentation.ExpandTabs(l.Text))
 }
 
 func linesKey(at server.Lines) string {
@@ -119,19 +120,19 @@ func linesKey(at server.Lines) string {
 }
 
 func onWords(tr *i18n.TranslationSet, at server.Lines) string {
-	return at.Path + ", " + linesWords(tr, at.Side, at.Line, at.StartLine, at.StartSide)
+	return at.Path + ", " + presentation.LinesWords(tr, at.Side, at.Line, at.StartLine, at.StartSide)
 }
 
 func (a App) comment() (tea.Model, tea.Cmd) {
 	tr := a.c.Tr
 	if n, r, ok := a.noteAt(); ok {
 		switch {
-		case n.kind == "conversation" && r.part == "claude":
-			text := n.conversation.Messages[r.message].Text
-			about := utils.ResolvePlaceholderString(tr.CommentFromAnswer, map[string]string{"on": onWords(tr, *n.at)})
-			e := editing{purpose: "comment", at: *n.at, text: text, key: "comment " + linesKey(*n.at), about: []string{about}}
-			return a.say(tr.CheckingWhere, false), checkWhere(a.opts.Server, a.review.id, a.review.page.Build, e)
-		case n.kind == "queued":
+		case n.Kind == "conversation" && r.Part == "claude":
+			text := n.Conversation.Messages[r.Message].Text
+			about := utils.ResolvePlaceholderString(tr.CommentFromAnswer, map[string]string{"on": onWords(tr, *n.At)})
+			e := editing{purpose: "comment", at: *n.At, text: text, key: "comment " + linesKey(*n.At), about: []string{about}}
+			return a.say(tr.CheckingWhere, false), checkWhere(a.opts.Server, a.review.ID, a.review.Page.Build, e)
+		case n.Kind == "queued":
 			return a.say(tr.EEditsQueued, true), nil
 		}
 		return a.say(tr.CCommentsOrAnswer, true), nil
@@ -142,8 +143,8 @@ func (a App) comment() (tea.Model, tea.Cmd) {
 	}
 	about := []string{utils.ResolvePlaceholderString(tr.CommentOn, map[string]string{"on": onWords(tr, at)})}
 	e := editing{purpose: "comment", at: at, key: "comment " + linesKey(at), about: append(about, codeAbout(code)...)}
-	a.diff.selecting = false
-	return a.say(tr.CheckingWhere, false), checkWhere(a.opts.Server, a.review.id, a.review.page.Build, e)
+	a.diff.Selecting = false
+	return a.say(tr.CheckingWhere, false), checkWhere(a.opts.Server, a.review.ID, a.review.Page.Build, e)
 }
 
 func codeAbout(code []string) []string {
@@ -159,9 +160,9 @@ func codeAbout(code []string) []string {
 
 func (a App) askClaude() (tea.Model, tea.Cmd) {
 	tr := a.c.Tr
-	if n, _, ok := a.noteAt(); ok && n.kind == "conversation" {
-		c := n.conversation
-		about := []string{utils.ResolvePlaceholderString(tr.FollowUpOn, map[string]string{"on": onWords(tr, *n.at)}), tr.ConversationSoFar, ""}
+	if n, _, ok := a.noteAt(); ok && n.Kind == "conversation" {
+		c := n.Conversation
+		about := []string{utils.ResolvePlaceholderString(tr.FollowUpOn, map[string]string{"on": onWords(tr, *n.At)}), tr.ConversationSoFar, ""}
 		for _, m := range c.Messages {
 			who, text := tr.You, m.Text
 			if m.From != "you" {
@@ -174,36 +175,36 @@ func (a App) askClaude() (tea.Model, tea.Cmd) {
 				about = append(about, "  "+l)
 			}
 		}
-		return a.edit(editing{purpose: "reply", conversation: c.ID, at: *n.at, key: fmt.Sprintf("reply %d", c.ID), about: about})
+		return a.edit(editing{purpose: "reply", conversation: c.ID, at: *n.At, key: fmt.Sprintf("reply %d", c.ID), about: about})
 	}
 	at, code, ok := a.selected()
 	if !ok {
 		return a.say(tr.AAsks, true), nil
 	}
-	a.diff.selecting = false
+	a.diff.Selecting = false
 	about := append([]string{utils.ResolvePlaceholderString(tr.QuestionAbout, map[string]string{"on": onWords(tr, at)}), tr.ClaudeAnswersHere}, codeAbout(code)...)
 	return a.edit(editing{purpose: "ask", at: at, key: "ask " + linesKey(at), about: about})
 }
 
 func (a App) queuedAt() (server.Comment, int, bool) {
 	id := 0
-	if n, _, ok := a.noteAt(); ok && n.kind == "queued" {
-		id = n.comment.ID
+	if n, _, ok := a.noteAt(); ok && n.Kind == "queued" {
+		id = n.Comment.ID
 	}
 	switch {
 	case a.focus == notesPanel:
-		if row, ok := a.sides[notesPanel].selected(); ok && row.it.kind == "comment" {
-			id = row.it.comment
+		if row, ok := a.sides[notesPanel].selected(); ok && row.Item.Kind == "comment" {
+			id = row.Item.Comment
 		}
 	case a.focus == mainPanel && a.screen == screenReview && a.rv.view.cursor < len(a.rv.view.items):
-		if it := a.rv.view.items[a.rv.view.cursor]; it.kind == "comment" {
-			id = it.comment
+		if it := a.rv.view.items[a.rv.view.cursor]; it.Kind == "comment" {
+			id = it.Comment
 		}
 	}
-	if id == 0 || a.review.state.Queue == nil {
+	if id == 0 || a.review.State.Queue == nil {
 		return server.Comment{}, 0, false
 	}
-	for _, m := range a.review.state.Queue.Members {
+	for _, m := range a.review.State.Queue.Members {
 		for _, c := range m.Comments {
 			if c.ID == id {
 				return c, m.Pull, true
@@ -240,7 +241,7 @@ func (a App) confirmKey(name string) (tea.Model, tea.Cmd) {
 	if name != "y" {
 		return a.say(utils.ResolvePlaceholderString(a.c.Tr.KeptQueued, map[string]string{"comment": utils.Itoa(c.comment)}), false), nil
 	}
-	client, id, build := a.opts.Server, a.review.id, a.review.page.Build
+	client, id, build := a.opts.Server, a.review.ID, a.review.Page.Build
 	e := editing{purpose: "drop", comment: c.comment, pull: c.pull}
 	return a.say(a.c.Tr.Dropping, false), func() tea.Msg {
 		state, err := client.Drop(id, c.comment, c.version, build)
@@ -313,7 +314,7 @@ func (a App) afterEditing(msg edited) (tea.Model, tea.Cmd) {
 		return a.say(utils.ResolvePlaceholderString(tr.QueuedAsItWas, map[string]string{"comment": utils.Itoa(msg.e.comment)}), false), nil
 	}
 	a.drafts = withDraft(a.drafts, msg.e.key, text)
-	client, id, build, e := a.opts.Server, a.review.id, a.review.page.Build, msg.e
+	client, id, build, e := a.opts.Server, a.review.ID, a.review.Page.Build, msg.e
 	switch e.purpose {
 	case "comment":
 		return a.say(tr.Queueing, false), func() tea.Msg {
@@ -355,16 +356,16 @@ func (a App) afterChange(msg changed) (tea.Model, tea.Cmd) {
 	if msg.err != nil {
 		var refusal server.Refusal
 		if (e.purpose == "edit" || e.purpose == "drop") && errors.As(msg.err, &refusal) {
-			return a.say(msg.err.Error(), true), loadState(a.opts.Server, a.review.id)
+			return a.say(msg.err.Error(), true), loadState(a.opts.Server, a.review.ID)
 		}
 		return a.say(msg.err.Error(), true), nil
 	}
 	a.drafts = withDraft(a.drafts, e.key, "")
 	if msg.conversation != nil {
 		c := *msg.conversation
-		a = a.withState(withConversation(a.review.state, c))
-		a.diff.notes = copyBools(a.diff.notes)
-		a.diff.notes[fmt.Sprintf("conversation:%d", c.ID)] = true
+		a = a.withState(withConversation(a.review.State, c))
+		a.diff.Notes = copyBools(a.diff.Notes)
+		a.diff.Notes[fmt.Sprintf("conversation:%d", c.ID)] = true
 		a = a.relaid()
 		if last := c.Messages[len(c.Messages)-1]; last.Error != "" {
 			return a.say(a.c.Tr.ClaudeSaysWhy, true), nil
@@ -397,7 +398,7 @@ func withConversation(st server.State, c server.Conversation) server.State {
 
 func (a App) withState(st server.State) App {
 	d := *a.review
-	d.state = st
+	d.State = st
 	a.review = &d
 	return a.relaid()
 }
@@ -410,10 +411,10 @@ func (a App) afterCheck(msg checked) (tea.Model, tea.Cmd) {
 		return a.say(msg.where.Refused, true), nil
 	case len(msg.where.Choose) > 0:
 		pending := msg.e
-		pn := menu{title: msg.where.Words}
+		pn := menu{Menu: presentation.Menu{Title: msg.where.Words}}
 		for _, c := range msg.where.Choose {
 			line := utils.ResolvePlaceholderString(a.c.Tr.LineAt, map[string]string{"line": utils.Itoa(c.Line)})
-			pn.rows = append(pn.rows, menuRow{left: fmt.Sprintf("#%d", c.Pull), right: c.Path + ", " + line, open: &item{kind: "choose", pull: c.Pull}})
+			pn.Rows = append(pn.Rows, presentation.MenuRow{Left: fmt.Sprintf("#%d", c.Pull), Right: c.Path + ", " + line, Open: &presentation.Item{Kind: "choose", Pull: c.Pull}})
 		}
 		a.menu, a.choosing = &pn, &pending
 		return a.say("", false), nil
@@ -431,14 +432,14 @@ func checkWhere(c *server.Client, id, build string, e editing) tea.Cmd {
 }
 
 func (a App) whereNow() tea.Cmd {
-	if a.screen != screenDiff || !a.diff.selecting || a.review == nil {
+	if a.screen != screenDiff || !a.diff.Selecting || a.review == nil {
 		return nil
 	}
 	at, _, ok := a.selected()
 	if !ok || linesKey(at) == a.where.key {
 		return nil
 	}
-	client, id, build, key := a.opts.Server, a.review.id, a.review.page.Build, linesKey(at)
+	client, id, build, key := a.opts.Server, a.review.ID, a.review.Page.Build, linesKey(at)
 	return func() tea.Msg {
 		where, err := client.Where(id, at, 0, build)
 		words := where.Words

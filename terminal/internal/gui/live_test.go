@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 )
 
 const stack = "github.com/octo/widgets/21"
@@ -43,17 +44,17 @@ func TestAChangeElsewhereShowsAtOnce(t *testing.T) {
 	a = press(t, onBasketFrom(t, a), ":")
 	a = typed(t, a, "3")
 	folded := map[string]bool{"Sources/Catalog/MemoryCatalog.swift": true}
-	a.diff.folded = folded
-	a = send(t, a, liveNotice{id: stack, notice: server.Notice{State: a.review.state.Version}})
-	if _, ok := noteOf(*a.review, "Sources/Basket/Basket.swift", "queued:3"); ok {
+	a.diff.Folded = folded
+	a = send(t, a, liveNotice{id: stack, notice: server.Notice{State: a.review.State.Version}})
+	if _, ok := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "queued:3"); ok {
 		t.Fatal("a notice of the state the app holds read it again")
 	}
 	a = send(t, a, liveNotice{id: stack, notice: server.Notice{State: version}})
-	if _, ok := noteOf(*a.review, "Sources/Basket/Basket.swift", "queued:3"); !ok {
+	if _, ok := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "queued:3"); !ok {
 		t.Fatal("the comment queued elsewhere does not show")
 	}
-	if cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 3" || !a.diff.folded["Sources/Catalog/MemoryCatalog.swift"] {
-		t.Fatalf("the place and the folds moved: %s %v", cursorAt(a), a.diff.folded)
+	if cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 3" || !a.diff.Folded["Sources/Catalog/MemoryCatalog.swift"] {
+		t.Fatalf("the place and the folds moved: %s %v", cursorAt(a), a.diff.Folded)
 	}
 	screenIs(t, a, "live-state")
 }
@@ -76,13 +77,13 @@ func TestANewBuildLoadsInPlaceUnlessADraftIsOpen(t *testing.T) {
 	a = press(t, a, "space", "m", "enter", "enter", "j")
 	a.drafts = map[string]string{"comment x": "Half written."}
 	a = send(t, a, liveNotice{id: stack, notice: server.Notice{Build: "0123456789ab"}})
-	if a.review.page.Build == "0123456789ab" || a.notice != "This review was loaded again. R loads it here; your drafts stay." {
-		t.Fatalf("with a draft open: %s %q", a.review.page.Build, a.notice)
+	if a.review.Page.Build == "0123456789ab" || a.notice != "This review was loaded again. R loads it here; your drafts stay." {
+		t.Fatalf("with a draft open: %s %q", a.review.Page.Build, a.notice)
 	}
 	a.drafts = nil
 	a = send(t, a, liveNotice{id: stack, notice: server.Notice{Build: "0123456789ab"}})
-	if a.review.page.Build != "0123456789ab" || a.notice != "Loaded again." {
-		t.Fatalf("with no draft open: %s %q", a.review.page.Build, a.notice)
+	if a.review.Page.Build != "0123456789ab" || a.notice != "Loaded again." {
+		t.Fatalf("with no draft open: %s %q", a.review.Page.Build, a.notice)
 	}
 	if a.screen != screenDiagram {
 		t.Fatalf("the reload left the diagram for %v", a.screen)
@@ -96,7 +97,7 @@ func TestRLoadsTheReviewAgainInPlace(t *testing.T) {
 	if a.notice != "Loaded again." || a.bad {
 		t.Fatalf("the status line says %q", a.notice)
 	}
-	if a.screen != screenDiff || !a.diff.rendered["docs/guide.md"] || cursorAt(a) != "docs/guide.md file" {
+	if a.screen != screenDiff || !a.diff.Rendered["docs/guide.md"] || cursorAt(a) != "docs/guide.md file" {
 		t.Fatalf("R left the rendered guide: %v %s", a.screen, cursorAt(a))
 	}
 }
@@ -143,12 +144,12 @@ func TestListeningComesBackAfterTheStreamEnds(t *testing.T) {
 
 func TestAQuestionAskedElsewhereShowsAsWaiting(t *testing.T) {
 	a := onBasket(t)
-	state := a.review.state
+	state := a.review.State
 	state.Threads = append([]server.Conversation{}, state.Threads...)
 	state.Threads = append(state.Threads, server.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Why here?"}}})
 	a = a.withState(state)
-	n, _ := noteOf(*a.review, "Sources/Basket/Basket.swift", "conversation:9")
-	if head, _ := noteHead(a.c.Tr, *a.review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
+	n, _ := presentation.NoteOf(*a.review, "Sources/Basket/Basket.swift", "conversation:9")
+	if head, _ := presentation.NoteHead(a.c.Tr, *a.review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
 		t.Fatalf("the conversation's head reads %q", head)
 	}
 }

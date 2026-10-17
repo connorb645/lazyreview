@@ -11,12 +11,12 @@ import (
 )
 
 func cursorAt(a App) string {
-	r := a.diff.rows[a.diff.cursor]
-	side, line, ok := r.at()
+	r := a.diff.Rows[a.diff.Cursor]
+	side, line, ok := r.At()
 	if !ok {
-		return r.path + " " + r.kind
+		return r.Path + " " + r.Kind
 	}
-	return r.path + " " + side + " " + utils.Itoa(line)
+	return r.Path + " " + side + " " + utils.Itoa(line)
 }
 
 func openedOnComment(t *testing.T) App {
@@ -44,7 +44,7 @@ func TestEnterOnAQueuedCommentOpensItsLineInTheDiff(t *testing.T) {
 		t.Fatalf("Ctrl-o went back to the diff, at %v", a.screen)
 	}
 	a = press(t, a, "ctrl+o")
-	if a.screen != screenReview || a.rv.view.items[a.rv.view.cursor].comment != 1 {
+	if a.screen != screenReview || a.rv.view.items[a.rv.view.cursor].Comment != 1 {
 		t.Fatal("Ctrl-o again went back to the comment in the Review view")
 	}
 	a = press(t, a, "tab")
@@ -94,21 +94,21 @@ func TestMovingThroughTheDiffByLineHunkFileAndSearch(t *testing.T) {
 func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 	a := openedOnComment(t)
 	a = press(t, a, "[", "f", "j")
-	if a.diff.rows[a.diff.cursor].kind != "gap" {
-		t.Fatalf("below MemoryCatalog's header is its run of unchanged lines, not %s", a.diff.rows[a.diff.cursor].kind)
+	if a.diff.Rows[a.diff.Cursor].Kind != "gap" {
+		t.Fatalf("below MemoryCatalog's header is its run of unchanged lines, not %s", a.diff.Rows[a.diff.Cursor].Kind)
 	}
 	a = press(t, a, "z", "o")
-	if got := cursorAt(a); !strings.HasPrefix(got, "Sources/Catalog/MemoryCatalog.swift") || a.diff.rows[a.diff.cursor].kind != "line" {
+	if got := cursorAt(a); !strings.HasPrefix(got, "Sources/Catalog/MemoryCatalog.swift") || a.diff.Rows[a.diff.Cursor].Kind != "line" {
 		t.Fatalf("zo opened the run, the cursor on its first line, not %s", got)
 	}
 	a = press(t, a, "z", "c")
-	if a.diff.rows[a.diff.cursor].kind != "gap" {
+	if a.diff.Rows[a.diff.Cursor].Kind != "gap" {
 		t.Fatal("zc closed the run again")
 	}
 	a = press(t, a, "z", "M")
-	for _, r := range a.diff.rows {
-		if r.kind != "file" {
-			t.Fatalf("zM closed every file, but a %s row shows", r.kind)
+	for _, r := range a.diff.Rows {
+		if r.Kind != "file" {
+			t.Fatalf("zM closed every file, but a %s row shows", r.Kind)
 		}
 	}
 	a = press(t, a, "z", "R")
@@ -120,7 +120,7 @@ func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 	a = press(t, a, "space", "s", "space", "o")
 	screenIs(t, a, "diff-whole")
 	a = press(t, a, "space", "o", "g", "g", "enter")
-	if !a.diff.folded["Sources/Basket/Basket.swift"] {
+	if !a.diff.Folded["Sources/Basket/Basket.swift"] {
 		t.Fatal("Enter on a file's header folds it")
 	}
 }
@@ -131,8 +131,8 @@ func TestThePullRequestFilterDimsWhatItLeavesOut(t *testing.T) {
 	if got := fmt.Sprint(a.filter); got != "[21]" {
 		t.Fatalf("]p chose %s", got)
 	}
-	for _, r := range a.diff.rows {
-		if r.path == "Sources/Basket/Basket.swift" {
+	for _, r := range a.diff.Rows {
+		if r.Path == "Sources/Basket/Basket.swift" {
 			t.Fatal("the filter to #21 leaves out a file only #22 changed")
 		}
 	}
@@ -162,15 +162,15 @@ func TestAMarkdownFileOfAPullRequest(t *testing.T) {
 func TestTheWheelReachesTheEndOfAWrappedDiff(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "2", "0", "space", "w")
-	main := a.layout().main.inner()
+	main := a.layout().main.Inner()
 	for i := 0; i < 30; i++ {
-		a = send(t, a, tea.MouseMsg{X: main.x + 2, Y: main.y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonWheelDown})
+		a = send(t, a, tea.MouseMsg{X: main.X + 2, Y: main.Y + 2, Action: tea.MouseActionPress, Button: tea.MouseButtonWheelDown})
 	}
 	lines := strings.Split(a.View(), "\n")
-	if last := lines[main.y+main.h-1]; !strings.Contains(last, "4   }") {
+	if last := lines[main.Y+main.H-1]; !strings.Contains(last, "4   }") {
 		t.Fatalf("the wheel stopped short of the diff's last line; the panel ends with:\n%s", last)
 	}
-	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != main.h-1 {
+	if got := mainThumb(a); len(got) == 0 || got[len(got)-1] != main.H-1 {
 		t.Fatalf("at the end of the diff, the thumb is on rows %v", got)
 	}
 }

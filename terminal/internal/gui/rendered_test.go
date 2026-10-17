@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -24,7 +25,7 @@ func TestAMarkdownFileShowsRendered(t *testing.T) {
 	a := onGuide(t)
 	screenIs(t, a, "rendered")
 	a = press(t, a, "space", "r")
-	if a.diff.rendered["docs/guide.md"] {
+	if a.diff.Rendered["docs/guide.md"] {
 		t.Fatal("Space r goes back to the diff")
 	}
 }
@@ -49,22 +50,22 @@ func TestASelectionOfBlocksIsCommentedOnByItsSourceLines(t *testing.T) {
 	if !strings.Contains(file, "# Goes on #30, removed line 3 to line 3.\n#\n#      3 - The catalog lists items.\n#      3 + The catalog lists every item.\n") {
 		t.Fatalf("the editor was given:\n%s", file)
 	}
-	if n, ok := noteOf(*a.review, "docs/guide.md", "queued:2"); !ok || n.at.StartSide != "LEFT" {
-		t.Fatalf("the comment on the passage: %+v", n.at)
+	if n, ok := presentation.NoteOf(*a.review, "docs/guide.md", "queued:2"); !ok || n.At.StartSide != "LEFT" {
+		t.Fatalf("the comment on the passage: %+v", n.At)
 	}
-	if r := a.diff.rows[a.diff.cursor]; r.block == nil || r.block.StartLine != 3 || r.block.Side != "RIGHT" {
+	if r := a.diff.Rows[a.diff.Cursor]; r.Block == nil || r.Block.StartLine != 3 || r.Block.Side != "RIGHT" {
 		t.Fatalf("after queueing, the cursor is on %+v", r)
 	}
 }
 
 func TestAWrittenReviewsDiagramIsSaidNotDrawn(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
-	state := a.review.state
+	state := a.review.State
 	state.Written = &server.Written{Title: "Fix the guide wording", Sections: []server.Section{{ID: "shape", Title: "Shape", Markdown: "Before.\n\n<svg viewBox=\"0 0 10 10\"><rect width=\"4\"/></svg>\n\nAfter."}}}
 	a = a.withState(state)
 	var text []string
 	for _, l := range a.rv.view.lines {
-		text = append(text, utils.Stripped(l.text))
+		text = append(text, utils.Stripped(l.Text))
 	}
 	got := strings.Join(strings.Fields(strings.Join(text, " ")), " ")
 	if strings.Contains(got, "<svg") || !strings.Contains(got, "A diagram is here that a terminal cannot draw. gX opens this review in the web app.") {
@@ -75,7 +76,7 @@ func TestAWrittenReviewsDiagramIsSaidNotDrawn(t *testing.T) {
 func TestTheCursorStaysOnItsBlock(t *testing.T) {
 	a := press(t, onGuide(t), "j", "j", "j")
 	a = send(t, a, tea.WindowSizeMsg{Width: 90, Height: 30})
-	if r := a.diff.rows[a.diff.cursor]; r.block == nil || r.block.StartLine != 3 || r.block.Side != "RIGHT" {
+	if r := a.diff.Rows[a.diff.Cursor]; r.Block == nil || r.Block.StartLine != 3 || r.Block.Side != "RIGHT" {
 		t.Fatalf("the cursor moved to %+v", r)
 	}
 }

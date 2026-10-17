@@ -11,8 +11,8 @@ import (
 )
 
 // Options are what the app needs from outside: the server, the review to
-// open, or none for the home screen, whether the terminal is dark, how to
-// open an address in the browser, the clock and the time zone dates are
+// open, or none for the home screen, how to open an address in the
+// browser, the clock and the time zone dates are
 // shown in, the user's home folder, which a path under it is shown from as
 // ~, the editor a comment is written in, as a command line the shell runs
 // with the file after it, how a program such as the editor is given the
@@ -21,7 +21,6 @@ import (
 type Options struct {
 	Server   *server.Client
 	Review   string
-	Dark     bool
 	Open     func(address string) error
 	Now      func() time.Time
 	Location *time.Location

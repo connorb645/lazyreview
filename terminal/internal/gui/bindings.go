@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/keys"
 )
@@ -63,147 +64,147 @@ var diagramKeys = keys.Bindings{
 	"f": "labels", "space l": "links", "space p": "properties", "space d": "box diff", "space a": "all links",
 }
 
-func everyViewHelp(tr *i18n.TranslationSet) []helpRow {
-	return []helpRow{
-		{"1 2 3 4", tr.HelpFocusPanels},
-		{"0", tr.HelpFocusMain},
-		{"Esc", tr.HelpEscape},
-		{"+ _", tr.HelpScreenMode},
-		{":", tr.HelpCommandLine},
-		{"Space ?", tr.HelpKeys},
-		{"R :refresh", tr.HelpRefresh},
-		{"Space v", tr.HelpReviewView},
-		{"Space h", tr.HelpHome},
-		{"Space m", tr.HelpDiagram},
-		{"Space f", tr.HelpFinder},
-		{"gx", tr.HelpGitHub},
-		{"gX", tr.HelpWeb},
-		{"]p [p", tr.HelpPullFilter},
-		{"Ctrl-o Ctrl-i", tr.HelpJumps},
-		{"q", tr.HelpClose},
-		{"ZZ", tr.HelpQuit},
+func everyViewHelp(tr *i18n.TranslationSet) []presentation.HelpRow {
+	return []presentation.HelpRow{
+		{Keys: "1 2 3 4", Words: tr.HelpFocusPanels},
+		{Keys: "0", Words: tr.HelpFocusMain},
+		{Keys: "Esc", Words: tr.HelpEscape},
+		{Keys: "+ _", Words: tr.HelpScreenMode},
+		{Keys: ":", Words: tr.HelpCommandLine},
+		{Keys: "Space ?", Words: tr.HelpKeys},
+		{Keys: "R :refresh", Words: tr.HelpRefresh},
+		{Keys: "Space v", Words: tr.HelpReviewView},
+		{Keys: "Space h", Words: tr.HelpHome},
+		{Keys: "Space m", Words: tr.HelpDiagram},
+		{Keys: "Space f", Words: tr.HelpFinder},
+		{Keys: "gx", Words: tr.HelpGitHub},
+		{Keys: "gX", Words: tr.HelpWeb},
+		{Keys: "]p [p", Words: tr.HelpPullFilter},
+		{Keys: "Ctrl-o Ctrl-i", Words: tr.HelpJumps},
+		{Keys: "q", Words: tr.HelpClose},
+		{Keys: "ZZ", Words: tr.HelpQuit},
 	}
 }
 
-func sideHelp(tr *i18n.TranslationSet) [sideCount + 1][]helpRow {
-	return [sideCount + 1][]helpRow{
+func sideHelp(tr *i18n.TranslationSet) [sideCount + 1][]presentation.HelpRow {
+	return [sideCount + 1][]presentation.HelpRow{
 		reviewPanel: {
-			{"j k gg G", tr.HelpPullsMove},
-			{"h l", tr.HelpPanelsRound},
-			{"Enter", tr.HelpOpenReviewView},
-			{"v", tr.HelpHighlight},
-			{"Esc", tr.HelpClearHighlight},
-			{"P", tr.HelpPostPull},
+			{Keys: "j k gg G", Words: tr.HelpPullsMove},
+			{Keys: "h l", Words: tr.HelpPanelsRound},
+			{Keys: "Enter", Words: tr.HelpOpenReviewView},
+			{Keys: "v", Words: tr.HelpHighlight},
+			{Keys: "Esc", Words: tr.HelpClearHighlight},
+			{Keys: "P", Words: tr.HelpPostPull},
 		},
 		filesPanel: {
-			{"j k gg G", tr.HelpFilesMove},
-			{"h l", tr.HelpPanels},
-			{"Enter", tr.HelpOpenFile},
-			{"za", tr.HelpFoldTree},
+			{Keys: "j k gg G", Words: tr.HelpFilesMove},
+			{Keys: "h l", Words: tr.HelpPanels},
+			{Keys: "Enter", Words: tr.HelpOpenFile},
+			{Keys: "za", Words: tr.HelpFoldTree},
 		},
 		notesPanel: {
-			{"j k gg G", tr.HelpNotesMove},
-			{"h l", tr.HelpPanels},
-			{"Enter", tr.HelpOpenNote},
-			{"e dd", tr.HelpEditDrop},
-			{"P", tr.HelpPostComment},
+			{Keys: "j k gg G", Words: tr.HelpNotesMove},
+			{Keys: "h l", Words: tr.HelpPanels},
+			{Keys: "Enter", Words: tr.HelpOpenNote},
+			{Keys: "e dd", Words: tr.HelpEditDrop},
+			{Keys: "P", Words: tr.HelpPostComment},
 		},
 		diagramPanel: {
-			{"j k w b gg G", tr.HelpBoxesMove},
-			{"h l", tr.HelpBoxesSideways},
-			{"Enter", tr.HelpStepIn},
-			{"-", tr.HelpStepOut},
-			{"gd", tr.HelpFollowBox},
-			{"gr", tr.HelpReferences},
-			{"/ ? n N", tr.HelpFindBox},
-			{tr.HelpLabelsKeys, tr.HelpLabels},
-			{"Space l", tr.HelpBoxLinks},
-			{"Space p", tr.HelpProperties},
-			{"Space d", tr.HelpBoxDiff},
-			{"Space a", tr.HelpAllLinks},
+			{Keys: "j k w b gg G", Words: tr.HelpBoxesMove},
+			{Keys: "h l", Words: tr.HelpBoxesSideways},
+			{Keys: "Enter", Words: tr.HelpStepIn},
+			{Keys: "-", Words: tr.HelpStepOut},
+			{Keys: "gd", Words: tr.HelpFollowBox},
+			{Keys: "gr", Words: tr.HelpReferences},
+			{Keys: "/ ? n N", Words: tr.HelpFindBox},
+			{Keys: tr.HelpLabelsKeys, Words: tr.HelpLabels},
+			{Keys: "Space l", Words: tr.HelpBoxLinks},
+			{Keys: "Space p", Words: tr.HelpProperties},
+			{Keys: "Space d", Words: tr.HelpBoxDiff},
+			{Keys: "Space a", Words: tr.HelpAllLinks},
 		},
 	}
 }
 
-func reviewHelp(tr *i18n.TranslationSet) []helpRow {
-	return []helpRow{
-		{"j k", tr.HelpItemsMove},
-		{"]] [[", tr.HelpSections},
-		{"gg G", tr.HelpItemsEnds},
-		{"Enter", tr.HelpOpenItem},
-		{"za", tr.HelpFoldSection},
-		{"e dd", tr.HelpEditDrop},
-		{"P", tr.HelpPostAtCursor},
+func reviewHelp(tr *i18n.TranslationSet) []presentation.HelpRow {
+	return []presentation.HelpRow{
+		{Keys: "j k", Words: tr.HelpItemsMove},
+		{Keys: "]] [[", Words: tr.HelpSections},
+		{Keys: "gg G", Words: tr.HelpItemsEnds},
+		{Keys: "Enter", Words: tr.HelpOpenItem},
+		{Keys: "za", Words: tr.HelpFoldSection},
+		{Keys: "e dd", Words: tr.HelpEditDrop},
+		{Keys: "P", Words: tr.HelpPostAtCursor},
 	}
 }
 
-func diffHelp(tr *i18n.TranslationSet) []helpRow {
-	return []helpRow{
-		{"j k", tr.HelpLinesMove},
-		{"Ctrl-d Ctrl-u Ctrl-f Ctrl-b", tr.HelpPages},
-		{"gg G {n}G", tr.HelpLineEnds},
-		{"]c [c", tr.HelpHunks},
-		{"]f [f", tr.HelpFiles},
-		{"]n [n", tr.HelpNotes},
-		{"/ ? n N", tr.HelpSearch},
-		{"za zo zc", tr.HelpFold},
-		{"zR zM", tr.HelpFoldAll},
-		{"Enter", tr.HelpToggleFile},
-		{"V", tr.HelpSelect},
-		{"c", tr.HelpComment},
-		{"a", tr.HelpAsk},
-		{"e", tr.HelpEditAtCursor},
-		{"dd", tr.HelpDropAtCursor},
-		{"gd", tr.HelpShowType},
-		{"-", tr.HelpBack},
-		{"Space s", tr.HelpSplit},
-		{"Space w", tr.HelpWrap},
-		{"Space o", tr.HelpWhole},
-		{"Space r", tr.HelpRendered},
+func diffHelp(tr *i18n.TranslationSet) []presentation.HelpRow {
+	return []presentation.HelpRow{
+		{Keys: "j k", Words: tr.HelpLinesMove},
+		{Keys: "Ctrl-d Ctrl-u Ctrl-f Ctrl-b", Words: tr.HelpPages},
+		{Keys: "gg G {n}G", Words: tr.HelpLineEnds},
+		{Keys: "]c [c", Words: tr.HelpHunks},
+		{Keys: "]f [f", Words: tr.HelpFiles},
+		{Keys: "]n [n", Words: tr.HelpNotes},
+		{Keys: "/ ? n N", Words: tr.HelpSearch},
+		{Keys: "za zo zc", Words: tr.HelpFold},
+		{Keys: "zR zM", Words: tr.HelpFoldAll},
+		{Keys: "Enter", Words: tr.HelpToggleFile},
+		{Keys: "V", Words: tr.HelpSelect},
+		{Keys: "c", Words: tr.HelpComment},
+		{Keys: "a", Words: tr.HelpAsk},
+		{Keys: "e", Words: tr.HelpEditAtCursor},
+		{Keys: "dd", Words: tr.HelpDropAtCursor},
+		{Keys: "gd", Words: tr.HelpShowType},
+		{Keys: "-", Words: tr.HelpBack},
+		{Keys: "Space s", Words: tr.HelpSplit},
+		{Keys: "Space w", Words: tr.HelpWrap},
+		{Keys: "Space o", Words: tr.HelpWhole},
+		{Keys: "Space r", Words: tr.HelpRendered},
 	}
 }
 
-func diagramHelp(tr *i18n.TranslationSet) []helpRow {
-	return []helpRow{
-		{"h j k l", tr.HelpBoxesNearest},
-		{"w b", tr.HelpBoxesOrder},
-		{"gg G", tr.HelpBoxesEnds},
-		{"Enter", tr.HelpStepIn},
-		{"-", tr.HelpStepOut},
-		{"gd", tr.HelpFollow},
-		{"gr", tr.HelpReferences},
-		{"/ ? n N", tr.HelpFindBox},
-		{tr.HelpLabelsKeys, tr.HelpLabels},
-		{"Space l", tr.HelpLinks},
-		{"Space p", tr.HelpProperties},
-		{"Space d", tr.HelpBoxDiff},
-		{"Space a", tr.HelpAllLinks},
+func diagramHelp(tr *i18n.TranslationSet) []presentation.HelpRow {
+	return []presentation.HelpRow{
+		{Keys: "h j k l", Words: tr.HelpBoxesNearest},
+		{Keys: "w b", Words: tr.HelpBoxesOrder},
+		{Keys: "gg G", Words: tr.HelpBoxesEnds},
+		{Keys: "Enter", Words: tr.HelpStepIn},
+		{Keys: "-", Words: tr.HelpStepOut},
+		{Keys: "gd", Words: tr.HelpFollow},
+		{Keys: "gr", Words: tr.HelpReferences},
+		{Keys: "/ ? n N", Words: tr.HelpFindBox},
+		{Keys: tr.HelpLabelsKeys, Words: tr.HelpLabels},
+		{Keys: "Space l", Words: tr.HelpLinks},
+		{Keys: "Space p", Words: tr.HelpProperties},
+		{Keys: "Space d", Words: tr.HelpBoxDiff},
+		{Keys: "Space a", Words: tr.HelpAllLinks},
 	}
 }
 
-func homeHelp(tr *i18n.TranslationSet) []helpRow {
-	return []helpRow{
-		{"j k", tr.HelpHomeMove},
-		{"gg G", tr.HelpHomeEnds},
-		{"h l", tr.HelpRepositories},
-		{tr.HelpFirstNineKeys, tr.HelpFirstNine},
-		{"Enter", tr.HelpOpenPull},
-		{"R :refresh", tr.HelpReadAgain},
-		{"gx", tr.HelpGitHubPull},
-		{"gX", tr.HelpWebList},
-		{"Space v", tr.HelpReviewOpen},
-		{"+ _", tr.HelpListMode},
-		{":", tr.HelpCommandQuit},
-		{"ZZ", tr.HelpQuit},
+func homeHelp(tr *i18n.TranslationSet) []presentation.HelpRow {
+	return []presentation.HelpRow{
+		{Keys: "j k", Words: tr.HelpHomeMove},
+		{Keys: "gg G", Words: tr.HelpHomeEnds},
+		{Keys: "h l", Words: tr.HelpRepositories},
+		{Keys: tr.HelpFirstNineKeys, Words: tr.HelpFirstNine},
+		{Keys: "Enter", Words: tr.HelpOpenPull},
+		{Keys: "R :refresh", Words: tr.HelpReadAgain},
+		{Keys: "gx", Words: tr.HelpGitHubPull},
+		{Keys: "gX", Words: tr.HelpWebList},
+		{Keys: "Space v", Words: tr.HelpReviewOpen},
+		{Keys: "+ _", Words: tr.HelpListMode},
+		{Keys: ":", Words: tr.HelpCommandQuit},
+		{Keys: "ZZ", Words: tr.HelpQuit},
 	}
 }
 
-func homeMarks(tr *i18n.TranslationSet) []helpRow {
-	return []helpRow{
-		{"●", tr.MarkWaiting},
-		{"◆", tr.MarkLoaded},
-		{"┌ └", tr.MarkStack},
-		{tr.Dim, tr.MarkDraft},
+func homeMarks(tr *i18n.TranslationSet) []presentation.HelpRow {
+	return []presentation.HelpRow{
+		{Keys: "●", Words: tr.MarkWaiting},
+		{Keys: "◆", Words: tr.MarkLoaded},
+		{Keys: "┌ └", Words: tr.MarkStack},
+		{Keys: tr.Dim, Words: tr.MarkDraft},
 	}
 }
 

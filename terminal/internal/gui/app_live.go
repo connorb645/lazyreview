@@ -88,17 +88,17 @@ func (a App) listenTo(id string) (App, tea.Cmd) {
 
 func (a App) afterNotice(msg liveNotice) (tea.Model, tea.Cmd) {
 	next := nextNotice(a.live)
-	if a.review == nil || msg.id != a.review.id {
+	if a.review == nil || msg.id != a.review.ID {
 		return a, next
 	}
 	var cmds []tea.Cmd
 	switch n := msg.notice; {
-	case n.Build != "" && n.Build != a.review.page.Build && (a.editingNow || len(a.drafts) > 0):
+	case n.Build != "" && n.Build != a.review.Page.Build && (a.editingNow || len(a.drafts) > 0):
 		a = a.say(a.c.Tr.LoadedElsewhere, false)
-	case n.Build != "" && n.Build != a.review.page.Build:
-		cmds = append(cmds, reloadReview(a.c.Tr, a.opts.Server, a.review.id, false))
-	case n.State != "" && n.State != a.review.state.Version:
-		cmds = append(cmds, loadState(a.opts.Server, a.review.id))
+	case n.Build != "" && n.Build != a.review.Page.Build:
+		cmds = append(cmds, reloadReview(a.c.Tr, a.opts.Server, a.review.ID, false))
+	case n.State != "" && n.State != a.review.State.Version:
+		cmds = append(cmds, loadState(a.opts.Server, a.review.ID))
 	}
 	return a, tea.Batch(append(cmds, next)...)
 }
@@ -124,7 +124,7 @@ func (a App) afterReload(msg reviewReloaded) (tea.Model, tea.Cmd) {
 	if msg.err != nil {
 		return a.say(msg.err.Error(), true), nil
 	}
-	if a.review == nil || msg.data.id != a.review.id {
+	if a.review == nil || msg.data.ID != a.review.ID {
 		return a, nil
 	}
 	words := a.c.Tr.LoadedAgain
@@ -136,7 +136,7 @@ func (a App) afterReload(msg reviewReloaded) (tea.Model, tea.Cmd) {
 	a = a.keptFilter()
 	switch a.screen {
 	case screenDiff:
-		next, cmd := a.openPlace(a.diff.component, a.diff.place())
+		next, cmd := a.openPlace(a.diff.Component, a.diff.place())
 		return next.(App).say(words, false), cmd
 	case screenDiagram:
 		return a.showBox(a.dg.place()).say(words, false), nil

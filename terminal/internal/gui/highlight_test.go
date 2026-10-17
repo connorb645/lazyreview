@@ -10,6 +10,8 @@ import (
 	"github.com/muesli/termenv"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 )
 
 func filterIs(t *testing.T, a App, want string) {
@@ -22,8 +24,8 @@ func filterIs(t *testing.T, a App, want string) {
 func rowKeys(a App, n int) []string {
 	var keys []string
 	for _, r := range a.sides[n].rows {
-		if !r.heading {
-			keys = append(keys, r.key)
+		if !r.Heading {
+			keys = append(keys, r.Key)
 		}
 	}
 	return keys
@@ -33,10 +35,10 @@ func onThreeStack(t *testing.T) App {
 	t.Helper()
 	a, _ := opened(t, stack, 100, 30)
 	d := *a.review
-	stacked := *d.page.Stack
+	stacked := *d.Page.Stack
 	stacked.Members = append(append([]server.StackMember{}, stacked.Members...), server.StackMember{Pull: 23, Head: "f00d"})
-	d.page.Stack = &stacked
-	d.state.Members = append(append([]server.Member{}, d.state.Members...), server.Member{Pull: 23, Title: "Price the basket", Color: 3})
+	d.Page.Stack = &stacked
+	d.State.Members = append(append([]server.Member{}, d.State.Members...), server.Member{Pull: 23, Title: "Price the basket", Color: 3})
 	a.review = &d
 	return a.relaid()
 }
@@ -164,9 +166,9 @@ func TestTheHighlightIsKeptAcrossAReload(t *testing.T) {
 	a = send(t, a, reviewReloaded{data: *a.review})
 	filterIs(t, a, "[21 22]")
 	d := *a.review
-	stacked := *d.page.Stack
+	stacked := *d.Page.Stack
 	stacked.Members = stacked.Members[:1]
-	d.page.Stack = &stacked
+	d.Page.Stack = &stacked
 	a = send(t, a, reviewReloaded{data: d})
 	filterIs(t, a, "[21]")
 }
@@ -194,10 +196,10 @@ func TestACommentQueuedWhileHighlightedGoesWhereTheServerSays(t *testing.T) {
 	a = press(t, a, "v", "2", "j", "enter")
 	a = typed(t, press(t, a, ":"), "7")
 	a = press(t, a, "V", "j", "j", "c")
-	if a.bad || a.diff.selecting {
+	if a.bad || a.diff.Selecting {
 		t.Fatalf("the range was not queued: %q", a.notice)
 	}
-	if n, ok := noteOf(*a.review, "Sources/Catalog/MemoryCatalog.swift", "queued:4"); !ok || n.pull != 21 {
+	if n, ok := presentation.NoteOf(*a.review, "Sources/Catalog/MemoryCatalog.swift", "queued:4"); !ok || n.Pull != 21 {
 		t.Fatalf("queued comment 4 goes on %+v", n)
 	}
 	filterIs(t, a, "[21]")
@@ -207,25 +209,25 @@ func TestHighlightedRowsDrawApartFromTheCursorRow(t *testing.T) {
 	lipgloss.SetColorProfile(termenv.TrueColor)
 	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
 	for _, dark := range []bool{true, false} {
-		p := newPalette(dark)
-		s := sidePanel{cursor: 1, rows: []sideRow{{key: "a", text: "#21", lit: true}, {key: "b", text: "#22", lit: true}, {key: "c", text: "#23"}}}
-		focused, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, true, p)
-		if !strings.HasPrefix(focused[0], p.visual) || !strings.HasPrefix(focused[1], p.selected) || strings.HasPrefix(focused[2], p.visual) {
+		th := commonFor(dark).Theme
+		s := sidePanel{cursor: 1, rows: []presentation.SideRow{{Key: "a", Text: "#21", Lit: true}, {Key: "b", Text: "#22", Lit: true}, {Key: "c", Text: "#23"}}}
+		focused, _ := presentation.SideContent(testCommon().Tr, th, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, true)
+		if !strings.HasPrefix(focused[0], th.VisualSelectionBg) || !strings.HasPrefix(focused[1], th.SelectedLineBg) || strings.HasPrefix(focused[2], th.VisualSelectionBg) {
 			t.Fatalf("with the keys, a lit row, the cursor and an unlit row draw as %q", focused)
 		}
-		if p.visual == p.selected || p.visual == p.faded {
-			t.Fatalf("the highlight's colour is the cursor's: %q", p.visual)
+		if th.VisualSelectionBg == th.SelectedLineBg || th.VisualSelectionBg == th.InactiveViewSelectedLineBg {
+			t.Fatalf("the highlight's colour is the cursor's: %q", th.VisualSelectionBg)
 		}
-		away, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, false, p)
-		if !strings.HasPrefix(away[1], p.visual) {
+		away, _ := presentation.SideContent(testCommon().Tr, th, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, false)
+		if !strings.HasPrefix(away[1], th.VisualSelectionBg) {
 			t.Fatalf("without the keys, the cursor's lit row draws as %q", away[1])
 		}
 	}
-	plain := newPalette(true)
-	plain.plain = true
-	s := sidePanel{cursor: 1, rows: []sideRow{{key: "a", text: "#21", lit: true}, {key: "b", text: "#22", lit: true}, {key: "c", text: "#23"}}}
-	focused, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, true, plain)
-	away, _ := sideContent(testCommon().Tr, s, rect{w: 20, h: 3}, false, plain)
+	plain := testCommon().Theme
+	plain.Plain = true
+	s := sidePanel{cursor: 1, rows: []presentation.SideRow{{Key: "a", Text: "#21", Lit: true}, {Key: "b", Text: "#22", Lit: true}, {Key: "c", Text: "#23"}}}
+	focused, _ := presentation.SideContent(testCommon().Tr, plain, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, true)
+	away, _ := presentation.SideContent(testCommon().Tr, plain, s.rows, s.cursor, s.top, views.Rect{W: 20, H: 3}, false)
 	if !strings.HasPrefix(focused[0], "┃") || !strings.HasPrefix(focused[1], "▌") || !strings.HasPrefix(away[1], "┃") || !strings.HasPrefix(focused[2], " ") {
 		t.Fatalf("with no colour, the rows draw as %q, then without the keys %q", focused, away)
 	}
@@ -242,9 +244,9 @@ func TestPathTitlesReadTheSameUnderAHighlight(t *testing.T) {
 	if title(lit) != title(whole) || !strings.Contains(title(lit), "widgets › Sources─") {
 		t.Fatalf("with #22 highlighted the diagram is titled %q, not %q", title(lit), title(whole))
 	}
-	for _, card := range lit.dg.level.Cards {
-		if row := lit.sides[diagramPanel].rows[lit.sides[diagramPanel].index(boxKey(card.ID))]; row.title != card.Title {
-			t.Fatalf("the Diagram panel titles %s as %q", card.ID, row.title)
+	for _, card := range lit.dg.Level.Cards {
+		if row := lit.sides[diagramPanel].rows[lit.sides[diagramPanel].index(presentation.BoxKey(card.ID))]; row.Title != card.Title {
+			t.Fatalf("the Diagram panel titles %s as %q", card.ID, row.Title)
 		}
 	}
 }

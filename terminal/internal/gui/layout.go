@@ -1,5 +1,7 @@
 package gui
 
+import "github.com/connorb645/lazyreview/terminal/internal/gui/views"
+
 const (
 	mainPanel = iota
 	reviewPanel
@@ -15,16 +17,16 @@ const (
 )
 
 type layout struct {
-	sides [sideCount + 1]rect
-	main  rect
-	bar   rect
+	sides [sideCount + 1]views.Rect
+	main  views.Rect
+	bar   views.Rect
 }
 
 func lay(width, height, focus, driving int, mode screenMode, wants [sideCount + 1]int) layout {
-	l := layout{bar: rect{y: height - 1, w: width, h: 1}}
+	l := layout{bar: views.Rect{Y: height - 1, W: width, H: 1}}
 	h := height - 1
 	if mode == fullScreen || width < narrowest || h < shortest {
-		whole := rect{w: width, h: h}
+		whole := views.Rect{W: width, H: h}
 		if focus == mainPanel {
 			l.main = whole
 		} else {
@@ -39,13 +41,13 @@ func lay(width, height, focus, driving int, mode screenMode, wants [sideCount + 
 	case mode == halfScreen:
 		side = width / 2
 	}
-	l.main = rect{x: side, w: width - side, h: h}
+	l.main = views.Rect{X: side, W: width - side, H: h}
 	first := min(wants[reviewPanel]+2, max(3, h/4))
-	l.sides[reviewPanel] = rect{w: side, h: first}
+	l.sides[reviewPanel] = views.Rect{W: side, H: first}
 	heights := shared(h-first, driving-filesPanel, []int{wants[filesPanel] + 2, wants[notesPanel] + 2, wants[diagramPanel] + 2}, 6)
 	y := first
 	for i, n := range heights {
-		l.sides[filesPanel+i] = rect{y: y, w: side, h: n}
+		l.sides[filesPanel+i] = views.Rect{Y: y, W: side, H: n}
 		y += n
 	}
 	return l

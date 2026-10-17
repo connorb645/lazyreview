@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -107,7 +108,7 @@ func TestTheMainPanelSaysWhatInvolvesYouAndWhatEnterDoes(t *testing.T) {
 func TestEnterOpensTheStacksReviewAndSpaceHComesBack(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
 	a = press(t, a, "2", "j", "enter")
-	if a.screen != screenReview || a.review == nil || a.review.id != "github.com/octo/widgets/21" {
+	if a.screen != screenReview || a.review == nil || a.review.ID != "github.com/octo/widgets/21" {
 		t.Fatalf("Enter on #22 opens the stack's review: screen %d, %v", a.screen, a.review)
 	}
 	a = press(t, a, "2", "j")
@@ -140,7 +141,7 @@ func TestEnterLoadsAPullRequestNoReviewHoldsThenOpensIt(t *testing.T) {
 		t.Fatalf("a second load waits: %q", again.notice)
 	}
 	a = drive(t, loading, cmd)
-	if a.screen != screenReview || a.review == nil || a.review.id != "github.com/octo/widgets/30" {
+	if a.screen != screenReview || a.review == nil || a.review.ID != "github.com/octo/widgets/30" {
 		t.Fatalf("once loaded, it opens: screen %d, %v", a.screen, a.review)
 	}
 	a = press(t, a, "space", "h")
@@ -236,25 +237,25 @@ func TestTheHomeScreensOtherKeys(t *testing.T) {
 	}
 	screenIs(t, press(t, a, "space", "?"), "home-keys")
 	a = press(t, a, "+")
-	if l := a.homeLayout(); l.panels[0].w != 66 || l.main.w != 34 || a.mode != halfScreen {
-		t.Fatalf("+ gives the list two thirds: %d and %d", l.panels[0].w, l.main.w)
+	if l := a.homeLayout(); l.panels[0].W != 66 || l.main.W != 34 || a.mode != halfScreen {
+		t.Fatalf("+ gives the list two thirds: %d and %d", l.panels[0].W, l.main.W)
 	}
 	a = press(t, a, "+")
-	if l := a.homeLayout(); l.panels[0].w != 100 || l.main.shown() {
-		t.Fatalf("+ again gives the list the screen: %d", l.panels[0].w)
+	if l := a.homeLayout(); l.panels[0].W != 100 || l.main.Shown() {
+		t.Fatalf("+ again gives the list the screen: %d", l.panels[0].W)
 	}
 	screenIs(t, a, "home-full")
 }
 
 func TestAClickChoosesAPullRequestAndADoubleClickOpensIt(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
-	y := a.homeLayout().panels[1].y + 2
+	y := a.homeLayout().panels[1].Y + 2
 	a = send(t, a, tea.MouseMsg{X: 5, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
 	if selectedPull(a) != "octo/widgets#22" {
 		t.Fatalf("a click chose %s", selectedPull(a))
 	}
 	a = send(t, a, tea.MouseMsg{X: 5, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
-	if a.screen != screenReview || a.review == nil || a.review.id != "github.com/octo/widgets/21" {
+	if a.screen != screenReview || a.review == nil || a.review.ID != "github.com/octo/widgets/21" {
 		t.Fatalf("a double click opens it: screen %d, opening %q, %q", a.screen, a.opening, a.failed)
 	}
 }
@@ -267,9 +268,9 @@ func TestManyRepositoriesFoldToTheirTitlesAndTheListFollowsTheKeys(t *testing.T)
 	l := layHome(80, 24, 4, normalScreen, wants)
 	var heights []int
 	for _, r := range l.panels {
-		heights = append(heights, r.h)
+		heights = append(heights, r.H)
 	}
-	if heights[4] != 12 || heights[0] != 1 || heights[11] != 1 || l.panels[11].y != 22 {
+	if heights[4] != 12 || heights[0] != 1 || heights[11] != 1 || l.panels[11].Y != 22 {
 		t.Fatalf("eleven panels fold to one row and the twelfth takes the rest: %v", heights)
 	}
 	many := make([]int, 30)
@@ -279,27 +280,27 @@ func TestManyRepositoriesFoldToTheirTitlesAndTheListFollowsTheKeys(t *testing.T)
 	l = layHome(80, 24, 20, normalScreen, many)
 	shown := 0
 	for i, r := range l.panels {
-		if r.h > 0 {
+		if r.H > 0 {
 			shown++
-			if i == 20 && r.h != 3 {
-				t.Fatalf("the panel with the keys keeps a row: %d", r.h)
+			if i == 20 && r.H != 3 {
+				t.Fatalf("the panel with the keys keeps a row: %d", r.H)
 			}
 		}
 	}
-	if shown != 21 || l.panels[0].h != 0 || l.panels[20].h == 0 {
+	if shown != 21 || l.panels[0].H != 0 || l.panels[20].H == 0 {
 		t.Fatalf("with more panels than rows, the ones around the keys show: %d shown", shown)
 	}
 }
 
 func TestAFoldedPanelIsOneRowAsWideAsItsPanel(t *testing.T) {
-	p := newPalette(true)
+	p := testCommon().Theme
 	for _, w := range []int{20, 40, 80} {
-		strip := framed(nil, extent{}, w, 1, "[3]─octo/widgets", " ● 1", "1 of 3", false, p)
+		strip := views.Framed(nil, views.Extent{}, w, 1, "[3]─octo/widgets", " ● 1", "1 of 3", false, p)
 		if len(strip) != 1 || ansi.StringWidth(strip[0]) != w {
 			t.Fatalf("at %d columns the strip is %q", w, strip)
 		}
 	}
-	if got := framed(nil, extent{}, 40, 1, "[3]─octo/widgets", " ● 1", "1 of 3", false, p)[0]; got != "──[3]─octo/widgets ● 1──────────1 of 3──" {
+	if got := views.Framed(nil, views.Extent{}, 40, 1, "[3]─octo/widgets", " ● 1", "1 of 3", false, p)[0]; got != "──[3]─octo/widgets ● 1──────────1 of 3──" {
 		t.Fatalf("the strip reads %q", got)
 	}
 }

@@ -1,13 +1,13 @@
 package gui
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -23,14 +23,6 @@ func loadPulls(c *server.Client, unit string, links []string, account string) te
 		id, notes, err := c.Load(links, account)
 		return pullsLoaded{unit: unit, id: id, notes: notes, err: err}
 	}
-}
-
-func unitName(repo server.PullRepo, u server.Unit) string {
-	numbers := make([]string, len(u.Members))
-	for i, m := range u.Members {
-		numbers[i] = fmt.Sprintf("#%d", m.Number)
-	}
-	return repo.Name + " " + strings.Join(numbers, " → ")
 }
 
 func (a App) homeAction(action string, count int) (tea.Model, tea.Cmd) {
@@ -66,7 +58,7 @@ func (a App) goHome() (tea.Model, tea.Cmd) {
 	if a.home.list == nil && !a.home.reading && a.home.failed == "" {
 		return a.readHome()
 	}
-	a.home = a.home.rebuilt(a.c.Tr, a.p)
+	a.home = a.home.rebuilt(a.c.Tr, a.c.Theme)
 	return a.homeRelaid(), nil
 }
 
@@ -75,7 +67,7 @@ func (a App) readHome() (tea.Model, tea.Cmd) {
 		return a.say(a.c.Tr.ReadingAlready, false), nil
 	}
 	a.home.reading, a.home.failed = true, ""
-	a.home = a.home.rebuilt(a.c.Tr, a.p)
+	a.home = a.home.rebuilt(a.c.Tr, a.c.Theme)
 	return a.homeRelaid(), readPulls(a.opts.Server)
 }
 
@@ -89,7 +81,7 @@ func (a App) afterPulls(msg pullsRead) (tea.Model, tea.Cmd) {
 	default:
 		a.home.list = &msg.pulls
 	}
-	a.home = a.home.rebuilt(a.c.Tr, a.p)
+	a.home = a.home.rebuilt(a.c.Tr, a.c.Theme)
 	return a.homeRelaid(), nil
 }
 
@@ -109,7 +101,7 @@ func (a App) openSelected() (tea.Model, tea.Cmd) {
 	for i, m := range u.Members {
 		links[i] = m.URL
 	}
-	a.home.loading, a.home.loadingName = unitKey(repo, u), unitName(repo, u)
+	a.home.loading, a.home.loadingName = presentation.UnitKey(repo, u), presentation.UnitName(repo, u)
 	return a, loadPulls(a.opts.Server, a.home.loading, links, repo.Account)
 }
 
@@ -119,7 +111,7 @@ func (a App) afterLoaded(msg pullsLoaded) (tea.Model, tea.Cmd) {
 	if msg.err != nil {
 		return a.say(utils.ResolvePlaceholderString(a.c.Tr.CouldNotLoad, map[string]string{"name": name})+": "+msg.err.Error(), true), nil
 	}
-	a.home = a.home.withReview(msg.unit, msg.id).rebuilt(a.c.Tr, a.p)
+	a.home = a.home.withReview(msg.unit, msg.id).rebuilt(a.c.Tr, a.c.Theme)
 	if a.screen != screenHome {
 		return a.say(utils.ResolvePlaceholderString(a.c.Tr.LoadedEnterOpens, map[string]string{"name": name}), false), nil
 	}
@@ -132,7 +124,7 @@ func (a App) afterLoaded(msg pullsLoaded) (tea.Model, tea.Cmd) {
 
 func (a App) openReview(id string) (tea.Model, tea.Cmd) {
 	switch {
-	case a.review != nil && a.review.id == id:
+	case a.review != nil && a.review.ID == id:
 		a.screen, a.focus, a.driving = a.home.from, a.home.fromFocus, a.home.fromDriving
 		if a.screen == screenHome {
 			a.screen, a.focus, a.driving = screenReview, reviewPanel, reviewPanel
@@ -161,7 +153,7 @@ func (a App) heldDraft() string {
 	if a.review == nil || (len(a.drafts) == 0 && !a.editingNow) {
 		return ""
 	}
-	return utils.ResolvePlaceholderString(a.c.Tr.DraftNotSent, map[string]string{"title": a.review.state.Title})
+	return utils.ResolvePlaceholderString(a.c.Tr.DraftNotSent, map[string]string{"title": a.review.State.Title})
 }
 
 func (a App) homeLayout() homeLayout {
@@ -170,7 +162,7 @@ func (a App) homeLayout() homeLayout {
 
 func (a App) homeRelaid() App {
 	if len(a.home.panels) == 0 {
-		a.home = a.home.rebuilt(a.c.Tr, a.p)
+		a.home = a.home.rebuilt(a.c.Tr, a.c.Theme)
 	}
 	if a.width == 0 {
 		return a
@@ -178,7 +170,7 @@ func (a App) homeRelaid() App {
 	l := a.homeLayout()
 	heights := make([]int, len(l.panels))
 	for i, r := range l.panels {
-		heights[i] = r.inner().h
+		heights[i] = r.Inner().H
 	}
 	a.home = a.home.shown(heights)
 	return a
@@ -189,10 +181,10 @@ func (a App) homeMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 	for i, r := range a.homeLayout().panels {
-		if r.w == 0 || !r.holds(msg.X, msg.Y) {
+		if r.W == 0 || !r.Holds(msg.X, msg.Y) {
 			continue
 		}
-		in := r.inner()
+		in := r.Inner()
 		switch msg.Button {
 		case tea.MouseButtonWheelUp, tea.MouseButtonWheelDown:
 			by := 3
@@ -200,14 +192,14 @@ func (a App) homeMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 				by = -3
 			}
 			panels := append([]homePanel{}, a.home.panels...)
-			panels[i].rows = panels[i].rows.scroll(by, max(1, in.h))
+			panels[i].rows = panels[i].rows.scroll(by, max(1, in.H))
 			a.home.panels = panels
 			return a, nil
 		case tea.MouseButtonLeft:
 			now := a.opts.Now()
 			double := msg.Y == a.clickedY && now.Sub(a.clickedAt) < doubleClick
 			a.clickedAt, a.clickedY = now, msg.Y
-			row := a.home.panels[i].rows.at(msg.Y - in.y)
+			row := a.home.panels[i].rows.at(msg.Y - in.Y)
 			if row < 0 {
 				a.home.focus = i
 				return a.homeRelaid(), nil

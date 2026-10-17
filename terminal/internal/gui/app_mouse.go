@@ -1,6 +1,10 @@
 package gui
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
+)
 
 func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	if a.screen == screenHome {
@@ -10,19 +14,19 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 	l := a.layout()
-	n, at := -1, rect{}
+	n, at := -1, views.Rect{}
 	for i := reviewPanel; i <= sideCount; i++ {
-		if r := l.sides[i]; r.shown() && r.holds(msg.X, msg.Y) {
-			n, at = i, r.inner()
+		if r := l.sides[i]; r.Shown() && r.Holds(msg.X, msg.Y) {
+			n, at = i, r.Inner()
 		}
 	}
-	if r := l.main; r.shown() && r.holds(msg.X, msg.Y) {
-		n, at = mainPanel, r.inner()
+	if r := l.main; r.Shown() && r.Holds(msg.X, msg.Y) {
+		n, at = mainPanel, r.Inner()
 	}
 	if n < 0 {
 		return a, nil
 	}
-	x, y := msg.X-at.x, msg.Y-at.y
+	x, y := msg.X-at.X, msg.Y-at.Y
 	switch msg.Button {
 	case tea.MouseButtonWheelUp, tea.MouseButtonWheelDown:
 		by := 3
@@ -30,16 +34,16 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			by = -3
 		}
 		if n != mainPanel {
-			a.sides[n] = a.sides[n].scroll(by, at.h)
+			a.sides[n] = a.sides[n].scroll(by, at.H)
 			return a, nil
 		}
 		switch a.screen {
 		case screenReview:
-			a.rv.view = a.rv.view.scroll(by, at.h)
+			a.rv.view = a.rv.view.scroll(by, at.H)
 		case screenDiff:
-			a.diff = a.diff.scroll(by, at.h)
+			a.diff = a.diff.scroll(by, at.H)
 		case screenDiagram:
-			a.dg = a.dg.scrolled(a.c.Tr, *a.review, 0, by, at.w, at.h, a.filter)
+			a.dg = a.dg.scrolled(a.c.Tr, *a.review, 0, by, at.W, at.H, a.filter)
 		}
 		return a, nil
 	case tea.MouseButtonWheelLeft, tea.MouseButtonWheelRight:
@@ -48,11 +52,11 @@ func (a App) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			if msg.Button == tea.MouseButtonWheelLeft {
 				by = -6
 			}
-			a.dg = a.dg.scrolled(a.c.Tr, *a.review, by, 0, at.w, at.h, a.filter)
+			a.dg = a.dg.scrolled(a.c.Tr, *a.review, by, 0, at.W, at.H, a.filter)
 		}
 		return a, nil
 	case tea.MouseButtonLeft:
-		if y < 0 || y >= at.h || x < 0 || x >= at.w {
+		if y < 0 || y >= at.H || x < 0 || x >= at.W {
 			return a, nil
 		}
 		now := a.opts.Now()
@@ -87,7 +91,7 @@ func (a App) mainClicked(x, y int, double bool) (tea.Model, tea.Cmd) {
 	switch a.screen {
 	case screenDiagram:
 		if i := a.dg.boxAt(a.c.Tr, *a.review, x, y, a.filter); i >= 0 {
-			a.dg.focus = i
+			a.dg.Focus = i
 			a = a.diagramShown()
 			if double {
 				return a.stepIn()

@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -21,7 +22,7 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 		a.cameFrom = a.screen
 	}
 	var missing []string
-	for _, f := range diffFiles(*a.review, component, nil) {
+	for _, f := range presentation.DiffFiles(*a.review, component, nil) {
 		if _, ok := a.files[f.Path]; !ok {
 			missing = append(missing, f.Path)
 		}
@@ -29,19 +30,19 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 	if len(missing) > 0 {
 		a.loading = true
 		a.screen = screenDiff
-		return a, loadFiles(a.c.Tr, a.opts.Server, a.review.id, a.review.page.Build, component, missing, place)
+		return a, loadFiles(a.c.Tr, a.opts.Server, a.review.ID, a.review.Page.Build, component, missing, place)
 	}
-	if a.diff.component != component || a.diff.files == nil {
-		a.diff = newDiffView(component, a.files, a.opts.Location, a.md)
-		a.diff.width = a.mainWidth()
+	if a.diff.Component != component || a.diff.Files == nil {
+		a.diff = newDiffView(component, a.files)
+		a.diff.Width = a.mainWidth()
 	}
 	a.screen = screenDiff
 	a.diff = a.diff.copied()
 	if place != nil {
-		a.diff.folded[place.Path] = false
+		a.diff.Folded[place.Path] = false
 		a.diff = a.withRunOpen(place.Path, place.Side, place.Line)
 	}
-	a.diff = a.diff.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
+	a.diff = a.diff.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, a.mainHeight())
 	if place != nil {
 		a.diff = a.diff.find(*place).placed(a.mainHeight())
 	} else {
@@ -52,20 +53,20 @@ func (a App) openPlace(component string, place *server.Lines) (tea.Model, tea.Cm
 
 func (a App) withRunOpen(path, side string, line int) diffView {
 	v := a.diff
-	file, ok := v.files[path]
+	file, ok := v.Files[path]
 	if !ok || side == "LEFT" {
 		return v
 	}
 	for _, g := range file.Gaps {
 		if g.From <= line && line <= g.To {
-			v.opened[fmt.Sprintf("%s:%d", path, g.Before)] = true
+			v.Opened[fmt.Sprintf("%s:%d", path, g.Before)] = true
 		}
 	}
 	return v
 }
 
 func (a App) componentOf(path string) string {
-	return fileEntry(*a.review, path).Component
+	return presentation.FileEntry(*a.review, path).Component
 }
 
 func (a App) diffAction(action string, count int, counted bool, h int) (tea.Model, tea.Cmd) {
@@ -92,36 +93,36 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		if action == "top" {
 			a.diff = v.to(0, h)
 		} else {
-			a.diff = v.to(len(v.rows)-1, h)
+			a.diff = v.to(len(v.Rows)-1, h)
 		}
 	case "next hunk", "previous hunk":
 		for ; count > 0; count-- {
 			back := action == "previous hunk"
 			if back {
-				if i := v.next(true, func(r diffRow) bool { return r.kind == "hunk" }); i >= 0 {
+				if i := v.next(true, func(r presentation.DiffRow) bool { return r.Kind == "hunk" }); i >= 0 {
 					v = v.to(i, h)
 				}
 			}
-			i := v.next(back, func(r diffRow) bool { return r.kind == "hunk" })
+			i := v.next(back, func(r presentation.DiffRow) bool { return r.Kind == "hunk" })
 			if i < 0 {
 				break
 			}
 			v = v.to(i, h)
-			if j := v.next(false, changedRow); j >= 0 && (j == i+1 || noHunkBetween(v.rows, i, j)) {
+			if j := v.next(false, changedRow); j >= 0 && (j == i+1 || noHunkBetween(v.Rows, i, j)) {
 				v = v.to(j, h)
 			}
 		}
 		a.diff = v
 	case "next note", "previous note":
 		for ; count > 0; count-- {
-			if i := v.next(action == "previous note", func(r diffRow) bool { return r.kind == "notehead" }); i >= 0 {
+			if i := v.next(action == "previous note", func(r presentation.DiffRow) bool { return r.Kind == "notehead" }); i >= 0 {
 				v = v.to(i, h)
 			}
 		}
 		a.diff = v
 	case "next file", "previous file":
 		for ; count > 0; count-- {
-			if i := v.next(action == "previous file", func(r diffRow) bool { return r.kind == "file" }); i >= 0 {
+			if i := v.next(action == "previous file", func(r presentation.DiffRow) bool { return r.Kind == "file" }); i >= 0 {
 				v = v.to(i, h)
 			}
 		}
@@ -135,20 +136,20 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		return a.fold(action), nil
 	case "open folds", "close folds":
 		v = v.copied()
-		for _, f := range diffFiles(*a.review, v.component, a.filter) {
-			v.folded[f.Path] = action == "close folds"
-			for _, n := range notesOf(*a.review, f.Path) {
-				v.notes[n.key] = action == "open folds"
+		for _, f := range presentation.DiffFiles(*a.review, v.Component, a.filter) {
+			v.Folded[f.Path] = action == "close folds"
+			for _, n := range presentation.NotesOf(*a.review, f.Path) {
+				v.Notes[n.Key] = action == "open folds"
 			}
-			for _, g := range v.files[f.Path].Gaps {
+			for _, g := range v.Files[f.Path].Gaps {
 				if action == "open folds" {
-					v.opened[fmt.Sprintf("%s:%d", f.Path, g.Before)] = true
+					v.Opened[fmt.Sprintf("%s:%d", f.Path, g.Before)] = true
 				}
 			}
 		}
-		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
+		a.diff = v.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, h)
 	case "open":
-		if v.cursor < len(v.rows) && (v.rows[v.cursor].kind == "file" || v.rows[v.cursor].kind == "gap") {
+		if v.Cursor < len(v.Rows) && (v.Rows[v.Cursor].Kind == "file" || v.Rows[v.Cursor].Kind == "gap") {
 			return a.fold("toggle fold"), nil
 		}
 	case "back":
@@ -157,11 +158,11 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 		return a.relaid(), nil
 	case "split", "wrap":
 		if action == "split" {
-			v.split = !v.split
+			v.Split = !v.Split
 		} else {
-			v.wrap = !v.wrap
+			v.Wrap = !v.Wrap
 		}
-		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
+		a.diff = v.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, h)
 	case "show type":
 		return a.showType()
 	case "comment":
@@ -173,47 +174,47 @@ func (a App) diffAction(action string, count int, counted bool, h int) (tea.Mode
 	case "drop":
 		return a.dropQueued(), nil
 	case "select":
-		if len(v.rows) == 0 {
+		if len(v.Rows) == 0 {
 			return a, nil
 		}
-		if r := v.rows[v.cursor]; r.kind != "block" {
-			if _, _, ok := r.at(); !ok {
+		if r := v.Rows[v.Cursor]; r.Kind != "block" {
+			if _, _, ok := r.At(); !ok {
 				return a.say(a.c.Tr.SelectStartsOnLine, true), nil
 			}
 		}
-		a.diff.selecting, a.diff.anchor = true, v.cursor
+		a.diff.Selecting, a.diff.Anchor = true, v.Cursor
 	case "other end":
-		if v.selecting {
-			a.diff.anchor, a.diff.cursor = v.cursor, v.anchor
+		if v.Selecting {
+			a.diff.Anchor, a.diff.Cursor = v.Cursor, v.Anchor
 			a.diff = a.diff.shown(h)
 		}
 	case "rendered":
 		path := v.file()
-		if f, ok := v.files[path]; !ok || f.Rendered == nil {
+		if f, ok := v.Files[path]; !ok || f.Rendered == nil {
 			return a.say(a.c.Tr.NoRenderedView, true), nil
 		}
 		v = v.copied()
-		v.rendered[path] = !v.rendered[path]
-		v.folded[path] = false
-		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
-		if i := a.diff.first(func(r diffRow) bool { return r.kind == "file" && r.path == path }); i >= 0 {
+		v.Rendered[path] = !v.Rendered[path]
+		v.Folded[path] = false
+		a.diff = v.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, h)
+		if i := a.diff.first(func(r presentation.DiffRow) bool { return r.Kind == "file" && r.Path == path }); i >= 0 {
 			a.diff = a.diff.to(i, h)
 		}
 	case "whole":
 		path := v.file()
-		entry := fileEntry(*a.review, path)
-		if f, ok := v.files[path]; !ok || f.Whole == nil || entry.Status == "" || len(f.Hunks) == 0 {
+		entry := presentation.FileEntry(*a.review, path)
+		if f, ok := v.Files[path]; !ok || f.Whole == nil || entry.Status == "" || len(f.Hunks) == 0 {
 			return a.say(a.c.Tr.NoWholeText, true), nil
 		}
 		v = v.copied()
-		v.whole[path] = !v.whole[path]
-		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, h)
+		v.Whole[path] = !v.Whole[path]
+		a.diff = v.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, h)
 	}
 	return a, nil
 }
 
-func changedRow(r diffRow) bool {
-	for _, l := range []*server.Row{r.line, r.left, r.right} {
+func changedRow(r presentation.DiffRow) bool {
+	for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
 		if l != nil && (l.Kind == "add" || l.Kind == "del") {
 			return true
 		}
@@ -221,9 +222,9 @@ func changedRow(r diffRow) bool {
 	return false
 }
 
-func noHunkBetween(rows []diffRow, from, to int) bool {
+func noHunkBetween(rows []presentation.DiffRow, from, to int) bool {
 	for i := from + 1; i < to; i++ {
-		if rows[i].kind == "hunk" || rows[i].kind == "file" {
+		if rows[i].Kind == "hunk" || rows[i].Kind == "file" {
 			return false
 		}
 	}
@@ -232,36 +233,36 @@ func noHunkBetween(rows []diffRow, from, to int) bool {
 
 func (a App) fold(action string) App {
 	v := a.diff.copied()
-	if v.cursor >= len(v.rows) {
+	if v.Cursor >= len(v.Rows) {
 		return a
 	}
-	r := v.rows[v.cursor]
-	if r.kind == "notehead" || r.kind == "notetext" {
-		n, _ := noteOf(*a.review, r.path, r.key)
-		v.notes[r.key] = action == "open fold" || action == "toggle fold" && !v.noteOpen(n)
-		a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
-		if i := a.diff.first(func(row diffRow) bool { return row.kind == "notehead" && row.key == r.key }); i >= 0 {
+	r := v.Rows[v.Cursor]
+	if r.Kind == "notehead" || r.Kind == "notetext" {
+		n, _ := presentation.NoteOf(*a.review, r.Path, r.Key)
+		v.Notes[r.Key] = action == "open fold" || action == "toggle fold" && !v.NoteOpen(n)
+		a.diff = v.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, a.mainHeight())
+		if i := a.diff.first(func(row presentation.DiffRow) bool { return row.Kind == "notehead" && row.Key == r.Key }); i >= 0 {
 			a.diff = a.diff.to(i, a.mainHeight())
 		}
 		return a
 	}
-	run := r.key != "" && r.kind != "hunk"
+	run := r.Key != "" && r.Kind != "hunk"
 	switch {
-	case run && r.kind == "gap":
-		v.opened[r.key] = action != "close fold"
+	case run && r.Kind == "gap":
+		v.Opened[r.Key] = action != "close fold"
 	case run:
-		v.opened[r.key] = action == "open fold"
-	case r.kind == "file" && action == "toggle fold":
-		v.folded[r.path] = !v.folded[r.path]
+		v.Opened[r.Key] = action == "open fold"
+	case r.Kind == "file" && action == "toggle fold":
+		v.Folded[r.Path] = !v.Folded[r.Path]
 	default:
-		v.folded[r.path] = action != "open fold" && !(action == "toggle fold" && v.folded[r.path])
+		v.Folded[r.Path] = action != "open fold" && !(action == "toggle fold" && v.Folded[r.Path])
 	}
-	a.diff = v.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
+	a.diff = v.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, a.mainHeight())
 	switch {
-	case r.kind != "file" && v.folded[r.path]:
-		a.diff = a.diff.find(server.Lines{Path: r.path, Side: "file:"}).shown(a.mainHeight())
+	case r.Kind != "file" && v.Folded[r.Path]:
+		a.diff = a.diff.find(server.Lines{Path: r.Path, Side: "file:"}).shown(a.mainHeight())
 	case run:
-		if i := a.diff.first(func(row diffRow) bool { return row.key == r.key && row.kind != "hunk" }); i >= 0 {
+		if i := a.diff.first(func(row presentation.DiffRow) bool { return row.Key == r.Key && row.Kind != "hunk" }); i >= 0 {
 			a.diff = a.diff.to(i, a.mainHeight())
 		}
 	}
@@ -274,12 +275,12 @@ func (a App) toLine(n int) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 	a.diff = a.diff.copied()
-	a.diff.folded[path] = false
+	a.diff.Folded[path] = false
 	a.diff = a.withRunOpen(path, "RIGHT", n)
-	a.diff = a.diff.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
-	for i, r := range a.diff.rows {
-		if side, line, ok := r.at(); ok && r.path == path && (line == n && side == "RIGHT" || sameLine(r, server.Lines{Side: "RIGHT", Line: n})) {
-			a.diff.cursor = i
+	a.diff = a.diff.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, a.mainHeight())
+	for i, r := range a.diff.Rows {
+		if side, line, ok := r.At(); ok && r.Path == path && (line == n && side == "RIGHT" || sameLine(r, server.Lines{Side: "RIGHT", Line: n})) {
+			a.diff.Cursor = i
 			a.diff = a.diff.placed(a.mainHeight())
 			return a, nil
 		}
@@ -292,7 +293,7 @@ func (a App) matchNext(back bool) (tea.Model, tea.Cmd) {
 	if query == "" {
 		return a, nil
 	}
-	if i := a.diff.next(back, func(r diffRow) bool { return matches(r, query) }); i >= 0 {
+	if i := a.diff.next(back, func(r presentation.DiffRow) bool { return matches(r, query) }); i >= 0 {
 		a = a.leave()
 		a.diff = a.diff.to(i, a.mainHeight())
 		return a, nil
@@ -301,7 +302,7 @@ func (a App) matchNext(back bool) (tea.Model, tea.Cmd) {
 }
 
 func (a App) here() jump {
-	j := jump{screen: a.screen, item: a.rv.view.cursor, component: a.diff.component}
+	j := jump{screen: a.screen, item: a.rv.view.cursor, component: a.diff.Component}
 	switch a.screen {
 	case screenDiff:
 		j.place = a.diff.place()

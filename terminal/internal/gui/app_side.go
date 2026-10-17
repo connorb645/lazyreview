@@ -3,6 +3,7 @@ package gui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -33,12 +34,12 @@ func (a App) focusOn(n int) (tea.Model, tea.Cmd) {
 }
 
 func (a App) sidesBuilt() App {
-	d, tr := *a.review, a.c.Tr
-	built := [sideCount + 1][]sideRow{
-		reviewPanel:  reviewRows(d, a.filter, a.p),
-		filesPanel:   fileRows(tr, d, a.tree, a.filter, a.p),
-		notesPanel:   noteListRows(tr, d, a.filter, a.p),
-		diagramPanel: boxRows(tr, d, a.dg, a.filter, a.p),
+	d, tr, th := *a.review, a.c.Tr, a.c.Theme
+	built := [sideCount + 1][]presentation.SideRow{
+		reviewPanel:  presentation.ReviewRows(th, d, a.filter),
+		filesPanel:   presentation.FileRows(tr, th, d, a.tree, a.filter),
+		notesPanel:   presentation.NoteListRows(tr, th, d, a.filter),
+		diagramPanel: presentation.BoxRows(tr, th, d, a.dg.Level, a.dg.Grid, a.filter),
 	}
 	for n := reviewPanel; n <= sideCount; n++ {
 		a.sides[n] = a.sides[n].reset(built[n])
@@ -64,34 +65,34 @@ func (a App) mirrored() App {
 	}
 	switch a.screen {
 	case screenReview:
-		if v := a.rv.view; v.cursor < len(v.items) && v.items[v.cursor].pull != 0 {
-			pick(reviewPanel, pullKey(v.items[v.cursor].pull))
+		if v := a.rv.view; v.cursor < len(v.items) && v.items[v.cursor].Pull != 0 {
+			pick(reviewPanel, presentation.PullKey(v.items[v.cursor].Pull))
 		}
 	case screenDiff:
 		if path := a.diff.file(); path != "" {
 			pick(filesPanel, a.shownFile(path))
 		}
-		if v := a.diff; v.cursor < len(v.rows) && (v.rows[v.cursor].kind == "notehead" || v.rows[v.cursor].kind == "notetext") {
-			pick(notesPanel, v.rows[v.cursor].key)
+		if v := a.diff; v.Cursor < len(v.Rows) && (v.Rows[v.Cursor].Kind == "notehead" || v.Rows[v.Cursor].Kind == "notetext") {
+			pick(notesPanel, v.Rows[v.Cursor].Key)
 		}
 	case screenDiagram:
 		a = a.sidesBuilt()
-		if card, ok := a.dg.card(); ok {
-			pick(diagramPanel, boxKey(card.ID))
+		if card, ok := a.dg.Card(); ok {
+			pick(diagramPanel, presentation.BoxKey(card.ID))
 		}
 	}
 	return a
 }
 
 func (a App) shownFile(path string) string {
-	if a.sides[filesPanel].index(fileKey(path)) >= 0 {
-		return fileKey(path)
+	if a.sides[filesPanel].index(presentation.FileKey(path)) >= 0 {
+		return presentation.FileKey(path)
 	}
 	component := a.componentOf(path)
-	if dir := dirKey(component, path); a.sides[filesPanel].index(dir) >= 0 {
+	if dir := presentation.DirKey(component, path); a.sides[filesPanel].index(dir) >= 0 {
 		return dir
 	}
-	return componentKey(component)
+	return presentation.ComponentKey(component)
 }
 
 func (a App) followed() (tea.Model, tea.Cmd) {
@@ -104,11 +105,11 @@ func (a App) followed() (tea.Model, tea.Cmd) {
 		a.screen = screenReview
 		return a.grown(row).relaid(), nil
 	case filesPanel:
-		place := row.it.place
-		if row.it.kind == "component" {
+		place := row.Item.Place
+		if row.Item.Kind == "component" {
 			place = nil
 		}
-		next, cmd := a.openPlace(row.it.component, place)
+		next, cmd := a.openPlace(row.Item.Component, place)
 		if place != nil && cmd == nil {
 			after := next.(App)
 			after.diff = after.diff.find(*place).atTop(after.mainHeight())
@@ -118,8 +119,8 @@ func (a App) followed() (tea.Model, tea.Cmd) {
 	case notesPanel:
 		return a.toNote(row)
 	case diagramPanel:
-		if i := a.dg.level.Index(row.it.box.box); i >= 0 {
-			a.dg.focus = i
+		if i := a.dg.Level.Index(row.Item.Box.Box); i >= 0 {
+			a.dg.Focus = i
 		}
 		a.screen = screenDiagram
 		return a.diagramShown().mirrored(), nil
@@ -127,8 +128,8 @@ func (a App) followed() (tea.Model, tea.Cmd) {
 	return a, nil
 }
 
-func (a App) toNote(row sideRow) (tea.Model, tea.Cmd) {
-	place := row.it.place
+func (a App) toNote(row presentation.SideRow) (tea.Model, tea.Cmd) {
+	place := row.Item.Place
 	component := a.componentOf(place.Path)
 	if component == "" {
 		return a.say(utils.ResolvePlaceholderString(a.c.Tr.NotInDiff, map[string]string{"path": place.Path}), true), nil
@@ -139,9 +140,9 @@ func (a App) toNote(row sideRow) (tea.Model, tea.Cmd) {
 	}
 	a = next.(App)
 	a.diff = a.diff.copied()
-	a.diff.notes[row.key] = true
-	a.diff = a.diff.rebuilt(a.c.Tr, *a.review, a.filter, a.mainHeight())
-	if i := a.diff.first(func(r diffRow) bool { return r.kind == "notehead" && r.key == row.key }); i >= 0 {
+	a.diff.Notes[row.Key] = true
+	a.diff = a.diff.rebuilt(a.c.Tr, a.md, a.opts.Location, *a.review, a.filter, a.mainHeight())
+	if i := a.diff.first(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
 		a.diff = a.diff.to(i, a.mainHeight()).placed(a.mainHeight())
 	}
 	return a.mirrored(), nil
@@ -170,7 +171,7 @@ func (a App) sideAction(action string, count int) (tea.Model, tea.Cmd) {
 		if !selected {
 			return a, nil
 		}
-		if a.focus == filesPanel && (row.it.kind == "component" || row.it.kind == "dir") {
+		if a.focus == filesPanel && (row.Item.Kind == "component" || row.Item.Kind == "dir") {
 			return a.treeFolded(row)
 		}
 		a = a.leave()
@@ -181,12 +182,12 @@ func (a App) sideAction(action string, count int) (tea.Model, tea.Cmd) {
 	case "previous panel":
 		return a.focusOn(reviewPanel + around(a.focus-reviewPanel-1, sideCount))
 	case "toggle fold":
-		if selected && (row.it.kind == "component" || row.it.kind == "dir") {
+		if selected && (row.Item.Kind == "component" || row.Item.Kind == "dir") {
 			return a.treeFolded(row)
 		}
 	case "post":
 		if selected {
-			return a.openPosting(row.it.pull), nil
+			return a.openPosting(row.Item.Pull), nil
 		}
 	case "highlight":
 		if selected {
@@ -200,9 +201,9 @@ func (a App) sideAction(action string, count int) (tea.Model, tea.Cmd) {
 	return a, nil
 }
 
-func (a App) treeFolded(row sideRow) (tea.Model, tea.Cmd) {
+func (a App) treeFolded(row presentation.SideRow) (tea.Model, tea.Cmd) {
 	a.tree = copyBools(a.tree)
-	a.tree[row.key] = !a.tree[row.key]
+	a.tree[row.Key] = !a.tree[row.Key]
 	return a.relaid(), nil
 }
 
