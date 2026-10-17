@@ -368,7 +368,8 @@ takes changes only as JSON from its own pages.
 
 The code takes lazygit's layers, each part in its own language: the
 commands that run other programs sit apart from the logic that uses them,
-and the logic apart from what the user sees.
+and the logic apart from what the user sees. [lazyreview and lazygit](lazygit.md)
+maps each part to lazygit's own.
 
 - `bin/lazyreview` is the command. `src/cli` reads its arguments and runs
   one command; `src/app` reads the config and builds every service once.
