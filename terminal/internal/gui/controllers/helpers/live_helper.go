@@ -95,7 +95,7 @@ func (self *LiveHelper) AfterNotice(s context.ContextTree, msg types.LiveNotice)
 	var cmds []tea.Cmd
 	switch n := msg.Notice; {
 	case n.Build != "" && n.Build != s.Review.Page.Build && (s.EditingNow || len(s.Drafts) > 0):
-		s = s.Said(self.c.Tr.LoadedElsewhere, false)
+		s = s.Said(utils.ResolvePlaceholderString(self.c.Tr.LoadedElsewhere, map[string]string{"refresh": self.c.KeyLabels(s.Place()).Of("refresh")}), false)
 	case n.Build != "" && n.Build != s.Review.Page.Build:
 		cmds = append(cmds, self.c.Helpers.Review.Reload(s.Review.ID, false))
 	case n.State != "" && n.State != s.Review.State.Version:
@@ -111,7 +111,7 @@ func (self *LiveHelper) AfterStopped(s context.ContextTree, msg types.LiveStoppe
 		return s
 	}
 	s.LiveFor = ""
-	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.StoppedHearing, map[string]string{"error": msg.Err.Error()}), true)
+	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.StoppedHearing, map[string]string{"error": msg.Err.Error(), "refresh": self.c.KeyLabels(s.Place()).Of("refresh")}), true)
 }
 
 func nextNotice(live <-chan tea.Msg) tea.Cmd {

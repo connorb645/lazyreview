@@ -46,14 +46,41 @@ func testCommon() *common.Common {
 // the lazyreview command hands it over and terminal/testdata/config.json
 // keeps it, drawn for a dark or a light terminal.
 func commonFor(dark bool) *common.Common {
-	tr := i18n.EnglishTranslationSet()
+	return commonFrom(defaultHandOver(), dark)
+}
+
+func defaultHandOver() string {
 	text, err := os.ReadFile(filepath.Join("..", "..", "testdata", "config.json"))
 	if err != nil {
 		panic("could not read the default config: " + err.Error())
 	}
-	given, err := config.Decode(string(text), tr)
+	return string(text)
+}
+
+func handedOver(t *testing.T, keys map[string]map[string][]string) *common.Common {
+	t.Helper()
+	var handOver map[string]any
+	if err := json.Unmarshal([]byte(defaultHandOver()), &handOver); err != nil {
+		t.Fatal(err)
+	}
+	binding := handOver["keybinding"].(map[string]any)
+	for place, actions := range keys {
+		for action, sequences := range actions {
+			binding[place].(map[string]any)[action] = sequences
+		}
+	}
+	text, err := json.Marshal(handOver)
 	if err != nil {
-		panic("could not read the default config: " + err.Error())
+		t.Fatal(err)
+	}
+	return commonFrom(string(text), true)
+}
+
+func commonFrom(handOver string, dark bool) *common.Common {
+	tr := i18n.EnglishTranslationSet()
+	given, err := config.Decode(handOver, tr)
+	if err != nil {
+		panic("could not read the config: " + err.Error())
 	}
 	colours := given.Theme.Light
 	if dark {

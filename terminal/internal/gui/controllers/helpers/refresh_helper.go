@@ -32,7 +32,8 @@ func (self *RefreshHelper) Relaid(s context.ContextTree) context.ContextTree {
 		s.Diff.Width = window.MainWidth(s)
 		s.Diff = s.Diff.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.Filter, h)
 	}
-	s.ReviewView = s.ReviewView.Rebuilt(self.c.Tr, self.c.Theme, self.c.Markdown, self.c.Location, *s.Review, s.Filter, window.MainWidth(s), h)
+	labels := self.c.KeyLabels(context.ReviewPanelKey)
+	s.ReviewView = s.ReviewView.Rebuilt(self.c.Tr, self.c.Theme, self.c.Markdown, labels, self.c.Location, *s.Review, s.Filter, window.MainWidth(s), h)
 	return self.Mirrored(s)
 }
 

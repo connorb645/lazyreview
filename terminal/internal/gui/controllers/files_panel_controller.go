@@ -28,9 +28,9 @@ func (self *FilesPanelController) Context() context.ContextKey {
 // Bindings are the keys of every place of a review, of every panel on the
 // left, and the Files panel's own: folding the tree.
 func (self *FilesPanelController) Bindings() []Binding {
-	h := self.c.Helpers
+	h, kb := self.c.Helpers, self.c.Config.Keybinding
 	own := withReviewAll([]Binding{
-		{Action: "toggle fold", Keys: []string{"z a"}, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
+		{Action: "toggle fold", Keys: kb.FilesPanel.ToggleFold, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 			if !folds(row) {
 				return s, nil
 			}

@@ -28,36 +28,41 @@ func (self *DiagramController) Context() context.ContextKey {
 
 // Bindings are the keys of every place of a review, and the diagram's own.
 func (self *DiagramController) Bindings() []Binding {
-	tr := self.c.Tr
+	tr, kb := self.c.Tr, self.c.Config.Keybinding
 	moves := []Binding{
-		{Action: "left", Keys: []string{"h", "left"}, Handler: self.nearest("h"), Description: tr.Left},
-		{Action: "down", Keys: []string{"j", "down"}, Handler: self.nearest("j"), Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: self.nearest("k"), Description: tr.Up},
-		{Action: "right", Keys: []string{"l", "right"}, Handler: self.nearest("l"), Description: tr.Right},
-		{Action: "next box", Keys: []string{"w"}, Handler: self.movedBy(1), Description: tr.NextBox},
-		{Action: "previous box", Keys: []string{"b"}, Handler: self.movedBy(-1), Description: tr.PreviousBox},
-		{Action: "top", Keys: []string{"g g"}, Handler: stateOnly(self.top), Description: tr.Top},
-		{Action: "bottom", Keys: []string{"G"}, Handler: stateOnly(self.bottom), Description: tr.Bottom},
-		{Action: "open", Keys: []string{"enter"}, Handler: uncounted(self.c.Helpers.Diagram.StepIn), Description: tr.In},
+		{Action: "left", Keys: kb.Diagram.Left, Handler: self.nearest("h"), Description: tr.Left},
+		{Action: "down", Keys: kb.Diagram.Down, Handler: self.nearest("j"), Description: tr.Down},
+		{Action: "up", Keys: kb.Diagram.Up, Handler: self.nearest("k"), Description: tr.Up},
+		{Action: "right", Keys: kb.Diagram.Right, Handler: self.nearest("l"), Description: tr.Right},
+		{Action: "next box", Keys: kb.Diagram.NextBox, Handler: self.movedBy(1), Description: tr.NextBox},
+		{Action: "previous box", Keys: kb.Diagram.PreviousBox, Handler: self.movedBy(-1), Description: tr.PreviousBox},
+		{Action: "top", Keys: kb.Diagram.Top, Handler: stateOnly(self.top), Description: tr.Top},
+		{Action: "bottom", Keys: kb.Diagram.Bottom, Handler: stateOnly(self.bottom), Description: tr.Bottom},
+		{Action: "open", Keys: kb.Diagram.Open, Handler: uncounted(self.c.Helpers.Diagram.StepIn), Description: tr.In},
 	}
-	return join(reviewScreenBindings(self.c), withReviewAll(append(moves, self.boxBindings()...)))
+	d := kb.Diagram
+	boxes := self.boxBindings(boxKeys{
+		back: d.Back, follow: d.Follow, references: d.References, search: d.Search, searchBack: d.SearchBack, nextMatch: d.NextMatch,
+		previousMatch: d.PreviousMatch, labels: d.Labels, links: d.Links, properties: d.Properties, boxDiff: d.BoxDiff, allLinks: d.AllLinks,
+	})
+	return join(reviewScreenBindings(self.c), withReviewAll(append(moves, boxes...)))
 }
 
-func (self *DiagramController) boxBindings() []Binding {
+func (self *DiagramController) boxBindings(k boxKeys) []Binding {
 	tr, h := self.c.Tr, self.c.Helpers
 	return []Binding{
-		{Action: "back", Keys: []string{"-"}, Handler: stateOnly(h.Diagram.StepOut), Description: tr.Out},
-		{Action: "follow", Keys: []string{"g d"}, Handler: uncounted(h.Diagram.Follow), Description: tr.Follow},
-		{Action: "references", Keys: []string{"g r"}, Handler: stateOnly(h.Diagram.References), Description: tr.References},
-		{Action: "search", Keys: []string{"/"}, Handler: self.search(false), Description: tr.Search},
-		{Action: "search back", Keys: []string{"?"}, Handler: self.search(true), Description: tr.SearchBack},
-		{Action: "next match", Keys: []string{"n"}, Handler: self.match(false), Description: tr.NextMatch},
-		{Action: "previous match", Keys: []string{"N"}, Handler: self.match(true), Description: tr.PreviousMatch},
-		{Action: "labels", Keys: []string{"f"}, Handler: stateOnly(h.Diagram.Labelled), Description: tr.Labels},
-		{Action: "links", Keys: []string{"space l"}, Handler: stateOnly(h.Diagram.Links), Description: tr.Links},
-		{Action: "properties", Keys: []string{"space p"}, Handler: stateOnly(h.Diagram.Properties), Description: tr.Properties},
-		{Action: "box diff", Keys: []string{"space d"}, Handler: uncounted(h.Diagram.BoxDiff), Description: tr.Diff},
-		{Action: "all links", Keys: []string{"space a"}, Handler: stateOnly(h.Diagram.AllLinks), Description: tr.EveryLink},
+		{Action: "back", Keys: k.back, Handler: stateOnly(h.Diagram.StepOut), Description: tr.Out},
+		{Action: "follow", Keys: k.follow, Handler: uncounted(h.Diagram.Follow), Description: tr.Follow},
+		{Action: "references", Keys: k.references, Handler: stateOnly(h.Diagram.References), Description: tr.References},
+		{Action: "search", Keys: k.search, Handler: self.search(false), Description: tr.Search},
+		{Action: "search back", Keys: k.searchBack, Handler: self.search(true), Description: tr.SearchBack},
+		{Action: "next match", Keys: k.nextMatch, Handler: self.match(false), Description: tr.NextMatch},
+		{Action: "previous match", Keys: k.previousMatch, Handler: self.match(true), Description: tr.PreviousMatch},
+		{Action: "labels", Keys: k.labels, Handler: stateOnly(h.Diagram.Labelled), Description: tr.Labels},
+		{Action: "links", Keys: k.links, Handler: stateOnly(h.Diagram.Links), Description: tr.Links},
+		{Action: "properties", Keys: k.properties, Handler: stateOnly(h.Diagram.Properties), Description: tr.Properties},
+		{Action: "box diff", Keys: k.boxDiff, Handler: uncounted(h.Diagram.BoxDiff), Description: tr.Diff},
+		{Action: "all links", Keys: k.allLinks, Handler: stateOnly(h.Diagram.AllLinks), Description: tr.EveryLink},
 	}
 }
 

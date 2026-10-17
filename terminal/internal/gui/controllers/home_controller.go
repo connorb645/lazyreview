@@ -29,20 +29,20 @@ func (self *HomeController) Context() context.ContextKey {
 // Bindings are the home screen's keys: moving through the pull requests
 // and the repositories, and opening one's review.
 func (self *HomeController) Bindings() []Binding {
-	tr := self.c.Tr
+	tr, kb := self.c.Tr, self.c.Config.Keybinding
 	bindings := []Binding{
-		{Action: "down", Keys: []string{"j", "down"}, Handler: self.moved(func(h context.HomeContext, count Count) context.HomeContext { return h.Moved(count.N) }), Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: self.moved(func(h context.HomeContext, count Count) context.HomeContext { return h.Moved(-count.N) }), Description: tr.Up},
-		{Action: "top", Keys: []string{"g g"}, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.Ends(false) }), Description: tr.Top},
-		{Action: "bottom", Keys: []string{"G"}, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.Ends(true) }), Description: tr.Bottom},
-		{Action: "open", Keys: []string{"enter"}, Handler: uncounted(self.c.Helpers.Home.OpenSelected), Description: tr.Open},
-		{Action: "previous panel", Keys: []string{"h"}, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(-1) }), Description: tr.PreviousPanel},
-		{Action: "next panel", Keys: []string{"l"}, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(1) }), Description: tr.NextPanel},
+		{Action: "down", Keys: kb.Home.Down, Handler: self.moved(func(h context.HomeContext, count Count) context.HomeContext { return h.Moved(count.N) }), Description: tr.Down},
+		{Action: "up", Keys: kb.Home.Up, Handler: self.moved(func(h context.HomeContext, count Count) context.HomeContext { return h.Moved(-count.N) }), Description: tr.Up},
+		{Action: "top", Keys: kb.Home.Top, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.Ends(false) }), Description: tr.Top},
+		{Action: "bottom", Keys: kb.Home.Bottom, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.Ends(true) }), Description: tr.Bottom},
+		{Action: "open", Keys: kb.Home.Open, Handler: uncounted(self.c.Helpers.Home.OpenSelected), Description: tr.Open},
+		{Action: "previous panel", Keys: kb.Home.PreviousPanel, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(-1) }), Description: tr.PreviousPanel},
+		{Action: "next panel", Keys: kb.Home.NextPanel, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(1) }), Description: tr.NextPanel},
 	}
 	for n := 1; n <= 9; n++ {
 		bindings = append(bindings, Binding{
 			Action:      "repository " + utils.Itoa(n),
-			Keys:        []string{utils.Itoa(n)},
+			Keys:        numbered(kb.Home.JumpToRepository, n-1),
 			Handler:     self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.ToRepo(n) }),
 			Description: utils.ResolvePlaceholderString(tr.RepositoryNumber, map[string]string{"number": utils.Itoa(n)}),
 		})

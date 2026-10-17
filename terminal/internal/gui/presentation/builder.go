@@ -10,11 +10,12 @@ import (
 )
 
 type builder struct {
-	lines []Line
-	items []Item
-	width int
-	tr    *i18n.TranslationSet
-	th    theme.Theme
+	lines  []Line
+	items  []Item
+	width  int
+	tr     *i18n.TranslationSet
+	th     theme.Theme
+	labels KeyLabels
 }
 
 func (b *builder) text(texts ...string) {

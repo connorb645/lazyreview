@@ -99,7 +99,7 @@ func (self *HomeHelper) AfterLoaded(s context.ContextTree, msg types.PullsLoaded
 	}
 	s.Home = s.Home.WithReview(msg.Unit, msg.ID).Rebuilt(self.c.Tr, self.c.Theme)
 	if s.Screen() != context.ScreenHome {
-		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.LoadedEnterOpens, map[string]string{"name": name}), false), nil
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.LoadedOpenFromHome, map[string]string{"name": name, "open": self.c.KeyLabels(context.HomeKey).Of("open")}), false), nil
 	}
 	next, cmd := self.OpenReview(self.c.Helpers.Refresh.HomeRelaid(s), msg.ID)
 	if len(msg.Notes) > 0 {
@@ -133,7 +133,7 @@ func (self *HomeHelper) HeldDraft(s context.ContextTree) string {
 	if s.Review == nil || (len(s.Drafts) == 0 && !s.EditingNow) {
 		return ""
 	}
-	return utils.ResolvePlaceholderString(self.c.Tr.DraftNotSent, map[string]string{"title": s.Review.State.Title})
+	return utils.ResolvePlaceholderString(self.c.Tr.DraftNotSent, map[string]string{"title": s.Review.State.Title, "review": self.c.KeyLabels(s.Place()).Of("review")})
 }
 
 // Status is what the bar says of the home screen's reading and loading.

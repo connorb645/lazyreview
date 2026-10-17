@@ -63,7 +63,7 @@ func (a App) popup() []string {
 	tr, th, window := a.c.Tr, a.c.Theme, a.helpers.Window
 	switch {
 	case a.Has(context.ConfirmationKey):
-		return presentation.DropBox(tr, th, a.Confirmation.Comment, a.Confirmation.Pull, min(a.Width-4, 56))
+		return presentation.DropBox(tr, th, a.controllers.Labels(context.ConfirmationKey), a.Confirmation.Comment, a.Confirmation.Pull, min(a.Width-4, 56))
 	case a.Has(context.PostingKey):
 		pn := a.Posting
 		m, _ := a.helpers.Posting.QueueMember(a.ContextTree, pn.Pull)

@@ -7,6 +7,7 @@ type Refusal struct {
 	Message string
 }
 
+// Error is the server's own words.
 func (r Refusal) Error() string {
 	return r.Message
 }

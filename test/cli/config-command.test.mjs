@@ -42,7 +42,7 @@ test('config check prints every setting as read, and where it came from', async 
     const checked = await run(['config', 'check'], { ...s.env, LAZYREVIEW_MODEL: 'claude-sonnet' });
     assert.equal(checked.code, 0, checked.stderr);
     const [head, theme] = checked.stdout.split('\ngui:\n');
-    assert.ok(theme.trimEnd().split('\n').every(line => /^ {2}theme:$|^ {4}(dark|light):$|^ {6}componentColors:$|# default$/.test(line)), 'every colour is its default');
+    assert.ok(theme.trimEnd().split('\n').every(line => !line || /^ *\w+:( +# [A-Za-z ]+)?$|# default$/.test(line)), 'every colour and key is its default');
     assert.equal(head, [
       `the config at ${s.file}, on top of the defaults:`,
       '',

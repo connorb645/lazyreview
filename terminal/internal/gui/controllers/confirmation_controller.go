@@ -27,8 +27,9 @@ func (self *ConfirmationController) Context() context.ContextKey {
 
 // Bindings are the confirmation's one key: drop the comment.
 func (self *ConfirmationController) Bindings() []Binding {
+	kb := self.c.Config.Keybinding
 	return []Binding{
-		{Action: "confirm", Keys: []string{"y"}, Handler: uncounted(self.c.Helpers.Editing.Dropped), Description: self.c.Tr.Drop},
+		{Action: "confirm", Keys: kb.Confirmation.Confirm, Handler: uncounted(self.c.Helpers.Editing.Dropped), Description: self.c.Tr.Drop},
 	}
 }
 

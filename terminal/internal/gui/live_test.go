@@ -152,7 +152,7 @@ func TestAQuestionAskedElsewhereShowsAsWaiting(t *testing.T) {
 	state.Threads = append(state.Threads, server.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Why here?"}}})
 	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
 	n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "conversation:9")
-	if head, _ := presentation.NoteHead(a.c.Tr, *a.Review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
+	if head, _ := presentation.NoteHead(a.c.Tr, a.controllers.Labels(context.DiffKey), *a.Review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
 		t.Fatalf("the conversation's head reads %q", head)
 	}
 }

@@ -31,10 +31,10 @@ func (self *PostingConfirmationController) Context() context.ContextKey {
 
 // Bindings are the confirmation's keys: send it, or go back to the choice.
 func (self *PostingConfirmationController) Bindings() []Binding {
-	tr := self.c.Tr
+	tr, kb := self.c.Tr, self.c.Config.Keybinding
 	return []Binding{
-		{Action: "post", Keys: []string{"y"}, Handler: uncounted(self.c.Helpers.Posting.Post), Description: tr.Post},
-		{Action: "back", Keys: []string{"n", "esc", "q"}, Handler: stateOnly(self.back), Description: tr.Cancel},
+		{Action: "post", Keys: kb.Posting.Post, Handler: uncounted(self.c.Helpers.Posting.Post), Description: tr.Post},
+		{Action: "back", Keys: kb.Posting.Back, Handler: stateOnly(self.back), Description: tr.Cancel},
 	}
 }
 

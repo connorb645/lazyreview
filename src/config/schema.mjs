@@ -4,10 +4,11 @@
  * does. The reader, the documentation and the editors' schema are all made
  * from this tree, as lazygit makes its own from GetDefaultConfig.
  *
- * SCHEMA is a tree of sections, {about, settings, flow}, whose leaves are
- * settings, {check, default, env, about, example}. `check` names how the
- * reader checks a value; `about` and `example` are lines of the default
- * config's comments, and a section with `flow` is written on one line. defaults() returns the default config as plain values,
+ * SCHEMA is a tree of sections, {about, settings, flow, note}, whose leaves
+ * are settings, {check, default, env, about, example}. `check` names how
+ * the reader checks a value; `about` and `example` are lines of the default
+ * config's comments, `note` is the words beside a section's name, and a
+ * section with `flow` is written on one line. defaults() returns the default config as plain values,
  * and leaves(section) every setting with its dotted key, such as
  * "server.port", in the tree's order. PATTERNS are what a login, a team's
  * name and a date must match, as regular expressions' sources.
@@ -24,7 +25,7 @@ export const PATTERNS = Object.freeze({
 });
 
 const setting = fields => Object.freeze({ kind: 'setting', env: null, example: [], ...fields });
-const section = (settings, about = [], { flow = false } = {}) => Object.freeze({ kind: 'section', about, flow, settings: Object.freeze(settings) });
+const section = (settings, about = [], { flow = false, note = '' } = {}) => Object.freeze({ kind: 'section', about, flow, note, settings: Object.freeze(settings) });
 const colour = value => setting({ check: 'colour', default: value, about: [] });
 
 // A terminal's colours, one for each role, then a stack's pull requests' and the components'.
@@ -33,6 +34,41 @@ const colours = given => section({
   pullRequestColors: setting({ check: 'colours', default: given.pullRequestColors, about: [] }),
   componentColors: section(Object.fromEntries(Object.entries(given.componentColors).map(([name, value]) => [name, colour(value)])), [], { flow: true }),
 });
+
+// The keys of one place, by action: a label, or a list of them. A list of numbered places, such as the
+// repositories 1 to 9, gives each its key by its place in the list.
+const keys = (given, note = '') => section(Object.fromEntries(Object.entries(given).map(([action, value]) => [action,
+  setting({ check: NUMBERED.includes(action) ? 'numberedKeys' : 'keys', default: value, about: [] })])), [], { note });
+const NUMBERED = ['jumpToRepository', 'jumpToBlock', 'choose'];
+const MOVE = { down: ['j', '<down>'], up: ['k', '<up>'], top: 'gg', bottom: 'G' };
+const BOXES = {
+  nextBox: 'w', previousBox: 'b', top: 'gg', bottom: 'G', open: '<enter>', back: '-', follow: 'gd', references: 'gr', search: '/', searchBack: '?',
+  nextMatch: 'n', previousMatch: 'N', labels: 'f', links: '<space>l', properties: '<space>p', boxDiff: '<space>d', allLinks: '<space>a',
+};
+const notes = english.config.about.keySections;
+
+const KEYBINDING = section({
+  universal: keys({ command: ':', keys: '<space>?', review: '<space>v', github: 'gx', web: 'gX', close: ['q', '<esc>'], quit: ['ZZ', '<c-c>'], refresh: 'R', bigger: '+', smaller: '_' }, notes.universal),
+  home: keys({ ...MOVE, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9'] }, notes.home),
+  reviewScreen: keys({ nextPull: ']p', previousPull: '[p', jumpBack: '<c-o>', jumpForward: '<c-i>', diagram: '<space>m', finder: '<space>f', home: '<space>h', focusMain: '0' }, notes.reviewScreen),
+  panels: keys({ ...MOVE, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToBlock: ['1', '2', '3', '4'] }, notes.panels),
+  reviewPanel: keys({ post: 'P', highlight: 'v' }),
+  filesPanel: keys({ toggleFold: 'za' }),
+  notesPanel: keys({ edit: 'e', drop: 'dd', post: 'P' }),
+  diagramPanel: keys({ left: 'h', right: 'l', ...Object.fromEntries(Object.entries(BOXES).filter(([action]) => !['top', 'bottom', 'open'].includes(action))) }),
+  reviewView: keys({ ...MOVE, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P' }, notes.reviewView),
+  diff: keys({
+    down: ['j', '<down>'], up: ['k', '<up>'], halfDown: '<c-d>', halfUp: '<c-u>', pageDown: '<c-f>', pageUp: '<c-b>', top: 'gg', bottom: 'G',
+    nextHunk: ']c', previousHunk: '[c', nextFile: ']f', previousFile: '[f', search: '/', searchBack: '?', nextMatch: 'n', previousMatch: 'N',
+    toggleFold: 'za', openFold: 'zo', closeFold: 'zc', openFolds: 'zR', closeFolds: 'zM', open: '<enter>', back: '-', split: '<space>s', wrap: '<space>w',
+    whole: '<space>o', rendered: '<space>r', showType: 'gd', nextNote: ']n', previousNote: '[n', select: 'V', otherEnd: 'o', comment: 'c', ask: 'a', edit: 'e', drop: 'dd',
+  }),
+  diagram: keys({ left: ['h', '<left>'], down: ['j', '<down>'], up: ['k', '<up>'], right: ['l', '<right>'], ...BOXES }, notes.diagram),
+  menu: keys({ down: ['j', '<down>'], up: ['k', '<up>'], open: '<enter>', close: ['<esc>', 'q'] }),
+  finder: keys({ down: ['<c-n>', '<down>'], up: ['<c-p>', '<up>'], open: '<enter>', close: '<esc>', clear: '<c-u>' }),
+  posting: keys({ down: ['j', '<down>'], up: ['k', '<up>'], choose: ['1', '2', '3'], open: '<enter>', close: ['<esc>', 'n', 'q'], post: 'y', back: ['n', '<esc>', 'q'] }),
+  confirmation: keys({ confirm: 'y' }),
+}, english.config.about.keys);
 
 const DARK = {
   defaultFgColor: '#f1f0fb', mutedFgColor: '#a09dbf', faintFgColor: '#6d6a8a', accentColor: '#a796ff', activeBorderColor: '#a796ff', inactiveBorderColor: '#4a4766',
@@ -66,6 +102,7 @@ export const SCHEMA = section({
   gui: section({
     theme: section({ dark: colours(DARK), light: colours(LIGHT) }, words.theme),
   }),
+  keybinding: KEYBINDING,
 });
 
 export function defaults(node = SCHEMA) {

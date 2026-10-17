@@ -28,13 +28,13 @@ func (self *FinderController) Context() context.ContextKey {
 // Bindings are the finder's keys: moving, opening a match, clearing what
 // is typed, and closing it. Every other key types.
 func (self *FinderController) Bindings() []Binding {
-	tr, h := self.c.Tr, self.c.Helpers
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	return []Binding{
-		{Action: "down", Keys: []string{"ctrl+n", "down"}, Handler: menuMoved(h, 1), Description: tr.Down},
-		{Action: "up", Keys: []string{"ctrl+p", "up"}, Handler: menuMoved(h, -1), Description: tr.Up},
-		{Action: "open", Keys: []string{"enter"}, Handler: uncounted(h.Menu.OpenRow), Description: tr.Go},
-		{Action: "close", Keys: []string{"esc"}, Handler: stateOnly(context.ContextTree.WithoutMenu), Description: tr.Close},
-		{Action: "clear", Keys: []string{"ctrl+u"}, Handler: stateOnly(self.clear), Description: tr.Clear},
+		{Action: "down", Keys: kb.Finder.Down, Handler: menuMoved(h, 1), Description: tr.Down},
+		{Action: "up", Keys: kb.Finder.Up, Handler: menuMoved(h, -1), Description: tr.Up},
+		{Action: "open", Keys: kb.Finder.Open, Handler: uncounted(h.Menu.OpenRow), Description: tr.Go},
+		{Action: "close", Keys: kb.Finder.Close, Handler: stateOnly(context.ContextTree.WithoutMenu), Description: tr.Close},
+		{Action: "clear", Keys: kb.Finder.Clear, Handler: stateOnly(self.clear), Description: tr.Clear},
 	}
 }
 

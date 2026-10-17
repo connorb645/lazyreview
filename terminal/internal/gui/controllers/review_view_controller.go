@@ -29,27 +29,27 @@ func (self *ReviewViewController) Context() context.ContextKey {
 // Bindings are the keys of every place of a review, and the Review view's
 // own.
 func (self *ReviewViewController) Bindings() []Binding {
-	tr, h := self.c.Tr, self.c.Helpers
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	own := []Binding{
-		{Action: "down", Keys: []string{"j", "down"}, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+		{Action: "down", Keys: kb.ReviewView.Down, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
 			return v.Move(count.N, height)
 		}), Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+		{Action: "up", Keys: kb.ReviewView.Up, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
 			return v.Move(-count.N, height)
 		}), Description: tr.Up},
-		{Action: "top", Keys: []string{"g g"}, Handler: self.moved(func(v context.Scroller, _ Count, height int) context.Scroller {
+		{Action: "top", Keys: kb.ReviewView.Top, Handler: self.moved(func(v context.Scroller, _ Count, height int) context.Scroller {
 			return v.To(0, height)
 		}), Description: tr.Top},
-		{Action: "bottom", Keys: []string{"G"}, Handler: self.moved(func(v context.Scroller, _ Count, height int) context.Scroller {
+		{Action: "bottom", Keys: kb.ReviewView.Bottom, Handler: self.moved(func(v context.Scroller, _ Count, height int) context.Scroller {
 			return v.To(len(v.Items)-1, height)
 		}), Description: tr.Bottom},
-		{Action: "next section", Keys: []string{"] ]"}, Handler: self.section(false), Description: tr.NextSection},
-		{Action: "previous section", Keys: []string{"[ ["}, Handler: self.section(true), Description: tr.PreviousSection},
-		{Action: "fold", Keys: []string{"z a"}, Handler: stateOnly(self.fold), Description: tr.Fold},
-		{Action: "open", Keys: []string{"enter"}, Handler: uncounted(self.open), Description: tr.Open},
-		{Action: "edit", Keys: []string{"e"}, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
-		{Action: "drop", Keys: []string{"d d"}, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
-		{Action: "post", Keys: []string{"P"}, Handler: stateOnly(self.post), Description: tr.Post},
+		{Action: "next section", Keys: kb.ReviewView.NextSection, Handler: self.section(false), Description: tr.NextSection},
+		{Action: "previous section", Keys: kb.ReviewView.PreviousSection, Handler: self.section(true), Description: tr.PreviousSection},
+		{Action: "fold", Keys: kb.ReviewView.Fold, Handler: stateOnly(self.fold), Description: tr.Fold},
+		{Action: "open", Keys: kb.ReviewView.Open, Handler: uncounted(self.open), Description: tr.Open},
+		{Action: "edit", Keys: kb.ReviewView.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
+		{Action: "drop", Keys: kb.ReviewView.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
+		{Action: "post", Keys: kb.ReviewView.Post, Handler: stateOnly(self.post), Description: tr.Post},
 	}
 	return join(reviewScreenBindings(self.c), withReviewAll(own))
 }

@@ -16,7 +16,10 @@
  *
  * terminalPart(config, env) is what the terminal app is handed: the file's
  * path, the editor, chosen from LAZYREVIEW_EDITOR, then os.editor, then
- * VISUAL, then EDITOR, then vi, and the theme's colours, each as text.
+ * VISUAL, then EDITOR, then vi, the theme's colours, each as text, and the
+ * keys of every place, each action's as a list of its key sequences as the
+ * terminal app's key reader names them; a numbered list keeps its places,
+ * with "" for a place that has no key.
  */
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -25,6 +28,7 @@ import { english } from '../i18n/english.mjs';
 import { SCHEMA, PATTERNS, defaults, leaves } from './schema.mjs';
 import { findConfigFile } from './config-file.mjs';
 import { parseYAML } from './yaml.mjs';
+import { readerName, labelProblem, DISABLED } from './key-labels.mjs';
 
 const words = english.config;
 const LOGIN = new RegExp(PATTERNS.login);
@@ -48,7 +52,7 @@ export function readUserConfig({ env = process.env, platform = process.platform,
 }
 
 export function terminalPart(config, env) {
-  return { path: config.path, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi', theme: config.values.gui.theme };
+  return { path: config.path, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi', theme: config.values.gui.theme, keybinding: readerNames(config.values.keybinding) };
 }
 
 /** The config a file's text gives, on top of the defaults, with each setting's source. */
@@ -80,7 +84,7 @@ function merge(section, given, values, sources, prefix, problems) {
       merge(node, value, values[name], sources, key, problems);
       continue;
     }
-    const found = CHECKS[node.check](value, key);
+    const found = CHECKS[node.check](value, key, node);
     if (found.problems.length) { problems.push(...found.problems); continue; }
     values[name] = found.value;
     sources[key] = 'file';
@@ -97,7 +101,21 @@ const CHECKS = {
   colour: (value, key) => (isColour(value) ? ok(String(value)) : wrong(words.notAColour(key, value))),
   colours: (value, key) => (Array.isArray(value) && value.length === PULL_COLOURS && value.every(isColour)
     ? ok(value.map(String)) : wrong(words.notColours(key, value, PULL_COLOURS))),
+  keys: (value, key) => {
+    const labels = [value].flat();
+    const why = Array.isArray(value) && !value.length ? words.keys.empty : labels.map(labelProblem).find(Boolean);
+    return why ? wrong(words.notKeys(key, value, why)) : ok(value);
+  },
+  numberedKeys: (value, key, setting) => (Array.isArray(value) && value.length === setting.default.length && value.every(label => !labelProblem(label))
+    ? ok(value) : wrong(words.notNumberedKeys(key, value, setting.default.length))),
 };
+
+function readerNames(keybinding) {
+  return Object.fromEntries(Object.entries(keybinding).map(([place, actions]) => [place, Object.fromEntries(Object.entries(actions).map(([action, value]) => [action,
+    SCHEMA.settings.keybinding.settings[place].settings[action].check === 'numberedKeys'
+      ? value.map(readerName)
+      : [value].flat().filter(label => label !== DISABLED).map(readerName)]))]));
+}
 
 function isColour(value) {
   return (typeof value === 'string' && COLOUR.test(value)) || (Number.isInteger(value) && value >= 0 && value <= 255);

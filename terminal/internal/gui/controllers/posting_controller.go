@@ -29,15 +29,15 @@ func (self *PostingController) Context() context.ContextKey {
 // Bindings are posting's keys: choosing an action, by moving or by its
 // number, showing what it sends, and closing.
 func (self *PostingController) Bindings() []Binding {
-	tr := self.c.Tr
+	tr, kb := self.c.Tr, self.c.Config.Keybinding
 	bindings := []Binding{
-		{Action: "down", Keys: []string{"j", "down"}, Handler: self.chosen(func(p context.PostingContext) int { return min(p.Choice+1, len(p.Actions)-1) }), Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: self.chosen(func(p context.PostingContext) int { return max(p.Choice-1, 0) }), Description: tr.Up},
+		{Action: "down", Keys: kb.Posting.Down, Handler: self.chosen(func(p context.PostingContext) int { return min(p.Choice+1, len(p.Actions)-1) }), Description: tr.Down},
+		{Action: "up", Keys: kb.Posting.Up, Handler: self.chosen(func(p context.PostingContext) int { return max(p.Choice-1, 0) }), Description: tr.Up},
 	}
 	for n := 1; n <= 3; n++ {
 		bindings = append(bindings, Binding{
 			Action: "choose " + utils.Itoa(n),
-			Keys:   []string{utils.Itoa(n)},
+			Keys:   numbered(kb.Posting.Choose, n-1),
 			Handler: self.chosen(func(p context.PostingContext) int {
 				if n-1 < len(p.Actions) {
 					return n - 1
@@ -48,8 +48,8 @@ func (self *PostingController) Bindings() []Binding {
 		})
 	}
 	return append(bindings,
-		Binding{Action: "open", Keys: []string{"enter"}, Handler: stateOnly(self.confirming), Description: tr.ShowWhatItSends},
-		Binding{Action: "close", Keys: []string{"esc", "n", "q"}, Handler: stateOnly(context.ContextTree.WithoutPosting), Description: tr.Cancel},
+		Binding{Action: "open", Keys: kb.Posting.Open, Handler: stateOnly(self.confirming), Description: tr.ShowWhatItSends},
+		Binding{Action: "close", Keys: kb.Posting.Close, Handler: stateOnly(context.ContextTree.WithoutPosting), Description: tr.Cancel},
 	)
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 // GlobalController binds the keys every place takes, the home screen's
@@ -28,18 +29,18 @@ func (self *GlobalController) Context() context.ContextKey {
 
 // Bindings are the keys every place takes.
 func (self *GlobalController) Bindings() []Binding {
-	tr, h := self.c.Tr, self.c.Helpers
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	return []Binding{
-		{Action: "command", Keys: []string{":"}, Handler: stateOnly(self.command), Description: tr.CommandLine},
-		{Action: "keys", Keys: []string{"space ?"}, Handler: stateOnly(self.keys), Description: tr.Keys},
-		{Action: "review", Keys: []string{"space v"}, Handler: stateOnly(h.Review.Show), Description: tr.ReviewView},
-		{Action: "github", Keys: []string{"g x"}, Handler: uncounted(h.Browser.OpenGitHub), Description: tr.GitHub},
-		{Action: "web", Keys: []string{"g X"}, Handler: uncounted(h.Browser.OpenWeb), Description: tr.WebApp},
-		{Action: "close", Keys: []string{"q", "esc"}, Handler: stateOnly(self.close), Description: tr.Close},
-		{Action: "quit", Keys: []string{"Z Z", "ctrl+c"}, Handler: self.quit, Description: tr.Quit},
-		{Action: "refresh", Keys: []string{"R"}, Handler: uncounted(h.Review.Refresh), Description: tr.Refresh},
-		{Action: "bigger", Keys: []string{"+"}, Handler: stateOnly(self.bigger), Description: tr.Bigger},
-		{Action: "smaller", Keys: []string{"_"}, Handler: stateOnly(self.smaller), Description: tr.Smaller},
+		{Action: "command", Keys: kb.Universal.Command, Handler: stateOnly(self.command), Description: tr.CommandLine},
+		{Action: "keys", Keys: kb.Universal.Keys, Handler: stateOnly(self.keys), Description: tr.Keys},
+		{Action: "review", Keys: kb.Universal.Review, Handler: stateOnly(h.Review.Show), Description: tr.ReviewView},
+		{Action: "github", Keys: kb.Universal.GitHub, Handler: uncounted(h.Browser.OpenGitHub), Description: tr.GitHub},
+		{Action: "web", Keys: kb.Universal.Web, Handler: uncounted(h.Browser.OpenWeb), Description: tr.WebApp},
+		{Action: "close", Keys: kb.Universal.Close, Handler: stateOnly(self.close), Description: tr.Close},
+		{Action: "quit", Keys: kb.Universal.Quit, Handler: self.quit, Description: tr.Quit},
+		{Action: "refresh", Keys: kb.Universal.Refresh, Handler: uncounted(h.Review.Refresh), Description: tr.Refresh},
+		{Action: "bigger", Keys: kb.Universal.Bigger, Handler: stateOnly(self.bigger), Description: tr.Bigger},
+		{Action: "smaller", Keys: kb.Universal.Smaller, Handler: stateOnly(self.smaller), Description: tr.Smaller},
 	}
 }
 
@@ -57,7 +58,7 @@ func (self *GlobalController) close(s context.ContextTree) context.ContextTree {
 	case s.MenuOpen():
 		s = s.WithoutMenu()
 	case s.Screen() == context.ScreenHome:
-		return s.Said(self.c.Tr.HowToQuit, false)
+		return self.howToQuit(s)
 	case s.Focus() == context.ReviewPanel && len(s.Filter) > 0:
 		return h.Filter.SetFilter(s, nil)
 	case s.Screen() == context.ScreenDiff && s.Diff.Selecting:
@@ -65,9 +66,14 @@ func (self *GlobalController) close(s context.ContextTree) context.ContextTree {
 	case s.Focus() == context.MainPanel && s.Review != nil:
 		return h.Refresh.Relaid(s.Focused(s.Driving(), s.Driving()))
 	default:
-		return s.Said(self.c.Tr.HowToQuit, false)
+		return self.howToQuit(s)
 	}
 	return s
+}
+
+func (self *GlobalController) howToQuit(s context.ContextTree) context.ContextTree {
+	labels := self.c.KeyLabels(s.Place())
+	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.HowToQuit, map[string]string{"quit": labels.Of("quit"), "command": labels.Of("command")}), false)
 }
 
 func (self *GlobalController) quit(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {

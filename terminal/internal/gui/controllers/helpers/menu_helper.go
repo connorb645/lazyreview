@@ -10,6 +10,7 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 // MenuHelper opens the finder, and the place a row of a menu stands for.
@@ -22,7 +23,7 @@ type MenuHelper struct {
 func (self *MenuHelper) OpenFinder(s context.ContextTree) context.ContextTree {
 	tr := self.c.Tr
 	if s.Review == nil {
-		return s.Said(tr.NoReviewOpen, true)
+		return s.Said(utils.ResolvePlaceholderString(tr.NoReviewOpen, map[string]string{"open": self.c.KeyLabels(context.HomeKey).Of("open")}), true)
 	}
 	page := s.Review.Page
 	pn := context.MenuContext{Menu: presentation.Menu{Title: tr.FinderTitle, Finding: true}}

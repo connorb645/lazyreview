@@ -2,6 +2,7 @@ package controllers
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
@@ -9,34 +10,34 @@ import (
 )
 
 func reviewScreenBindings(c *helpers.HelperCommon) []Binding {
-	tr, h := c.Tr, c.Helpers
+	tr, h, kb := c.Tr, c.Helpers, c.Config.Keybinding
 	return []Binding{
-		{Action: "next pull", Keys: []string{"] p"}, Handler: func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		{Action: "next pull", Keys: kb.ReviewScreen.NextPull, Handler: func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
 			return h.Filter.FilterBy(s, count.N), nil
 		}, Description: tr.NextPull},
-		{Action: "previous pull", Keys: []string{"[ p"}, Handler: func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		{Action: "previous pull", Keys: kb.ReviewScreen.PreviousPull, Handler: func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
 			return h.Filter.FilterBy(s, -count.N), nil
 		}, Description: tr.PreviousPull},
-		{Action: "jump back", Keys: []string{"ctrl+o"}, Handler: func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
+		{Action: "jump back", Keys: kb.ReviewScreen.JumpBack, Handler: func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
 			return h.Jump.JumpBy(s, true)
 		}, Description: tr.JumpBack},
-		{Action: "jump forward", Keys: []string{"tab"}, Handler: func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
+		{Action: "jump forward", Keys: kb.ReviewScreen.JumpForward, Handler: func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
 			return h.Jump.JumpBy(s, false)
 		}, Description: tr.JumpForward},
-		{Action: "diagram", Keys: []string{"space m"}, Handler: stateOnly(h.Diagram.OpenDiagram), Description: tr.Diagram},
-		{Action: "finder", Keys: []string{"space f"}, Handler: stateOnly(h.Menu.OpenFinder), Description: tr.Find},
-		{Action: "home", Keys: []string{"space h"}, Handler: uncounted(h.Home.GoHome), Description: tr.Home},
-		{Action: "focus main", Keys: []string{"0"}, Handler: focusOn(h, context.MainPanel), Description: tr.FocusMain},
+		{Action: "diagram", Keys: kb.ReviewScreen.Diagram, Handler: stateOnly(h.Diagram.OpenDiagram), Description: tr.Diagram},
+		{Action: "finder", Keys: kb.ReviewScreen.Finder, Handler: stateOnly(h.Menu.OpenFinder), Description: tr.Find},
+		{Action: "home", Keys: kb.ReviewScreen.Home, Handler: uncounted(h.Home.GoHome), Description: tr.Home},
+		{Action: "focus main", Keys: kb.ReviewScreen.FocusMain, Handler: focusOn(h, context.MainPanel), Description: tr.FocusMain},
 	}
 }
 
 func focusPanelBindings(c *helpers.HelperCommon) []Binding {
-	names, h := presentation.PanelNames(c.Tr), c.Helpers
+	names, h, block := presentation.PanelNames(c.Tr), c.Helpers, c.Config.Keybinding.Panels.JumpToBlock
 	return []Binding{
-		{Action: "focus review", Keys: []string{"1"}, Handler: focusOn(h, context.ReviewPanel), Description: names[context.ReviewPanel]},
-		{Action: "focus files", Keys: []string{"2"}, Handler: focusOn(h, context.FilesPanel), Description: names[context.FilesPanel]},
-		{Action: "focus notes", Keys: []string{"3"}, Handler: focusOn(h, context.NotesPanel), Description: names[context.NotesPanel]},
-		{Action: "focus diagram", Keys: []string{"4"}, Handler: focusOn(h, context.DiagramPanel), Description: names[context.DiagramPanel]},
+		{Action: "focus review", Keys: numbered(block, 0), Handler: focusOn(h, context.ReviewPanel), Description: names[context.ReviewPanel]},
+		{Action: "focus files", Keys: numbered(block, 1), Handler: focusOn(h, context.FilesPanel), Description: names[context.FilesPanel]},
+		{Action: "focus notes", Keys: numbered(block, 2), Handler: focusOn(h, context.NotesPanel), Description: names[context.NotesPanel]},
+		{Action: "focus diagram", Keys: numbered(block, 3), Handler: focusOn(h, context.DiagramPanel), Description: names[context.DiagramPanel]},
 	}
 }
 

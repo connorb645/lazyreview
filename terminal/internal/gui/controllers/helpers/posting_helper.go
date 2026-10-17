@@ -48,7 +48,7 @@ func (self *PostingHelper) Open(s context.ContextTree, pull int) context.Context
 	}
 	m, ok := self.QueueMember(s, pull)
 	if !ok {
-		return s.Said(tr.PPosts, true)
+		return s.Said(utils.ResolvePlaceholderString(tr.PostsAtCursor, map[string]string{"post": self.c.KeyLabels(s.Place()).Of("post")}), true)
 	}
 	pn := context.PostingContext{Pull: m.Pull}
 	for _, action := range postOrder {
@@ -82,12 +82,13 @@ func (self *PostingHelper) Post(s context.ContextTree) (context.ContextTree, tea
 // not, shown in a popup.
 func (self *PostingHelper) AfterPost(s context.ContextTree, msg types.Posted) context.ContextTree {
 	tr := self.c.Tr
-	title, words, notice := tr.SentToGitHub, msg.Message, tr.SentQCloses
+	title, words, notice := tr.SentToGitHub, msg.Message, tr.SentHowToClose
 	if msg.Err != nil {
-		title, words, notice = tr.NothingPosted, msg.Err.Error(), tr.NothingPostedQCloses
+		title, words, notice = tr.NothingPosted, msg.Err.Error(), tr.NothingPostedHowToClose
 	} else {
 		s = self.c.Helpers.Refresh.WithState(s, msg.State)
 	}
 	pn := context.MenuContext{Menu: presentation.Menu{Title: title, Rows: []presentation.MenuRow{{Right: strings.ToUpper(words[:1]) + words[1:]}}}}
-	return s.WithMenu(pn).Said(notice, msg.Err != nil)
+	closing := map[string]string{"close": self.c.KeyLabels(context.MenuKey).Nth("close", 1)}
+	return s.WithMenu(pn).Said(utils.ResolvePlaceholderString(notice, closing), msg.Err != nil)
 }

@@ -391,58 +391,58 @@ type TranslationSet struct {
 	Members               string
 	Labels                string
 
-	CommentFromAnswer   string
-	CheckingWhere       string
-	EEditsQueued        string
-	CCommentsOrAnswer   string
-	CComments           string
-	CommentOn           string
-	FollowUpOn          string
-	ConversationSoFar   string
-	You                 string
-	DidNotAnswer        string
-	AAsks               string
-	QuestionAbout       string
-	ClaudeAnswersHere   string
-	EEditsAtCursor      string
-	QueuedCommentOn     string
-	SavingReplaces      string
-	DdDrops             string
-	KeptQueued          string
-	Dropping            string
-	CouldNotMakeFile    string
-	NothingBelowLine    string
-	CouldNotWrite       string
-	EditorStopped       string
-	CouldNotReadWritten string
-	NothingWritten      string
-	QueuedAsItWas       string
-	Queueing            string
-	Saving              string
-	AskingClaude        string
-	ClaudeSaysWhy       string
-	ClaudeAnswered      string
-	SavedQueued         string
-	DroppedQueued       string
-	QueuedAbout         string
+	CommentFromAnswer       string
+	CheckingWhere           string
+	EditsQueuedComment      string
+	CommentsOnLinesOrAnswer string
+	CommentsOnLines         string
+	CommentOn               string
+	FollowUpOn              string
+	ConversationSoFar       string
+	You                     string
+	DidNotAnswer            string
+	AsksAboutLines          string
+	QuestionAbout           string
+	ClaudeAnswersHere       string
+	EditsQueuedAtCursor     string
+	QueuedCommentOn         string
+	SavingReplaces          string
+	DropsQueuedAtCursor     string
+	KeptQueued              string
+	Dropping                string
+	CouldNotMakeFile        string
+	NothingBelowLine        string
+	CouldNotWrite           string
+	EditorStopped           string
+	CouldNotReadWritten     string
+	NothingWritten          string
+	QueuedAsItWas           string
+	Queueing                string
+	Saving                  string
+	AskingClaude            string
+	ClaudeSaysWhy           string
+	ClaudeAnswered          string
+	SavedQueued             string
+	DroppedQueued           string
+	QueuedAbout             string
 
-	AddComments          string
-	ApproveWithComments  string
-	Approve              string
-	NoQueueToPost        string
-	ReviewMovedNoSend    string
-	PPosts               string
-	PullWasState         string
-	CheckingThenSending  string
-	SentToGitHub         string
-	SentQCloses          string
-	NothingPosted        string
-	NothingPostedQCloses string
-	PostTo               string
-	YesAction            string
-	Cancel               string
-	Choose               string
-	ShowWhatItSends      string
+	AddComments             string
+	ApproveWithComments     string
+	Approve                 string
+	NoQueueToPost           string
+	ReviewMovedNoSend       string
+	PostsAtCursor           string
+	PullWasState            string
+	CheckingThenSending     string
+	SentToGitHub            string
+	SentHowToClose          string
+	NothingPosted           string
+	NothingPostedHowToClose string
+	PostTo                  string
+	YesAction               string
+	Cancel                  string
+	Choose                  string
+	ShowWhatItSends         string
 
 	FinderTitle      string
 	NothingMatches   string
@@ -453,7 +453,7 @@ type TranslationSet struct {
 	CouldNotReadGitHubAgain string
 	OneLoadAtATime          string
 	CouldNotLoad            string
-	LoadedEnterOpens        string
+	LoadedOpenFromHome      string
 	DraftNotSent            string
 	LoadAndOpen             string
 	Repositories            string
@@ -486,10 +486,10 @@ type TranslationSet struct {
 	YouCommented         string
 	ADraft               string
 	LoadingFromGitHubNow string
-	EnterOpensStack      string
-	EnterOpensReview     string
-	EnterLoadsStack      string
-	EnterLoadsIt         string
+	OpensStack           string
+	OpensReview          string
+	LoadsStack           string
+	LoadsIt              string
 	StackBottomFirst     string
 	NoDescription        string
 
@@ -537,10 +537,10 @@ func EnglishTranslationSet() *TranslationSet {
 		Removed:          "removed",
 
 		CouldNotReadReviewAgain: "could not read the review again",
-		StoppedHearing:          "Stopped hearing changes made elsewhere: {{.error}}. R loads the review again.",
-		NoReviewOpenYet:         "No review is open yet: Enter opens one",
-		ReviewNotOpenYet:        "the review is not open yet; R tries again",
-		HowToQuit:               "ZZ or :q quits",
+		StoppedHearing:          "Stopped hearing changes made elsewhere: {{.error}}. {{.refresh}} loads the review again.",
+		NoReviewOpenYet:         "No review is open yet: {{.open}} opens one",
+		ReviewNotOpenYet:        "the review is not open yet; {{.refresh}} tries again",
+		HowToQuit:               "{{.quit}} or {{.command}}q quits",
 		NoPullRequestOnGitHub:   "this has no pull request on GitHub",
 		CouldNotOpen:            "could not open {{.name}}",
 		Opened:                  "opened {{.address}}",
@@ -663,7 +663,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OfTotal:            "{{.at}} of {{.total}}",
 		All:                "All",
 		Loading:            "Loading…",
-		TryAgainOrQuit:     "R tries again; :q quits.",
+		TryAgainOrQuit:     "{{.refresh}} tries again; {{.command}}q quits.",
 		NothingToDraw:      "Nothing to draw: this change has no parts the diagram knows.",
 		MainTitle:          "Main",
 		ReviewTitle:        "Review",
@@ -673,7 +673,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DiffTitle:          "Diff",
 		DropQuestion:       "Drop queued comment {{.comment}} on #{{.pull}}? Its text is gone once dropped.",
 		DropTitle:          "Drop comment {{.comment}}",
-		DropFooter:         "y drop · any other key keeps it",
+		DropFooter:         "{{.confirm}} drop · any other key keeps it",
 		Drop:               "Drop",
 		AnyOtherKey:        "any other key",
 		Keep:               "Keep",
@@ -790,7 +790,7 @@ func EnglishTranslationSet() *TranslationSet {
 		LinesAt:         "lines {{.from}}-{{.to}}",
 		RemovedLinesAt:  "removed lines {{.from}}-{{.to}}",
 		LineToLine:      "{{.from}} to {{.to}}",
-		DiagramNotDrawn: "A diagram is here that a terminal cannot draw. gX opens this review in the web app.",
+		DiagramNotDrawn: "A diagram is here that a terminal cannot draw. {{.web}} opens this review in the web app.",
 
 		WrittenStale:        "This written review read head {{.head}}; the pull request has moved on since, so it may not match the diff.",
 		NoWrittenReview:     "No written review is attached. The diagram and the diffs hold the change.",
@@ -810,7 +810,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OnBase:              "on {{.base}}",
 		MemberHead:          "head {{.sha}}",
 		Combined:            "Combined:",
-		ShowingOnly:         "Showing {{.pulls}} only. Esc in the Review panel shows the whole stack.",
+		ShowingOnly:         "Showing {{.pulls}} only. {{.close}} in the Review panel shows the whole stack.",
 		PullHeader:          "Pull request #{{.pull}} by {{.author}}",
 		ReviewMoved:         "This review moved: its pull requests are reviewed together on {{.to}}. Its queued comments moved there, and nothing can be sent from here.",
 		QueueMoved:          "This review moved to {{.to}}. Its queued comments moved there.",
@@ -848,20 +848,20 @@ func EnglishTranslationSet() *TranslationSet {
 		AConversation:         "a conversation with Claude",
 		AThreadOn:             "a thread on #{{.pull}}",
 		QueuedNumber:          "Queued {{.comment}}",
-		QueuedNoteKeys:        "e edit  dd drop",
+		QueuedNoteKeys:        "{{.edit}} edit  {{.drop}} drop",
 		WaitingForClaudeWords: "waiting for Claude",
-		ConversationNoteKeys:  "a ask  za",
-		ThreadNoteKeys:        "gx GitHub  za",
+		ConversationNoteKeys:  "{{.ask}} ask  {{.fold}}",
+		ThreadNoteKeys:        "{{.github}} GitHub  {{.fold}}",
 
-		SelectStartsOnLine: "V starts a selection on a line",
-		NoRenderedView:     "Space r shows a Markdown file rendered, and this file has no rendered view",
+		SelectStartsOnLine: "{{.select}} starts a selection on a line",
+		NoRenderedView:     "{{.rendered}} shows a Markdown file rendered, and this file has no rendered view",
 		NoWholeText:        "this file has no whole text to show",
 		NoSuchLine:         "{{.path}} shows no line {{.line}}",
 		NoMoreOf:           "no more of {{.query}}",
 
-		NoReviewOpen:          "no review is open; Enter on one opens it",
+		NoReviewOpen:          "no review is open; {{.open}} on one opens it",
 		NoBoxHasLabel:         "no box has the label {{.label}}",
-		NoTypesToDraw:         "{{.title}} has no types to draw; Space d opens its diff",
+		NoTypesToDraw:         "{{.title}} has no types to draw; {{.boxDiff}} opens its diff",
 		NoFilesInChange:       "{{.title}} has no files in this change",
 		LinkOut:               "out",
 		LinkIn:                "in",
@@ -879,65 +879,65 @@ func EnglishTranslationSet() *TranslationSet {
 		MatchOfFor:            "{{.at}} of {{.total}} for {{.query}}",
 		NoTypeInFile:          "{{.file}} holds no type the diagram draws",
 		TypesIn:               "Types in {{.file}}",
-		ShowTypeHow:           "gd shows the type at a line, or lists a file's types from its header",
+		ShowTypeHow:           "{{.showType}} shows the type at a line, or lists a file's types from its header",
 		NothingToDrawHere:     "nothing to draw",
 		PackageNoun:           "package",
 		InPulls:               "in {{.pulls}}",
 		Members:               "Members",
 		Labels:                "Labels",
 
-		CommentFromAnswer:   "A comment on {{.on}}, from Claude's answer.",
-		CheckingWhere:       "Checking where it goes…",
-		EEditsQueued:        "e edits a queued comment",
-		CCommentsOrAnswer:   "c comments on a line or a selection, or on Claude's answer uses it",
-		CComments:           "c comments on a line or a selection",
-		CommentOn:           "A comment on {{.on}}.",
-		FollowUpOn:          "A follow-up to Claude on {{.on}}.",
-		ConversationSoFar:   "The conversation so far:",
-		You:                 "You",
-		DidNotAnswer:        "did not answer",
-		AAsks:               "a asks Claude about a line or a selection, or in a conversation asks a follow-up",
-		QuestionAbout:       "A question to Claude about {{.on}}.",
-		ClaudeAnswersHere:   "Claude answers here, in the review. Nothing goes to GitHub.",
-		EEditsAtCursor:      "e edits the queued comment at the cursor",
-		QueuedCommentOn:     "Queued comment {{.comment}} on {{.on}}, for #{{.pull}}.",
-		SavingReplaces:      "Saving replaces it.",
-		DdDrops:             "dd drops the queued comment at the cursor",
-		KeptQueued:          "Kept queued comment {{.comment}}.",
-		Dropping:            "Dropping…",
-		CouldNotMakeFile:    "could not make a file to write in",
-		NothingBelowLine:    "Nothing below the line above is sent. Saving with no text sends nothing.",
-		CouldNotWrite:       "could not write {{.path}}",
-		EditorStopped:       "the editor stopped",
-		CouldNotReadWritten: "could not read what was written",
-		NothingWritten:      "Nothing was written, so nothing was sent.",
-		QueuedAsItWas:       "Queued comment {{.comment}} is as it was.",
-		Queueing:            "Queueing…",
-		Saving:              "Saving…",
-		AskingClaude:        "Asking Claude…",
-		ClaudeSaysWhy:       "Claude did not answer; the conversation says why.",
-		ClaudeAnswered:      "Claude answered.",
-		SavedQueued:         "Saved queued comment {{.comment}}.",
-		DroppedQueued:       "Dropped queued comment {{.comment}}.",
-		QueuedAbout:         "Queued: {{.about}}",
+		CommentFromAnswer:       "A comment on {{.on}}, from Claude's answer.",
+		CheckingWhere:           "Checking where it goes…",
+		EditsQueuedComment:      "{{.edit}} edits a queued comment",
+		CommentsOnLinesOrAnswer: "{{.comment}} comments on a line or a selection, or on Claude's answer uses it",
+		CommentsOnLines:         "{{.comment}} comments on a line or a selection",
+		CommentOn:               "A comment on {{.on}}.",
+		FollowUpOn:              "A follow-up to Claude on {{.on}}.",
+		ConversationSoFar:       "The conversation so far:",
+		You:                     "You",
+		DidNotAnswer:            "did not answer",
+		AsksAboutLines:          "{{.ask}} asks Claude about a line or a selection, or in a conversation asks a follow-up",
+		QuestionAbout:           "A question to Claude about {{.on}}.",
+		ClaudeAnswersHere:       "Claude answers here, in the review. Nothing goes to GitHub.",
+		EditsQueuedAtCursor:     "{{.edit}} edits the queued comment at the cursor",
+		QueuedCommentOn:         "Queued comment {{.comment}} on {{.on}}, for #{{.pull}}.",
+		SavingReplaces:          "Saving replaces it.",
+		DropsQueuedAtCursor:     "{{.drop}} drops the queued comment at the cursor",
+		KeptQueued:              "Kept queued comment {{.comment}}.",
+		Dropping:                "Dropping…",
+		CouldNotMakeFile:        "could not make a file to write in",
+		NothingBelowLine:        "Nothing below the line above is sent. Saving with no text sends nothing.",
+		CouldNotWrite:           "could not write {{.path}}",
+		EditorStopped:           "the editor stopped",
+		CouldNotReadWritten:     "could not read what was written",
+		NothingWritten:          "Nothing was written, so nothing was sent.",
+		QueuedAsItWas:           "Queued comment {{.comment}} is as it was.",
+		Queueing:                "Queueing…",
+		Saving:                  "Saving…",
+		AskingClaude:            "Asking Claude…",
+		ClaudeSaysWhy:           "Claude did not answer; the conversation says why.",
+		ClaudeAnswered:          "Claude answered.",
+		SavedQueued:             "Saved queued comment {{.comment}}.",
+		DroppedQueued:           "Dropped queued comment {{.comment}}.",
+		QueuedAbout:             "Queued: {{.about}}",
 
-		AddComments:          "Add Comments",
-		ApproveWithComments:  "Approve With Comments",
-		Approve:              "Approve",
-		NoQueueToPost:        "only a pull request's review has a queue to post",
-		ReviewMovedNoSend:    "this review moved, so nothing can be sent from here",
-		PPosts:               "P posts for the pull request at the cursor; move to it, or to one of its comments",
-		PullWasState:         "#{{.pull}} was {{.state}}, so nothing can be sent to it",
-		CheckingThenSending:  "Checking the pull request with GitHub, then sending…",
-		SentToGitHub:         "Sent to GitHub",
-		SentQCloses:          "Sent; q closes the server's answer.",
-		NothingPosted:        "Nothing was posted",
-		NothingPostedQCloses: "Nothing was posted; q closes why.",
-		PostTo:               "Post to {{.repo}}#{{.pull}}",
-		YesAction:            "Yes, {{.action}}",
-		Cancel:               "Cancel",
-		Choose:               "Choose",
-		ShowWhatItSends:      "Show what it sends",
+		AddComments:             "Add Comments",
+		ApproveWithComments:     "Approve With Comments",
+		Approve:                 "Approve",
+		NoQueueToPost:           "only a pull request's review has a queue to post",
+		ReviewMovedNoSend:       "this review moved, so nothing can be sent from here",
+		PostsAtCursor:           "{{.post}} posts for the pull request at the cursor; move to it, or to one of its comments",
+		PullWasState:            "#{{.pull}} was {{.state}}, so nothing can be sent to it",
+		CheckingThenSending:     "Checking the pull request with GitHub, then sending…",
+		SentToGitHub:            "Sent to GitHub",
+		SentHowToClose:          "Sent; {{.close}} closes the server's answer.",
+		NothingPosted:           "Nothing was posted",
+		NothingPostedHowToClose: "Nothing was posted; {{.close}} closes why.",
+		PostTo:                  "Post to {{.repo}}#{{.pull}}",
+		YesAction:               "Yes, {{.action}}",
+		Cancel:                  "Cancel",
+		Choose:                  "Choose",
+		ShowWhatItSends:         "Show what it sends",
 
 		FinderTitle:      "Find a file, type or component",
 		NothingMatches:   "nothing matches",
@@ -948,8 +948,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CouldNotReadGitHubAgain: "Could not read GitHub again",
 		OneLoadAtATime:          "One load at a time: {{.name}} is loading",
 		CouldNotLoad:            "Could not load {{.name}}",
-		LoadedEnterOpens:        "Loaded {{.name}}; Enter on the home screen opens it",
-		DraftNotSent:            "Your draft in {{.title}} is not sent yet: Space v goes back to it",
+		LoadedOpenFromHome:      "Loaded {{.name}}; {{.open}} on the home screen opens it",
+		DraftNotSent:            "Your draft in {{.title}} is not sent yet: {{.review}} goes back to it",
 		LoadAndOpen:             "Load and open",
 		Repositories:            "Repositories",
 		Refresh:                 "Refresh",
@@ -968,11 +968,11 @@ func EnglishTranslationSet() *TranslationSet {
 		AccountsTitle:        "Accounts",
 		NameAccountsIn:       "No GitHub accounts are set, so there is nothing to list yet. Name them in {{.path}}:",
 		ConfigSample:         "github:\n  accounts:\n    - login: your-login\n    - login: your-work-login\n      teams:\n        - name: your-org/your-team\n          since: 2026-10-01",
-		EachAccount:          "Each account is read by its own token, so each must be signed in to gh. A review asked of a team counts as asked of you, for pull requests opened on or after its since date. R reads the config again.",
+		EachAccount:          "Each account is read by its own token, so each must be signed in to gh. A review asked of a team counts as asked of you, for pull requests opened on or after its since date. {{.refresh}} reads the config again.",
 		CouldNotReadAs:       "GitHub could not be read as {{.login}}:",
-		LeftOutUntil:         "Its pull requests are left out until GitHub answers. R tries again.",
+		LeftOutUntil:         "Its pull requests are left out until GitHub answers. {{.refresh}} tries again.",
 		NothingInvolves:      "No open pull request involves {{.logins}}: none asks for a review from them or their teams, none is theirs, and none has their comments.",
-		ReadsGitHubAgain:     "R reads GitHub again.",
+		ReadsGitHubAgain:     "{{.refresh}} reads GitHub again.",
 		PullBy:               "#{{.pull}} by {{.author}}",
 		WaitingOnYou:         "Waiting on your review, asked of {{.who}}.",
 		LoadedInLazyreview:   "Loaded in lazyreview.",
@@ -981,14 +981,14 @@ func EnglishTranslationSet() *TranslationSet {
 		YouCommented:         "You have commented on it.",
 		ADraft:               "A draft, not ready for review yet.",
 		LoadingFromGitHubNow: "Loading from GitHub…",
-		EnterOpensStack:      "Enter opens the stack's review.",
-		EnterOpensReview:     "Enter opens its review.",
-		EnterLoadsStack:      "Enter loads the stack, {{.pulls}}, as {{.account}}, then opens it.",
-		EnterLoadsIt:         "Enter loads it as {{.account}}, then opens it.",
+		OpensStack:           "{{.open}} opens the stack's review.",
+		OpensReview:          "{{.open}} opens its review.",
+		LoadsStack:           "{{.open}} loads the stack, {{.pulls}}, as {{.account}}, then opens it.",
+		LoadsIt:              "{{.open}} loads it as {{.account}}, then opens it.",
 		StackBottomFirst:     "The stack, bottom first:",
 		NoDescription:        "No description.",
 
-		LoadedElsewhere: "This review was loaded again. R loads it here; your drafts stay.",
+		LoadedElsewhere: "This review was loaded again. {{.refresh}} loads it here; your drafts stay.",
 		LoadedAgain:     "Loaded again.",
 	}
 }

@@ -93,6 +93,17 @@ func (t ContextTree) Focused(focus, driving int) ContextTree {
 	return t.based(focus, driving, t.popups())
 }
 
+// Place is the context that reads keys in sequences: the one at the top of
+// the focus stack under any popups.
+func (t ContextTree) Place() ContextKey {
+	for i := len(t.stack) - 1; i >= 0; i-- {
+		if t.stack[i].Kind() != PopupKind {
+			return t.stack[i]
+		}
+	}
+	return GlobalKey
+}
+
 // Has says whether a context is on the focus stack.
 func (t ContextTree) Has(key ContextKey) bool {
 	return slices.Contains(t.stack, key)

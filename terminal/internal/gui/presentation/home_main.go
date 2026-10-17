@@ -16,16 +16,17 @@ var htmlComment = regexp.MustCompile(`(?s)<!--.*?-->`)
 
 // HomeMain is the home screen's main panel: its title and its lines, about
 // the pull request selected, an account GitHub could not read, or why there
-// is nothing to list.
-func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, width int, v HomeMainView) (string, []string) {
-	b := &builder{width: width, tr: tr, th: th}
+// is nothing to list, its words naming keys as labels label them.
+func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels KeyLabels, width int, v HomeMainView) (string, []string) {
+	b := &builder{width: width, tr: tr, th: th, labels: labels}
+	keys := map[string]string{"refresh": labels.Of("refresh"), "command": labels.Of("command"), "open": labels.Of("open")}
 	title := tr.PullRequestsTitle
 	switch {
 	case v.List == nil && v.Failed != "":
 		b.text("")
 		b.prose(" ", th.Bad, tr.CouldNotReadPulls+": "+v.Failed)
 		b.text("")
-		b.prose(" ", th.Muted, tr.TryAgainOrQuit)
+		b.prose(" ", th.Muted, utils.ResolvePlaceholderString(tr.TryAgainOrQuit, keys))
 	case v.List == nil:
 		b.text("")
 		b.prose(" ", th.Muted, tr.ReadingPulls)
@@ -38,7 +39,7 @@ func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, width int, 
 			b.text("   " + th.Accent.Render(l))
 		}
 		b.text("")
-		b.prose(" ", th.Muted, tr.EachAccount)
+		b.prose(" ", th.Muted, utils.ResolvePlaceholderString(tr.EachAccount, keys))
 	case v.Chosen:
 		title = fmt.Sprintf("%s #%d", v.Repo.Name, v.Pull.Number)
 		pullLines(b, md, v)
@@ -52,7 +53,7 @@ func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, width int, 
 			}
 		}
 		b.text("")
-		b.prose(" ", th.Muted, tr.LeftOutUntil)
+		b.prose(" ", th.Muted, utils.ResolvePlaceholderString(tr.LeftOutUntil, keys))
 	default:
 		logins := make([]string, len(v.List.Accounts))
 		for i, read := range v.List.Accounts {
@@ -61,7 +62,7 @@ func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, width int, 
 		b.text("")
 		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.NothingInvolves, map[string]string{"logins": listed(tr, logins)}))
 		b.text("")
-		b.prose(" ", th.Muted, tr.ReadsGitHubAgain)
+		b.prose(" ", th.Muted, utils.ResolvePlaceholderString(tr.ReadsGitHubAgain, keys))
 	}
 	content := make([]string, len(b.lines))
 	for i, l := range b.lines {
@@ -92,19 +93,20 @@ func pullLines(b *builder, md *Markdown, v HomeMainView) {
 	if m.Draft {
 		marked(b, " ", th.Muted, tr.ADraft)
 	}
+	open := map[string]string{"open": b.labels.Of("open")}
 	b.text("")
 	switch {
 	case v.Loading == UnitKey(repo, u):
 		b.prose(" ", th.Accent, tr.LoadingFromGitHubNow)
 	case u.Review != "" && len(u.Members) > 1:
-		b.prose(" ", th.Text, tr.EnterOpensStack)
+		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.OpensStack, open))
 	case u.Review != "":
-		b.prose(" ", th.Text, tr.EnterOpensReview)
+		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.OpensReview, open))
 	case len(u.Members) > 1:
 		pulls := strings.TrimPrefix(UnitName(repo, u), repo.Name+" ")
-		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.EnterLoadsStack, map[string]string{"pulls": pulls, "account": repo.Account}))
+		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.LoadsStack, map[string]string{"pulls": pulls, "account": repo.Account, "open": open["open"]}))
 	default:
-		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.EnterLoadsIt, map[string]string{"account": repo.Account}))
+		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.LoadsIt, map[string]string{"account": repo.Account, "open": open["open"]}))
 	}
 	if len(u.Members) > 1 {
 		b.text("", " "+th.Muted.Render(tr.StackBottomFirst))

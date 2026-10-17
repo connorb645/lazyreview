@@ -77,6 +77,7 @@ test('the move loses nothing: every account, team and variable reads the same af
         dataHome: s.data, server: { port: 4748 }, claude: { command: 'claude', model: 'claude-sonnet' }, os: { editor: 'nvim' },
         github: { accounts: [{ login: 'lee', teams: [] }, { login: 'lee-at-work', teams: [{ name: 'example-org/mobile', since: '2026-10-01' }, { name: 'example-org/web', since: null }] }] },
         gui: defaults().gui,
+        keybinding: defaults().keybinding,
       });
     }
     const checked = checkedConfigText(fromFile);

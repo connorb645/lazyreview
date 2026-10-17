@@ -28,12 +28,12 @@ func (self *MenuController) Context() context.ContextKey {
 
 // Bindings are a menu's keys: moving, opening a row, and closing it.
 func (self *MenuController) Bindings() []Binding {
-	tr, h := self.c.Tr, self.c.Helpers
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	return []Binding{
-		{Action: "down", Keys: []string{"j", "down"}, Handler: menuMoved(h, 1), Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: menuMoved(h, -1), Description: tr.Up},
-		{Action: "open", Keys: []string{"enter"}, Handler: uncounted(h.Menu.OpenRow), Description: tr.Go},
-		{Action: "close", Keys: []string{"esc", "q"}, Handler: stateOnly(context.ContextTree.WithoutMenu), Description: tr.Close},
+		{Action: "down", Keys: kb.Menu.Down, Handler: menuMoved(h, 1), Description: tr.Down},
+		{Action: "up", Keys: kb.Menu.Up, Handler: menuMoved(h, -1), Description: tr.Up},
+		{Action: "open", Keys: kb.Menu.Open, Handler: uncounted(h.Menu.OpenRow), Description: tr.Go},
+		{Action: "close", Keys: kb.Menu.Close, Handler: stateOnly(context.ContextTree.WithoutMenu), Description: tr.Close},
 	}
 }
 

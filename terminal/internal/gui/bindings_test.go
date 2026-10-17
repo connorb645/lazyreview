@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -63,6 +64,47 @@ func TestTheBindingsOfEachPlace(t *testing.T) {
 		if pressed := probe(t, keys); !maps.Equal(pressed, places[name]) {
 			t.Errorf("the %s's keys do %v, but its bindings say %v", name, pressed, places[name])
 		}
+	}
+}
+
+// A key the hand-over changes is the binding, and the help, the bar and a
+// notice name it; an action the hand-over gives no key is unbound, and its
+// help row and its hint are left out.
+func TestTheHandOversKeysAreTheBindings(t *testing.T) {
+	cmn := handedOver(t, map[string]map[string][]string{
+		"universal":   {"quit": {"Q Q"}},
+		"reviewPanel": {"highlight": {"V"}, "post": {}},
+	})
+	tr := cmn.Tr
+	a, _ := openedIn(t, cmn, &changes{answers: map[string]answer{}}, stack, 100, 30)
+	bound := placeBindings(a)
+	if bound["V"] != "highlight" || bound["Q Q"] != "quit" || bound["v"] != "" || bound["Z Z"] != "" || bound["P"] != "" {
+		t.Fatalf("the Review panel binds %v", bound)
+	}
+	filterIs(t, press(t, a, "V"), "[21]")
+	if b := press(t, a, "v"); len(b.Filter) != 0 {
+		t.Fatalf("v still highlights: %v", b.Filter)
+	}
+	if b := press(t, a, "P"); b.Has(context.PostingKey) || b.Notice != "" {
+		t.Fatalf("P still posts: %q", b.Notice)
+	}
+	help := map[string]string{}
+	for _, r := range press(t, a, "space", "?").Menu.Rows {
+		help[r.Right] = r.Left
+	}
+	highlight := utils.ResolvePlaceholderString(tr.HelpHighlight, map[string]string{"move": "j k"})
+	quit := utils.ResolvePlaceholderString(tr.HelpQuit, map[string]string{"command": ":"})
+	if help[highlight] != "V" || help[quit] != "QQ" {
+		t.Fatalf("the help labels the highlight %q and quitting %q", help[highlight], help[quit])
+	}
+	if keys, ok := help[tr.HelpPostPull]; ok {
+		t.Fatalf("the help lists posting, with no key, as %q", keys)
+	}
+	if bar := a.View(); !strings.Contains(bar, tr.Highlight+": V") || strings.Contains(bar, tr.Post+":") {
+		t.Fatalf("the bar reads:\n%s", bar)
+	}
+	if b := press(t, a, "q"); b.Notice != "QQ or :q quits" {
+		t.Fatalf("q tells %q", b.Notice)
 	}
 }
 

@@ -32,44 +32,44 @@ func (self *DiffController) Context() context.ContextKey {
 
 // Bindings are the keys of every place of a review, and the diff's own.
 func (self *DiffController) Bindings() []Binding {
-	tr, h := self.c.Tr, self.c.Helpers
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	own := []Binding{
-		{Action: "down", Keys: []string{"j", "down"}, Handler: self.moved(1), Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: self.moved(-1), Description: tr.Up},
-		{Action: "half down", Keys: []string{"ctrl+d"}, Handler: self.paged(true, false), Description: tr.HalfPageDown},
-		{Action: "half up", Keys: []string{"ctrl+u"}, Handler: self.paged(true, true), Description: tr.HalfPageUp},
-		{Action: "page down", Keys: []string{"ctrl+f"}, Handler: self.paged(false, false), Description: tr.PageDown},
-		{Action: "page up", Keys: []string{"ctrl+b"}, Handler: self.paged(false, true), Description: tr.PageUp},
-		{Action: "top", Keys: []string{"g g"}, Handler: self.end(false), Description: tr.Top},
-		{Action: "bottom", Keys: []string{"G"}, Handler: self.end(true), Description: tr.Bottom},
-		{Action: "next hunk", Keys: []string{"] c"}, Handler: self.hunk(false), Description: tr.NextHunk},
-		{Action: "previous hunk", Keys: []string{"[ c"}, Handler: self.hunk(true), Description: tr.PreviousHunk},
-		{Action: "next file", Keys: []string{"] f"}, Handler: self.next("file", false), Description: tr.NextFile},
-		{Action: "previous file", Keys: []string{"[ f"}, Handler: self.next("file", true), Description: tr.PreviousFile},
-		{Action: "search", Keys: []string{"/"}, Handler: self.search(false), Description: tr.Search},
-		{Action: "search back", Keys: []string{"?"}, Handler: self.search(true), Description: tr.SearchBack},
-		{Action: "next match", Keys: []string{"n"}, Handler: self.match(false), Description: tr.NextMatch},
-		{Action: "previous match", Keys: []string{"N"}, Handler: self.match(true), Description: tr.PreviousMatch},
-		{Action: "toggle fold", Keys: []string{"z a"}, Handler: self.fold("toggle fold"), Description: tr.Fold},
-		{Action: "open fold", Keys: []string{"z o"}, Handler: self.fold("open fold"), Description: tr.OpenFold},
-		{Action: "close fold", Keys: []string{"z c"}, Handler: self.fold("close fold"), Description: tr.CloseFold},
-		{Action: "open folds", Keys: []string{"z R"}, Handler: self.folds(true), Description: tr.OpenFolds},
-		{Action: "close folds", Keys: []string{"z M"}, Handler: self.folds(false), Description: tr.CloseFolds},
-		{Action: "open", Keys: []string{"enter"}, Handler: stateOnly(self.open), Description: tr.ToggleFile},
-		{Action: "back", Keys: []string{"-"}, Handler: stateOnly(self.back), Description: tr.Back},
-		{Action: "split", Keys: []string{"space s"}, Handler: stateOnly(self.split), Description: tr.Split},
-		{Action: "wrap", Keys: []string{"space w"}, Handler: stateOnly(self.wrap), Description: tr.Wrap},
-		{Action: "whole", Keys: []string{"space o"}, Handler: stateOnly(self.whole), Description: tr.WholeFile},
-		{Action: "rendered", Keys: []string{"space r"}, Handler: stateOnly(self.rendered), Description: tr.Rendered},
-		{Action: "show type", Keys: []string{"g d"}, Handler: uncounted(h.Diagram.ShowType), Description: tr.ShowType},
-		{Action: "next note", Keys: []string{"] n"}, Handler: self.next("notehead", false), Description: tr.NextNote},
-		{Action: "previous note", Keys: []string{"[ n"}, Handler: self.next("notehead", true), Description: tr.PreviousNote},
-		{Action: "select", Keys: []string{"V"}, Handler: stateOnly(self.selecting), Description: tr.Select},
-		{Action: "other end", Keys: []string{"o"}, Handler: stateOnly(self.otherEnd), Description: tr.OtherEnd},
-		{Action: "comment", Keys: []string{"c"}, Handler: uncounted(h.Editing.Comment), Description: tr.Comment},
-		{Action: "ask", Keys: []string{"a"}, Handler: uncounted(h.Editing.Ask), Description: tr.AskClaude},
-		{Action: "edit", Keys: []string{"e"}, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
-		{Action: "drop", Keys: []string{"d d"}, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
+		{Action: "down", Keys: kb.Diff.Down, Handler: self.moved(1), Description: tr.Down},
+		{Action: "up", Keys: kb.Diff.Up, Handler: self.moved(-1), Description: tr.Up},
+		{Action: "half down", Keys: kb.Diff.HalfDown, Handler: self.paged(true, false), Description: tr.HalfPageDown},
+		{Action: "half up", Keys: kb.Diff.HalfUp, Handler: self.paged(true, true), Description: tr.HalfPageUp},
+		{Action: "page down", Keys: kb.Diff.PageDown, Handler: self.paged(false, false), Description: tr.PageDown},
+		{Action: "page up", Keys: kb.Diff.PageUp, Handler: self.paged(false, true), Description: tr.PageUp},
+		{Action: "top", Keys: kb.Diff.Top, Handler: self.end(false), Description: tr.Top},
+		{Action: "bottom", Keys: kb.Diff.Bottom, Handler: self.end(true), Description: tr.Bottom},
+		{Action: "next hunk", Keys: kb.Diff.NextHunk, Handler: self.hunk(false), Description: tr.NextHunk},
+		{Action: "previous hunk", Keys: kb.Diff.PreviousHunk, Handler: self.hunk(true), Description: tr.PreviousHunk},
+		{Action: "next file", Keys: kb.Diff.NextFile, Handler: self.next("file", false), Description: tr.NextFile},
+		{Action: "previous file", Keys: kb.Diff.PreviousFile, Handler: self.next("file", true), Description: tr.PreviousFile},
+		{Action: "search", Keys: kb.Diff.Search, Handler: self.search(false), Description: tr.Search},
+		{Action: "search back", Keys: kb.Diff.SearchBack, Handler: self.search(true), Description: tr.SearchBack},
+		{Action: "next match", Keys: kb.Diff.NextMatch, Handler: self.match(false), Description: tr.NextMatch},
+		{Action: "previous match", Keys: kb.Diff.PreviousMatch, Handler: self.match(true), Description: tr.PreviousMatch},
+		{Action: "toggle fold", Keys: kb.Diff.ToggleFold, Handler: self.fold("toggle fold"), Description: tr.Fold},
+		{Action: "open fold", Keys: kb.Diff.OpenFold, Handler: self.fold("open fold"), Description: tr.OpenFold},
+		{Action: "close fold", Keys: kb.Diff.CloseFold, Handler: self.fold("close fold"), Description: tr.CloseFold},
+		{Action: "open folds", Keys: kb.Diff.OpenFolds, Handler: self.folds(true), Description: tr.OpenFolds},
+		{Action: "close folds", Keys: kb.Diff.CloseFolds, Handler: self.folds(false), Description: tr.CloseFolds},
+		{Action: "open", Keys: kb.Diff.Open, Handler: stateOnly(self.open), Description: tr.ToggleFile},
+		{Action: "back", Keys: kb.Diff.Back, Handler: stateOnly(self.back), Description: tr.Back},
+		{Action: "split", Keys: kb.Diff.Split, Handler: stateOnly(self.split), Description: tr.Split},
+		{Action: "wrap", Keys: kb.Diff.Wrap, Handler: stateOnly(self.wrap), Description: tr.Wrap},
+		{Action: "whole", Keys: kb.Diff.Whole, Handler: stateOnly(self.whole), Description: tr.WholeFile},
+		{Action: "rendered", Keys: kb.Diff.Rendered, Handler: stateOnly(self.rendered), Description: tr.Rendered},
+		{Action: "show type", Keys: kb.Diff.ShowType, Handler: uncounted(h.Diagram.ShowType), Description: tr.ShowType},
+		{Action: "next note", Keys: kb.Diff.NextNote, Handler: self.next("notehead", false), Description: tr.NextNote},
+		{Action: "previous note", Keys: kb.Diff.PreviousNote, Handler: self.next("notehead", true), Description: tr.PreviousNote},
+		{Action: "select", Keys: kb.Diff.Select, Handler: stateOnly(self.selecting), Description: tr.Select},
+		{Action: "other end", Keys: kb.Diff.OtherEnd, Handler: stateOnly(self.otherEnd), Description: tr.OtherEnd},
+		{Action: "comment", Keys: kb.Diff.Comment, Handler: uncounted(h.Editing.Comment), Description: tr.Comment},
+		{Action: "ask", Keys: kb.Diff.Ask, Handler: uncounted(h.Editing.Ask), Description: tr.AskClaude},
+		{Action: "edit", Keys: kb.Diff.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
+		{Action: "drop", Keys: kb.Diff.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
 	}
 	return join(reviewScreenBindings(self.c), withReviewAll(own))
 }
@@ -234,7 +234,7 @@ func (self *DiffController) rendered(s context.ContextTree) context.ContextTree 
 	v := s.Diff
 	path := v.File()
 	if f, ok := v.Files[path]; !ok || f.Rendered == nil {
-		return s.Said(self.c.Tr.NoRenderedView, true)
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoRenderedView, map[string]string{"rendered": self.c.KeyLabels(s.Place()).Of("rendered")}), true)
 	}
 	v = v.Copied()
 	v.Rendered[path] = !v.Rendered[path]
@@ -253,7 +253,7 @@ func (self *DiffController) selecting(s context.ContextTree) context.ContextTree
 	}
 	if r := v.Rows[v.Cursor]; r.Kind != "block" {
 		if _, _, ok := r.At(); !ok {
-			return s.Said(self.c.Tr.SelectStartsOnLine, true)
+			return s.Said(utils.ResolvePlaceholderString(self.c.Tr.SelectStartsOnLine, map[string]string{"select": self.c.KeyLabels(s.Place()).Of("select")}), true)
 		}
 	}
 	s.Diff.Selecting, s.Diff.Anchor = true, v.Cursor

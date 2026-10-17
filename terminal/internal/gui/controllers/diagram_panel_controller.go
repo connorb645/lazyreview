@@ -28,27 +28,34 @@ func (self *DiagramPanelController) Context() context.ContextKey {
 	return context.DiagramPanelKey
 }
 
-// Bindings are the keys of every place of a review, the keys to focus each
-// panel, and the diagram's keys, its boxes in reading order going down
-// and up the panel.
+// Bindings are the keys of every place of a review, those of every panel
+// on the left, the panel's moves going through the diagram's boxes in
+// reading order, and the Diagram panel's own, which win a key both bind.
 func (self *DiagramPanelController) Bindings() []Binding {
-	tr, d := self.c.Tr, self.diagram
-	moves := []Binding{
-		{Action: "down", Keys: []string{"j", "down"}, Handler: d.movedBy(1), Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: d.movedBy(-1), Description: tr.Up},
-		{Action: "top", Keys: []string{"g g"}, Handler: stateOnly(d.top), Description: tr.Top},
-		{Action: "bottom", Keys: []string{"G"}, Handler: stateOnly(d.bottom), Description: tr.Bottom},
-		{Action: "open", Keys: []string{"enter"}, Handler: uncounted(self.c.Helpers.Diagram.StepIn), Description: tr.In},
-		{Action: "left", Keys: []string{"h"}, Handler: d.nearest("h"), Description: tr.Left},
-		{Action: "right", Keys: []string{"l"}, Handler: d.nearest("l"), Description: tr.Right},
-		{Action: "next box", Keys: []string{"w"}, Handler: d.movedBy(1), Description: tr.NextBox},
-		{Action: "previous box", Keys: []string{"b"}, Handler: d.movedBy(-1), Description: tr.PreviousBox},
+	tr, kb, d := self.c.Tr, self.c.Config.Keybinding.DiagramPanel, self.diagram
+	boxMoves := map[string]Handler{
+		"down": d.movedBy(1), "up": d.movedBy(-1), "top": stateOnly(d.top), "bottom": stateOnly(d.bottom),
+		"open": uncounted(self.c.Helpers.Diagram.StepIn),
 	}
-	own := append(moves, d.boxBindings()...)
+	panels := sidePanelBindings(self.c)
+	for i, b := range panels {
+		if move, ok := boxMoves[b.Action]; ok {
+			panels[i].Handler = withReview(self.onDiagram(move))
+		}
+	}
+	own := append([]Binding{
+		{Action: "left", Keys: kb.Left, Handler: d.nearest("h"), Description: tr.Left},
+		{Action: "right", Keys: kb.Right, Handler: d.nearest("l"), Description: tr.Right},
+		{Action: "next box", Keys: kb.NextBox, Handler: d.movedBy(1), Description: tr.NextBox},
+		{Action: "previous box", Keys: kb.PreviousBox, Handler: d.movedBy(-1), Description: tr.PreviousBox},
+	}, d.boxBindings(boxKeys{
+		back: kb.Back, follow: kb.Follow, references: kb.References, search: kb.Search, searchBack: kb.SearchBack, nextMatch: kb.NextMatch,
+		previousMatch: kb.PreviousMatch, labels: kb.Labels, links: kb.Links, properties: kb.Properties, boxDiff: kb.BoxDiff, allLinks: kb.AllLinks,
+	})...)
 	for i := range own {
 		own[i].Handler = self.onDiagram(own[i].Handler)
 	}
-	return join(reviewScreenBindings(self.c), focusPanelBindings(self.c), withReviewAll(own))
+	return join(reviewScreenBindings(self.c), panels, focusPanelBindings(self.c), withReviewAll(own))
 }
 
 func (self *DiagramPanelController) onDiagram(f Handler) Handler {

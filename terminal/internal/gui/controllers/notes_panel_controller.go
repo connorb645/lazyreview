@@ -28,11 +28,11 @@ func (self *NotesPanelController) Context() context.ContextKey {
 // Bindings are the keys of every place of a review, of every panel on the
 // left, and the Notes panel's own: edit, drop and post.
 func (self *NotesPanelController) Bindings() []Binding {
-	tr, h := self.c.Tr, self.c.Helpers
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	own := withReviewAll([]Binding{
-		{Action: "edit", Keys: []string{"e"}, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
-		{Action: "drop", Keys: []string{"d d"}, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
-		{Action: "post", Keys: []string{"P"}, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
+		{Action: "edit", Keys: kb.NotesPanel.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
+		{Action: "drop", Keys: kb.NotesPanel.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
+		{Action: "post", Keys: kb.NotesPanel.Post, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 			return h.Posting.Open(s, row.Item.Pull), nil
 		}), Description: tr.Post},
 	})

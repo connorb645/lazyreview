@@ -200,12 +200,14 @@ func NoteWords(tr *i18n.TranslationSet, n Note) string {
 	return utils.ResolvePlaceholderString(tr.AThreadOn, map[string]string{"pull": utils.Itoa(n.Pull)}) + " · " + lines
 }
 
-// NoteHead is a note's first row in a diff, and the keys that act on it.
-func NoteHead(tr *i18n.TranslationSet, d types.ReviewData, n Note, open bool) (string, string) {
+// NoteHead is a note's first row in a diff, and the keys that act on it,
+// labelled from labels.
+func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n Note, open bool) (string, string) {
 	fold := "▸"
 	if open {
 		fold = "▾"
 	}
+	keys := map[string]string{"edit": labels.Of("edit"), "drop": labels.Of("drop"), "ask": labels.Of("ask"), "fold": labels.Of("toggle fold"), "github": labels.Of("github")}
 	lines := ""
 	if n.At != nil {
 		lines = " · " + LinesWords(tr, n.At.Side, n.At.Line, n.At.StartLine, n.At.StartSide)
@@ -216,13 +218,13 @@ func NoteHead(tr *i18n.TranslationSet, d types.ReviewData, n Note, open bool) (s
 		if n.Comment.Stale != "" {
 			head += " · " + tr.Stale
 		}
-		return head, tr.QueuedNoteKeys
+		return head, utils.ResolvePlaceholderString(tr.QueuedNoteKeys, keys)
 	case "conversation":
 		head := fold + " " + tr.Claude + " · " + utils.Plural(len(n.Conversation.Messages), tr.MessageNoun) + lines
 		if m := n.Conversation.Messages; len(m) > 0 && m[len(m)-1].From == "you" {
 			head += " · " + tr.WaitingForClaudeWords
 		}
-		return head, tr.ConversationNoteKeys
+		return head, utils.ResolvePlaceholderString(tr.ConversationNoteKeys, keys)
 	}
 	var people []string
 	for _, c := range n.Thread.Comments {
@@ -240,5 +242,5 @@ func NoteHead(tr *i18n.TranslationSet, d types.ReviewData, n Note, open bool) (s
 	if n.At == nil {
 		head += " · " + tr.TheWholeFile
 	}
-	return head, tr.ThreadNoteKeys
+	return head, utils.ResolvePlaceholderString(tr.ThreadNoteKeys, keys)
 }

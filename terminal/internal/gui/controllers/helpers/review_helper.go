@@ -88,9 +88,9 @@ func (self *ReviewHelper) Refresh(s context.ContextTree) (context.ContextTree, t
 func (self *ReviewHelper) Show(s context.ContextTree) context.ContextTree {
 	switch {
 	case s.Review == nil && s.Screen() == context.ScreenHome:
-		return s.Said(self.c.Tr.NoReviewOpenYet, true)
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoReviewOpenYet, map[string]string{"open": self.c.KeyLabels(context.HomeKey).Of("open")}), true)
 	case s.Review == nil:
-		return s.Said(self.c.Tr.ReviewNotOpenYet, true)
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.ReviewNotOpenYet, map[string]string{"refresh": self.c.KeyLabels(s.Place()).Of("refresh")}), true)
 	case s.Screen() != context.ScreenHome:
 		s = self.c.Helpers.Jump.Leave(s)
 	}

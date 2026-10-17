@@ -22,11 +22,12 @@ func badges(tr *i18n.TranslationSet) map[string]string {
 
 // DiffLines draws the rows of a diff from its first one shown, as many as
 // fit in a height, the cursor's and the selection's on their backgrounds.
-// active is whether the diff has the keys.
-func DiffLines(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, v DiffView, height int, filter types.PullFilter, active bool) []string {
+// active is whether the diff has the keys, and labels label the keys a
+// note's first row names.
+func DiffLines(tr *i18n.TranslationSet, th theme.Theme, labels KeyLabels, d types.ReviewData, v DiffView, height int, filter types.PullFilter, active bool) []string {
 	var out []string
 	for i := v.Top; i < len(v.Rows) && len(out) < height; i++ {
-		lines := drawRow(tr, d, v, i, filter, th, active)
+		lines := drawRow(tr, labels, d, v, i, filter, th, active)
 		if !th.Plain && (i == v.Cursor || v.Selecting && i >= min(v.Anchor, v.Cursor) && i <= max(v.Anchor, v.Cursor)) {
 			for j := range lines {
 				lines[j] = th.Selected(lines[j], v.Width, active)
@@ -40,7 +41,7 @@ func DiffLines(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, v Di
 	return out
 }
 
-func drawRow(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, i int, filter types.PullFilter, th theme.Theme, active bool) []string {
+func drawRow(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v DiffView, i int, filter types.PullFilter, th theme.Theme, active bool) []string {
 	r := v.Rows[i]
 	mark := " "
 	switch {
@@ -52,7 +53,7 @@ func drawRow(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, i int, fil
 	}
 	switch r.Kind {
 	case "notehead", "notetext":
-		return []string{mark + noteLine(tr, d, v, r, th)}
+		return []string{mark + noteLine(tr, labels, d, v, r, th)}
 	case "block":
 		return []string{mark + blockLine(v, i, th)}
 	case "file":
@@ -100,14 +101,14 @@ func blockLabel(b *server.Block) string {
 	return label
 }
 
-func noteLine(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffRow, th theme.Theme) string {
+func noteLine(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v DiffView, r DiffRow, th theme.Theme) string {
 	indent := strings.Repeat(" ", gutter-1)
 	n, ok := NoteOf(d, r.Path, r.Key)
 	if !ok {
 		return ""
 	}
 	if r.Kind == "notehead" {
-		head, keys := NoteHead(tr, d, n, v.NoteOpen(n))
+		head, keys := NoteHead(tr, labels, d, n, v.NoteOpen(n))
 		style := map[string]lipgloss.Style{"queued": th.Accent, "conversation": th.Bold, "thread": th.Bold}[n.Kind]
 		if n.Kind == "queued" {
 			style = th.PullRequest(MemberColor(d.State, n.Pull))

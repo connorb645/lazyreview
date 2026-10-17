@@ -29,12 +29,12 @@ func (self *ReviewPanelController) Context() context.ContextKey {
 // Bindings are the keys of every place of a review, of every panel on the
 // left, and the Review panel's own: post and highlight.
 func (self *ReviewPanelController) Bindings() []Binding {
-	tr, h := self.c.Tr, self.c.Helpers
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	own := withReviewAll([]Binding{
-		{Action: "post", Keys: []string{"P"}, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
+		{Action: "post", Keys: kb.ReviewPanel.Post, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 			return h.Posting.Open(s, row.Item.Pull), nil
 		}), Description: tr.Post},
-		{Action: "highlight", Keys: []string{"v"}, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
+		{Action: "highlight", Keys: kb.ReviewPanel.Highlight, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 			return h.Filter.Highlight(s, row), nil
 		}), Description: tr.Highlight},
 	})

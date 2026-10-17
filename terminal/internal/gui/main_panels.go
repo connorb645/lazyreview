@@ -16,9 +16,11 @@ func (a App) mainBox(r views.Rect, focused bool) []string {
 	case a.Loading:
 		content = []string{"", " " + th.Muted.Render(tr.Loading)}
 	case a.Review == nil:
-		content = []string{"", " " + th.Bad.Render(a.Failed), "", " " + th.Muted.Render(tr.TryAgainOrQuit)}
+		labels := a.controllers.Labels(a.Place())
+		again := utils.ResolvePlaceholderString(tr.TryAgainOrQuit, map[string]string{"refresh": labels.Of("refresh"), "command": labels.Of("command")})
+		content = []string{"", " " + th.Bad.Render(a.Failed), "", " " + th.Muted.Render(again)}
 	case a.Screen() == context.ScreenDiff:
-		content, shown = presentation.DiffLines(tr, th, *a.Review, a.Diff.DiffView, in.H, a.Filter, focused), a.Diff.Extent()
+		content, shown = presentation.DiffLines(tr, th, a.controllers.Labels(context.DiffKey), *a.Review, a.Diff.DiffView, in.H, a.Filter, focused), a.Diff.Extent()
 	case a.Screen() == context.ScreenDiagram && len(a.Diagram.Level.Cards) == 0:
 		content = []string{"", " " + th.Muted.Render(tr.NothingToDraw)}
 	case a.Screen() == context.ScreenDiagram:
@@ -97,6 +99,6 @@ func (a App) homeMainBox(r views.Rect) []string {
 	v := presentation.HomeMainView{List: h.List, Failed: h.Failed, Loading: h.Loading, Home: a.c.Home}
 	v.Repo, v.Unit, v.Pull, v.Chosen = h.Pull()
 	v.Row, _ = h.Selected()
-	title, content := presentation.HomeMain(a.c.Tr, a.c.Theme, a.c.Markdown, r.Inner().W, v)
+	title, content := presentation.HomeMain(a.c.Tr, a.c.Theme, a.c.Markdown, a.controllers.Labels(context.HomeKey), r.Inner().W, v)
 	return views.Framed(content, views.Extent{}, r.W, r.H, views.PanelTitle(context.MainPanel, title), "", "", false, a.c.Theme)
 }

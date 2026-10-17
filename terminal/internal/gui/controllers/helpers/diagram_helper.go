@@ -30,7 +30,7 @@ type DiagramHelper struct {
 // there, driven by the Diagram panel.
 func (self *DiagramHelper) OpenDiagram(s context.ContextTree) context.ContextTree {
 	if s.Review == nil {
-		return s.Said(self.c.Tr.NoReviewOpen, true)
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoReviewOpen, map[string]string{"open": self.c.KeyLabels(context.HomeKey).Of("open")}), true)
 	}
 	s = s.Focused(context.MainPanel, context.DiagramPanel)
 	if s.Screen() == context.ScreenDiagram {
@@ -144,7 +144,7 @@ func (self *DiagramHelper) StepIn(s context.ContextTree) (context.ContextTree, t
 		case len(packages.Cards) == 1:
 			return self.ShowBox(s, types.DiagramPlace{Level: "types", Component: card.ID, Package: packages.Cards[0].ID}), nil
 		}
-		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoTypesToDraw, map[string]string{"title": card.Title}), true), nil
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoTypesToDraw, map[string]string{"title": card.Title, "boxDiff": self.c.KeyLabels(s.Place()).Of("box diff")}), true), nil
 	case "package":
 		return self.ShowBox(s, types.DiagramPlace{Level: "types", Component: s.Diagram.Level.Component, Package: card.ID}), nil
 	case "group":
@@ -346,7 +346,7 @@ func (self *DiagramHelper) ShowType(s context.ContextTree) (context.ContextTree,
 	}
 	_, line, ok := r.At()
 	if !ok {
-		return s.Said(tr.ShowTypeHow, true), nil
+		return s.Said(utils.ResolvePlaceholderString(tr.ShowTypeHow, map[string]string{"showType": self.c.KeyLabels(s.Place()).Of("show type")}), true), nil
 	}
 	at := nodes[0]
 	for _, n := range nodes {

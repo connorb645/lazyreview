@@ -18,19 +18,29 @@ func stateOnly(f func(s context.ContextTree) context.ContextTree) Handler {
 	}
 }
 
+func withReview(f Handler) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		if s.Review == nil {
+			return s, nil
+		}
+		return f(s, count)
+	}
+}
+
 func withReviewAll(bindings []Binding) []Binding {
 	out := make([]Binding, len(bindings))
 	for i, b := range bindings {
-		handler := b.Handler
-		b.Handler = func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
-			if s.Review == nil {
-				return s, nil
-			}
-			return handler(s, count)
-		}
+		b.Handler = withReview(b.Handler)
 		out[i] = b
 	}
 	return out
+}
+
+func numbered(sequences []string, at int) []string {
+	if at >= len(sequences) || sequences[at] == "" {
+		return nil
+	}
+	return sequences[at : at+1]
 }
 
 func join(sets ...[]Binding) []Binding {

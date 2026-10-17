@@ -113,13 +113,13 @@ func (self *EditingHelper) Comment(s context.ContextTree) (context.ContextTree, 
 			e := types.Editing{Purpose: "comment", At: *n.At, Text: text, Key: "comment " + LinesKey(*n.At), About: []string{about}}
 			return s.Said(tr.CheckingWhere, false), self.CheckWhere(s, e)
 		case n.Kind == "queued":
-			return s.Said(tr.EEditsQueued, true), nil
+			return s.Said(self.keyed(s, tr.EditsQueuedComment, "edit"), true), nil
 		}
-		return s.Said(tr.CCommentsOrAnswer, true), nil
+		return s.Said(self.keyed(s, tr.CommentsOnLinesOrAnswer, "comment"), true), nil
 	}
 	at, code, ok := self.Selected(s)
 	if !ok {
-		return s.Said(tr.CComments, true), nil
+		return s.Said(self.keyed(s, tr.CommentsOnLines, "comment"), true), nil
 	}
 	about := []string{utils.ResolvePlaceholderString(tr.CommentOn, map[string]string{"on": onWords(tr, at)})}
 	e := types.Editing{Purpose: "comment", At: at, Key: "comment " + LinesKey(at), About: append(about, codeAbout(code)...)}
@@ -150,7 +150,7 @@ func (self *EditingHelper) Ask(s context.ContextTree) (context.ContextTree, tea.
 	}
 	at, code, ok := self.Selected(s)
 	if !ok {
-		return s.Said(tr.AAsks, true), nil
+		return s.Said(self.keyed(s, tr.AsksAboutLines, "ask"), true), nil
 	}
 	s.Diff.Selecting = false
 	about := append([]string{utils.ResolvePlaceholderString(tr.QuestionAbout, map[string]string{"on": onWords(tr, at)}), tr.ClaudeAnswersHere}, codeAbout(code)...)
@@ -163,7 +163,7 @@ func (self *EditingHelper) EditQueued(s context.ContextTree) (context.ContextTre
 	tr := self.c.Tr
 	c, pull, ok := self.queuedAt(s)
 	if !ok {
-		return s.Said(tr.EEditsAtCursor, true), nil
+		return s.Said(self.keyed(s, tr.EditsQueuedAtCursor, "edit"), true), nil
 	}
 	at := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
 	queued := utils.ResolvePlaceholderString(tr.QueuedCommentOn, map[string]string{"comment": utils.Itoa(c.ID), "on": onWords(tr, at), "pull": utils.Itoa(pull)})
@@ -176,7 +176,7 @@ func (self *EditingHelper) EditQueued(s context.ContextTree) (context.ContextTre
 func (self *EditingHelper) DropQueued(s context.ContextTree) context.ContextTree {
 	c, pull, ok := self.queuedAt(s)
 	if !ok {
-		return s.Said(self.c.Tr.DdDrops, true)
+		return s.Said(self.keyed(s, self.c.Tr.DropsQueuedAtCursor, "drop"), true)
 	}
 	s = s.Opened(context.ConfirmationKey)
 	s.Confirmation = context.ConfirmationContext{Comment: c.ID, Pull: pull, Version: c.Version}
@@ -341,6 +341,10 @@ func (self *EditingHelper) WhereNow(s context.ContextTree) tea.Cmd {
 		}
 		return types.WhereShown{Key: key, Words: words}
 	}
+}
+
+func (self *EditingHelper) keyed(s context.ContextTree, words, action string) string {
+	return utils.ResolvePlaceholderString(words, map[string]string{action: self.c.KeyLabels(s.Place()).Of(action)})
 }
 
 func (self *EditingHelper) queuedAt(s context.ContextTree) (server.Comment, int, bool) {

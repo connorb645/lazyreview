@@ -9,20 +9,21 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/keys"
 )
 
-// Controllers are every context's controller and its bindings, built once,
-// and what they give together: the bindings of the context with the keys,
-// the labels of those keys, the keys popup, and the bar's hints.
+// Controllers are every context's controller, its bindings and the labels
+// of its keys, built once, and what they give together: the bindings of
+// the context with the keys, the keys popup, and the bar's hints.
 type Controllers struct {
-	c        *helpers.HelperCommon
-	byKey    map[context.ContextKey]Controller
-	own      map[context.ContextKey][]Binding
-	anywhere map[string][]string
+	c      *helpers.HelperCommon
+	byKey  map[context.ContextKey]Controller
+	own    map[context.ContextKey][]Binding
+	labels map[context.ContextKey]presentation.KeyLabels
 }
 
 // NewControllers builds every context's controller on what the helpers
-// share.
+// share, its keys from the config, and gives the helpers the labels of
+// each context's keys, to name a key in their words.
 func NewControllers(c *helpers.HelperCommon) *Controllers {
-	self := &Controllers{c: c, byKey: map[context.ContextKey]Controller{}, own: map[context.ContextKey][]Binding{}, anywhere: map[string][]string{}}
+	self := &Controllers{c: c, byKey: map[context.ContextKey]Controller{}, own: map[context.ContextKey][]Binding{}, labels: map[context.ContextKey]presentation.KeyLabels{}}
 	diagram := NewDiagramController(c)
 	list := []Controller{
 		NewGlobalController(c, self.KeysMenu),
@@ -42,15 +43,20 @@ func NewControllers(c *helpers.HelperCommon) *Controllers {
 		NewConfirmationController(c),
 		NewPromptController(c),
 	}
+	anywhere := map[string][]string{}
 	for _, controller := range list {
 		self.byKey[controller.Context()] = controller
 		self.own[controller.Context()] = controller.Bindings()
 		for _, b := range self.own[controller.Context()] {
-			if _, ok := self.anywhere[b.Action]; !ok {
-				self.anywhere[b.Action] = b.Keys
+			if _, ok := anywhere[b.Action]; !ok {
+				anywhere[b.Action] = b.Keys
 			}
 		}
 	}
+	for _, controller := range list {
+		self.labels[controller.Context()] = presentation.NewKeyLabels(actionKeys(self.Bindings(controller)), anywhere)
+	}
+	c.KeyLabels = self.Labels
 	return self
 }
 
@@ -59,16 +65,9 @@ func (self *Controllers) For(key context.ContextKey) Controller {
 	return self.byKey[key]
 }
 
-// Place is the controller of the context that reads keys in sequences:
-// the one at the top of the focus stack under any popups.
+// Place is the controller of the context that reads keys in sequences.
 func (self *Controllers) Place(s context.ContextTree) Controller {
-	stack := s.Stack()
-	for i := len(stack) - 1; i >= 0; i-- {
-		if stack[i].Kind() != context.PopupKind {
-			return self.For(stack[i])
-		}
-	}
-	return self.For(context.GlobalKey)
+	return self.For(s.Place())
 }
 
 // Bindings are what a context takes: a popup only its own, any other the
@@ -94,20 +93,27 @@ func Sequences(bindings []Binding) keys.Bindings {
 	return out
 }
 
-// Labels label the keys of a context's actions, or, for an action it does
-// not bind, the keys the first controller binding it gives it.
-func (self *Controllers) Labels(controller Controller) presentation.KeyLabels {
-	bindings := self.Bindings(controller)
+// Labels label the keys of a context's actions as its bindings have them:
+// none for an action it has with no key, and for an action it does not
+// have, the keys the first controller with it gives it.
+func (self *Controllers) Labels(key context.ContextKey) presentation.KeyLabels {
+	return self.labels[key]
+}
+
+func actionKeys(bindings []Binding) map[string][]string {
 	won := Sequences(bindings)
-	place := map[string][]string{}
+	out := map[string][]string{}
 	for _, b := range bindings {
+		if _, ok := out[b.Action]; !ok {
+			out[b.Action] = nil
+		}
 		for _, sequence := range b.Keys {
-			if won[sequence] == b.Action && !slices.Contains(place[b.Action], sequence) {
-				place[b.Action] = append(place[b.Action], sequence)
+			if won[sequence] == b.Action && !slices.Contains(out[b.Action], sequence) {
+				out[b.Action] = append(out[b.Action], sequence)
 			}
 		}
 	}
-	return presentation.NewKeyLabels(place, self.anywhere)
+	return out
 }
 
 // KeysMenu is the keys popup of the place with the keys: its sections, each
@@ -115,10 +121,12 @@ func (self *Controllers) Labels(controller Controller) presentation.KeyLabels {
 func (self *Controllers) KeysMenu(s context.ContextTree) context.MenuContext {
 	place := self.Place(s)
 	pn := context.MenuContext{Menu: presentation.Menu{Title: self.c.Tr.KeysTitle}}
-	for _, section := range place.Help(self.Labels(place)) {
+	for _, section := range place.Help(self.Labels(place.Context())) {
 		pn.Rows = append(pn.Rows, presentation.MenuRow{Heading: section.Heading})
 		for _, r := range section.Rows {
-			pn.Rows = append(pn.Rows, presentation.MenuRow{Left: r.Keys, Right: r.Words})
+			if r.Keys != "" {
+				pn.Rows = append(pn.Rows, presentation.MenuRow{Left: r.Keys, Right: r.Words})
+			}
 		}
 	}
 	return pn.First()
@@ -126,20 +134,23 @@ func (self *Controllers) KeysMenu(s context.ContextTree) context.MenuContext {
 
 // Hints are the keys the bar shows, each with what it does: the top
 // popup's that has some, or after Space the keys that can follow it, or
-// the place's.
+// the place's. A hint whose actions have no key is left out.
 func (self *Controllers) Hints(s context.ContextTree) [][2]string {
 	stack := s.Stack()
 	for i := len(stack) - 1; i >= 0 && stack[i].Kind() == context.PopupKind; i-- {
-		popup := self.For(stack[i])
-		if hints := popup.Hints(s, self.Labels(popup)); hints != nil {
-			return hints
+		if hints := self.For(stack[i]).Hints(s, self.Labels(stack[i])); hints != nil {
+			return bound(hints)
 		}
 	}
 	place := self.Place(s)
 	if s.Keys.Pending() == "space" {
 		return self.leaderHints(place)
 	}
-	return place.Hints(s, self.Labels(place))
+	return bound(place.Hints(s, self.Labels(place.Context())))
+}
+
+func bound(hints [][2]string) [][2]string {
+	return slices.DeleteFunc(hints, func(h [2]string) bool { return h[0] == "" })
 }
 
 func (self *Controllers) leaderHints(place Controller) [][2]string {

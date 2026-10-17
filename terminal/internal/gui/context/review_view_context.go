@@ -16,10 +16,10 @@ type ReviewViewContext struct {
 	Folded map[string]bool
 }
 
-// Rebuilt is the view drawn again from the review in a width, its
-// selection kept, shown in a height.
-func (v ReviewViewContext) Rebuilt(tr *i18n.TranslationSet, th theme.Theme, md *presentation.Markdown, loc *time.Location, d types.ReviewData, filter types.PullFilter, width, height int) ReviewViewContext {
-	lines, items := presentation.BuildReview(tr, th, md, loc, d, filter, v.Folded, width)
+// Rebuilt is the view drawn again from the review in a width, its words
+// naming keys as labels label them, its selection kept, shown in a height.
+func (v ReviewViewContext) Rebuilt(tr *i18n.TranslationSet, th theme.Theme, md *presentation.Markdown, labels presentation.KeyLabels, loc *time.Location, d types.ReviewData, filter types.PullFilter, width, height int) ReviewViewContext {
+	lines, items := presentation.BuildReview(tr, th, md, labels, loc, d, filter, v.Folded, width)
 	v.View = v.View.Reset(lines, items, sameItem, height)
 	return v
 }

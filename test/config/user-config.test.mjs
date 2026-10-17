@@ -55,7 +55,7 @@ test('each variable overrides its setting, over the file, and says so', () => {
     const env = { ...f.env, LAZYREVIEW_HOME: '/srv/lr', LAZYREVIEW_PORT: '4749', LAZYREVIEW_CLAUDE: '/opt/claude', LAZYREVIEW_MODEL: 'claude-opus', LAZYREVIEW_EDITOR: 'nvim' };
     const config = readUserConfig({ env, home: '/home/lee' });
     assert.deepEqual(config.values, { ...defaults(), dataHome: '/srv/lr', server: { port: 4749 }, claude: { command: '/opt/claude', model: 'claude-opus' }, os: { editor: 'nvim' }, github: { accounts: [] } });
-    assert.deepEqual(Object.entries(config.sources).filter(([key]) => !key.startsWith('gui.')), [['dataHome', 'LAZYREVIEW_HOME'], ['server.port', 'LAZYREVIEW_PORT'], ['claude.command', 'LAZYREVIEW_CLAUDE'], ['claude.model', 'LAZYREVIEW_MODEL'], ['os.editor', 'LAZYREVIEW_EDITOR'], ['github.accounts', 'default']]);
+    assert.deepEqual(Object.entries(config.sources).filter(([key]) => !key.startsWith('gui.') && !key.startsWith('keybinding.')), [['dataHome', 'LAZYREVIEW_HOME'], ['server.port', 'LAZYREVIEW_PORT'], ['claude.command', 'LAZYREVIEW_CLAUDE'], ['claude.model', 'LAZYREVIEW_MODEL'], ['os.editor', 'LAZYREVIEW_EDITOR'], ['github.accounts', 'default']]);
     assert.equal(readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: '' }, home: '/home/lee' }).values.server.port, 4748, 'an empty variable is not set');
     assert.throws(() => readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: 'x' }, home: '/home/lee' }), /^Error: LAZYREVIEW_PORT must be a port number, not "x"$/);
   } finally {
@@ -65,7 +65,10 @@ test('each variable overrides its setting, over the file, and says so', () => {
 
 test('the terminal app is handed the file\'s path and the editor: the variable, the setting, then VISUAL, EDITOR and vi', () => {
   const config = editor => ({ path: PATH, values: { ...defaults(), os: { editor } } });
-  assert.deepEqual(terminalPart(config(''), {}), { path: PATH, editor: 'vi', theme: defaults().gui.theme });
+  const { theme, keybinding, ...rest } = terminalPart(config(''), {});
+  assert.deepEqual(rest, { path: PATH, editor: 'vi' });
+  assert.deepEqual(theme, defaults().gui.theme);
+  assert.deepEqual(keybinding.universal.quit, ['Z Z', 'ctrl+c']);
   assert.equal(terminalPart(config(''), { EDITOR: 'nano' }).editor, 'nano');
   assert.equal(terminalPart(config(''), { EDITOR: 'nano', VISUAL: 'code -w' }).editor, 'code -w');
   assert.equal(terminalPart(config('hx'), { EDITOR: 'nano', VISUAL: 'code -w' }).editor, 'hx');

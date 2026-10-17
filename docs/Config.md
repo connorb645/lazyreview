@@ -124,6 +124,168 @@ gui:
       visualSelectionBgColor: '#c9cbd6'
       pullRequestColors: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948']
       componentColors: {blue: '#2c66a8', teal: '#0b6e6e', purple: '#7448ad', amber: '#9c5212', olive: '#5f6e12', rose: '#a8325e', indigo: '#4a4fb0', slate: '#556170', grey: '#6f7987'}
+
+keybinding:
+  # Keys as lazygit writes them: a letter, or <space>, <enter>, <esc>,
+  # <tab>, <up>, <down>, <left>, <right>, <c-x> for Ctrl-x. A sequence is
+  # its keys in a row, such as gg, ]c or <space>v. A list gives an action
+  # more than one key. <disabled> removes a key.
+  universal:              # every screen
+    command: ':'
+    keys: '<space>?'
+    review: '<space>v'
+    github: 'gx'
+    web: 'gX'
+    close: ['q', '<esc>']
+    quit: ['ZZ', '<c-c>']
+    refresh: 'R'
+    bigger: '+'
+    smaller: '_'
+  home:                   # the home screen
+    down: ['j', '<down>']
+    up: ['k', '<up>']
+    top: 'gg'
+    bottom: 'G'
+    open: '<enter>'
+    previousPanel: 'h'
+    nextPanel: 'l'
+    jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+  reviewScreen:           # every panel of a review
+    nextPull: ']p'
+    previousPull: '[p'
+    jumpBack: '<c-o>'
+    jumpForward: '<c-i>'
+    diagram: '<space>m'
+    finder: '<space>f'
+    home: '<space>h'
+    focusMain: '0'
+  panels:                 # every panel on the left
+    down: ['j', '<down>']
+    up: ['k', '<up>']
+    top: 'gg'
+    bottom: 'G'
+    open: '<enter>'
+    previousPanel: 'h'
+    nextPanel: 'l'
+    jumpToBlock: ['1', '2', '3', '4']
+  reviewPanel:
+    post: 'P'
+    highlight: 'v'
+  filesPanel:
+    toggleFold: 'za'
+  notesPanel:
+    edit: 'e'
+    drop: 'dd'
+    post: 'P'
+  diagramPanel:
+    left: 'h'
+    right: 'l'
+    nextBox: 'w'
+    previousBox: 'b'
+    back: '-'
+    follow: 'gd'
+    references: 'gr'
+    search: '/'
+    searchBack: '?'
+    nextMatch: 'n'
+    previousMatch: 'N'
+    labels: 'f'
+    links: '<space>l'
+    properties: '<space>p'
+    boxDiff: '<space>d'
+    allLinks: '<space>a'
+  reviewView:             # the Review view in the main panel
+    down: ['j', '<down>']
+    up: ['k', '<up>']
+    top: 'gg'
+    bottom: 'G'
+    nextSection: ']]'
+    previousSection: '[['
+    fold: 'za'
+    open: '<enter>'
+    edit: 'e'
+    drop: 'dd'
+    post: 'P'
+  diff:
+    down: ['j', '<down>']
+    up: ['k', '<up>']
+    halfDown: '<c-d>'
+    halfUp: '<c-u>'
+    pageDown: '<c-f>'
+    pageUp: '<c-b>'
+    top: 'gg'
+    bottom: 'G'
+    nextHunk: ']c'
+    previousHunk: '[c'
+    nextFile: ']f'
+    previousFile: '[f'
+    search: '/'
+    searchBack: '?'
+    nextMatch: 'n'
+    previousMatch: 'N'
+    toggleFold: 'za'
+    openFold: 'zo'
+    closeFold: 'zc'
+    openFolds: 'zR'
+    closeFolds: 'zM'
+    open: '<enter>'
+    back: '-'
+    split: '<space>s'
+    wrap: '<space>w'
+    whole: '<space>o'
+    rendered: '<space>r'
+    showType: 'gd'
+    nextNote: ']n'
+    previousNote: '[n'
+    select: 'V'
+    otherEnd: 'o'
+    comment: 'c'
+    ask: 'a'
+    edit: 'e'
+    drop: 'dd'
+  diagram:                # the diagram in the main panel
+    left: ['h', '<left>']
+    down: ['j', '<down>']
+    up: ['k', '<up>']
+    right: ['l', '<right>']
+    nextBox: 'w'
+    previousBox: 'b'
+    top: 'gg'
+    bottom: 'G'
+    open: '<enter>'
+    back: '-'
+    follow: 'gd'
+    references: 'gr'
+    search: '/'
+    searchBack: '?'
+    nextMatch: 'n'
+    previousMatch: 'N'
+    labels: 'f'
+    links: '<space>l'
+    properties: '<space>p'
+    boxDiff: '<space>d'
+    allLinks: '<space>a'
+  menu:
+    down: ['j', '<down>']
+    up: ['k', '<up>']
+    open: '<enter>'
+    close: ['<esc>', 'q']
+  finder:
+    down: ['<c-n>', '<down>']
+    up: ['<c-p>', '<up>']
+    open: '<enter>'
+    close: '<esc>'
+    clear: '<c-u>'
+  posting:
+    down: ['j', '<down>']
+    up: ['k', '<up>']
+    choose: ['1', '2', '3']
+    open: '<enter>'
+    close: ['<esc>', 'n', 'q']
+    post: 'y'
+    back: ['n', '<esc>', 'q']
+  confirmation:
+    confirm: 'y'
 ```
 <!-- END DEFAULT CONFIG -->
 
@@ -153,6 +315,53 @@ Each account is read by its own token, so each must be signed in to `gh`.
 A review asked of one of an account's teams counts as asked of the
 account, for pull requests opened on or after the team's `since` date. A
 team with no `since` counts from any date.
+
+## Keys
+
+`keybinding` holds every key of the terminal app, by place and action,
+written as lazygit writes keys:
+
+| Write | For |
+| --- | --- |
+| `j`, `G`, `?`, `]` | that character |
+| `<space>`, `<enter>`, `<esc>`, `<tab>` | those keys |
+| `<up>`, `<down>`, `<left>`, `<right>` | the arrow keys |
+| `<c-o>` | Ctrl-o; a terminal sends Tab for `<c-i>` |
+| `gg`, `]c`, `<space>v` | a sequence, its keys in a row |
+| `['j', '<down>']` | a list: each key does the action |
+| `<disabled>` | no key |
+
+```yaml
+keybinding:
+  universal:
+    quit: ['ZZ', '<c-q>']
+  diff:
+    nextHunk: ']h'
+    previousHunk: '[h'
+  home:
+    jumpToRepository: ['1', '2', '3', '<disabled>', '<disabled>', '<disabled>', '<disabled>', '<disabled>', '<disabled>']
+```
+
+An action the file leaves out keeps its default keys. A list replaces the
+action's default keys whole. `jumpToRepository`, `jumpToBlock` and
+`posting.choose` are numbered: each item is the key of that place, so the
+list keeps its length, and `<disabled>` leaves a place with no key.
+
+Where each part works:
+
+- `universal`: every screen, the home screen and a review.
+- `home`: the home screen of open pull requests.
+- `reviewScreen`: every panel of a review, on the left and the main one.
+- `panels`: every panel on the left; `reviewPanel`, `filesPanel`,
+  `notesPanel` and `diagramPanel` add each panel's own.
+- `reviewView`, `diff` and `diagram`: the main panel, as it shows each.
+- `menu`, `finder`, `posting` and `confirmation`: the popups, which take
+  keys first.
+
+A place's own keys win over `universal`'s. Typing stays as it is: in the
+command line, the finder's search and the diagram's labels, letters,
+Backspace, Enter and Esc are text. `Space ?` lists the keys of the place
+you are in, as they are bound.
 
 ## Theme
 

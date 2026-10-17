@@ -72,5 +72,498 @@
     "grey": "#6f7987"
    }
   }
+ },
+ "keybinding": {
+  "universal": {
+   "command": [
+    ":"
+   ],
+   "keys": [
+    "space ?"
+   ],
+   "review": [
+    "space v"
+   ],
+   "github": [
+    "g x"
+   ],
+   "web": [
+    "g X"
+   ],
+   "close": [
+    "q",
+    "esc"
+   ],
+   "quit": [
+    "Z Z",
+    "ctrl+c"
+   ],
+   "refresh": [
+    "R"
+   ],
+   "bigger": [
+    "+"
+   ],
+   "smaller": [
+    "_"
+   ]
+  },
+  "home": {
+   "down": [
+    "j",
+    "down"
+   ],
+   "up": [
+    "k",
+    "up"
+   ],
+   "top": [
+    "g g"
+   ],
+   "bottom": [
+    "G"
+   ],
+   "open": [
+    "enter"
+   ],
+   "previousPanel": [
+    "h"
+   ],
+   "nextPanel": [
+    "l"
+   ],
+   "jumpToRepository": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+   ]
+  },
+  "reviewScreen": {
+   "nextPull": [
+    "] p"
+   ],
+   "previousPull": [
+    "[ p"
+   ],
+   "jumpBack": [
+    "ctrl+o"
+   ],
+   "jumpForward": [
+    "tab"
+   ],
+   "diagram": [
+    "space m"
+   ],
+   "finder": [
+    "space f"
+   ],
+   "home": [
+    "space h"
+   ],
+   "focusMain": [
+    "0"
+   ]
+  },
+  "panels": {
+   "down": [
+    "j",
+    "down"
+   ],
+   "up": [
+    "k",
+    "up"
+   ],
+   "top": [
+    "g g"
+   ],
+   "bottom": [
+    "G"
+   ],
+   "open": [
+    "enter"
+   ],
+   "previousPanel": [
+    "h"
+   ],
+   "nextPanel": [
+    "l"
+   ],
+   "jumpToBlock": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ]
+  },
+  "reviewPanel": {
+   "post": [
+    "P"
+   ],
+   "highlight": [
+    "v"
+   ]
+  },
+  "filesPanel": {
+   "toggleFold": [
+    "z a"
+   ]
+  },
+  "notesPanel": {
+   "edit": [
+    "e"
+   ],
+   "drop": [
+    "d d"
+   ],
+   "post": [
+    "P"
+   ]
+  },
+  "diagramPanel": {
+   "left": [
+    "h"
+   ],
+   "right": [
+    "l"
+   ],
+   "nextBox": [
+    "w"
+   ],
+   "previousBox": [
+    "b"
+   ],
+   "back": [
+    "-"
+   ],
+   "follow": [
+    "g d"
+   ],
+   "references": [
+    "g r"
+   ],
+   "search": [
+    "/"
+   ],
+   "searchBack": [
+    "?"
+   ],
+   "nextMatch": [
+    "n"
+   ],
+   "previousMatch": [
+    "N"
+   ],
+   "labels": [
+    "f"
+   ],
+   "links": [
+    "space l"
+   ],
+   "properties": [
+    "space p"
+   ],
+   "boxDiff": [
+    "space d"
+   ],
+   "allLinks": [
+    "space a"
+   ]
+  },
+  "reviewView": {
+   "down": [
+    "j",
+    "down"
+   ],
+   "up": [
+    "k",
+    "up"
+   ],
+   "top": [
+    "g g"
+   ],
+   "bottom": [
+    "G"
+   ],
+   "nextSection": [
+    "] ]"
+   ],
+   "previousSection": [
+    "[ ["
+   ],
+   "fold": [
+    "z a"
+   ],
+   "open": [
+    "enter"
+   ],
+   "edit": [
+    "e"
+   ],
+   "drop": [
+    "d d"
+   ],
+   "post": [
+    "P"
+   ]
+  },
+  "diff": {
+   "down": [
+    "j",
+    "down"
+   ],
+   "up": [
+    "k",
+    "up"
+   ],
+   "halfDown": [
+    "ctrl+d"
+   ],
+   "halfUp": [
+    "ctrl+u"
+   ],
+   "pageDown": [
+    "ctrl+f"
+   ],
+   "pageUp": [
+    "ctrl+b"
+   ],
+   "top": [
+    "g g"
+   ],
+   "bottom": [
+    "G"
+   ],
+   "nextHunk": [
+    "] c"
+   ],
+   "previousHunk": [
+    "[ c"
+   ],
+   "nextFile": [
+    "] f"
+   ],
+   "previousFile": [
+    "[ f"
+   ],
+   "search": [
+    "/"
+   ],
+   "searchBack": [
+    "?"
+   ],
+   "nextMatch": [
+    "n"
+   ],
+   "previousMatch": [
+    "N"
+   ],
+   "toggleFold": [
+    "z a"
+   ],
+   "openFold": [
+    "z o"
+   ],
+   "closeFold": [
+    "z c"
+   ],
+   "openFolds": [
+    "z R"
+   ],
+   "closeFolds": [
+    "z M"
+   ],
+   "open": [
+    "enter"
+   ],
+   "back": [
+    "-"
+   ],
+   "split": [
+    "space s"
+   ],
+   "wrap": [
+    "space w"
+   ],
+   "whole": [
+    "space o"
+   ],
+   "rendered": [
+    "space r"
+   ],
+   "showType": [
+    "g d"
+   ],
+   "nextNote": [
+    "] n"
+   ],
+   "previousNote": [
+    "[ n"
+   ],
+   "select": [
+    "V"
+   ],
+   "otherEnd": [
+    "o"
+   ],
+   "comment": [
+    "c"
+   ],
+   "ask": [
+    "a"
+   ],
+   "edit": [
+    "e"
+   ],
+   "drop": [
+    "d d"
+   ]
+  },
+  "diagram": {
+   "left": [
+    "h",
+    "left"
+   ],
+   "down": [
+    "j",
+    "down"
+   ],
+   "up": [
+    "k",
+    "up"
+   ],
+   "right": [
+    "l",
+    "right"
+   ],
+   "nextBox": [
+    "w"
+   ],
+   "previousBox": [
+    "b"
+   ],
+   "top": [
+    "g g"
+   ],
+   "bottom": [
+    "G"
+   ],
+   "open": [
+    "enter"
+   ],
+   "back": [
+    "-"
+   ],
+   "follow": [
+    "g d"
+   ],
+   "references": [
+    "g r"
+   ],
+   "search": [
+    "/"
+   ],
+   "searchBack": [
+    "?"
+   ],
+   "nextMatch": [
+    "n"
+   ],
+   "previousMatch": [
+    "N"
+   ],
+   "labels": [
+    "f"
+   ],
+   "links": [
+    "space l"
+   ],
+   "properties": [
+    "space p"
+   ],
+   "boxDiff": [
+    "space d"
+   ],
+   "allLinks": [
+    "space a"
+   ]
+  },
+  "menu": {
+   "down": [
+    "j",
+    "down"
+   ],
+   "up": [
+    "k",
+    "up"
+   ],
+   "open": [
+    "enter"
+   ],
+   "close": [
+    "esc",
+    "q"
+   ]
+  },
+  "finder": {
+   "down": [
+    "ctrl+n",
+    "down"
+   ],
+   "up": [
+    "ctrl+p",
+    "up"
+   ],
+   "open": [
+    "enter"
+   ],
+   "close": [
+    "esc"
+   ],
+   "clear": [
+    "ctrl+u"
+   ]
+  },
+  "posting": {
+   "down": [
+    "j",
+    "down"
+   ],
+   "up": [
+    "k",
+    "up"
+   ],
+   "choose": [
+    "1",
+    "2",
+    "3"
+   ],
+   "open": [
+    "enter"
+   ],
+   "close": [
+    "esc",
+    "n",
+    "q"
+   ],
+   "post": [
+    "y"
+   ],
+   "back": [
+    "n",
+    "esc",
+    "q"
+   ]
+  },
+  "confirmation": {
+   "confirm": [
+    "y"
+   ]
+  }
  }
 }

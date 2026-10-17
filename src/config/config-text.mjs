@@ -13,6 +13,7 @@ import { SCHEMA, defaults } from './schema.mjs';
 import { dumpYAML } from './yaml.mjs';
 
 const COMMENT_COLUMN = 39;
+const NOTE_COLUMN = 26;
 const words = english.config;
 
 export const SCHEMA_ADDRESS = 'https://raw.githubusercontent.com/connorb645/lazyreview/main/schema/config.json';
@@ -50,14 +51,15 @@ function lines(section, values, indent, show, prefix = '') {
       continue;
     }
     if (node.kind === 'section') {
-      out.push(`${indent}${name}:`, ...(show.flow ? node.about.map(line => `${indent}  # ${line}`) : []));
+      out.push(node.note ? `${`${indent}${name}:`.padEnd(NOTE_COLUMN - 1)} # ${node.note}` : `${indent}${name}:`, ...(show.flow ? node.about.map(line => `${indent}  # ${line}`) : []));
       out.push(...lines(node, values?.[name], `${indent}  `, show, key));
       continue;
     }
     const value = values ? values[name] : node.default;
     out.push(...show.about(node).map(line => `${indent}# ${line}`));
     const block = isBlock(value);
-    out.push(besides(`${indent}${name}:${block ? '' : ` ${scalar(value)}`}`, show.beside(node, key)));
+    const written = node.check === 'keys' || node.check === 'numberedKeys' ? labels(value) : scalar(value);
+    out.push(besides(`${indent}${name}:${block ? '' : ` ${written}`}`, show.beside(node, key)));
     if (block) out.push(...dumpYAML(value).trimEnd().split('\n').map(line => `${indent}  ${line}`));
     out.push(...show.after(node).map(line => `${indent}${line}`));
   }
@@ -70,6 +72,11 @@ function besides(text, comment) {
 
 function isBlock(value) {
   return Array.isArray(value) && value.some(item => item && typeof item === 'object');
+}
+
+function labels(value) {
+  const quoted = label => `'${label.replace(/'/g, "''")}'`;
+  return Array.isArray(value) ? `[${value.map(quoted).join(', ')}]` : quoted(value);
 }
 
 function scalar(value) {

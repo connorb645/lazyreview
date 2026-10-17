@@ -20,9 +20,10 @@ const preview = 220
 // BuildReview draws the Review view: the review's header, its written
 // sections and their links, the queued comments, the threads on GitHub, the
 // conversations with Claude and the change's components, each section folded
-// or not. It gives the lines and the items they stand for.
-func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, loc *time.Location, d types.ReviewData, filter types.PullFilter, folded map[string]bool, width int) ([]Line, []Item) {
-	b := &builder{width: width, tr: tr, th: th}
+// or not, its words naming keys as labels label them. It gives the lines
+// and the items they stand for.
+func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels KeyLabels, loc *time.Location, d types.ReviewData, filter types.PullFilter, folded map[string]bool, width int) ([]Line, []Item) {
+	b := &builder{width: width, tr: tr, th: th, labels: labels}
 	reviewHeader(b, d, filter)
 	section := func(id, title, summary string, body func()) {
 		b.text("")
@@ -47,7 +48,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, loc *tim
 		for _, s := range w.Sections {
 			s := s
 			section("written:"+s.ID, s.Title, utils.Plural(len(s.Links), tr.LinkNoun), func() {
-				for _, l := range md.Lines(withoutDiagrams(tr, s.Markdown), width-2) {
+				for _, l := range md.Lines(withoutDiagrams(tr, labels, s.Markdown), width-2) {
 					b.text(" " + l)
 				}
 				for _, link := range s.Links {
@@ -163,7 +164,7 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 			b.prose(" ", th.Warning, w)
 		}
 		if len(filter) > 0 {
-			b.prose(" ", th.Accent, utils.ResolvePlaceholderString(tr.ShowingOnly, map[string]string{"pulls": FilterWords(tr, filter)}))
+			b.prose(" ", th.Accent, utils.ResolvePlaceholderString(tr.ShowingOnly, map[string]string{"pulls": FilterWords(tr, filter), "close": b.labels.Nth("close", 1)}))
 		}
 	default:
 		m := s.Members[0]

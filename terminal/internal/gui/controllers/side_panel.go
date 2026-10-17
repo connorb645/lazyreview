@@ -9,7 +9,7 @@ import (
 )
 
 func sidePanelBindings(c *helpers.HelperCommon) []Binding {
-	tr, h := c.Tr, c.Helpers
+	tr, h, kb := c.Tr, c.Helpers, c.Config.Keybinding
 	down := sideMoved(h, func(side context.SideContext, count Count, height int) context.SideContext {
 		return side.Move(count.N, height)
 	})
@@ -23,17 +23,17 @@ func sidePanelBindings(c *helpers.HelperCommon) []Binding {
 		return side.To(side.Landing(len(side.Rows)-1, -1), height)
 	})
 	return withReviewAll([]Binding{
-		{Action: "down", Keys: []string{"j", "down"}, Handler: down, Description: tr.Down},
-		{Action: "up", Keys: []string{"k", "up"}, Handler: up, Description: tr.Up},
-		{Action: "top", Keys: []string{"g g"}, Handler: top, Description: tr.Top},
-		{Action: "bottom", Keys: []string{"G"}, Handler: bottom, Description: tr.Bottom},
-		{Action: "open", Keys: []string{"enter"}, Handler: uncounted(func(s context.ContextTree) (context.ContextTree, tea.Cmd) {
+		{Action: "down", Keys: kb.Panels.Down, Handler: down, Description: tr.Down},
+		{Action: "up", Keys: kb.Panels.Up, Handler: up, Description: tr.Up},
+		{Action: "top", Keys: kb.Panels.Top, Handler: top, Description: tr.Top},
+		{Action: "bottom", Keys: kb.Panels.Bottom, Handler: bottom, Description: tr.Bottom},
+		{Action: "open", Keys: kb.Panels.Open, Handler: uncounted(func(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 			return openSide(c, s)
 		}), Description: tr.Open},
-		{Action: "previous panel", Keys: []string{"h"}, Handler: uncounted(func(s context.ContextTree) (context.ContextTree, tea.Cmd) {
+		{Action: "previous panel", Keys: kb.Panels.PreviousPanel, Handler: uncounted(func(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 			return h.Panels.FocusBy(s, -1)
 		}), Description: tr.PreviousPanel},
-		{Action: "next panel", Keys: []string{"l"}, Handler: uncounted(func(s context.ContextTree) (context.ContextTree, tea.Cmd) {
+		{Action: "next panel", Keys: kb.Panels.NextPanel, Handler: uncounted(func(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 			return h.Panels.FocusBy(s, 1)
 		}), Description: tr.NextPanel},
 	})

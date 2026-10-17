@@ -37,8 +37,9 @@ func LinesWords(tr *i18n.TranslationSet, side string, line, startLine int, start
 	return utils.ResolvePlaceholderString(words, map[string]string{"from": utils.Itoa(startLine), "to": utils.Itoa(line)})
 }
 
-func withoutDiagrams(tr *i18n.TranslationSet, markdown string) string {
-	return inlineSVG.ReplaceAllLiteralString(markdown, "\n\n*"+tr.DiagramNotDrawn+"*\n\n")
+func withoutDiagrams(tr *i18n.TranslationSet, labels KeyLabels, markdown string) string {
+	notDrawn := utils.ResolvePlaceholderString(tr.DiagramNotDrawn, map[string]string{"web": labels.Of("web")})
+	return inlineSVG.ReplaceAllLiteralString(markdown, "\n\n*"+notDrawn+"*\n\n")
 }
 
 func clipped(text string, width, rows int) []string {

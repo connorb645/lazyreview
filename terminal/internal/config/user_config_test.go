@@ -21,3 +21,19 @@ func TestTheHandOverIsReadStrictly(t *testing.T) {
 		}
 	}
 }
+
+func TestTheHandOverGivesTheKeysOfEachPlaceByAction(t *testing.T) {
+	tr := i18n.EnglishTranslationSet()
+	got, err := Decode(`{"keybinding":{"universal":{"quit":["Z Z","ctrl+c"],"refresh":[]},"home":{"jumpToRepository":["1","","3"]}}}`, tr)
+	if err != nil {
+		t.Fatalf("the keys were not read: %v", err)
+	}
+	if k := got.Keybinding; len(k.Universal.Quit) != 2 || k.Universal.Quit[0] != "Z Z" || k.Universal.Refresh == nil || len(k.Universal.Refresh) != 0 || k.Home.JumpToRepository[1] != "" {
+		t.Fatalf("the keys read as %+v", k)
+	}
+	for _, wrong := range []string{`{"keybinding":{"universal":{"jump":["j"]}}}`, `{"keybinding":{"everywhere":{}}}`, `{"keybinding":{"universal":{"quit":"Z Z"}}}`} {
+		if _, err := Decode(wrong, tr); err == nil {
+			t.Errorf("%q was read", wrong)
+		}
+	}
+}
