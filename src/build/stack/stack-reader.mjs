@@ -22,23 +22,20 @@
  */
 import { splitDiff } from '../diff/diff-parser.mjs';
 import { readHunkLines } from './hunk-lines.mjs';
+import { english } from '../../i18n/english.mjs';
 
 export function readStackSteps(git, { combinedBase, baseCommit, top, members }) {
   const heads = members.map(m => {
     try {
       return git.resolve(m.head);
     } catch {
-      throw new Error(`#${m.pull}'s head ${m.head.slice(0, 12)} is not a commit in this repository; fetch it with git fetch origin pull/${m.pull}/head`);
+      throw new Error(english.stack.headMissing(m.pull, m.head.slice(0, 12)));
     }
   });
   const warnings = [];
   const steps = members.map((m, i) => {
     const start = git.mergeBase(i ? heads[i - 1] : baseCommit, heads[i]);
-    if (i && start !== heads[i - 1]) {
-      const under = `#${members[i - 1].pull}`;
-      warnings.push(`#${m.pull} is not built on ${under}'s head: ${under} has commits #${m.pull} does not hold. ` +
-        `Until #${m.pull} is rebased, its own diff also shows the older ${under} it holds; a comment on a line ${under}'s head still holds goes to ${under}.`);
-    }
+    if (i && start !== heads[i - 1]) warnings.push(english.stack.notBuiltOn(m.pull, members[i - 1].pull));
     return { pull: m.pull, start, own: indexed(git, start, heads[i]), fromTop: indexed(git, heads[i], top), fromBase: indexed(git, combinedBase, start) };
   });
   const counts = steps.map((s, i) => {

@@ -16,6 +16,7 @@
  */
 import { languageFor } from '../languages/languages.mjs';
 import { touches } from '../diff/diff-parser.mjs';
+import { english } from '../../i18n/english.mjs';
 
 export function readChangedTypes(files) {
   const nodes = [];
@@ -151,7 +152,7 @@ function extensionNode(file, language) {
 /** The name a box of extensions shows: its file's name, or what it extends. */
 export function extensionName(path, extended) {
   const stem = baseName(path).replace(/\.[^.]+$/, '');
-  return stem.includes('+') ? stem : stem === extended[0] ? `${stem} extension` : `${extended[0]} · ${stem}`;
+  return stem.includes('+') ? stem : stem === extended[0] ? english.diagram.extension(stem) : `${extended[0]} · ${stem}`;
 }
 
 /** Whether a path holds test code, by the usual folder and file names. */

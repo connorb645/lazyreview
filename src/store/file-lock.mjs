@@ -11,6 +11,7 @@
 import { mkdirSync, rmSync, writeFileSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { english } from '../i18n/english.mjs';
 
 const held = new Map();
 
@@ -31,7 +32,7 @@ export async function withLocks(paths, work, { wait = 30_000 } = {}) {
 async function take(path, wait) {
   const deadline = Date.now() + wait;
   while (held.has(path)) {
-    if (Date.now() > deadline) throw new Error(`gave up waiting for ${path}`);
+    if (Date.now() > deadline) throw new Error(english.store.gaveUp(path));
     await held.get(path).promise;
   }
   const entry = {};
@@ -46,7 +47,7 @@ async function take(path, wait) {
       } catch (error) {
         if (error.code !== 'EEXIST') throw error;
         if (!holderAlive(path)) { rmSync(path, { recursive: true, force: true }); continue; }
-        if (Date.now() > deadline) throw new Error(`another process holds ${path}`);
+        if (Date.now() > deadline) throw new Error(english.store.heldElsewhere(path));
         await sleep(50);
       }
     }

@@ -28,6 +28,7 @@ import { ACTIONS, setId, offered, sent, postedFields, bodyProblems, diffPlaces, 
 import { commentTarget } from './comment-target.mjs';
 import { quotedCode } from '../review/quoted-code.mjs';
 import { buildProblem, checkBuild } from '../store/page-build.mjs';
+import { english } from '../i18n/english.mjs';
 
 export class QueueService {
   #store;
@@ -45,28 +46,28 @@ export class QueueService {
     if (!review) return null;
     const drawn = this.#store.readPage(ref);
     const problem = buildProblem(drawn && drawn.build, given.build);
-    if (problem) return { refused: `${problem.charAt(0).toUpperCase()}${problem.slice(1)}.` };
+    if (problem) return { refused: english.queue.sentence(problem) };
     return commentTarget(review, drawn.page, given);
   }
 
   add(ref, given) {
-    return this.#change(ref, { build: given.build, refused: 'not queued' }, async (review, gh) => {
+    return this.#change(ref, { build: given.build, refused: english.queue.notQueued }, async (review, gh) => {
       const { page } = this.#store.readPage(ref);
       const where = commentTarget(review, page, given);
-      if (!where.goes) throw new Error(`not queued: ${where.refused || where.words}`);
+      if (!where.goes) throw new Error(english.queue.notQueued(where.refused || where.words));
       const target = where.goes;
       const pull = target.pull;
       const member = liveMember(review, pull);
       const problems = bodyProblems(given.body);
-      if (problems.length) throw new Error(`not queued: ${problems.join('; ')}`);
+      if (problems.length) throw new Error(english.queue.notQueued(problems));
       const now = await gh.pull(review.repo, pull);
       if (now.head.sha !== member.head) {
-        throw new Error(`not queued: #${pull} moved from ${member.head.slice(0, 8)} to ${now.head.sha.slice(0, 8)}; load it again, then queue`);
+        throw new Error(english.queue.notQueued(english.queue.headMoved(pull, member.head.slice(0, 8), now.head.sha.slice(0, 8))));
       }
       const places = await filePlaces(gh, review.repo, pull);
-      const at = `${target.path}:${target.start_line ? `${target.start_line}-` : ''}${target.line}${page.stack ? ` of #${pull}` : ''}`;
+      const at = english.queue.at(target.path, target.start_line, target.line, page.stack ? pull : null);
       const problem = placeProblem(places[target.path] || NO_PLACES, target);
-      if (problem) throw new Error(`not queued: ${at} ${problem}`);
+      if (problem) throw new Error(english.queue.notQueued(english.queue.placed(at, problem)));
       const shown = { path: given.path, line: given.line, side: given.side, ...(target.start_line ? { start_line: given.start_line, start_side: target.start_side } : {}) };
       const comment = {
         id: nextId(review), path: target.path, line: target.line, side: target.side, body: given.body.trim(), code: quotedCode(page, given),
@@ -79,51 +80,50 @@ export class QueueService {
 
   edit(ref, id, { body, version, build }) {
     const problems = bodyProblems(body);
-    if (problems.length) return Promise.reject(new Error(`not changed: ${problems.join('; ')}`));
-    return this.#change(ref, { build, refused: 'not changed' }, async review => {
+    if (problems.length) return Promise.reject(new Error(english.queue.notChanged(problems)));
+    return this.#change(ref, { build, refused: english.queue.notChanged }, async review => {
       const { member, comment } = findComment(review, id);
       liveMember(review, member.pull);
-      checkVersion(comment, version, 'not changed');
+      checkVersion(comment, version, english.queue.notChanged);
       comment.body = body.trim();
       return { review, result: { comment, pull: member.pull } };
     }, false);
   }
 
   drop(ref, id, { version, build }) {
-    return this.#change(ref, { build, refused: 'not dropped' }, async review => {
+    return this.#change(ref, { build, refused: english.queue.notDropped }, async review => {
       const { member, comment } = findComment(review, id);
-      checkVersion(comment, version, 'not dropped');
+      checkVersion(comment, version, english.queue.notDropped);
       member.comments = member.comments.filter(c => c !== comment);
       return { review, result: { comment, pull: member.pull } };
     }, false);
   }
 
   post(ref, { pull, action, set, build }) {
-    return this.#change(ref, { build, refused: 'nothing was posted' }, async (review, gh) => {
-      if (!ACTIONS[action]) throw new Error(`"${action}" is not an action; nothing was posted`);
+    return this.#change(ref, { build, refused: english.queue.nothingPosted }, async (review, gh) => {
+      if (!ACTIONS[action]) throw new Error(english.queue.notAnAction(action));
       const member = liveMember(review, pull);
-      if (!offered(review, member).includes(action)) throw new Error(`"${action}" is not offered for #${pull}; nothing was posted`);
+      if (!offered(review, member).includes(action)) throw new Error(english.queue.notOffered(action, pull));
       const current = setId(review, member, action);
-      if (set !== current) throw new Error(`the page showed set ${set}, but "${action}" now gives set ${current}; nothing was posted`);
+      if (set !== current) throw new Error(english.queue.otherSet(set, action, current));
       const me = await gh.login();
-      if (me !== review.me) throw new Error(`GitHub answers as ${me} now, but this review was loaded as ${review.me}; nothing was posted`);
+      if (me !== review.me) throw new Error(english.queue.otherAccount(me, review.me));
       const earlier = await alreadyPosted(gh, review, member, action, me);
       if (earlier) {
         if (!member.posted.some(p => p.review === earlier.html_url)) record(review, member, action, earlier, this.#now());
-        return { review, result: { message: `already done as ${earlier.html_url}; posted nothing new`, review: earlier.html_url } };
+        return { review, result: { message: english.queue.alreadyDone(earlier.html_url), review: earlier.html_url } };
       }
       const comments = sent(member, action);
       const { problems, now } = await problemsIn(gh, review, member, comments);
-      if (ACTIONS[action].event === 'APPROVE' && now.user.login === me) problems.push('this is your own pull request, which GitHub does not let you approve');
-      if (problems.length) throw new Error(`nothing was posted: ${problems.join('; ')}`);
+      if (ACTIONS[action].event === 'APPROVE' && now.user.login === me) problems.push(english.queue.ownPull);
+      if (problems.length) throw new Error(english.queue.nothingPosted(problems));
       const payload = { commit_id: member.head, event: ACTIONS[action].event, ...(comments.length ? { comments: comments.map(postedFields) } : {}) };
       const posted = await gh.createReview(review.repo, pull, payload);
       record(review, member, action, posted, this.#now());
       const back = (await gh.reviewComments(review.repo, pull)).filter(c => c.pull_request_review_id === posted.id);
-      const count = `${comments.length} comment${comments.length === 1 ? '' : 's'}`;
       const message = posted.state !== ACTIONS[action].state || back.length !== comments.length
-        ? `posted ${posted.html_url}, but GitHub reads back state ${posted.state} with ${back.length} of ${count}: check it`
-        : `${{ 'comment': `posted ${count} as one review`, 'approve-with-comments': `approved with ${count}`, 'approve': 'approved, with no comments' }[action]}: ${posted.html_url}`;
+        ? english.queue.readBack(posted.html_url, posted.state, back.length, comments.length)
+        : english.queue.posted[action](comments.length, posted.html_url);
       return { review, result: { message, review: posted.html_url } };
     });
   }
@@ -131,7 +131,7 @@ export class QueueService {
   async #change(ref, { build, refused }, work, online = true) {
     return this.#store.change([ref], async () => {
       const review = this.#store.read(ref);
-      if (!review) throw new Error(`there is no review ${ref.id}`);
+      if (!review) throw new Error(english.review.none(ref.id));
       checkBuild(this.#store.pageBuild(ref), build, refused);
       const gh = online ? this.#github({ host: review.host, account: review.account }) : null;
       const done = await work(review, gh);
@@ -151,15 +151,15 @@ async function filePlaces(gh, repo, pull) {
 async function problemsIn(gh, review, member, comments) {
   const now = await gh.pull(review.repo, member.pull);
   const problems = [];
-  if (now.state !== 'open') problems.push(`#${member.pull} is ${now.merged_at ? 'merged' : now.state}`);
-  if (now.head.sha !== member.head) problems.push(`the head moved from ${member.head.slice(0, 9)} to ${now.head.sha.slice(0, 9)}`);
+  if (now.state !== 'open') problems.push(english.queue.pullEnded(member.pull, now.merged_at ? 'merged' : now.state));
+  if (now.head.sha !== member.head) problems.push(english.queue.headMovedFrom(member.head.slice(0, 9), now.head.sha.slice(0, 9)));
   const places = comments.length ? await filePlaces(gh, review.repo, member.pull) : {};
   for (const comment of comments) {
-    const where = `comment ${comment.id} (${comment.path}:${comment.line})`;
+    const where = english.queue.comment(comment.id, comment.path, comment.line);
     const problem = placeProblem(places[comment.path] || NO_PLACES, comment);
-    if (problem) problems.push(`${where} ${problem}`);
-    problems.push(...bodyProblems(comment.body).map(p => `${where}: ${p}`));
-    if (comment.stale) problems.push(`${where} is stale: ${comment.stale}; queue it again or drop it`);
+    if (problem) problems.push(english.queue.commentProblem(where, problem));
+    problems.push(...bodyProblems(comment.body).map(p => english.queue.commentText(where, p)));
+    if (comment.stale) problems.push(english.queue.commentStale(where, comment.stale));
   }
   return { problems, now };
 }

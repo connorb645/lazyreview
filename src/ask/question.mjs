@@ -10,51 +10,36 @@
  * text around them (all of it when the file is short), and the conversation
  * so far.
  */
-import { linesWords } from '../review/lines-words.mjs';
+import { english } from '../i18n/english.mjs';
 
 const WHOLE_FILE = 400;
 const AROUND = 80;
-
-export const SYSTEM = [
-  'You help someone review a change to code.',
-  'You see one file of it: the part of the diff around the lines they ask about, the code around those lines, and their question.',
-  'Answer in plain words and short sentences, and only what they asked.',
-  'Say so when the code you were shown is not enough to be sure.',
-  'When they ask you to write a review comment, reply with the comment text alone, as they would write it: short, plain, one point.',
-  'Never use the em dash; use a plain dash.',
-].join(' ');
 
 export function questionFor({ review, page, thread }) {
   const file = page.model.files.find(f => f.path === thread.path);
   const contextLines = page.context[thread.path];
   const owner = ownerOf(review, page, thread);
   const parts = [about(review, owner)];
-  parts.push(`File: ${thread.path}${file ? fileState(file) : ' (unchanged by this change)'}`);
-  parts.push(`They ask about ${linesWords(thread)}${owner && review.members.length > 1 ? `, which #${owner.pull} changed` : ''}.`);
+  parts.push(english.ask.file(thread.path, fileState(file)));
+  parts.push(english.ask.about(english.review.lines(thread), owner && review.members.length > 1 ? owner.pull : null));
   const hunk = file ? hunkAround(page.diff[thread.path] || '', thread) : null;
-  if (hunk) parts.push(`The diff of this file around those lines:\n\`\`\`diff\n${hunk}\n\`\`\``);
+  if (hunk) parts.push(english.ask.diff(hunk));
   const text = thread.side === 'LEFT' ? null : page.sources[thread.path] || contextLines || addedText(page.diff[thread.path], file);
-  if (text && text.length) parts.push(`The file at the head${window(text.length, thread)}:\n\`\`\`\n${numbered(text, thread)}\n\`\`\``);
+  if (text && text.length) parts.push(english.ask.head(window(text.length, thread), numbered(text, thread)));
   const earlier = thread.messages.slice(0, -1).filter(m => m.text);
-  if (earlier.length) parts.push(`The conversation so far:\n${earlier.map(m => `${m.from === 'claude' ? 'You answered' : 'They asked'}: ${m.text}`).join('\n\n')}`);
-  parts.push(`Their question:\n${thread.messages[thread.messages.length - 1].text}`);
-  return { system: SYSTEM, prompt: parts.join('\n\n') };
+  if (earlier.length) parts.push(english.ask.conversation(earlier));
+  parts.push(english.ask.question(thread.messages[thread.messages.length - 1].text));
+  return { system: english.ask.system, prompt: parts.join('\n\n') };
 }
 
 function about(review, owner) {
-  if (review.kind === 'branch') return branch(review);
+  if (review.kind === 'branch') return english.ask.branch(review.head.ref, review.title, review.base.ref);
   if (review.members.length === 1) return describe(review.members[0]);
-  const list = review.members.map(m => `#${m.pull}: ${m.title}`).join('\n');
-  return `A stack of pull requests, bottom first, reviewed together:\n${list}${owner ? `\n\n${describe(owner)}` : ''}`;
+  return english.ask.stack(review.members, owner ? describe(owner) : null);
 }
 
 function describe(member) {
-  return `Pull request #${member.pull}: ${member.title}${member.description ? `\n\nIts description:\n${member.description}` : ''}`;
-}
-
-function branch(review) {
-  const named = review.title !== review.head.ref ? `: ${review.title}` : '';
-  return `Branch ${review.head.ref}${named}. It has no pull request yet, and its diff is against ${review.base.ref}.`;
+  return english.ask.pull(member.pull, member.title, member.description);
 }
 
 function ownerOf(review, page, thread) {
@@ -65,10 +50,11 @@ function ownerOf(review, page, thread) {
 }
 
 function fileState(file) {
-  if (file.status === 'A') return ' (new)';
-  if (file.status === 'D') return ' (deleted)';
-  if (file.status === 'R') return ` (renamed from ${file.oldPath})`;
-  return ' (changed)';
+  if (!file) return english.ask.unchanged;
+  if (file.status === 'A') return english.ask.added;
+  if (file.status === 'D') return english.ask.deleted;
+  if (file.status === 'R') return english.ask.renamed(file.oldPath);
+  return english.ask.changed;
 }
 
 function hunkAround(diff, thread) {
@@ -105,7 +91,7 @@ function range(count, thread) {
 
 function window(count, thread) {
   const [from, to] = range(count, thread);
-  return from === 1 && to === count ? '' : `, lines ${from}-${to} of ${count}`;
+  return from === 1 && to === count ? null : { from, to, count };
 }
 
 function numbered(text, thread) {

@@ -7,10 +7,11 @@
  */
 import { PullRef } from './pull-ref.mjs';
 import { BranchRef } from './branch-ref.mjs';
+import { english } from '../i18n/english.mjs';
 
 export function reviewRef(id) {
   const parts = id.split('/').map(decodeURIComponent);
   if (parts[0] === 'local' && parts.length === 3) return BranchRef.parse(parts.join('/'));
-  if (parts.length !== 4 || !/^\d+$/.test(parts[3])) throw new Error(`"${id}" is not a review id, such as github.com/owner/repo/12`);
+  if (parts.length !== 4 || !/^\d+$/.test(parts[3])) throw new Error(english.refs.notAReviewId(id));
   return new PullRef(parts[0], `${parts[1]}/${parts[2]}`, Number(parts[3]));
 }

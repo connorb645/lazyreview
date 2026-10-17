@@ -8,21 +8,22 @@
  * given) says why a window drawn from build `given` may not change a review
  * whose page is now build `current`, or is null when it may: its line
  * numbers may name other code now. checkBuild(current, given, refused)
- * throws that reason, after `refused`, saying what did not happen.
+ * throws that reason, as `refused` words it, saying what did not happen.
  */
 import { createHash } from 'node:crypto';
+import { english } from '../i18n/english.mjs';
 
 export function pageBuild(text) {
   return createHash('sha256').update(text).digest('hex').slice(0, 12);
 }
 
 export function buildProblem(current, given) {
-  if (!given) return 'the change does not name the page build its window was drawn from';
-  if (given !== current) return 'the review was loaded again after this window opened, so its lines may have moved; reload it, then try again';
+  if (!given) return english.store.noBuild;
+  if (given !== current) return english.store.loadedAgain;
   return null;
 }
 
 export function checkBuild(current, given, refused) {
   const problem = buildProblem(current, given);
-  if (problem) throw new Error(`${refused}: ${problem}`);
+  if (problem) throw new Error(refused(problem));
 }

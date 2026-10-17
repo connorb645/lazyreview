@@ -18,10 +18,12 @@
  *                drawn as one box
  *   contextTypes {include: [names], exclude: [names], max}
  */
+import { english } from '../../i18n/english.mjs';
+
 export const COLORS = ['blue', 'teal', 'purple', 'amber', 'olive', 'rose', 'indigo', 'slate', 'grey'];
 
 function problemsError(problems) {
-  return new Error(`the config has ${problems.length} problem${problems.length === 1 ? '' : 's'}:\n${problems.map(p => `  - ${p}`).join('\n')}`);
+  return new Error(english.components.problems(problems));
 }
 
 const KEYS = {
@@ -39,65 +41,66 @@ export function readConfig(json) {
   const problems = [];
   const config = json === undefined ? {} : json;
   const isObject = v => v && typeof v === 'object' && !Array.isArray(v);
-  const where = (kind, i, item) => `${kind} ${item && typeof item.id === 'string' ? `"${item.id}"` : i + 1}`;
+  const idOf = item => (item && typeof item.id === 'string' ? item.id : null);
 
   function keys(item, allowed, label) {
-    if (!isObject(item)) { problems.push(`${label} is not an object`); return false; }
-    for (const k of Object.keys(item)) if (!allowed.includes(k)) problems.push(`${label} has an unknown key "${k}"`);
+    if (!isObject(item)) { problems.push(english.components.notAnObject(label)); return false; }
+    for (const k of Object.keys(item)) if (!allowed.includes(k)) problems.push(english.components.unknownKey(label, k));
     return true;
   }
   function text(item, key, label, required) {
     const v = item[key];
-    if (v === undefined) { if (required) problems.push(`${label} needs "${key}"`); return; }
-    if (typeof v !== 'string' || !v.trim()) problems.push(`${label}: "${key}" must be a non-empty string`);
+    if (v === undefined) { if (required) problems.push(english.components.needs(label, key)); return; }
+    if (typeof v !== 'string' || !v.trim()) problems.push(english.components.notText(label, key));
   }
   function id(item, label, seen) {
     text(item, 'id', label, true);
     if (typeof item.id !== 'string') return;
-    if (!/^[a-z][a-z0-9-]*$/.test(item.id)) problems.push(`${label}: id must be lower case letters, digits and dashes`);
-    if (seen.has(item.id)) problems.push(`${label}: id "${item.id}" is used twice`);
+    if (!/^[a-z][a-z0-9-]*$/.test(item.id)) problems.push(english.components.badId(label));
+    if (seen.has(item.id)) problems.push(english.components.idTwice(label, item.id));
     seen.add(item.id);
   }
   function list(item, key, label) {
     const v = item[key];
     if (v === undefined) return [];
-    if (!Array.isArray(v)) { problems.push(`${label}: "${key}" must be a list`); return []; }
+    if (!Array.isArray(v)) { problems.push(english.components.notAList(label, key)); return []; }
     return v;
   }
   function strings(item, key, label) {
     const v = list(item, key, label);
-    if (v.some(s => typeof s !== 'string' || !s)) problems.push(`${label}: "${key}" must hold non-empty strings`);
+    if (v.some(s => typeof s !== 'string' || !s)) problems.push(english.components.notStrings(label, key));
     return v;
   }
 
-  if (!keys(config, KEYS.root, 'the config')) throw problemsError(problems);
-  text(config, 'title', 'the config');
-  text(config, 'summary', 'the config');
+  const root = english.components.root;
+  if (!keys(config, KEYS.root, root)) throw problemsError(problems);
+  text(config, 'title', root);
+  text(config, 'summary', root);
 
   const componentIds = new Set();
-  const components = list(config, 'components', 'the config').map((c, i) => {
-    const label = where('component', i, c);
+  const components = list(config, 'components', root).map((c, i) => {
+    const label = english.components.component(idOf(c), i + 1);
     if (!keys(c, KEYS.component, label)) return null;
     id(c, label, componentIds);
     text(c, 'title', label, true);
     text(c, 'description', label);
     text(c, 'tag', label);
     text(c, 'group', label);
-    if (c.color !== undefined && !COLORS.includes(c.color)) problems.push(`${label}: color must be one of ${COLORS.join(', ')}`);
-    if (c.context !== undefined && typeof c.context !== 'boolean') problems.push(`${label}: "context" must be true or false`);
+    if (c.color !== undefined && !COLORS.includes(c.color)) problems.push(english.components.badColor(label, COLORS));
+    if (c.context !== undefined && typeof c.context !== 'boolean') problems.push(english.components.badContext(label));
     const paths = strings(c, 'paths', label);
     const packageIds = new Set();
     const packages = list(c, 'packages', label).map((p, j) => {
-      const plabel = `${label}, ${where('package', j, p)}`;
+      const plabel = english.components.package(label, idOf(p), j + 1);
       if (!keys(p, KEYS.package, plabel)) return null;
       id(p, plabel, packageIds);
       text(p, 'title', plabel, true);
       text(p, 'description', plabel);
       const ppaths = strings(p, 'paths', plabel);
-      if (!ppaths.length) problems.push(`${plabel} needs at least one path`);
+      if (!ppaths.length) problems.push(english.components.needsPath(plabel));
       return { id: p.id, title: p.title, description: p.description || '', paths: ppaths };
     }).filter(Boolean);
-    if (!paths.length && !packages.length) problems.push(`${label} needs paths or packages`);
+    if (!paths.length && !packages.length) problems.push(english.components.needsPaths(label));
     return {
       id: c.id, title: c.title, description: c.description || '', tag: c.tag || '', color: c.color || null,
       group: c.group || '', context: !!c.context, paths, packages,
@@ -106,33 +109,33 @@ export function readConfig(json) {
 
   const areaIds = new Set();
   const inArea = new Set();
-  const areas = list(config, 'areas', 'the config').map((a, i) => {
-    const label = where('area', i, a);
+  const areas = list(config, 'areas', root).map((a, i) => {
+    const label = english.components.area(idOf(a), i + 1);
     if (!keys(a, KEYS.area, label)) return null;
     id(a, label, areaIds);
     text(a, 'title', label, true);
     text(a, 'description', label);
     const members = strings(a, 'components', label);
-    if (!members.length) problems.push(`${label} needs at least one component`);
+    if (!members.length) problems.push(english.components.needsComponent(label));
     for (const m of members) {
-      if (inArea.has(m)) problems.push(`${label}: component "${m}" is already in another area`);
+      if (inArea.has(m)) problems.push(english.components.inTwoAreas(label, m));
       inArea.add(m);
     }
     return { id: a.id, title: a.title, description: a.description || '', components: members };
   }).filter(Boolean);
 
-  const links = list(config, 'links', 'the config').map((l, i) => {
-    const label = `link ${i + 1}`;
+  const links = list(config, 'links', root).map((l, i) => {
+    const label = english.components.link(i + 1);
     if (!keys(l, KEYS.link, label)) return null;
     text(l, 'from', label, true);
     text(l, 'to', label, true);
     text(l, 'label', label, true);
-    if (l.kind !== undefined && !['use', 'has'].includes(l.kind)) problems.push(`${label}: kind must be use or has`);
+    if (l.kind !== undefined && !['use', 'has'].includes(l.kind)) problems.push(english.components.badKind(label));
     return { from: l.from, to: l.to, label: l.label, kind: l.kind || 'use' };
   }).filter(Boolean);
 
-  const summaries = list(config, 'summaries', 'the config').map((s, i) => {
-    const label = `summary ${i + 1}`;
+  const summaries = list(config, 'summaries', root).map((s, i) => {
+    const label = english.components.summary(i + 1);
     if (!keys(s, KEYS.summary, label)) return null;
     text(s, 'from', label, true);
     text(s, 'to', label, true);
@@ -141,8 +144,8 @@ export function readConfig(json) {
   }).filter(Boolean);
 
   const groupIds = new Set();
-  const groups = list(config, 'groups', 'the config').map((g, i) => {
-    const label = where('group', i, g);
+  const groups = list(config, 'groups', root).map((g, i) => {
+    const label = english.components.group(idOf(g), i + 1);
     if (!keys(g, KEYS.group, label)) return null;
     id(g, label, groupIds);
     text(g, 'of', label, true);
@@ -152,15 +155,16 @@ export function readConfig(json) {
   }).filter(Boolean);
 
   let contextTypes = { include: [], exclude: [], max: 40 };
-  if (config.contextTypes !== undefined && keys(config.contextTypes, KEYS.contextTypes, 'contextTypes')) {
+  const contextLabel = english.components.contextTypes;
+  if (config.contextTypes !== undefined && keys(config.contextTypes, KEYS.contextTypes, contextLabel)) {
     const c = config.contextTypes;
-    if (c.max !== undefined && !(Number.isInteger(c.max) && c.max >= 0)) problems.push('contextTypes: max must be a whole number, 0 or more');
-    contextTypes = { include: strings(c, 'include', 'contextTypes'), exclude: strings(c, 'exclude', 'contextTypes'), max: c.max ?? 40 };
+    if (c.max !== undefined && !(Number.isInteger(c.max) && c.max >= 0)) problems.push(english.components.badMax);
+    contextTypes = { include: strings(c, 'include', contextLabel), exclude: strings(c, 'exclude', contextLabel), max: c.max ?? 40 };
   }
 
   const known = new Set([...componentIds, 'context']);
-  for (const a of areas) for (const m of a.components) if (!known.has(m)) problems.push(`area "${a.id}" names component "${m}", which the config does not declare`);
-  for (const s of summaries) for (const end of [s.from, s.to]) if (!known.has(end)) problems.push(`a summary names component "${end}", which the config does not declare`);
+  for (const a of areas) for (const m of a.components) if (!known.has(m)) problems.push(english.components.areaUnknown(a.id, m));
+  for (const s of summaries) for (const end of [s.from, s.to]) if (!known.has(end)) problems.push(english.components.summaryUnknown(end));
 
   if (problems.length) throw problemsError(problems);
   return { title: config.title || '', summary: config.summary || '', areas, components, links, summaries, groups, contextTypes };

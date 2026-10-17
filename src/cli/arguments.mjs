@@ -4,34 +4,7 @@
  * parseArguments(argv) returns {command, ...options}, or throws an error whose
  * message says what was wrong and ends with the usage.
  */
-export const USAGE = `usage: lazyreview <command> [options]
-
-  load <pull link>...    load a pull request into the app, or a stack of
-                         them, bottom first, and print where to open it;
-                         loading one again refreshes it
-      --account <login>  act as this GitHub account, not gh's active one
-      --config <file>    JSON naming the components and packages to draw
-      --context          also draw the unchanged code the change touches
-      --no-context       stop drawing it, for a review loaded with it
-  load --repo <folder> --base <ref> --head <branch>
-                         load a branch with no pull request, read only, as
-                         its diff from base would show; loading the same
-                         branch again refreshes it
-      --title <text>     name the review; the branch's name otherwise
-      --config, --context and --no-context work as above
-  attach <pull link> <file>
-                         attach a written review, in Markdown, to the review
-                         holding that pull request
-  list                   list every review, with where to open it
-  terminal [<link>]      review in this terminal, with Vim keys: the review
-                         at the address load printed, or the one holding a
-                         pull request link, which loads it first when no
-                         review holds it yet; with no link, the open pull
-                         requests of the accounts in settings.json
-  serve                  run the app in this terminal
-  start                  run the app in the background
-  stop                   stop the app running in the background
-  help                   show this`;
+import { english } from '../i18n/english.mjs';
 
 const COMMANDS = {
   load: { valued: ['--account', '--config', '--repo', '--base', '--head', '--title'], flags: ['--context', '--no-context'], check: checkLoad },
@@ -45,25 +18,25 @@ const COMMANDS = {
 };
 
 export function parseArguments(argv) {
-  const fail = message => { throw new Error(`${message}\n\n${USAGE}`); };
+  const fail = message => { throw new Error(english.cli.withUsage(message)); };
   const [command = 'help', ...rest] = argv;
   const spec = COMMANDS[command === '--help' || command === '-h' ? 'help' : command];
-  if (!spec) fail(`unknown command "${command}"`);
+  if (!spec) fail(english.cli.unknownCommand(command));
   const options = { command: command.startsWith('-') ? 'help' : command, positional: [] };
   for (let i = 0; i < rest.length; i++) {
     const a = rest[i];
     if (a === '--help' || a === '-h') return { command: 'help', positional: [] };
     if ((spec.flags || []).includes(a)) { options[name(a)] = true; continue; }
     if ((spec.valued || []).includes(a)) {
-      if (i + 1 >= rest.length || rest[i + 1].startsWith('--')) fail(`${a} needs a value`);
+      if (i + 1 >= rest.length || rest[i + 1].startsWith('--')) fail(english.cli.needsValue(a));
       options[name(a)] = rest[++i];
       continue;
     }
-    if (a.startsWith('--')) fail(`unknown option ${a} for ${command}`);
+    if (a.startsWith('--')) fail(english.cli.unknownOption(a, command));
     options.positional.push(a);
   }
-  if (spec.min && options.positional.length < spec.min) fail(`${command} needs ${spec.min} arguments`);
-  if (spec.max !== undefined && options.positional.length > spec.max) fail(`${command} takes ${spec.max || 'no'} argument${spec.max === 1 ? '' : 's'}`);
+  if (spec.min && options.positional.length < spec.min) fail(english.cli.needsArguments(command, spec.min));
+  if (spec.max !== undefined && options.positional.length > spec.max) fail(english.cli.takesArguments(command, spec.max));
   if (spec.check) spec.check(options, fail);
   return options;
 }
@@ -71,13 +44,13 @@ export function parseArguments(argv) {
 function checkLoad(options, fail) {
   if (options.repo === undefined) {
     const stray = ['--base', '--head', '--title'].find(option => options[name(option)] !== undefined);
-    if (stray) fail(`${stray} needs --repo`);
-    if (!options.positional.length) fail('load needs a pull request, or --repo with --base and --head');
+    if (stray) fail(english.cli.needsRepo(stray));
+    if (!options.positional.length) fail(english.cli.loadNeedsSomething);
     return;
   }
-  if (options.positional.length) fail('load takes pull requests or --repo, not both');
-  if (options.account !== undefined) fail('--account is for pull requests; a branch loads from its own repository');
-  for (const option of ['--base', '--head']) if (options[name(option)] === undefined) fail(`--repo needs ${option}`);
+  if (options.positional.length) fail(english.cli.notBoth);
+  if (options.account !== undefined) fail(english.cli.accountForPulls);
+  for (const option of ['--base', '--head']) if (options[name(option)] === undefined) fail(english.cli.repoNeeds(option));
 }
 
 function name(option) {

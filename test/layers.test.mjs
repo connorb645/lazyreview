@@ -34,12 +34,12 @@ function importsBreaking(layers, allowed) {
     .flatMap(m => m.imports.filter(i => !allowed(i.layer, m.layer)).map(i => `${m.name} imports ${i.spec}`));
 }
 
-test('commands import only node\'s own modules and the models', () => {
-  assert.deepEqual(importsBreaking(['commands'], (to, from) => ['node:', 'models', from].includes(to)), []);
+test('commands import only node\'s own modules, the models and the strings', () => {
+  assert.deepEqual(importsBreaking(['commands'], (to, from) => ['node:', 'models', 'i18n', from].includes(to)), []);
 });
 
-test('models import only node\'s own modules', () => {
-  assert.deepEqual(importsBreaking(['models'], (to, from) => ['node:', from].includes(to)), []);
+test('models import only node\'s own modules and the strings', () => {
+  assert.deepEqual(importsBreaking(['models'], (to, from) => ['node:', 'i18n', from].includes(to)), []);
 });
 
 test('the logic and the store never import what the user sees, nor the startup', () => {
@@ -57,5 +57,5 @@ test('only the commands run other programs', () => {
 
 test('every folder of src/ has a layer', () => {
   const folders = readdirSync(SRC, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name);
-  assert.deepEqual(folders.filter(f => ![...LOGIC, 'commands', 'models', 'store', 'server', 'cli', 'app'].includes(f)), []);
+  assert.deepEqual(folders.filter(f => ![...LOGIC, 'commands', 'models', 'i18n', 'store', 'server', 'cli', 'app'].includes(f)), []);
 });

@@ -25,6 +25,7 @@ import { readConfig } from '../build/config/config.mjs';
 import { buildPage } from '../build/page-builder.mjs';
 import { branchSubject } from '../build/page/heading.mjs';
 import { defaultElk } from '../build/layout/elk.mjs';
+import { english } from '../i18n/english.mjs';
 
 export class BranchLoader {
   #store;
@@ -44,7 +45,7 @@ export class BranchLoader {
     const git = this.#git(path);
     const shared = realpathSync(git.sharedFolder());
     const branch = git.branchOf(head);
-    if (!branch) throw new Error(`"${head}" is not a branch of ${path}; give a branch, so loading it again updates the same review`);
+    if (!branch) throw new Error(english.loader.notABranch(head, path));
     const ref = BranchRef.of(shared, branch);
     const previous = this.#store.read(ref);
     const settled = {
@@ -86,7 +87,7 @@ export class BranchLoader {
 
   async refresh(ref) {
     const review = this.#store.read(ref);
-    if (!review) throw new Error(`there is no review ${ref.id}`);
+    if (!review) throw new Error(english.review.none(ref.id));
     return this.load({ repo: review.path, base: review.base.ref, head: review.head.ref });
   }
 }

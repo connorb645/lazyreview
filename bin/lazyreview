@@ -3,11 +3,12 @@
 // Run `lazyreview help` for the commands.
 import { fileURLToPath } from 'node:url';
 import { run } from '../src/cli/main.mjs';
+import { english } from '../src/i18n/english.mjs';
 
 try {
   const lines = await run(process.argv.slice(2), { env: process.env, bin: fileURLToPath(import.meta.url), say: line => console.log(line) });
   for (const line of lines) console.log(line);
 } catch (error) {
-  console.error(`lazyreview: ${error.message}`);
+  console.error(english.cli.failed(error.message));
   process.exitCode = 1;
 }

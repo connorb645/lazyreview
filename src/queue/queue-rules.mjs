@@ -18,6 +18,7 @@
  * {pull, head, author, state, comments, posted, ...}.
  */
 import { createHash } from 'node:crypto';
+import { english } from '../i18n/english.mjs';
 
 export const ACTIONS = {
   'comment': { event: 'COMMENT', state: 'COMMENTED', comments: true },
@@ -62,18 +63,12 @@ export function offered(review, member) {
  * show before it posts.
  */
 export function pressWords(review, member, action) {
-  const n = member.comments.length;
-  const where = `${review.repo}#${member.pull}`;
-  const count = `${n} comment${n === 1 ? '' : 's'}`;
-  const these = n === 1 ? 'this comment goes' : `these ${count} go`;
-  if (action === 'comment') return `${these.charAt(0).toUpperCase()}${these.slice(1)} on ${where} under your name, exactly as shown.`;
-  if (action === 'approve-with-comments') return `You approve ${where}, and ${these} with the approval under your name, exactly as shown.`;
-  return `You approve ${where} with no comments.${n ? ` The queued ${count} ${n === 1 ? 'stays' : 'stay'} queued, unposted.` : ''}`;
+  return english.queue.press[action](`${review.repo}#${member.pull}`, member.comments.length);
 }
 
 /** What stops a comment's text being posted. */
 export function bodyProblems(body) {
-  return String(body || '').trim() ? [] : ['the text is empty'];
+  return String(body || '').trim() ? [] : [english.queue.emptyText];
 }
 
 /**
@@ -110,22 +105,21 @@ export function diffPlaces(patch) {
  */
 export function placeProblem(places, comment) {
   const end = places[comment.side].get(comment.line);
-  if (!end) return 'is not on a line of the diff';
+  if (!end) return english.queue.notOnDiff;
   if (!comment.start_line) return null;
   const side = comment.start_side || comment.side;
   const start = places[side].get(comment.start_line);
-  const first = `${side === 'LEFT' ? 'removed ' : ''}line ${comment.start_line}`;
-  if (!start) return `starts on ${first}, which is not on a line of the diff`;
-  if (start.hunk !== end.hunk) return `runs from ${first} across more than one hunk of the diff, and GitHub takes a range only inside one hunk`;
-  if (start.row >= end.row) return `starts on ${first}, which does not come before its last line in the diff`;
+  if (!start) return english.queue.startsOff(side, comment.start_line);
+  if (start.hunk !== end.hunk) return english.queue.acrossHunks(side, comment.start_line);
+  if (start.row >= end.row) return english.queue.startsAfter(side, comment.start_line);
   return null;
 }
 
 /** The live member for `pull`, or an error saying why there is none. */
 export function liveMember(review, pull) {
-  if (review.moved) throw new Error(`this review moved to ${review.moved.to}; nothing changed here`);
+  if (review.moved) throw new Error(english.queue.reviewMoved(review.moved.to));
   const member = review.members.find(m => m.pull === pull);
-  if (!member) throw new Error(`#${pull} is not ${review.earlier.some(m => m.pull === pull) ? 'in this stack any more' : 'part of this review'}`);
+  if (!member) throw new Error(review.earlier.some(m => m.pull === pull) ? english.queue.notInStack(pull) : english.queue.notInReview(pull));
   return member;
 }
 
@@ -141,14 +135,12 @@ export function commentVersion(comment) {
 }
 
 /**
- * Throws, with `refused` saying what did not happen, unless `version` is the
+ * Throws, as `refused` words what did not happen, unless `version` is the
  * version of `comment` as it stands: it changed since its window showed it.
  */
 export function checkVersion(comment, version, refused) {
-  if (!version) throw new Error(`${refused}: the change does not name the version of comment ${comment.id} it was made on`);
-  if (version !== commentVersion(comment)) {
-    throw new Error(`${refused}: comment ${comment.id} was changed after this window showed it, and now reads "${clipped(comment.body)}"`);
-  }
+  if (!version) throw new Error(refused(english.queue.noVersion(comment.id)));
+  if (version !== commentVersion(comment)) throw new Error(refused(english.queue.changedSince(comment.id, clipped(comment.body))));
 }
 
 /** The queued comment numbered `id`, with the member holding it, or an error. */
@@ -157,7 +149,7 @@ export function findComment(review, id) {
     const comment = member.comments.find(c => c.id === id);
     if (comment) return { member, comment };
   }
-  throw new Error(`no queued comment ${id}`);
+  throw new Error(english.queue.noComment(id));
 }
 
 /**

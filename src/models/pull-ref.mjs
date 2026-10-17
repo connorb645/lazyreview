@@ -11,6 +11,8 @@
  * folder under the data home and its address in the app, and `url` is its
  * address on the host.
  */
+import { english } from '../i18n/english.mjs';
+
 const NAME = /^[A-Za-z0-9_.-]+$/;
 
 export class PullRef {
@@ -18,7 +20,7 @@ export class PullRef {
     const [owner, name, ...rest] = String(repo).split('/');
     if (!/^[A-Za-z0-9.-]+(:\d+)?$/.test(host) || !NAME.test(owner || '') || !NAME.test(name || '') || rest.length ||
       [owner, name].some(part => part === '.' || part === '..') || !Number.isInteger(pull) || pull <= 0) {
-      throw new Error(`not a pull request: ${host}/${repo}#${pull}`);
+      throw new Error(english.refs.notAPull(host, repo, pull));
     }
     this.host = host.toLowerCase();
     this.repo = repo;
@@ -34,7 +36,7 @@ export class PullRef {
     if (id) return new PullRef(id[1], `${id[2]}/${id[3]}`, Number(id[4]));
     const short = /^([^/#\s]+)\/([^/#\s]+)#(\d+)$/.exec(given);
     if (short) return new PullRef('github.com', `${short[1]}/${short[2]}`, Number(short[3]));
-    throw new Error(`"${given}" is not a pull request's address, such as https://github.com/owner/repo/pull/12`);
+    throw new Error(english.refs.notAPullAddress(given));
   }
 
   get id() {

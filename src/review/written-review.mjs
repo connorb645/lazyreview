@@ -21,25 +21,27 @@
  * checkWrittenReview(written, review) throws unless it names the review's
  * pull requests, in order, and the head of its top one.
  */
+import { english } from '../i18n/english.mjs';
+
 const FIELDS = ['pull', 'stack', 'head', 'title'];
 
 export function readWrittenReview(text) {
   const problems = [];
   const m = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/.exec(String(text).replace(/\r\n/g, '\n').replace(/^﻿/, ''));
-  if (!m) throw new Error('the written review must start with a header between --- lines');
+  if (!m) throw new Error(english.written.noHeader);
   const header = {};
   for (const line of m[1].split('\n')) {
     if (!line.trim()) continue;
     const field = /^([a-z]+):\s*(.*)$/.exec(line);
-    if (!field) { problems.push(`the header line "${line}" is not "name: value"`); continue; }
-    if (!FIELDS.includes(field[1])) problems.push(`the header has an unknown field "${field[1]}"`);
+    if (!field) { problems.push(english.written.headerLine(line)); continue; }
+    if (!FIELDS.includes(field[1])) problems.push(english.written.unknownField(field[1]));
     header[field[1]] = field[2].trim();
   }
-  if (!header.head || !/^[0-9a-f]{7,40}$/i.test(header.head)) problems.push('the header needs "head", the head commit the review read');
-  if (!!header.pull === !!header.stack) problems.push('the header needs "pull", or "stack" for a stack, and not both');
+  if (!header.head || !/^[0-9a-f]{7,40}$/i.test(header.head)) problems.push(english.written.needsHead);
+  if (!!header.pull === !!header.stack) problems.push(english.written.pullOrStack);
   const pulls = String(header.pull || header.stack || '').split(/[\s,]+/).filter(Boolean).map(p => p.replace(/^#/, ''));
-  if (header.pull && (pulls.length !== 1 || !/^\d+$/.test(pulls[0]))) problems.push('the header\'s "pull" must be the pull request number');
-  if (header.stack && (pulls.length < 2 || pulls.some(p => !/^\d+$/.test(p)))) problems.push('the header\'s "stack" must list two or more pull request numbers, bottom first');
+  if (header.pull && (pulls.length !== 1 || !/^\d+$/.test(pulls[0]))) problems.push(english.written.pullNumber);
+  if (header.stack && (pulls.length < 2 || pulls.some(p => !/^\d+$/.test(p)))) problems.push(english.written.stackNumbers);
 
   const sections = [];
   let current = null;
@@ -52,13 +54,11 @@ export function readWrittenReview(text) {
       current = { title: heading[1], lines: [] };
       sections.push(current);
     } else if (current) current.lines.push(line);
-    else if (line.trim()) problems.push('text before the first ## section heading');
+    else if (line.trim()) problems.push(english.written.textBefore);
   }
-  if (!sections.length) problems.push('the written review needs at least one ## section');
-  for (const s of sections) if (!s.lines.join('\n').trim()) problems.push(`"## ${s.title}" is empty; a section with nothing to say says so in one line`);
-  if (problems.length) {
-    throw new Error(`the written review has ${problems.length} problem${problems.length === 1 ? '' : 's'}:\n${problems.map(p => `  - ${p}`).join('\n')}`);
-  }
+  if (!sections.length) problems.push(english.written.noSection);
+  for (const s of sections) if (!s.lines.join('\n').trim()) problems.push(english.written.emptySection(s.title));
+  if (problems.length) throw new Error(english.written.problems(problems));
   const ids = new Set();
   return {
     pulls: pulls.map(Number),
@@ -70,13 +70,9 @@ export function readWrittenReview(text) {
 
 export function checkWrittenReview(written, review) {
   const pulls = review.members.map(m => m.pull);
-  if (written.pulls.join(',') !== pulls.join(',')) {
-    throw new Error(`the written review names ${written.pulls.map(p => `#${p}`).join(', ')}, but the review shows ${pulls.map(p => `#${p}`).join(', ')}`);
-  }
+  if (written.pulls.join(',') !== pulls.join(',')) throw new Error(english.written.otherPulls(written.pulls, pulls));
   const head = review.members[review.members.length - 1].head;
-  if (!head.startsWith(written.head)) {
-    throw new Error(`the written review read ${written.head}, but the review shows head ${head.slice(0, 12)}; review the head the app shows`);
-  }
+  if (!head.startsWith(written.head)) throw new Error(english.written.otherHead(written.head, head.slice(0, 12)));
 }
 
 function uniqueId(title, ids) {

@@ -16,12 +16,13 @@
  */
 import { createHash } from 'node:crypto';
 import { basename, dirname } from 'node:path';
+import { english } from '../i18n/english.mjs';
 
 const KEY = /^[A-Za-z0-9_-][A-Za-z0-9_.-]*-[0-9a-f]{8}$/;
 
 export class BranchRef {
   constructor(repoKey, branch) {
-    if (!KEY.test(repoKey) || !isBranchName(branch)) throw new Error(`not a branch review: ${repoKey} ${branch}`);
+    if (!KEY.test(repoKey) || !isBranchName(branch)) throw new Error(english.refs.notABranch(repoKey, branch));
     this.repoKey = repoKey;
     this.branch = branch;
     Object.freeze(this);
@@ -34,7 +35,7 @@ export class BranchRef {
 
   static parse(text) {
     const id = /^local\/([^/]+)\/([^/]+)$/.exec(String(text));
-    if (!id) throw new Error(`"${text}" is not a branch review's id, such as local/widgets-1a2b3c4d/feature~search`);
+    if (!id) throw new Error(english.refs.notABranchId(text));
     return new BranchRef(id[1], id[2].replaceAll('~', '/'));
   }
 

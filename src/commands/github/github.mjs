@@ -8,6 +8,7 @@
  * error saying what GitHub refused, or that the host could not be reached.
  */
 import { execFile } from 'node:child_process';
+import { english } from '../../i18n/english.mjs';
 
 const TIMEOUT = 60_000;
 const UNREACHABLE = /^error connecting to /;
@@ -47,7 +48,7 @@ export class GitHub {
     if (!this.#account) return {};
     if (this.#token === null) {
       const done = await this.#run(['auth', 'token', '--hostname', this.#host, '--user', this.#account]);
-      if (done.code !== 0) throw new Error(`gh has no token for ${this.#account} on ${this.#host}: ${done.stderr.trim()}`);
+      if (done.code !== 0) throw new Error(english.github.noToken(this.#account, this.#host, done.stderr.trim()));
       this.#token = done.stdout.trim();
     }
     return this.#host === 'github.com' ? { GH_TOKEN: this.#token } : { GH_ENTERPRISE_TOKEN: this.#token, GH_HOST: this.#host };
@@ -57,14 +58,14 @@ export class GitHub {
     const args = ['api', ...(this.#host === 'github.com' ? [] : ['--hostname', this.#host]),
       ...(method === 'GET' ? [] : ['-X', method]), path, ...(payload === undefined ? [] : ['--input', '-'])];
     const done = await this.#run(args, { input: payload === undefined ? undefined : JSON.stringify(payload), env: await this.environment() });
-    if (done.timedOut) throw new Error(`GitHub did not answer ${method} ${path} in time; nothing changed`);
-    if (done.code !== 0 && UNREACHABLE.test(done.stderr)) throw new Error(`could not reach ${this.#host}: ${done.stderr.trim().split('\n')[0]}`);
-    if (done.code !== 0) throw new Error(`GitHub refused ${method} ${path}: ${(done.stderr || done.stdout).trim()}`);
+    if (done.timedOut) throw new Error(english.github.tooSlow(method, path));
+    if (done.code !== 0 && UNREACHABLE.test(done.stderr)) throw new Error(english.github.unreachable(this.#host, done.stderr.trim().split('\n')[0]));
+    if (done.code !== 0) throw new Error(english.github.refused(method, path, (done.stderr || done.stdout).trim()));
     if (!done.stdout.trim()) return null;
     try {
       return JSON.parse(done.stdout);
     } catch (error) {
-      throw new Error(`could not read GitHub's answer to ${method} ${path}: ${error.message}`);
+      throw new Error(english.github.unreadable(method, path, error.message));
     }
   }
 
@@ -131,9 +132,9 @@ export class GitHub {
     let after = null;
     do {
       const answer = await this.api('graphql', { method: 'POST', payload: { query: THREADS, variables: { owner, name, number, after } } });
-      if (answer?.errors?.length) throw new Error(`GitHub refused the review threads of ${repo}#${number}: ${answer.errors.map(e => e.message).join('; ')}`);
+      if (answer?.errors?.length) throw new Error(english.github.threadsRefused(repo, number, answer.errors.map(e => e.message)));
       const page = answer?.data?.repository?.pullRequest?.reviewThreads;
-      if (!page) throw new Error(`GitHub gave no review threads for ${repo}#${number}`);
+      if (!page) throw new Error(english.github.noThreads(repo, number));
       threads.push(...page.nodes);
       after = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
     } while (after);

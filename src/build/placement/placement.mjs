@@ -15,10 +15,11 @@
  */
 import { pathPattern } from './path-pattern.mjs';
 import { groupByFolder } from './folder-grouping.mjs';
+import { english } from '../../i18n/english.mjs';
 
 export const CONTEXT_COMPONENT = 'context';
 
-export function placeFiles(paths, config, { context = false, rootTitle = 'Repository root' } = {}) {
+export function placeFiles(paths, config, { context = false, rootTitle = english.diagram.repositoryRoot } = {}) {
   const declared = config.components.filter(c => !!c.context === context);
   const rules = [];
   declared.forEach(c => {
@@ -57,12 +58,12 @@ export function placeFiles(paths, config, { context = false, rootTitle = 'Reposi
     const taken = new Set([...config.components.map(c => c.id), CONTEXT_COMPONENT]);
     for (const group of extra) {
       const id = context ? CONTEXT_COMPONENT : uniqueId(group.folder === null ? 'other' : slug(group.folder || 'root'), taken);
-      const title = context ? 'Unchanged code' : group.folder === null ? 'Other files' : group.folder === '' ? rootTitle : titleFor(group.folder, extra);
+      const title = context ? english.diagram.unchangedCode : group.folder === null ? english.diagram.otherFiles : group.folder === '' ? rootTitle : titleFor(group.folder, extra);
       const packages = folderPackages(group.paths, id, [], context ? 6 : 3);
       packages.forEach(p => p.paths.forEach(path => assigned.set(path, { component: id, package: p.id })));
       components.push(finish({
         id, title,
-        description: context ? 'Code the change uses or plugs into, unchanged, shown for context.' : '',
+        description: context ? english.diagram.contextDescription : '',
         context,
         declared: false,
         packages: packages.map(p => ({ id: p.id, title: p.title, description: '' })),
@@ -84,7 +85,7 @@ function finish(component, paths, assigned) {
   });
   return {
     ...component,
-    tag: component.tag || whereFiles(paths) || 'Repository root',
+    tag: component.tag || whereFiles(paths) || english.diagram.repositoryRoot,
     size: paths.length,
     packages,
   };
@@ -96,10 +97,10 @@ function folderPackages(paths, componentId, taken, splitAbove = 3) {
   const used = new Set(taken);
   const base = commonFolder(paths).replace(/\/$/, '');
   const groups = groupByFolder(paths, { maxGroups: 12, splitAbove, splitTop: true });
-  const baseName = base ? humanize(base.split('/').pop()) : 'Repository root';
+  const baseName = base ? humanize(base.split('/').pop()) : english.diagram.repositoryRoot;
   return groups.map(g => {
     const relative = g.folder === base ? '' : base ? g.folder.slice(base.length + 1) : g.folder;
-    const title = relative ? relative.split('/').map(humanize).join('/') : groups.length > 1 && base ? `${baseName}, top level` : baseName;
+    const title = relative ? relative.split('/').map(humanize).join('/') : groups.length > 1 && base ? english.diagram.topLevel(baseName) : baseName;
     return { id: uniqueId(slug(relative || 'top'), used), title, paths: g.paths };
   });
 }
@@ -113,7 +114,7 @@ function mergeSmall(groups) {
 }
 
 function titleFor(folder, groups) {
-  if (folder === '') return 'Repository root';
+  if (folder === '') return english.diagram.repositoryRoot;
   const segments = folder.split('/');
   const last = humanize(segments[segments.length - 1]);
   const clash = groups.some(g => g.folder && g.folder !== folder && g.folder.split('/').pop() === segments[segments.length - 1]);

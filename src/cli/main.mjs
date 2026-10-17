@@ -13,15 +13,16 @@
  * from a repository on this machine.
  */
 import { readFileSync } from 'node:fs';
-import { parseArguments, USAGE } from './arguments.mjs';
+import { parseArguments } from './arguments.mjs';
 import { App } from '../app/app.mjs';
 import { PullRef } from '../models/pull-ref.mjs';
 import { reviewRef } from '../models/review-ref.mjs';
 import { readWrittenReview, checkWrittenReview } from '../review/written-review.mjs';
+import { english } from '../i18n/english.mjs';
 
 export async function run(argv, { env = process.env, bin, say = () => {}, terminal }) {
   const options = parseArguments(argv);
-  if (options.command === 'help') return [USAGE];
+  if (options.command === 'help') return [english.cli.usage];
   const app = new App({ env, bin, terminal });
 
   switch (options.command) {
@@ -39,14 +40,14 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
     }
     case 'start': {
       const address = (await app.background.running()) || (await app.background.start());
-      return [`running at ${address}`];
+      return [english.cli.running(address)];
     }
     case 'stop':
-      return [(await app.background.stop()) ? 'stopped' : 'not running'];
+      return [(await app.background.stop()) ? english.cli.stopped : english.cli.notRunning];
     case 'serve':
       return app.serve();
     default:
-      throw new Error(`unknown command ${options.command}`);
+      throw new Error(english.cli.notACommand(options.command));
   }
 }
 
@@ -59,39 +60,38 @@ async function load(app, options) {
     ? await app.branches.load({ repo: options.repo, base: options.base, head: options.head, title: options.title, ...drawing })
     : await app.loader.load({ links: options.positional, account: options.account, ...drawing });
   const address = (await app.background.running()) || (await app.background.start());
-  const c = loaded.counts;
   return [
-    `loaded ${changeName(loaded.review)}: ${c.files} file${c.files === 1 ? '' : 's'} +${c.adds} -${c.dels}, ${c.components} component${c.components === 1 ? '' : 's'}, ${c.types} type${c.types === 1 ? '' : 's'}`,
-    `open ${reviewAddress(address, loaded.ref)}`,
-    ...loaded.notes.map(n => `note: ${n}`),
+    english.cli.loaded(changeName(loaded.review), loaded.counts),
+    english.cli.open(reviewAddress(address, loaded.ref)),
+    ...loaded.notes.map(english.cli.note),
   ];
 }
 
 async function attach({ store, home, background }, options) {
   const found = store.find(PullRef.parse(options.positional[0]));
-  if (!found) throw new Error(`${options.positional[0]} is not loaded; load it first`);
+  if (!found) throw new Error(english.cli.notLoaded(options.positional[0]));
   const text = readFileSync(options.positional[1], 'utf8');
   await store.change([found.ref], async () => {
     const review = store.read(found.ref);
-    if (review.moved) throw new Error(`that review moved to ${review.moved.to}`);
+    if (review.moved) throw new Error(english.cli.reviewMoved(review.moved.to));
     checkWrittenReview(readWrittenReview(text), review);
     return { files: [[home.review(found.ref).written, text]], result: null };
   });
   const address = await background.running();
-  return [`attached to ${found.ref.id}${address ? `; open ${reviewAddress(address, found.ref)}` : ''}`];
+  return [english.cli.attached(found.ref.id, address && reviewAddress(address, found.ref))];
 }
 
 async function list({ store, settings, background }) {
   const address = (await background.running()) || 'http://127.0.0.1:' + settings.port;
   const reviews = store.list();
-  if (!reviews.length) return ['no reviews yet; load one with lazyreview load <pull link>'];
+  if (!reviews.length) return [english.cli.noReviews];
   return reviews.map(({ ref, review }) => (review.moved
-    ? `${ref.id}  moved to ${review.moved.to}`
-    : `${reviewAddress(address, ref)}  ${changeName(review)}  ${review.title}`));
+    ? english.cli.listedMoved(ref.id, review.moved.to)
+    : english.cli.listed(reviewAddress(address, ref), changeName(review), review.title)));
 }
 
 function changeName(review) {
-  return review.kind === 'branch' ? `${review.head.ref} against ${review.base.ref}` : review.members.map(m => `#${m.pull}`).join(', ');
+  return review.kind === 'branch' ? english.cli.branchName(review.head.ref, review.base.ref) : english.cli.pullsName(review.members.map(m => m.pull));
 }
 
 function reviewAddress(address, ref) {
@@ -105,13 +105,13 @@ async function reviewToOpen(text, { app, say }) {
     const ref = PullRef.parse(text);
     const found = app.store.find(ref);
     if (found) return found.ref.id;
-    say(`loading ${ref.url}…`);
+    say(english.cli.loading(ref.url));
     const loaded = await app.loader.load({ links: [text] });
-    for (const note of loaded.notes) say(`note: ${note}`);
+    for (const note of loaded.notes) say(english.cli.note(note));
     return loaded.ref.id;
   }
   const ref = reviewRef(text);
-  if (!app.store.read(ref)) throw new Error(`there is no review ${text}; lazyreview list shows every review`);
+  if (!app.store.read(ref)) throw new Error(english.cli.noReview(text));
   return ref.id;
 }
 
@@ -119,6 +119,6 @@ function readConfigFile(path) {
   try {
     return JSON.parse(readFileSync(path, 'utf8'));
   } catch (error) {
-    throw new Error(`could not read the config ${path}: ${error.message}`);
+    throw new Error(english.cli.configUnreadable(path, error.message));
   }
 }

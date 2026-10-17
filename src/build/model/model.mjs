@@ -13,6 +13,7 @@
 import { placeFiles, CONTEXT_COMPONENT } from '../placement/placement.mjs';
 import { findRelations } from './relations.mjs';
 import { COLORS } from '../config/config.mjs';
+import { english } from '../../i18n/english.mjs';
 
 const GROUP_AT = 6;
 
@@ -101,7 +102,7 @@ function makeGroups(nodes, edges, config) {
     if (members.length < 2) return;
     const first = byId.get(members[0]);
     members.forEach(m => { byId.get(m).group = id; grouped.add(m); });
-    groups.push({ id, title: `${members.length} ${title}`, description, members, target, kind, component: first.component, package: first.package });
+    groups.push({ id, title: english.diagram.group(members.length, title), description, members, target, kind, component: first.component, package: first.package });
   }
 
   for (const g of config.groups) {
@@ -132,7 +133,7 @@ function makeGroups(nodes, edges, config) {
     const [, target, kind] = key.split('>');
     const name = byId.get(target).name;
     const id = `of-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${groups.length + 1}`;
-    add(id, kind === 'realize' ? `types conforming to ${name}` : `types inheriting from ${name}`, '', fresh, target, kind);
+    add(id, kind === 'realize' ? english.diagram.conforming(name) : english.diagram.inheriting(name), '', fresh, target, kind);
   }
   return groups;
 }
@@ -142,7 +143,7 @@ function regroupEdges(edges, groups, byId) {
   const out = edges.filter(e => !groups.some(g => g.members.includes(e.source) && e.target === g.target && (e.kind === g.kind)));
   for (const g of groups) {
     if (!g.target || !byId.has(g.target)) continue;
-    out.push({ source: `group:${g.id}`, target: g.target, kind: g.kind, label: g.kind === 'realize' ? 'each conforms to' : 'each inherits from' });
+    out.push({ source: `group:${g.id}`, target: g.target, kind: g.kind, label: g.kind === 'realize' ? english.diagram.eachConforms : english.diagram.eachInherits });
   }
   return out;
 }
@@ -189,8 +190,8 @@ function summarize(edges, componentOf, labels, componentCount) {
 // «protocol», «data class» or «extension» of X, then the supertypes the map
 // does not draw, since a drawn one has its own arrow.
 function stereotypeOf(n, names) {
-  if (n.kind === 'artifact') return '«file»';
-  if (n.kind === 'extension') return `«extension»${n.extends.length ? ` of ${n.extends.join(', ')}` : ''}`;
+  if (n.kind === 'artifact') return english.diagram.file;
+  if (n.kind === 'extension') return english.diagram.extensionOf(n.extends);
   const supers = n.inherits.filter(s => !names.has(s));
   const head = n.label ? `«${n.label}»` : n.kind === 'class' ? '' : `«${n.kind}»`;
   const tail = supers.length ? `: ${supers.slice(0, 2).join(', ')}${supers.length > 2 ? ', …' : ''}` : '';

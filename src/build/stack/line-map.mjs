@@ -28,6 +28,7 @@
  */
 import { readHunkLines } from './hunk-lines.mjs';
 import { traceNew, traceOld } from './line-trace.mjs';
+import { english } from '../../i18n/english.mjs';
 
 export function mapStackLines(steps, chunks, pulls) {
   const lines = {};
@@ -40,12 +41,12 @@ export function mapStackLines(steps, chunks, pulls) {
     for (const h of readHunkLines(chunk.text)) {
       for (const n of h.added) {
         const found = traceNew(steps, chunk.path, n);
-        right[n] = found.pull ? owned(found, chunk.path) : { x: 'no pull request\'s own diff adds this line as it reads here' };
+        right[n] = found.pull ? owned(found, chunk.path) : { x: english.stack.notAdded };
         if (found.pull) count(found.pull, 0);
       }
       for (const o of h.removed) {
         const found = traceOld(steps, chunk.oldPath, o);
-        left[o] = found.pull ? owned(found, chunk.path) : { x: 'no pull request\'s own diff removes this line as it reads here' };
+        left[o] = found.pull ? owned(found, chunk.path) : { x: english.stack.notRemoved };
         if (found.pull) count(found.pull, 1);
       }
       for (const [n, o] of h.newToOld) {
@@ -61,7 +62,7 @@ export function mapStackLines(steps, chunks, pulls) {
 
 export function lineEntry(lines, path, line, side) {
   const entry = lines[path]?.[side]?.[line];
-  if (!entry) return { none: 'the line is not in the combined diff' };
+  if (!entry) return { none: english.stack.notInDiff };
   if (Array.isArray(entry)) return target(entry, path, side);
   if (entry.c) return { candidates: entry.c.map(e => target(e, path, side)) };
   return { none: entry.x };

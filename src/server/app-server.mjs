@@ -33,6 +33,7 @@ import { fileView } from '../review/file-view.mjs';
 import { checkBuild } from '../store/page-build.mjs';
 import { ReviewEvents } from './review-events.mjs';
 import { staticFile, PAGE } from './static-files.mjs';
+import { english } from '../i18n/english.mjs';
 
 const PULL = '([^/]+/[^/]+/[^/]+/\\d+)';
 const REVIEW = '(local/[^/]+/[^/]+|[^/]+/[^/]+/[^/]+/\\d+)';
@@ -134,37 +135,37 @@ export class AppServer {
   async #handle(request, response) {
     const port = this.#server.address().port;
     const hosts = [`127.0.0.1:${port}`, `localhost:${port}`];
-    if (!hosts.includes(request.headers.host)) return send(response, 421, { error: 'this server answers only on 127.0.0.1 and localhost' });
+    if (!hosts.includes(request.headers.host)) return send(response, 421, { error: english.server.onlyHere });
     const url = new URL(request.url, `http://${request.headers.host}`);
     const path = url.pathname;
 
     if (!path.startsWith('/api/')) {
-      if (request.method !== 'GET' && request.method !== 'HEAD') return send(response, 405, { error: 'not allowed' });
+      if (request.method !== 'GET' && request.method !== 'HEAD') return send(response, 405, { error: english.server.notAllowed });
       if (path === '/' || /^\/review\//.test(path)) return sendFile(response, PAGE, 'text/html; charset=utf-8', true);
       let file = null;
       try { file = staticFile(path); } catch { file = null; }
-      return file ? sendFile(response, file.path, file.type) : send(response, 404, { error: 'no such page' });
+      return file ? sendFile(response, file.path, file.type) : send(response, 404, { error: english.server.noSuchPage });
     }
 
     if (request.method !== 'GET') {
       const origin = request.headers.origin;
       const own = !!origin && hosts.some(h => origin === `http://${h}`);
-      if (!own && !this.#carriesToken(request)) return send(response, 403, { error: 'changes come only from the app\'s own pages, or a client with its token' });
+      if (!own && !this.#carriesToken(request)) return send(response, 403, { error: english.server.changesFrom });
       if (request.method !== 'DELETE' && !String(request.headers['content-type'] || '').startsWith('application/json')) {
-        return send(response, 415, { error: 'send JSON' });
+        return send(response, 415, { error: english.server.sendJSON });
       }
     }
     const stream = EVENTS.exec(path);
     if (stream && request.method === 'GET') return this.#stream(request, response, stream[1]);
     const route = this.#routes.find(([method, pattern]) => method === request.method && pattern.test(path));
-    if (!route) return send(response, 404, { error: `nothing at ${request.method} ${path}` });
+    if (!route) return send(response, 404, { error: english.server.nothingAt(request.method, path) });
     const match = route[1].exec(path).slice(1);
     try {
       const ref = match.length ? reviewRef(match[0]) : null;
       const body = request.method === 'GET' || request.method === 'DELETE' ? Object.fromEntries(url.searchParams) : await readBody(request);
       const answer = await route[2](...(ref ? [ref, body, ...match.slice(1)] : [body]));
       if (typeof answer === 'string') return sendRaw(response, 200, answer);
-      if (answer === null || answer === undefined) return send(response, 404, { error: 'no such review' });
+      if (answer === null || answer === undefined) return send(response, 404, { error: english.server.noSuchReview });
       return send(response, 200, answer);
     } catch (error) {
       return send(response, 409, { error: error.message });
@@ -185,7 +186,7 @@ export class AppServer {
     } catch (error) {
       return send(response, 409, { error: error.message });
     }
-    if (!this.#store.read(ref)) return send(response, 404, { error: 'no such review' });
+    if (!this.#store.read(ref)) return send(response, 404, { error: english.server.noSuchReview });
     response.writeHead(200, headers('text/event-stream; charset=utf-8'));
     response.write('retry: 1000\n\n');
     this.#streams.add(response);
@@ -208,11 +209,11 @@ export class AppServer {
   #file(ref, path, build) {
     const read = this.#store.readPage(ref);
     if (!read) return null;
-    checkBuild(read.build, build, 'no file');
+    checkBuild(read.build, build, english.server.noFile);
     const files = this.#viewsOf(read).files;
     if (!files.has(path)) files.set(path, fileView(read.page, path));
     const file = files.get(path);
-    if (!file) throw new Error(`${path} is not a file of this review`);
+    if (!file) throw new Error(english.server.notAFile(path));
     return file;
   }
 
@@ -223,18 +224,18 @@ export class AppServer {
 }
 
 function text(value) {
-  if (typeof value !== 'string') throw new Error('a text field is missing');
+  if (typeof value !== 'string') throw new Error(english.server.textMissing);
   return value;
 }
 
 function links(value) {
-  if (!Array.isArray(value) || !value.length || value.some(link => typeof link !== 'string')) throw new Error('give the pull requests to load as links, bottom first');
+  if (!Array.isArray(value) || !value.length || value.some(link => typeof link !== 'string')) throw new Error(english.server.giveLinks);
   return value;
 }
 
 function whole(value) {
   const n = Number(value);
-  if (!Number.isInteger(n) || n < 1) throw new Error(`"${value}" is not a line or pull request number`);
+  if (!Number.isInteger(n) || n < 1) throw new Error(english.server.notANumber(value));
   return n;
 }
 
@@ -252,7 +253,7 @@ function version(body) {
 }
 
 function side(value) {
-  if (value !== 'RIGHT' && value !== 'LEFT') throw new Error('the side is RIGHT or LEFT');
+  if (value !== 'RIGHT' && value !== 'LEFT') throw new Error(english.server.sides);
   return value;
 }
 
@@ -262,7 +263,7 @@ function readBody(request) {
     const chunks = [];
     request.on('data', chunk => {
       size += chunk.length;
-      if (size > BODY_LIMIT) { reject(new Error('the request is too large')); request.destroy(); return; }
+      if (size > BODY_LIMIT) { reject(new Error(english.server.tooLarge)); request.destroy(); return; }
       chunks.push(chunk);
     });
     request.on('end', () => {
@@ -270,7 +271,7 @@ function readBody(request) {
         const parsed = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
         resolve(parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {});
       } catch {
-        reject(new Error('the request is not JSON'));
+        reject(new Error(english.server.notJSON));
       }
     });
     request.on('error', reject);

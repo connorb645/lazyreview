@@ -27,6 +27,7 @@
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { readJSON } from '../store/whole-file.mjs';
+import { english } from '../i18n/english.mjs';
 
 export const DEFAULT_PORT = 4747;
 
@@ -36,7 +37,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function readSettings(env = process.env) {
   const port = env.LAZYREVIEW_PORT ? Number(env.LAZYREVIEW_PORT) : DEFAULT_PORT;
-  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(`LAZYREVIEW_PORT must be a port number, not "${env.LAZYREVIEW_PORT}"`);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(english.settings.badPort(env.LAZYREVIEW_PORT));
   return {
     home: resolve(env.LAZYREVIEW_HOME || join(homedir(), '.lazyreview')),
     port,
@@ -45,27 +46,26 @@ export function readSettings(env = process.env) {
 }
 
 export function readAccounts(file) {
-  const wrong = what => new Error(`${file} ${what}`);
   let settings;
   try {
     settings = readJSON(file);
   } catch (error) {
-    throw wrong(`could not be read: ${error.message}`);
+    throw new Error(english.settings.unreadable(file, error.message));
   }
   if (settings === null) return [];
-  if (!settings || typeof settings !== 'object' || !Array.isArray(settings.accounts)) throw wrong('needs "accounts", a list of {"login": "..."}');
+  if (!settings || typeof settings !== 'object' || !Array.isArray(settings.accounts)) throw new Error(english.settings.needsAccounts(file));
   const logins = new Set();
   return settings.accounts.map((account, i) => {
-    if (!account || typeof account.login !== 'string' || !LOGIN.test(account.login)) throw wrong(`gives account ${i + 1} no GitHub login`);
-    if (logins.has(account.login)) throw wrong(`names ${account.login} twice`);
+    if (!account || typeof account.login !== 'string' || !LOGIN.test(account.login)) throw new Error(english.settings.noLogin(file, i + 1));
+    if (logins.has(account.login)) throw new Error(english.settings.loginTwice(file, account.login));
     logins.add(account.login);
     const teams = account.teams ?? [];
-    if (!Array.isArray(teams)) throw wrong(`gives ${account.login} "teams" that are not a list`);
+    if (!Array.isArray(teams)) throw new Error(english.settings.teamsNotList(file, account.login));
     return {
       login: account.login,
       teams: teams.map(team => {
-        if (!team || typeof team.name !== 'string' || !TEAM.test(team.name)) throw wrong(`gives ${account.login} a team that is not named as organisation/team`);
-        if (team.since !== undefined && (typeof team.since !== 'string' || !DATE.test(team.since))) throw wrong(`gives ${team.name} a "since" that is not a date such as 2026-10-01`);
+        if (!team || typeof team.name !== 'string' || !TEAM.test(team.name)) throw new Error(english.settings.teamNotNamed(file, account.login));
+        if (team.since !== undefined && (typeof team.since !== 'string' || !DATE.test(team.since))) throw new Error(english.settings.sinceNotDate(file, team.name));
         return { name: team.name, since: team.since ?? null };
       }),
     };

@@ -13,6 +13,7 @@
 import { measure, nodeSize, farTitleRoom, PACKAGE_HEAD, PACKAGE_HEAD_WITH_NOTE, COMPONENT_HEAD, FAR_TITLE } from './sizes.mjs';
 import { sectionPoints, labelCentre, offsetRoute, shiftToWidth } from './geometry.mjs';
 import { layoutCanvas } from './canvas-layout.mjs';
+import { english } from '../../i18n/english.mjs';
 
 // Drawn at rest inside a package: its structure, and the links the config names.
 const AT_REST = e => ['realize', 'inherit', 'has', 'extend'].includes(e.kind) || (e.kind === 'use' && e.key);
@@ -144,9 +145,9 @@ async function layoutComponent(component, model, elk, nodes, groups, laidAs, hom
   }
   const pairList = [...pairs.values()].filter(p => pkgs[p.from] && pkgs[p.to]);
   for (const p of pairList) {
-    const words = [...new Set(p.labels)].slice(0, 2).join(', ') || (p.tests === p.count ? 'tests' : '');
+    const words = [...new Set(p.labels)].slice(0, 2).join(', ') || (p.tests === p.count ? english.diagram.tests : '');
     p.words = words;
-    p.countText = `${p.count} link${p.count === 1 ? '' : 's'}`;
+    p.countText = english.diagram.links(p.count);
     p.text = words ? `${words} · ${p.countText}` : p.countText;
   }
   const graph = {
@@ -176,7 +177,7 @@ async function layoutComponent(component, model, elk, nodes, groups, laidAs, hom
   // Wide enough for its header and, beside other components, for its title
   // to stay as readable as theirs at far zoom.
   const needed = Math.max(460,
-    measure(component.title, 'componentTitle').width + measure('Open diff →', 'componentOpen').width + 80,
+    measure(component.title, 'componentTitle').width + measure(english.diagram.openDiff, 'componentOpen').width + 80,
     measure(`${component.tag} · ${counts}`, 'componentTag').width + 56,
     model.components.length > 1 ? farTitleRoom(component.title) : 0);
   shiftToWidth(out, needed);
@@ -210,7 +211,7 @@ function packed(aspectRatio, spacing, padding) {
 
 function componentCounts(model, component) {
   const files = (component.context ? model.contextFiles : model.files).filter(f => f.component === component.id);
-  if (component.context) return `${files.length} files · unchanged`;
+  if (component.context) return english.diagram.unchangedFiles(files.length);
   const adds = files.reduce((s, f) => s + f.adds, 0), dels = files.reduce((s, f) => s + f.dels, 0);
-  return `${files.length} files · +${adds.toLocaleString('en-GB')}${dels ? ` −${dels.toLocaleString('en-GB')}` : ''}`;
+  return english.diagram.changedFiles(files.length, adds, dels);
 }

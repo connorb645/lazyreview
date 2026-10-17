@@ -28,6 +28,7 @@ import { Claude } from '../commands/claude/claude.mjs';
 import { TerminalApp } from '../commands/os/terminal-app.mjs';
 import { AppServer } from '../server/app-server.mjs';
 import { BackgroundServer } from './background-server.mjs';
+import { english } from '../i18n/english.mjs';
 
 export class App {
   constructor({ env = process.env, bin, terminal = new TerminalApp() }) {
@@ -49,7 +50,7 @@ export class App {
   }
 
   async serve() {
-    if (await this.background.running()) throw new Error('the app is running already; lazyreview stop stops it');
+    if (await this.background.running()) throw new Error(english.app.runningAlready);
     const token = randomBytes(32).toString('hex');
     const server = new AppServer({
       store: this.store,
@@ -69,7 +70,7 @@ export class App {
         const recorded = readJSON(serverFile);
         if (recorded?.pid === process.pid) rmSync(serverFile, { force: true });
       } catch (error) {
-        console.error(`lazyreview: ${error.message}`);
+        console.error(english.cli.failed(error.message));
       } finally {
         await server.close();
         process.exit(0);
@@ -77,6 +78,6 @@ export class App {
     };
     process.once('SIGINT', shut);
     process.once('SIGTERM', shut);
-    return [`lazyreview is running at ${address}`];
+    return [english.app.running(address)];
   }
 }

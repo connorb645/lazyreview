@@ -14,6 +14,7 @@
  * file's imports, which link file boxes for code with no types of its own.
  */
 import { identifiers } from '../languages/header-text.mjs';
+import { english } from '../../i18n/english.mjs';
 
 const STRENGTH = { inherit: 5, realize: 5, has: 4, extend: 3, use: 2 };
 const INTERFACES = new Set(['protocol', 'interface']);
@@ -54,11 +55,11 @@ export function findRelations(nodes, imports = new Map()) {
         if (!holders.get(t).includes(p.name)) holders.get(t).push(p.name);
       }
     }
-    for (const [t, names] of holders) add(n, t, 'has', n.view && t.view ? 'shows' : null, names);
+    for (const [t, names] of holders) add(n, t, 'has', n.view && t.view ? english.diagram.shows : null, names);
     for (const word of identifiers(n.code)) {
       if (word === n.name) continue;
       const t = resolve(word, n);
-      if (t) add(n, t, n.view && t.view ? 'has' : 'use', n.view && t.view ? 'shows' : null);
+      if (t) add(n, t, n.view && t.view ? 'has' : 'use', n.view && t.view ? english.diagram.shows : null);
     }
   }
 

@@ -37,6 +37,7 @@ import { pullsSubject } from '../build/page/heading.mjs';
 import { defaultElk } from '../build/layout/elk.mjs';
 import { regroup } from '../queue/regroup.mjs';
 import { readThreads, placeThreads } from '../review/github-threads.mjs';
+import { english } from '../i18n/english.mjs';
 
 const DESCRIPTION = 2000;
 const CLONE_WAIT = 15 * 60_000;
@@ -82,7 +83,7 @@ export class Loader {
       try {
         threads.push(...readThreads(f.number, await gh.reviewThreads(repo, f.number)));
       } catch (error) {
-        unread.push(`#${f.number}'s review threads on GitHub are not shown, as they could not be read: ${error.message}`);
+        unread.push(english.loader.threadsUnread(f.number, error.message));
       }
     }
     const leaving = {};
@@ -99,7 +100,7 @@ export class Loader {
       base: bottom.base.sha,
       members: found.map(f => ({ pull: f.number, head: f.head.sha })),
       baseBranch: bottom.base.ref,
-      title: found.length === 1 ? bottom.title : `Stack #${pulls[0]} to #${pulls[pulls.length - 1]}`,
+      title: found.length === 1 ? bottom.title : english.loader.stackTitle(pulls[0], pulls[pulls.length - 1]),
       subject: pullsSubject(pulls),
       config: checked,
       context: settled.context,
@@ -146,8 +147,8 @@ export class Loader {
    */
   async refresh(ref) {
     const review = this.#store.read(ref);
-    if (!review) throw new Error(`there is no review ${ref.id}`);
-    if (review.moved) throw new Error(`this review moved to ${review.moved.to}; load that one`);
+    if (!review) throw new Error(english.review.none(ref.id));
+    if (review.moved) throw new Error(english.loader.movedLoadThat(review.moved.to));
     const gh = this.#github({ host: review.host, account: review.account });
     const open = [];
     for (const m of review.members) if (stateOf(await gh.pull(review.repo, m.pull)).state === 'open') open.push(m);
@@ -170,21 +171,19 @@ export class Loader {
     const anchor = home ? home.ref : new PullRef(host, repo, pulls[0]);
     const absorbed = holding.filter(e => e.ref.id !== anchor.id);
     for (const e of absorbed) {
-      const others = e.review.members.filter(m => !pulls.includes(m.pull)).map(m => `#${m.pull}`);
-      if (others.length) {
-        throw new Error(`${e.ref.id} also reviews ${others.join(', ')}, which this load does not name; load the whole stack, bottom first`);
-      }
+      const others = e.review.members.filter(m => !pulls.includes(m.pull)).map(m => m.pull);
+      if (others.length) throw new Error(english.loader.alsoReviews(e.ref.id, others));
     }
     return { anchor, absorbed: absorbed.map(e => e.ref) };
   }
 }
 
 function readLinks(links) {
-  if (!links.length) throw new Error('give the pull request to load, or every pull request of a stack, bottom first');
+  if (!links.length) throw new Error(english.loader.giveLinks);
   const refs = links.map(link => PullRef.parse(link));
   const other = refs.find(r => r.host !== refs[0].host || r.repo !== refs[0].repo);
-  if (other) throw new Error(`a stack is in one repository, but ${other.host}/${other.repo} is not ${refs[0].host}/${refs[0].repo}`);
-  if (new Set(refs.map(r => r.pull)).size !== refs.length) throw new Error('a pull request is named twice');
+  if (other) throw new Error(english.loader.otherRepository(`${other.host}/${other.repo}`, `${refs[0].host}/${refs[0].repo}`));
+  if (new Set(refs.map(r => r.pull)).size !== refs.length) throw new Error(english.loader.namedTwice);
   return refs;
 }
 
@@ -193,10 +192,10 @@ function checkChained(found, repo) {
   for (let i = 1; i < found.length; i++) {
     const below = found[i - 1], above = found[i];
     if (above.base.ref !== below.head.ref || below.head.repo?.full_name !== repo) {
-      problems.push(`#${above.number} is based on ${above.base.ref}, not on #${below.number}'s branch ${below.head.ref}`);
+      problems.push(english.loader.notOnBelow(above.number, above.base.ref, below.number, below.head.ref));
     }
   }
-  if (problems.length) throw new Error(`these are not a stack, bottom first: ${problems.join('; ')}`);
+  if (problems.length) throw new Error(english.loader.notAStack(problems));
 }
 
 function stateOf(pull) {

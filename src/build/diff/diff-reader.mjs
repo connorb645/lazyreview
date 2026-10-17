@@ -11,6 +11,7 @@
  */
 import { splitDiff } from './diff-parser.mjs';
 import { languageFor } from '../languages/languages.mjs';
+import { english } from '../../i18n/english.mjs';
 
 // Files that start closed in the page: generated files, data files of any
 // size, and any file with a very large change.
@@ -22,7 +23,7 @@ export function readDiff(git, { base, head, exact }) {
   const baseCommit = git.resolve(base);
   const mergeBase = exact ? baseCommit : git.mergeBase(baseCommit, headCommit);
   const chunks = splitDiff(git.diff(mergeBase, headCommit));
-  if (!chunks.length) throw new Error(`there is no difference between ${base} and ${head}`);
+  if (!chunks.length) throw new Error(english.loader.noDifference(base, head));
   const counts = git.counts(mergeBase, headCommit);
   const headTexts = git.read(headCommit, chunks.filter(c => c.status !== 'D').map(c => c.path));
   const baseTexts = git.read(mergeBase, chunks

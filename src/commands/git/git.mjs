@@ -3,6 +3,7 @@
  * checks out, fetches or writes to the repository or its config.
  */
 import { execFileSync } from 'node:child_process';
+import { english } from '../../i18n/english.mjs';
 
 function runGit(repo, args, { input, allowExit = [] } = {}) {
   try {
@@ -12,7 +13,7 @@ function runGit(repo, args, { input, allowExit = [] } = {}) {
   } catch (error) {
     if (allowExit.includes(error.status)) return Buffer.from(error.stdout || '');
     const message = String(error.stderr || error.message).trim().split('\n')[0];
-    throw new Error(`git ${args[0]} failed: ${message}`);
+    throw new Error(english.git.failed(args[0], message));
   }
 }
 
@@ -34,7 +35,7 @@ export class Git {
     try {
       return this.#text(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]).trim();
     } catch {
-      throw new Error(`"${ref}" is not a commit in this repository`);
+      throw new Error(english.git.notACommit(ref));
     }
   }
 

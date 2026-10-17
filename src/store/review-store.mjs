@@ -16,6 +16,7 @@ import { writeWhole, readText, readJSON, parseJSON } from './whole-file.mjs';
 import { pageBuild } from './page-build.mjs';
 import { PullRef } from '../models/pull-ref.mjs';
 import { BranchRef } from '../models/branch-ref.mjs';
+import { english } from '../i18n/english.mjs';
 
 export class ReviewStore {
   #home;
@@ -156,7 +157,7 @@ function writeAll(files) {
     }
   } catch (error) {
     for (const [path, before] of done.reverse()) replace(path, before);
-    throw new Error(`could not write the review, so every file is as it was: ${error.message}`);
+    throw new Error(english.store.notWritten(error.message));
   }
 }
 

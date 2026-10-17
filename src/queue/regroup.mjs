@@ -25,6 +25,7 @@
  * pointing at this one. `notes` say what moved and what went stale.
  */
 import { nextId } from './queue-rules.mjs';
+import { english } from '../i18n/english.mjs';
 
 const COLORS = 8;
 
@@ -52,10 +53,10 @@ export function regroup({ previous, fresh, leaving = {}, absorbed = [], anchor, 
     if (!live.has(pull)) { earlier.push(member); continue; }
     const state = leaving[pull] || { state: member.state || 'open' };
     if (state.state === 'open' && member.comments.length) {
-      throw new Error(`#${pull} is still open with ${member.comments.length} queued comment${member.comments.length === 1 ? '' : 's'}, so it cannot leave the stack; post or drop them first`);
+      throw new Error(english.queue.stillOpen(pull, member.comments.length));
     }
     earlier.push({ ...member, state: state.state, ended_at: state.ended_at || null });
-    notes.push(`#${pull} left the stack (${state.state})`);
+    notes.push(english.queue.leftTheStack(pull, state.state));
   }
 
   const review = { members, earlier };
@@ -65,7 +66,7 @@ export function regroup({ previous, fresh, leaving = {}, absorbed = [], anchor, 
       const target = members.find(m => m.pull === from.pull);
       for (const comment of staled(from.comments, from, target, notes)) {
         target.comments.push({ ...comment, id: next });
-        notes.push(`#${from.pull}'s comment ${comment.id} is now ${next}`);
+        notes.push(english.queue.renumbered(from.pull, comment.id, next));
         next++;
       }
       for (const p of from.posted) if (!target.posted.some(q => q.review === p.review)) target.posted.push(p);
@@ -86,16 +87,16 @@ function staled(comments, before, now, notes) {
   let why;
   let sides;
   if (before.head !== now.head) {
-    why = `queued at ${before.head.slice(0, 8)}, and #${now.pull} is now at ${now.head.slice(0, 8)}`;
+    why = english.queue.staleHead(before.head.slice(0, 8), now.pull, now.head.slice(0, 8));
     sides = ['RIGHT', 'LEFT'];
   } else if (before.start && now.start && before.start !== now.start) {
-    why = `queued on a removed line, and #${now.pull}'s diff now starts from ${now.start.slice(0, 8)}, not ${before.start.slice(0, 8)}`;
+    why = english.queue.staleStart(now.pull, now.start.slice(0, 8), before.start.slice(0, 8));
     sides = ['LEFT'];
   } else {
     return comments;
   }
   const touched = c => sides.includes(c.side) || (c.start_line && sides.includes(c.start_side || c.side));
   const count = comments.filter(touched).length;
-  if (count) notes.push(`#${now.pull}: ${count} queued comment${count === 1 ? '' : 's'} marked stale (${why}); queue each again or drop it`);
+  if (count) notes.push(english.queue.markedStale(now.pull, count, why));
   return comments.map(c => (touched(c) ? { ...c, stale: c.stale || why } : c));
 }

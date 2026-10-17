@@ -11,6 +11,7 @@
  */
 import { readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
+import { english } from '../i18n/english.mjs';
 
 export function writeWhole(path, text, { mode = 0o644 } = {}) {
   const partial = `${path}.${process.pid}.${randomBytes(4).toString('hex')}.tmp`;
@@ -41,6 +42,6 @@ export function parseJSON(path, text) {
   try {
     return JSON.parse(text);
   } catch (error) {
-    throw new Error(`could not read ${path}: ${error.message}`);
+    throw new Error(english.store.unreadable(path, error.message));
   }
 }

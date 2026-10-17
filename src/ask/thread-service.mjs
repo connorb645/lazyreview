@@ -13,6 +13,7 @@
  */
 import { questionFor } from './question.mjs';
 import { checkBuild } from '../store/page-build.mjs';
+import { english } from '../i18n/english.mjs';
 
 export class ThreadService {
   #store;
@@ -26,11 +27,11 @@ export class ThreadService {
   }
 
   async start(ref, { path, side, line, start_line, start_side, text, build }) {
-    if (!String(text || '').trim()) throw new Error('ask something first');
-    if (!path || !['RIGHT', 'LEFT'].includes(side) || !Number.isInteger(line) || line < 1) throw new Error('a conversation needs a file, a side and a line');
+    if (!String(text || '').trim()) throw new Error(english.ask.askFirst);
+    if (!path || !['RIGHT', 'LEFT'].includes(side) || !Number.isInteger(line) || line < 1) throw new Error(english.ask.needsLine);
     const thread = await this.#store.change([ref], async () => {
       this.#reviewOf(ref);
-      checkBuild(this.#store.pageBuild(ref), build, 'not asked');
+      checkBuild(this.#store.pageBuild(ref), build, english.ask.notAsked);
       const id = Math.max(0, ...this.#store.threads(ref).map(t => t.id)) + 1;
       const fresh = {
         id, path, side, line, ...(start_line ? { start_line, start_side: start_side || side } : {}), created_at: this.#now(),
@@ -42,10 +43,10 @@ export class ThreadService {
   }
 
   async reply(ref, id, { text, build }) {
-    if (!String(text || '').trim()) throw new Error('ask something first');
+    if (!String(text || '').trim()) throw new Error(english.ask.askFirst);
     await this.#store.change([ref], async () => {
       this.#reviewOf(ref);
-      checkBuild(this.#store.pageBuild(ref), build, 'not asked');
+      checkBuild(this.#store.pageBuild(ref), build, english.ask.notAsked);
       const thread = this.#thread(ref, id);
       thread.messages.push({ from: 'you', text: text.trim(), at: this.#now() });
       return { files: [this.#write(ref, thread)], result: null };
@@ -71,13 +72,13 @@ export class ThreadService {
 
   #reviewOf(ref) {
     const review = this.#store.read(ref);
-    if (!review) throw new Error(`there is no review ${ref.id}`);
+    if (!review) throw new Error(english.review.none(ref.id));
     return review;
   }
 
   #thread(ref, id) {
     const thread = this.#store.threads(ref).find(t => t.id === id);
-    if (!thread) throw new Error(`there is no conversation ${id} on ${ref.id}`);
+    if (!thread) throw new Error(english.ask.noConversation(id, ref.id));
     return thread;
   }
 

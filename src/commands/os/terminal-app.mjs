@@ -14,6 +14,7 @@ import { spawn, execFile } from 'node:child_process';
 import { readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { english } from '../../i18n/english.mjs';
 
 const FOLDER = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'terminal');
 const BUILD_TIMEOUT = 10 * 60_000;
@@ -38,7 +39,7 @@ export class TerminalApp {
       child.once('error', reject);
       child.once('exit', (exit, signal) => resolve(signal ? 1 : exit));
     });
-    if (code !== 0) throw new Error(`the terminal app stopped with exit code ${code}`);
+    if (code !== 0) throw new Error(english.terminalApp.stopped(code));
   }
 
   /** Whether the program is missing, or older than any of its code. */
@@ -50,8 +51,8 @@ export class TerminalApp {
 
   async #build(env) {
     const done = await this.#run('go', ['build', '-mod=vendor', '-o', this.program, '.'], { cwd: this.#folder, env, timeout: BUILD_TIMEOUT });
-    if (done.code === 'ENOENT') throw new Error('the terminal app is built with Go 1.24 or later, and go is not on the PATH; install it from https://go.dev/dl');
-    if (done.code !== 0) throw new Error(`could not build the terminal app: ${done.stderr.trim()}`);
+    if (done.code === 'ENOENT') throw new Error(english.terminalApp.needsGo);
+    if (done.code !== 0) throw new Error(english.terminalApp.buildFailed(done.stderr.trim()));
   }
 }
 

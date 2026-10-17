@@ -28,6 +28,7 @@ import { readStackSteps } from './stack/stack-reader.mjs';
 import { mapStackLines } from './stack/line-map.mjs';
 import { nodePulls } from './stack/node-pulls.mjs';
 import { changedTexts, lines } from './page/whole-texts.mjs';
+import { english } from '../i18n/english.mjs';
 
 export async function buildPage({ git, base, members, baseBranch, title, subject, config, context, rootTitle, elk }) {
   const pulls = members.map(m => m.pull);
@@ -78,9 +79,8 @@ export async function buildPage({ git, base, members, baseBranch, title, subject
       warnings: stacked.warnings,
     },
   };
-  const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
   const notes = [
-    ...(whole.left.length ? [`whole text left out for ${count(whole.left.length, 'large file')}, which show their diff only: ${whole.left.join(', ')}`] : []),
+    ...(whole.left.length ? [english.loader.leftOut(whole.left)] : []),
     ...(stacked ? stacked.warnings : []),
   ];
   return { page, starts: stacked ? stacked.steps.map(s => s.start) : [diff.mergeBase], counts: counts(model), notes };

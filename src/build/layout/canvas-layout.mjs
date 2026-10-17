@@ -13,6 +13,7 @@
 import { measure, AREA_HEAD } from './sizes.mjs';
 import { sectionPoints, labelCentre, offsetRoute, roundRoute } from './geometry.mjs';
 import { shelfPack, route, START, END } from './shelf.mjs';
+import { english } from '../../i18n/english.mjs';
 
 const CANVAS_ASPECT = 1.45;
 const AREA_PAD = 90;
@@ -232,7 +233,7 @@ function summaryPairs(summary) {
   for (const s of summary) {
     const rev = byKey.get(`${s.target}>${s.source}`);
     if (rev && (rev.count > s.count || (rev.count === s.count && rev.source < s.source))) continue;
-    const words = (x, arrow) => `${arrow} ${x.label ? `${x.label} · ` : ''}${x.count} link${x.count === 1 ? '' : 's'}`;
+    const words = (x, arrow) => english.diagram.summaryLine(arrow, x.label, x.count);
     pairs.push({ fwd: s, rev: rev || null, lines: rev ? [words(s, '→'), words(rev, '←')] : [words(s, '→')] });
   }
   return pairs;

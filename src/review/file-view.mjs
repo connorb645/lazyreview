@@ -26,6 +26,7 @@ import { readHunks } from './diff-hunks.mjs';
 import { wholeText } from './page-text.mjs';
 import { markdownBlocks } from './markdown-blocks.mjs';
 import { lineEntry } from '../build/stack/line-map.mjs';
+import { english } from '../i18n/english.mjs';
 
 const MARKDOWN = /\.(md|markdown)$/i;
 
@@ -48,12 +49,12 @@ function mark(stack, path, row) {
 }
 
 function words(entry, changed, path) {
-  const at = x => `#${x.pull}, line ${x.line}${x.path !== path ? ` of ${x.path}` : ''}`;
-  if (entry.pull) return `${changed ? `Changed in #${entry.pull}.` : `Unchanged here; #${entry.pull} last changed it.`} A comment here goes on ${at(entry)}.`;
-  if (entry.none) return `No pull request in the stack can take a comment here: ${entry.none}.`;
-  if (!entry.candidates.length) return 'Unchanged, and no pull request in the stack shows this line, so it takes no comment.';
-  if (entry.candidates.length === 1) return `Unchanged. A comment here goes on ${at(entry.candidates[0])}.`;
-  return `Unchanged, and shown by ${entry.candidates.map(at).join(' and ')}. A comment here names which one it is for.`;
+  const at = x => english.stack.place(x.pull, x.line, x.path !== path ? x.path : null);
+  if (entry.pull) return (changed ? english.stack.changedIn : english.stack.lastChanged)(entry.pull, at(entry));
+  if (entry.none) return english.stack.noPull(entry.none);
+  if (!entry.candidates.length) return english.stack.noneShows;
+  if (entry.candidates.length === 1) return english.stack.oneShows(at(entry.candidates[0]));
+  return english.stack.severalShow(entry.candidates.map(at));
 }
 
 function gaps(hunks, whole) {

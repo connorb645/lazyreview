@@ -9,20 +9,19 @@
  * **main**: head **9d01c2aa**, merge base **77b0e412**, 8 commits. For a
  * branch: Branch **feature/search** on **main**: and the rest as before.
  */
+import { english } from '../../i18n/english.mjs';
+
 export function describeChange({ subject, base, headCommit, mergeBase, commits }) {
   const short = sha => sha.slice(0, 8);
-  return [...subject, ...(base ? [[' on ', false], [base, true]] : []), [': head ', false], [short(headCommit), true],
-    [', merge base ', false], [short(mergeBase), true], [`, ${commits} commit${commits === 1 ? '' : 's'}`, false]];
+  return english.diagram.change({ subject, base, head: short(headCommit), mergeBase: short(mergeBase), commits });
 }
 
 /** The subject of a pull request, or of a stack of them, bottom first. */
 export function pullsSubject(pulls) {
-  return pulls.length === 1
-    ? [['Pull request ', false], [`#${pulls[0]}`, true]]
-    : [['Stack ', false], [`#${pulls[0]}`, true], [' to ', false], [`#${pulls[pulls.length - 1]}`, true]];
+  return pulls.length === 1 ? english.diagram.pullSubject(pulls[0]) : english.diagram.stackSubject(pulls[0], pulls[pulls.length - 1]);
 }
 
 /** The subject of a branch with no pull request. */
 export function branchSubject(branch) {
-  return [['Branch ', false], [branch, true]];
+  return english.diagram.branchSubject(branch);
 }

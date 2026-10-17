@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { questionFor, SYSTEM } from '../../src/ask/question.mjs';
+import { questionFor } from '../../src/ask/question.mjs';
 import { Claude } from '../../src/commands/claude/claude.mjs';
 import { ThreadService } from '../../src/ask/thread-service.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { workbench } from '../support/workbench.mjs';
 import { PullRef } from '../../src/models/pull-ref.mjs';
+import { english } from '../../src/i18n/english.mjs';
 
 const longFile = Array.from({ length: 900 }, (_, i) => `line ${i + 1}`);
 
@@ -26,7 +27,7 @@ const single = { members: [{ pull: 12, title: 'Tidy the parser', description: 'M
 test('a question carries the pull request, the hunk around its line, the code near it, and the conversation', () => {
   const thread = { path: 'src/a.ts', side: 'RIGHT', line: 11, messages: [{ from: 'you', text: 'Why add this?' }, { from: 'claude', text: 'To log.' }, { from: 'claude', error: 'timed out' }, { from: 'you', text: 'Is it tested?' }] };
   const { system, prompt } = questionFor({ review: single, page: page(), thread });
-  assert.equal(system, SYSTEM);
+  assert.equal(system, english.ask.system);
   assert.match(prompt, /^Pull request #12: Tidy the parser\n\nIts description:\nMakes the parser shorter\./);
   assert.match(prompt, /File: src\/a\.ts \(changed\)/);
   assert.match(prompt, /They ask about line 11\./);

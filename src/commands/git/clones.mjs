@@ -13,6 +13,7 @@
  */
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { english } from '../../i18n/english.mjs';
 
 const TIMEOUT = 15 * 60_000;
 const CREDENTIALS = ['-c', 'credential.helper=', '-c', 'credential.helper=!gh auth git-credential'];
@@ -46,7 +47,7 @@ export class Clones {
 
   async #git(path, args, environment = {}) {
     const done = await this.#run(path, args, environment);
-    if (done.code !== 0) throw new Error(`git ${args.filter(a => !a.startsWith('credential') && a !== '-c')[0]} failed: ${done.stderr.trim().split('\n').pop()}`);
+    if (done.code !== 0) throw new Error(english.git.failed(args.filter(a => !a.startsWith('credential') && a !== '-c')[0], done.stderr.trim().split('\n').pop()));
     return done.stdout;
   }
 }

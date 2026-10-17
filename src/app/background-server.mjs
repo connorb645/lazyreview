@@ -13,6 +13,7 @@ import { rmSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { readJSON } from '../store/whole-file.mjs';
 import { ServerProcess } from '../commands/os/server-process.mjs';
+import { english } from '../i18n/english.mjs';
 
 const START_WAIT = 15_000;
 
@@ -43,7 +44,7 @@ export class BackgroundServer {
       if (address) return address;
       await sleep(100);
     }
-    throw new Error(`the server did not start; see ${this.#home.serverLog}`);
+    throw new Error(english.app.didNotStart(this.#home.serverLog));
   }
 
   async stop() {
