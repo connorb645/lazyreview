@@ -173,7 +173,7 @@ func (self *DiffHelper) MatchNext(s context.ContextTree, back bool) (context.Con
 // Rebuilt is a diff built again from the review in the state, shown in
 // the main panel's height.
 func (self *DiffHelper) Rebuilt(s context.ContextTree, v context.DiffContext) context.DiffContext {
-	return v.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.Filter, self.c.Helpers.Window.MainHeight(s))
+	return v.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.ShownPulls(), self.c.Helpers.Window.MainHeight(s))
 }
 
 func withRunOpen(v context.DiffContext, path, side string, line int) context.DiffContext {

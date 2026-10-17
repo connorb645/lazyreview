@@ -98,7 +98,7 @@ func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow
 	}
 	s.Diff = s.Diff.Copied()
 	s.Diff.Notes[row.Key] = true
-	s.Diff = s.Diff.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.Filter, h.Window.MainHeight(s))
+	s.Diff = s.Diff.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.ShownPulls(), h.Window.MainHeight(s))
 	if i := s.Diff.First(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
 		s.Diff = s.Diff.To(i, h.Window.MainHeight(s)).Placed(h.Window.MainHeight(s))
 	}

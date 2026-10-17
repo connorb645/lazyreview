@@ -47,7 +47,7 @@ func (a App) mouse(s context.ContextTree, msg tea.MouseMsg) (context.ContextTree
 		case context.ScreenDiff:
 			s.Diff = s.Diff.Scroll(by, at.H)
 		case context.ScreenDiagram:
-			s.Diagram = s.Diagram.Scrolled(a.c.Tr, *s.Review, 0, by, at.W, at.H, s.Filter)
+			s.Diagram = s.Diagram.Scrolled(a.c.Tr, *s.Review, 0, by, at.W, at.H, s.ShownPulls())
 		}
 		return s, nil
 	case tea.MouseButtonWheelLeft, tea.MouseButtonWheelRight:
@@ -56,7 +56,7 @@ func (a App) mouse(s context.ContextTree, msg tea.MouseMsg) (context.ContextTree
 			if msg.Button == tea.MouseButtonWheelLeft {
 				by = -6
 			}
-			s.Diagram = s.Diagram.Scrolled(a.c.Tr, *s.Review, by, 0, at.W, at.H, s.Filter)
+			s.Diagram = s.Diagram.Scrolled(a.c.Tr, *s.Review, by, 0, at.W, at.H, s.ShownPulls())
 		}
 		return s, nil
 	case tea.MouseButtonLeft:
@@ -96,7 +96,7 @@ func (a App) mainClicked(s context.ContextTree, x, y int, double bool) (context.
 	height := h.Window.MainHeight(s)
 	switch s.Screen() {
 	case context.ScreenDiagram:
-		if i := s.Diagram.BoxAt(a.c.Tr, *s.Review, x, y, s.Filter); i >= 0 {
+		if i := s.Diagram.BoxAt(a.c.Tr, *s.Review, x, y, s.ShownPulls()); i >= 0 {
 			s.Diagram.Focus = i
 			s = h.Diagram.Shown(s)
 			if double {

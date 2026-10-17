@@ -6,11 +6,7 @@ import (
 )
 
 // Dimmed says whether a box of the diagram is dimmed because the filter
-// shows none of the pull requests that changed it. A component or a
-// package is never dimmed.
+// shows none of the pull requests that changed it, or anything it holds.
 func Dimmed(card diagram.Card, filter types.PullFilter) bool {
-	if card.Kind == "component" || card.Kind == "package" {
-		return false
-	}
 	return !filter.ShowsAny(card.Pulls)
 }

@@ -116,6 +116,15 @@ func (t Theme) Visual(line string, width int) string {
 	return t.under(line, t.VisualSelectionBg)
 }
 
+// Out marks a line of what the filter leaves out: with no colour, a dot in
+// its first cell, where its faint words would otherwise look like the rest.
+func (t Theme) Out(line string) string {
+	if t.Plain && strings.HasPrefix(line, " ") {
+		return "·" + line[1:]
+	}
+	return line
+}
+
 func (t Theme) under(line, on string) string {
 	for _, reset := range []string{"\x1b[0m", "\x1b[m", "\x1b[49m"} {
 		line = strings.ReplaceAll(line, reset, reset+on)

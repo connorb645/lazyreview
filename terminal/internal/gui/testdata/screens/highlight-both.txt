@@ -1,5 +1,5 @@
 ╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
-│ All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
+│┃All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
 │┃#21 Add search to the catalog ││ reviewed together                                               ▐
 │▌#22 Add a basket that uses se…││ Search, then a basket                                           ▐
 ╰───────────────VISUAL · 3 of 3─╯│  #21  Add search to the catalog                                 ▐
@@ -8,23 +8,23 @@
 │   ▾ Sources/Basket            ││       by sam · on feature/search · head cd3c7027                ▐
 │     M Basket.swift          ● ││       2 files +4 −1                                             ▐
 │   ▾ Sources/Catalog           ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            ▐
-│     M MemoryCatalog.swift   ● ││ Showing #21 and #22 only. Esc in the Review panel shows the     ▐
-│     A Search.swift          ● ││ whole stack.                                                    ▐
-│   ▾ web/src                   ││                                                                 ▐
-│     M cart.ts               ● ││ ▾ What this changes                                             ▐
-│ ▾ ■ Unchanged code  unchanged ││   #21 adds a search over the catalog in Search.swift:4. #22     │
-╰───────────────────────1 of 10─╯│   gives the basket a search of its own, in Basket.swift:7.      │
-╭─[3]─Notes─────────────────────╮│   [Likely]                                                      │
-│ Queued                      2 ││   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
-│ 1 MemoryCatalog.swift:8-… #21 ││   → Basket.swift:7  Sources/Basket/Basket.swift line 7          │
-│ 2 Basket.swift:9-11       #22 ││                                                                 │
-│ Claude                      1 ││ ▾ Risks                                                         │
-│ Basket.swift:7 Could this be …││   MemoryCatalog.swift:9 appends without checking for            │
-│ On GitHub                   2 ││   duplicates. [Guessing]                                        │
-╰────────────────────────1 of 5─╯│   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
-╭─[4]─Diagram───────────────────╮│                                                                 │
-│ Components                    ││ ▾ Queued comments                                               │
-│ ■ widgets                     ││ A comment goes on the pull request that last changed its line,  │
-│ ■ Unchanged code              ││ shown as → #number.                                             │
+│     M MemoryCatalog.swift   ● ││                                                                 ▐
+│     A Search.swift          ● ││ ▾ What this changes                                             ▐
+│   ▾ web/src                   ││   #21 adds a search over the catalog in Search.swift:4. #22     ▐
+│     M cart.ts               ● ││   gives the basket a search of its own, in Basket.swift:7.      ▐
+│ ▾ ■ Unchanged code  unchanged ││   [Likely]                                                      │
+╰───────────────────────1 of 10─╯│   → Search.swift:4  Sources/Catalog/Search.swift line 4         │
+╭─[3]─Notes─────────────────────╮│   → Basket.swift:7  Sources/Basket/Basket.swift line 7          │
+│ Queued                      2 ││                                                                 │
+│ 1 MemoryCatalog.swift:8-… #21 ││ ▾ Risks                                                         │
+│ 2 Basket.swift:9-11       #22 ││   MemoryCatalog.swift:9 appends without checking for            │
+│ Claude                      1 ││   duplicates. [Guessing]                                        │
+│ Basket.swift:7 Could this be …││   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
+│ On GitHub                   2 ││                                                                 │
+╰────────────────────────1 of 5─╯│ ▾ Queued comments                                               │
+╭─[4]─Diagram───────────────────╮│ A comment goes on the pull request that last changed its line,  │
+│ Components                    ││ shown as → #number.                                             │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││  #21  Add search to the catalog                                 │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
  Grow, shrink: j k | All: Esc | Panels: h l | Keys: Space ?

@@ -57,7 +57,7 @@ func drawRow(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v Di
 	case "block":
 		return []string{mark + blockLine(v, i, th)}
 	case "file":
-		return []string{mark + fileHeader(tr, d, v, r, th)}
+		return []string{mark + fileHeader(tr, d, v, r, filter, th)}
 	case "hunk":
 		return []string{mark + "  " + th.Muted.Render(r.Text)}
 	case "gap":
@@ -119,7 +119,7 @@ func noteLine(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v D
 	return indent + "  " + style.Render(r.Text)
 }
 
-func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffRow, th theme.Theme) string {
+func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffRow, filter types.PullFilter, th theme.Theme) string {
 	fold := "▾"
 	if v.Folded[r.Path] {
 		fold = "▸"
@@ -138,7 +138,8 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 	if entry.Status == "" {
 		tail += "  " + th.Muted.Render(utils.Plural(entry.Lines, tr.LineNoun))
 	} else {
-		tail += "  " + th.Added.Render(fmt.Sprintf("+%d", entry.Adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", entry.Dels))
+		adds, dels := filter.Lines(entry)
+		tail += "  " + th.Added.Render(fmt.Sprintf("+%d", adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", dels))
 	}
 	path := r.Path
 	if room := v.Width - 1 - ansi.StringWidth(head+tail); room > 0 {
@@ -153,7 +154,7 @@ func unifiedRow(d types.ReviewData, v DiffView, r DiffRow, mark string, filter t
 	if r.Added {
 		sign = "+"
 	}
-	head := mark + stripe(d, l, th) + th.Muted.Render(fmt.Sprintf("%4s %4s ", number(l.Old), number(l.New)))
+	head := mark + stripe(d, l, filter, th) + th.Muted.Render(fmt.Sprintf("%4s %4s ", number(l.Old), number(l.New)))
 	style := rowStyle(l, r.Added, filter, th)
 	body := v.Width - gutter
 	texts := cut(ExpandTabs(l.Text), body, v.Wrap)
@@ -206,18 +207,22 @@ func splitRow(d types.ReviewData, v DiffView, r DiffRow, mark string, filter typ
 		}
 		lead := "  "
 		if i == 0 {
-			lead = mark + stripe(d, owner, th)
+			lead = mark + stripe(d, owner, filter, th)
 		}
 		out = append(out, lead+a+th.Muted.Render("│")+b)
 	}
 	return out
 }
 
-func stripe(d types.ReviewData, l *server.Row, th theme.Theme) string {
+func stripe(d types.ReviewData, l *server.Row, filter types.PullFilter, th theme.Theme) string {
 	if l == nil || l.Owner == 0 || l.Kind == "same" {
 		return " "
 	}
-	return th.PullRequest(MemberColor(d.State, l.Owner)).Render("▎")
+	bar := "▎"
+	if !filter.Shows(l.Owner) {
+		bar = "·"
+	}
+	return th.PullRequest(MemberColor(d.State, l.Owner)).Render(bar)
 }
 
 func rowStyle(l *server.Row, added bool, filter types.PullFilter, th theme.Theme) lipgloss.Style {

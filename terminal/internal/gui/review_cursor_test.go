@@ -211,8 +211,8 @@ func TestTheFiltersRowsAreLitSoAPanelWithoutTheKeysShowsThem(t *testing.T) {
 		t.Fatalf("with no colour, the Review panel without the keys does not mark #22:\n%s", a.View())
 	}
 	a = press(t, a, "1", "k", "v", "j")
-	if got := litKeys(a); got != "pull:21 pull:22" {
-		t.Fatalf("a highlight of two lights %q", got)
+	if got := litKeys(a); got != "all pull:21 pull:22" {
+		t.Fatalf("a highlight of both, the whole stack, lights %q", got)
 	}
 }
 

@@ -1,7 +1,7 @@
 ╭─[1]─Review────────────────────╮╭─[0]─Diff · widgets › Sources/Catalog/MemoryCatalog.swift────────╮
-│ All                           ││▌▎       10 +     }                                              │
+│·All                           ││▌▎       10 +     }                                              │
 │┃#21 Add search to the catalog ││              ▾ Queued 1 → #21 · lines 8-10      e edit  dd drop │
-│ #22 Add a basket that uses se…││                Keep the order items came in.                    │
+│·#22 Add a basket that uses se…││                Keep the order items came in.                    │
 ╰────────────────────────2 of 3─╯│     7   11   }                                                  │
 ╭─[2]─Files─────────────────────╮│  ▾ Sources/Catalog/Search.swift  new  #21  +7 −0                │
 │ ▾ ■ widgets            +11 −0 ││   @@ -0,0 +1,7 @@                                               │
@@ -23,7 +23,7 @@
 ╭─[4]─Diagram───────────────────╮│                                                                 │
 │ Components                    ││                                                                 │
 │ ■ widgets                     ││                                                                 │
-│ ■ Unchanged code              ││                                                                 │
+│·■ Unchanged code              ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │
 ╰────────────────────────1 of 2─╯╰──line 10 · Changed in #21. A comment here goes on #21, line 10.─╯

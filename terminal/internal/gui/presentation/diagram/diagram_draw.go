@@ -85,7 +85,7 @@ func Draw(tr *i18n.TranslationSet, d types.ReviewData, v Scene, filter types.Pul
 		}
 	}
 	for i, card := range lvl.Cards {
-		drawCard(c, d, lvl, card, model.StateWord(tr, card.State), g.Spots[i], tops[g.Spots[i].Row], i == v.Focus, presentation.Dimmed(card, filter), labels[i])
+		drawCard(c, d, lvl, card, presentation.CardDetail(tr, d, lvl, card, filter), model.StateWord(tr, card.State), g.Spots[i], tops[g.Spots[i].Row], i == v.Focus, presentation.Dimmed(card, filter), labels[i])
 	}
 	for _, pass := range []func(route) bool{isFaint, isPlain, isLit} {
 		for _, r := range routes {
@@ -561,7 +561,7 @@ func drawAreas(c views.Canvas, d types.ReviewData, lvl model.Level, g model.Grid
 	}
 }
 
-func drawCard(c views.Canvas, d types.ReviewData, lvl model.Level, card model.Card, state string, s model.Spot, y int, focused, dim bool, label string) {
+func drawCard(c views.Canvas, d types.ReviewData, lvl model.Level, card model.Card, detail, state string, s model.Spot, y int, focused, dim bool, label string) {
 	x, w := s.Col, s.Width
 	border := "border"
 	if lvl.Kind == "components" {
@@ -574,6 +574,8 @@ func drawCard(c views.Canvas, d types.ReviewData, lvl model.Level, card model.Ca
 	switch {
 	case focused:
 		border, h, v, tl, tr, bl, br = "focus", '━', '┃', '┏', '┓', '┗', '┛'
+	case dim:
+		h, v, tl, tr, bl, br = '·', '·', '·', '·', '·', '·'
 	case card.Context:
 		h, v = '┄', '┆'
 	}
@@ -583,7 +585,7 @@ func drawCard(c views.Canvas, d types.ReviewData, lvl model.Level, card model.Ca
 		}
 	}
 	box(c, x, y, x+w-1, y+model.CardHeight-1, border, tl, tr, bl, br, h, v)
-	if len(card.Pulls) > 0 && d.Page.Stack != nil && !focused && !dim {
+	if (card.Kind == "type" || card.Kind == "file") && len(card.Pulls) > 0 && d.Page.Stack != nil && !focused && !dim {
 		inner := w - 2
 		for i, pull := range card.Pulls {
 			from, to := x+1+inner*i/len(card.Pulls), x+1+inner*(i+1)/len(card.Pulls)
@@ -601,7 +603,10 @@ func drawCard(c views.Canvas, d types.ReviewData, lvl model.Level, card model.Ca
 	}
 	room := w - 4
 	c.Text(x+2, y+1, utils.FitTitle(card.Title, room), titleStyle)
-	c.Text(x+2, y+2, ansi.Truncate(card.Detail, room-ansi.StringWidth(state)-1, "…"), detailStyle)
+	if state != "" {
+		room -= ansi.StringWidth(state) + 1
+	}
+	c.Text(x+2, y+2, ansi.Truncate(detail, room, "…"), detailStyle)
 	if state != "" {
 		stateStyle := "state:" + card.State
 		if dim {

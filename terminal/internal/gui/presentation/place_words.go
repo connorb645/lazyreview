@@ -54,13 +54,14 @@ func DiffRowWords(tr *i18n.TranslationSet, d types.ReviewData, r DiffRow) string
 }
 
 // BoxWords say what a box of the diagram is, for the main panel's foot: its
-// kind and details, or a type's file, state and pull requests.
-func BoxWords(tr *i18n.TranslationSet, d types.ReviewData, card diagram.Card, width int) string {
+// kind and details under the filter, or a type's file, state and pull
+// requests.
+func BoxWords(tr *i18n.TranslationSet, d types.ReviewData, l diagram.Level, card diagram.Card, filter types.PullFilter, width int) string {
 	switch card.Kind {
 	case "component":
-		return card.Title + " · " + tr.ComponentNoun + " · " + card.Detail
+		return card.Title + " · " + tr.ComponentNoun + " · " + CardDetail(tr, d, l, card, filter)
 	case "package":
-		return utils.FitPathIn("", card.Title, " · "+tr.PackageNoun+" · "+card.Detail, width)
+		return utils.FitPathIn("", card.Title, " · "+tr.PackageNoun+" · "+CardDetail(tr, d, l, card, filter), width)
 	case "group":
 		return card.Title + " · " + card.Detail
 	}

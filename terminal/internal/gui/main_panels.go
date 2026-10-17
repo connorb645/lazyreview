@@ -20,11 +20,11 @@ func (a App) mainBox(r views.Rect, focused bool) []string {
 		again := utils.ResolvePlaceholderString(tr.TryAgainOrQuit, map[string]string{"refresh": labels.Of("refresh"), "command": labels.Of("command")})
 		content = []string{"", " " + th.Bad.Render(a.Failed), "", " " + th.Muted.Render(again)}
 	case a.Screen() == context.ScreenDiff:
-		content, shown = presentation.DiffLines(tr, th, a.controllers.Labels(context.DiffKey), *a.Review, a.Diff.DiffView, in.H, a.Filter, focused), a.Diff.Extent()
+		content, shown = presentation.DiffLines(tr, th, a.controllers.Labels(context.DiffKey), *a.Review, a.Diff.DiffView, in.H, a.ShownPulls(), focused), a.Diff.Extent()
 	case a.Screen() == context.ScreenDiagram && len(a.Diagram.Level.Cards) == 0:
 		content = []string{"", " " + th.Muted.Render(tr.NothingToDraw)}
 	case a.Screen() == context.ScreenDiagram:
-		content, shown = a.Diagram.Lines(tr, *a.Review, in.W, in.H, a.Filter, a.styles)
+		content, shown = a.Diagram.Lines(tr, *a.Review, in.W, in.H, a.ShownPulls(), a.styles)
 	default:
 		v := a.ReviewView.View
 		for i := v.Top; i < v.Top+in.H && i < len(v.Lines); i++ {
@@ -72,7 +72,7 @@ func (a App) placeWords(width int) string {
 		return ""
 	case context.ScreenDiagram:
 		if card, ok := a.Diagram.Card(); ok {
-			return presentation.BoxWords(a.c.Tr, *a.Review, card, width)
+			return presentation.BoxWords(a.c.Tr, *a.Review, a.Diagram.Level, card, a.ShownPulls(), width)
 		}
 		return a.c.Tr.NothingToDrawHere
 	}

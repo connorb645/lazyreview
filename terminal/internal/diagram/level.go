@@ -3,6 +3,7 @@ package diagram
 import (
 	"fmt"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
@@ -34,7 +35,13 @@ func (l Level) Index(id string) int {
 func Components(tr *i18n.TranslationSet, page server.Page) Level {
 	l := Level{Kind: "components"}
 	for _, c := range page.Model.Components {
-		l.Cards = append(l.Cards, Card{ID: c.ID, Kind: "component", Title: c.Title, Detail: componentDetail(tr, page, c), Context: c.Context, Area: c.Area, Box: page.Layout.Components[c.ID]})
+		var pulls [][]int
+		for _, f := range page.Model.Files {
+			if f.Component == c.ID {
+				pulls = append(pulls, f.Pulls)
+			}
+		}
+		l.Cards = append(l.Cards, Card{ID: c.ID, Kind: "component", Title: c.Title, Detail: ComponentDetail(tr, page, c, everything, wholeLines), Pulls: union(pulls...), Context: c.Context, Area: c.Area, Box: page.Layout.Components[c.ID]})
 	}
 	for _, s := range page.Layout.Summaries {
 		words := strings.Join(s.Lines, " · ")
@@ -64,7 +71,13 @@ func Packages(tr *i18n.TranslationSet, page server.Page, component string) (Leve
 			if title == "" {
 				title = p.Path
 			}
-			l.Cards = append(l.Cards, Card{ID: p.ID, Kind: "package", Title: title, Detail: packageDetail(tr, page, component, p), Context: c.Context, Box: box})
+			var pulls [][]int
+			for _, n := range page.Model.Nodes {
+				if n.Component == component && n.Package == p.ID {
+					pulls = append(pulls, n.Pulls)
+				}
+			}
+			l.Cards = append(l.Cards, Card{ID: p.ID, Kind: "package", Title: title, Detail: PackageDetail(tr, page, c, p, everything), Pulls: union(pulls...), Context: c.Context, Box: box})
 		}
 	}
 	for _, a := range page.Layout.PkgArrows {
@@ -101,6 +114,8 @@ func Types(tr *i18n.TranslationSet, page server.Page, component, pkg string) Lev
 				detail := utils.ResolvePlaceholderString(tr.GroupOf, map[string]string{"count": utils.Itoa(len(g.Members))})
 				l.Cards = append(l.Cards, Card{ID: id, Kind: "group", Title: g.Title, Detail: detail, State: n.State, Members: g.Members, Box: page.Layout.Boxes[id]})
 			}
+			card := &l.Cards[l.Index(id)]
+			card.Pulls = union(card.Pulls, n.Pulls)
 			continue
 		}
 		cardOf[n.ID] = n.ID
@@ -192,7 +207,10 @@ func outside(tr *i18n.TranslationSet, page server.Page, n server.Node) (string, 
 	return name + " · " + in, name, place
 }
 
-func componentDetail(tr *i18n.TranslationSet, page server.Page, c server.Component) string {
+// ComponentDetail is a component card's second line: an unchanged
+// component's count of files, or a changed one's count of the files shows
+// takes and the lines that lines counts of them.
+func ComponentDetail(tr *i18n.TranslationSet, page server.Page, c server.Component, shows func(pulls []int) bool, lines func(f server.FileEntry) (int, int)) string {
 	if c.Context {
 		n := 0
 		for _, f := range page.Model.ContextFiles {
@@ -204,28 +222,53 @@ func componentDetail(tr *i18n.TranslationSet, page server.Page, c server.Compone
 	}
 	n, adds, dels := 0, 0, 0
 	for _, f := range page.Model.Files {
-		if f.Component == c.ID {
-			n, adds, dels = n+1, adds+f.Adds, dels+f.Dels
+		if f.Component == c.ID && shows(f.Pulls) {
+			a, d := lines(f)
+			n, adds, dels = n+1, adds+a, dels+d
 		}
+	}
+	if n == 0 {
+		return count(n, tr.FileNoun)
 	}
 	return fmt.Sprintf("%s +%d −%d", count(n, tr.FileNoun), adds, dels)
 }
 
-func packageDetail(tr *i18n.TranslationSet, page server.Page, component string, p server.Package) string {
-	types, files := 0, 0
+// PackageDetail is a package card's second line: the count of its types
+// that shows takes, or of its files when it holds no types; every one in an
+// unchanged component.
+func PackageDetail(tr *i18n.TranslationSet, page server.Page, c server.Component, p server.Package, shows func(pulls []int) bool) string {
+	types, files, holdsTypes := 0, 0, false
 	for _, n := range page.Model.Nodes {
-		if n.Component == component && n.Package == p.ID {
-			if n.Kind == "artifact" {
-				files++
-			} else {
-				types++
-			}
+		if n.Component != c.ID || n.Package != p.ID {
+			continue
+		}
+		holdsTypes = holdsTypes || n.Kind != "artifact"
+		if !c.Context && !shows(n.Pulls) {
+			continue
+		}
+		if n.Kind == "artifact" {
+			files++
+		} else {
+			types++
 		}
 	}
-	if types == 0 {
+	if !holdsTypes {
 		return count(files, tr.FileNoun)
 	}
 	return count(types, tr.TypeNoun)
+}
+
+func everything([]int) bool { return true }
+
+func wholeLines(f server.FileEntry) (int, int) { return f.Adds, f.Dels }
+
+func union(lists ...[]int) []int {
+	var out []int
+	for _, l := range lists {
+		out = append(out, l...)
+	}
+	slices.Sort(out)
+	return slices.Compact(out)
 }
 
 func count(n int, word string) string {

@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
@@ -113,7 +114,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels K
 	}
 	section("change", tr.TheChange, utils.Plural(len(components), tr.ComponentNoun), func() {
 		for _, c := range components {
-			b.add(Item{Kind: "component", Title: c.Title, Section: "change", Component: c.ID}, "   "+th.Component(c.Color).Render("■ ")+th.Text.Render(c.Title)+"  "+th.Muted.Render(componentWords(tr, d, c, filter)))
+			b.add(Item{Kind: "component", Title: c.Title, Section: "change", Component: c.ID}, "   "+th.Component(c.Color).Render("■ ")+th.Text.Render(c.Title)+"  "+th.Muted.Render(diagram.ComponentDetail(tr, d.Page, c, filter.ShowsAny, filter.Lines)))
 		}
 	})
 	return b.lines, b.items
@@ -338,23 +339,4 @@ func changeTotals(tr *i18n.TranslationSet, th theme.Theme, files []server.FileEn
 		dels += f.Dels
 	}
 	return th.Muted.Render(utils.Plural(len(files), tr.FileNoun)+" ") + th.Added.Render(fmt.Sprintf("+%d", adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", dels))
-}
-
-func componentWords(tr *i18n.TranslationSet, d types.ReviewData, c server.Component, filter types.PullFilter) string {
-	if c.Context {
-		n := 0
-		for _, f := range d.Page.Model.ContextFiles {
-			if f.Component == c.ID {
-				n++
-			}
-		}
-		return utils.Plural(n, tr.FileNoun) + " · " + tr.Unchanged
-	}
-	n, adds, dels := 0, 0, 0
-	for _, f := range d.Page.Model.Files {
-		if f.Component == c.ID && filter.ShowsAny(f.Pulls) {
-			n, adds, dels = n+1, adds+f.Adds, dels+f.Dels
-		}
-	}
-	return fmt.Sprintf("%s +%d −%d", utils.Plural(n, tr.FileNoun), adds, dels)
 }

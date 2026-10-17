@@ -1,6 +1,10 @@
 package types
 
-import "slices"
+import (
+	"slices"
+
+	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+)
 
 // PullFilter is the pull requests of a stack the screen shows, a run of
 // them bottom first, or every one when it is empty.
@@ -31,4 +35,28 @@ func (f PullFilter) Within(stack []int) PullFilter {
 		}
 	}
 	return kept
+}
+
+// Lines are the lines of a file the filter shows: all it adds and removes,
+// or those its pull requests added and removed.
+func (f PullFilter) Lines(e server.FileEntry) (adds, dels int) {
+	if len(f) == 0 {
+		return e.Adds, e.Dels
+	}
+	for _, pull := range f {
+		own := e.ByPull[pull]
+		adds, dels = adds+own[0], dels+own[1]
+	}
+	return adds, dels
+}
+
+// Over is the filter over a stack's pull requests: none, the whole stack,
+// when it holds every one of them.
+func (f PullFilter) Over(stack []int) PullFilter {
+	for _, pull := range stack {
+		if !slices.Contains(f, pull) {
+			return f
+		}
+	}
+	return nil
 }

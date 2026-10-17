@@ -220,13 +220,17 @@ lists them all. A count goes before a move in the main panel, such as `5j` or
 On a stack, the Review panel lists All, then each pull request, and its
 cursor chooses what the other panels show. On All they show the whole stack.
 On a pull request, Files, Notes, Diagram and the main panel show only what it
-changed, at once. To read a run of pull requests together, `v` starts a
+changed, at once, and each count of files and lines counts only that, as the
+web app's do. To read a run of pull requests together, `v` starts a
 highlight on the pull request selected, and `j` and `k` grow or shrink it, as
 Vim's visual mode highlights lines. What the cursor or the highlight chose
 stays as you move to other panels, and when the review loads again. Back in
 the Review panel, `j` and `k` choose again, and `Esc` goes back to All. `]p`
-and `[p` move the cursor from any panel. A comment still goes to the pull
-request that last changed its line.
+and `[p` move the cursor from any panel. A run of every pull request is the
+whole stack. What the filter leaves out is dim: a box of the diagram has a
+dotted outline, and a line of the diff a dot in place of its bar. With no
+colour, a row of a panel on the left that it leaves out starts with `·`. A
+comment still goes to the pull request that last changed its line.
 
 Every panel:
 

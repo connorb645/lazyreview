@@ -41,24 +41,25 @@ func heading(text, right string, th theme.Theme) SideRow {
 }
 
 // ReviewRows are the Review panel's rows: on a stack All, then its pull
-// requests, those the filter shows lit and the others dimmed; or the pull
-// request, or the branch.
+// requests, those the filter holds lit and those it leaves out dimmed, All
+// lit while the whole stack shows; or the pull request, or the branch.
 func ReviewRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, filter types.PullFilter) []SideRow {
 	s := d.State
 	if s.Kind == "branch" {
 		return []SideRow{{Key: "branch", Text: th.Text.Render(s.Head.Ref) + th.Muted.Render(" → "+s.Base.Ref), Item: Item{Kind: "branch"}}}
 	}
 	var rows []SideRow
+	shown := filter.Over(StackPulls(d))
 	if d.Page.Stack != nil {
 		all := th.Text
-		if len(filter) > 0 {
+		if len(shown) > 0 {
 			all = th.Faint
 		}
-		rows = append(rows, SideRow{Key: AllKey, Text: all.Render(tr.All), Lit: len(filter) == 0, Item: Item{Kind: "all"}})
+		rows = append(rows, SideRow{Key: AllKey, Text: all.Render(tr.All), Lit: len(shown) == 0, Out: len(shown) > 0, Item: Item{Kind: "all"}})
 	}
 	for _, m := range s.Members {
 		number, title := th.PullRequest(m.Color), th.Text
-		if !filter.Shows(m.Pull) {
+		if !shown.Shows(m.Pull) {
 			number, title = th.Faint, th.Faint
 		}
 		right := ""
@@ -66,7 +67,7 @@ func ReviewRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, fil
 			right = th.Muted.Render(m.State)
 		}
 		rows = append(rows, SideRow{Key: PullKey(m.Pull), Text: number.Render(fmt.Sprintf("#%d", m.Pull)) + " " + title.Render(m.Title), Right: right,
-			Lit: slices.Contains(filter, m.Pull), Item: Item{Kind: "pull", Pull: m.Pull, URL: m.URL, Title: m.Title}})
+			Lit: slices.Contains(filter, m.Pull), Out: !shown.Shows(m.Pull), Item: Item{Kind: "pull", Pull: m.Pull, URL: m.URL, Title: m.Title}})
 	}
 	return rows
 }
@@ -85,7 +86,8 @@ func FileRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, folde
 		if !c.Context {
 			adds, dels := 0, 0
 			for _, f := range files {
-				adds, dels = adds+f.Adds, dels+f.Dels
+				a, d := filter.Lines(f)
+				adds, dels = adds+a, dels+d
 			}
 			right = th.Added.Render(fmt.Sprintf("+%d", adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", dels))
 		}
@@ -282,7 +284,7 @@ func BoxRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, l diag
 			title = th.Faint
 		}
 		at := types.DiagramPlace{Level: l.Kind, Component: l.Component, Package: l.Package, Box: card.ID}
-		rows = append(rows, SideRow{Key: BoxKey(card.ID), Text: mark, Title: card.Title, TitleStyle: title, Right: stateStyle.Render(diagram.StateWord(tr, card.State)), Item: Item{Kind: "box", Box: &at}})
+		rows = append(rows, SideRow{Key: BoxKey(card.ID), Text: mark, Title: card.Title, TitleStyle: title, Right: stateStyle.Render(diagram.StateWord(tr, card.State)), Out: Dimmed(card, filter), Item: Item{Kind: "box", Box: &at}})
 	}
 	return rows
 }

@@ -30,10 +30,10 @@ func (self *RefreshHelper) Relaid(s context.ContextTree) context.ContextTree {
 		s = self.c.Helpers.Diagram.Shown(s)
 	case s.Screen() == context.ScreenDiff && s.Diff.Files != nil:
 		s.Diff.Width = window.MainWidth(s)
-		s.Diff = s.Diff.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.Filter, h)
+		s.Diff = s.Diff.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.ShownPulls(), h)
 	}
 	labels := self.c.KeyLabels(context.ReviewPanelKey)
-	s.ReviewView = s.ReviewView.Rebuilt(self.c.Tr, self.c.Theme, self.c.Markdown, labels, self.c.Location, *s.Review, s.Filter, window.MainWidth(s), h)
+	s.ReviewView = s.ReviewView.Rebuilt(self.c.Tr, self.c.Theme, self.c.Markdown, labels, self.c.Location, *s.Review, s.ShownPulls(), window.MainWidth(s), h)
 	return self.Mirrored(s)
 }
 
@@ -41,12 +41,12 @@ func (self *RefreshHelper) Relaid(s context.ContextTree) context.ContextTree {
 // built again, each keeping its selection, the Review panel's on the
 // filter, shown in its height.
 func (self *RefreshHelper) SidesBuilt(s context.ContextTree) context.ContextTree {
-	d, tr, th := *s.Review, self.c.Tr, self.c.Theme
+	d, tr, th, shown := *s.Review, self.c.Tr, self.c.Theme, s.ShownPulls()
 	built := [context.SideCount + 1][]presentation.SideRow{
 		context.ReviewPanel:  presentation.ReviewRows(tr, th, d, s.Filter),
-		context.FilesPanel:   presentation.FileRows(tr, th, d, s.FilesPanel.Folded, s.Filter),
-		context.NotesPanel:   presentation.NoteListRows(tr, th, d, s.Filter),
-		context.DiagramPanel: presentation.BoxRows(tr, th, d, s.Diagram.Level, s.Diagram.Grid, s.Filter),
+		context.FilesPanel:   presentation.FileRows(tr, th, d, s.FilesPanel.Folded, shown),
+		context.NotesPanel:   presentation.NoteListRows(tr, th, d, shown),
+		context.DiagramPanel: presentation.BoxRows(tr, th, d, s.Diagram.Level, s.Diagram.Grid, shown),
 	}
 	for n := context.ReviewPanel; n <= context.SideCount; n++ {
 		s = s.WithSide(n, s.Side(n).Reset(built[n]))

@@ -53,7 +53,7 @@ func (self *DiagramHelper) ShowBox(s context.ContextTree, at types.DiagramPlace)
 // Shown is the state with the diagram scrolled to show the box in focus.
 func (self *DiagramHelper) Shown(s context.ContextTree) context.ContextTree {
 	window := self.c.Helpers.Window
-	s.Diagram = s.Diagram.ShownIn(self.c.Tr, *s.Review, window.MainWidth(s), window.MainHeight(s), s.Filter)
+	s.Diagram = s.Diagram.ShownIn(self.c.Tr, *s.Review, window.MainWidth(s), window.MainHeight(s), s.ShownPulls())
 	return s
 }
 

@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/keys"
 )
@@ -43,4 +44,13 @@ type GlobalContext struct {
 	Live       <-chan tea.Msg
 	StopLive   stdcontext.CancelFunc
 	LiveFor    string
+}
+
+// ShownPulls are the pull requests the screen shows: the filter, or none,
+// the whole stack, when it holds every pull request of the stack.
+func (g GlobalContext) ShownPulls() types.PullFilter {
+	if g.Review == nil {
+		return g.Filter
+	}
+	return g.Filter.Over(presentation.StackPulls(*g.Review))
 }

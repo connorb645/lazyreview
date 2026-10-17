@@ -33,6 +33,9 @@ func TestTheColourScreens(t *testing.T) {
 		{"diagram-types", func(t *testing.T, open func(string, ...func(*Options)) App) App {
 			return press(t, open(stack), "space", "m", "enter", "enter")
 		}},
+		{"diagram-types-filtered", func(t *testing.T, open func(string, ...func(*Options)) App) App {
+			return press(t, open(stack), "j", "space", "m", "enter", "enter")
+		}},
 		{"home", func(t *testing.T, open func(string, ...func(*Options)) App) App {
 			return press(t, open("", func(o *Options) { o.Home = "/home/reviewer" }), "j")
 		}},

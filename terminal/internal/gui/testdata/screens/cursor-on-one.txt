@@ -1,7 +1,7 @@
 ╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
-│ All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
+│·All                           ││ A stack of 2 pull requests, each built on the one before,       ▐
 │▌#21 Add search to the catalog ││ reviewed together                                               ▐
-│ #22 Add a basket that uses se…││ Search, then a basket                                           ▐
+│·#22 Add a basket that uses se…││ Search, then a basket                                           ▐
 ╰────────────────────────2 of 3─╯│  #21  Add search to the catalog                                 ▐
 ╭─[2]─Files─────────────────────╮│       by sam · on main · head ec6fb42d · 2 files +11 −0         ▐
 │ ▾ ■ widgets            +11 −0 ││  #22  Add a basket that uses search                             ▐
@@ -23,7 +23,7 @@
 ╭─[4]─Diagram───────────────────╮│   duplicates. [Guessing]                                        │
 │ Components                    ││   → MemoryCatalog.swift:9  Sources/Catalog/MemoryCatalog.swift …│
 │ ■ widgets                     ││                                                                 │
-│ ■ Unchanged code              ││ ▾ Queued comments                                               │
+│·■ Unchanged code              ││ ▾ Queued comments                                               │
 │                               ││ A comment goes on the pull request that last changed its line,  │
 │                               ││ shown as → #number.                                             │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯

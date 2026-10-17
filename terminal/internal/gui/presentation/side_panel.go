@@ -10,18 +10,26 @@ import (
 )
 
 // SideContent draws a side panel's rows from its first one shown into the
-// inside of its frame, the cursor's row selected and the highlight's rows
-// lit, and says where the cursor is among the rows, such as "2 of 5".
+// inside of its frame, the cursor's row selected, the highlight's rows lit
+// and those the filter leaves out marked, and says where the cursor is
+// among the rows, such as "2 of 5".
 func SideContent(tr *i18n.TranslationSet, th theme.Theme, rows []SideRow, cursor, top int, in views.Rect, focused bool) ([]string, string) {
 	var content []string
 	for i := top; i < top+in.H && i < len(rows); i++ {
 		row := rows[i]
 		line := sideLine(row, in.W)
 		switch {
-		case i == cursor && !row.Heading && (focused || !row.Lit):
-			line = th.Selected(line, in.W, focused)
+		case i == cursor && !row.Heading && focused:
+			line = th.Selected(line, in.W, true)
 		case row.Lit:
 			line = th.Visual(line, in.W)
+		default:
+			if row.Out {
+				line = th.Out(line)
+			}
+			if i == cursor && !row.Heading {
+				line = th.Selected(line, in.W, false)
+			}
 		}
 		content = append(content, line)
 	}
