@@ -21,6 +21,7 @@ const named = (kind, id, number) => `${kind} ${id === null ? number : `"${id}"`}
 const capital = words => `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
 const grouped = count => Number(count).toLocaleString('en-GB');
 const counted = (count, one) => `${grouped(count)} ${count === 1 ? one : `${one}s`}`;
+const shown = value => JSON.stringify(value);
 
 const USAGE = `usage: lazyreview <command> [options]
 
@@ -45,7 +46,15 @@ const USAGE = `usage: lazyreview <command> [options]
                          at the address load printed, or the one holding a
                          pull request link, which loads it first when no
                          review holds it yet; with no link, the open pull
-                         requests of the accounts in settings.json
+                         requests of the accounts in the config
+  config path            where the config file is, or would be, and whether
+                         it exists
+  config defaults        the default config, saying what each setting does
+  config check           every setting's value, and where it came from: the
+                         default, the config file or a variable
+  config move [--check]  move settings.json and the LAZYREVIEW_ variables
+                         into the config file, once; --check shows what it
+                         would do, and writes nothing
   serve                  run the app in this terminal
   start                  run the app in the background
   stop                   stop the app running in the background
@@ -84,6 +93,8 @@ export const english = frozen({
     loading: url => `loading ${url}…`,
     noReview: text => `there is no review ${text}; lazyreview list shows every review`,
     configUnreadable: (path, why) => `could not read the config ${path}: ${why}`,
+    configNeeds: (given, commands) => `config needs one of ${commands.slice(0, -1).join(', ')} or ${commands.at(-1)}${given ? `, not "${given}"` : ''}`,
+    checkIsForMove: '--check is for config move',
   },
 
   app: {
@@ -92,15 +103,72 @@ export const english = frozen({
     didNotStart: log => `the server did not start; see ${log}`,
   },
 
-  settings: {
+  config: {
+    about: {
+      dataHome: ['Where lazyreview keeps reviews, clones and the running app\'s files.'],
+      port: ['The port the app listens on, on this machine only.'],
+      claudeCommand: ['The Claude Code command that answers a question about a line.'],
+      claudeModel: ['The model that answers. Empty: Claude Code\'s own default.'],
+      editor: ['The command that opens a comment, a question or an edit.', 'Empty: VISUAL, then EDITOR, then vi, as git chooses.'],
+      accounts: [
+        'The GitHub accounts whose open pull requests the home screen lists.',
+        'Each is read by its own gh token. A review asked of a team counts as',
+        'asked of the account, for pull requests opened on or after `since`.',
+      ],
+      accountsExample: ['accounts:', '  - login: lee', '  - login: lee-at-work', '    teams:', '      - name: example-org/mobile', '        since: 2026-10-01'],
+    },
+    fileMissing: path => `LAZYREVIEW_CONFIG_FILE names ${path}, which does not exist`,
+    unreadable: (path, why) => `${path} could not be read: ${why}`,
+    yamlError: (reason, line, column) => `${reason} (${line}:${column})`,
+    problem: (path, problem) => `${path} ${problem}`,
+    problems: (path, problems) => `${path} has ${listed(plural(problems.length, 'problem'), problems)}`,
+    notAMap: 'holds no settings, written as lazyreview config defaults shows them',
+    unknown: key => `sets ${key}, which is not a setting`,
+    notASection: (key, value) => `gives ${key} ${shown(value)}, which is not a group of settings`,
+    notAFolder: (key, value) => `gives ${key} ${shown(value)}, which is not a full path, or one starting with ~/`,
+    notAPort: (key, value) => `gives ${key} ${shown(value)}, which is not a port number from 1 to 65535`,
+    notACommand: (key, value) => `gives ${key} ${shown(value)}, which is not a command`,
+    notText: (key, value) => `gives ${key} ${shown(value)}, which is not text`,
+    notAccounts: (key, value) => `gives ${key} ${shown(value)}, which is not a list of accounts`,
+    noLogin: number => `gives account ${number} no GitHub login`,
+    accountKey: (login, key) => `gives ${login} "${key}", which an account does not have`,
+    loginTwice: login => `names ${login} twice`,
+    teamsNotList: login => `gives ${login} "teams" that are not a list`,
+    teamNotNamed: login => `gives ${login} a team that is not named as organisation/team`,
+    teamKey: (team, key) => `gives ${team} "${key}", which a team does not have`,
+    sinceNotDate: team => `gives ${team} a "since" that is not a date such as 2026-10-01`,
     badPort: value => `LAZYREVIEW_PORT must be a port number, not "${value}"`,
-    unreadable: (file, why) => `${file} could not be read: ${why}`,
-    needsAccounts: file => `${file} needs "accounts", a list of {"login": "..."}`,
-    noLogin: (file, number) => `${file} gives account ${number} no GitHub login`,
-    loginTwice: (file, login) => `${file} names ${login} twice`,
-    teamsNotList: (file, login) => `${file} gives ${login} "teams" that are not a list`,
-    teamNotNamed: (file, login) => `${file} gives ${login} a team that is not named as organisation/team`,
-    sinceNotDate: (file, team) => `${file} gives ${team} a "since" that is not a date such as 2026-10-01`,
+    notMoved: (settings, config) => `${settings} is no longer read; lazyreview config move moves its accounts into ${config}`,
+    source: source => (source === 'default' ? 'default' : source === 'file' ? 'the file' : source),
+    movedHeader: 'lazyreview\'s config. docs/Config.md lists every setting and its default.',
+    exists: 'it exists',
+    missing: 'there is no file there yet, so every setting has its default',
+    checked: path => `the config at ${path}, on top of the defaults:`,
+    unset: path => `no config at ${path}, so every setting has its default:`,
+    docs: {
+      schemaTitle: 'lazyreview config',
+      schemaDescription: 'lazyreview\'s config file, config.yml. docs/Config.md lists every setting and its default.',
+      generated: 'written by npm run docs from src/config/schema.mjs; do not change it by hand',
+      noMarkers: name => `docs/Config.md has no START ${name} and END ${name} markers to write between`,
+      variable: 'Variable',
+      overrides: 'Overrides',
+    },
+    move: {
+      wouldWrite: path => `would write ${path}:`,
+      from: (key, source) => `${key} from ${source}`,
+      wouldRename: (path, name) => `would rename ${path} to ${name}`,
+      refused: path => `${path} exists already, and the move never overwrites a config`,
+      nothingWritten: 'nothing was written; lazyreview config move makes the move',
+      nothing: settings => `there is nothing to move: there is no ${settings}, and no LAZYREVIEW_ variable is set`,
+      movedExists: path => `${path} exists already, so settings.json cannot be renamed to it; nothing was written`,
+      needsAccounts: 'needs "accounts", a list of {"login": "..."}',
+      failed: (why, stuck) => (stuck.length
+        ? `the move failed: ${why}; and this could not be put back: ${stuck.join('; ')}`
+        : `the move failed, and nothing changed: ${why}`),
+      wrote: path => `wrote ${path}:`,
+      renamed: (path, name) => `renamed ${path} to ${name}`,
+      stillSet: (name, key) => `${name} is still set, and overrides ${key} while it is; taking it out of your shell's setup is safe, and not needed`,
+    },
   },
 
   git: {

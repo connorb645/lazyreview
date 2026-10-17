@@ -4,9 +4,12 @@
  * a fake gh answering for them, and a data home in a temporary folder.
  *
  * workbench() returns {repo, gh, home, store, loader, queue, routes, pulls,
- * env, done}. `routes(changes)` answers GitHub as the repository now stands,
- * with `changes` to the pull requests or extra routes; `env` is the
- * environment a child process needs to use the same fake gh and data home.
+ * env, configFile, config, done}. `routes(changes)` answers GitHub as the
+ * repository now stands, with `changes` to the pull requests or extra
+ * routes; `env` is the environment a child process needs to use the same
+ * fake gh, data home and config folder, which is the data home, and holds no
+ * LAZYREVIEW_ or XDG config variable this process inherited. `configFile` is
+ * where the config goes, and `config()` reads it.
  * This process's own PATH points at the fake gh until done() is called.
  *
  * The repository's pull requests:
@@ -24,6 +27,7 @@ import { DataHome } from '../../src/store/data-home.mjs';
 import { ReviewStore } from '../../src/store/review-store.mjs';
 import { Loader } from '../../src/loader/loader.mjs';
 import { QueueService } from '../../src/queue/queue-service.mjs';
+import { readUserConfig } from '../../src/config/user-config.mjs';
 
 export const PULLS = [
   { number: 21, base: 'main', head: 'feature/search', title: 'Add search to the catalog', author: 'sam', body: 'Adds a search over the catalog by name.' },
@@ -72,7 +76,9 @@ export function workbench() {
     repo, gh, home, store, routes,
     loader: new Loader({ store, now }),
     queue: new QueueService({ store, now }),
-    env: { ...gh.env, LAZYREVIEW_HOME: root },
+    env: { ...gh.env, LAZYREVIEW_HOME: root, LAZYREVIEW_CONFIG_DIR: root },
+    configFile: join(root, 'config.yml'),
+    config: () => readUserConfig({ env: { LAZYREVIEW_HOME: root, LAZYREVIEW_CONFIG_DIR: root } }),
     link: n => `https://github.com/octo/widgets/pull/${n}`,
     done() {
       for (const [key, value] of Object.entries(before)) {

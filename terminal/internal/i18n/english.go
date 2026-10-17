@@ -5,9 +5,12 @@ package i18n
 // values names them as placeholders, such as {{.path}}, which
 // utils.ResolvePlaceholderString fills.
 type TranslationSet struct {
-	ServerFileFlag string
-	Usage          string
-	TerminalFailed string
+	ServerFileFlag       string
+	UserConfigFlag       string
+	Usage                string
+	TerminalFailed       string
+	UserConfigUnreadable string
+	MoreThanOneValue     string
 
 	ServerNotRunning        string
 	CouldNotRead            string
@@ -469,7 +472,7 @@ type TranslationSet struct {
 	ReadingPulls         string
 	AccountsTitle        string
 	NameAccountsIn       string
-	SettingsSample       string
+	ConfigSample         string
 	EachAccount          string
 	CouldNotReadAs       string
 	LeftOutUntil         string
@@ -497,9 +500,12 @@ type TranslationSet struct {
 // EnglishTranslationSet is the strings in English.
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
-		ServerFileFlag: "the lazyreview server's own record, server.json, holding its address and token",
-		Usage:          "usage: lazyreview-terminal --server-file <server.json> [<review id>]",
-		TerminalFailed: "lazyreview terminal",
+		ServerFileFlag:       "the lazyreview server's own record, server.json, holding its address and token",
+		UserConfigFlag:       "the terminal app's part of lazyreview's config, as JSON: the config file's path and the editor",
+		Usage:                "usage: lazyreview-terminal --server-file <server.json> --user-config <json> [<review id>]",
+		TerminalFailed:       "lazyreview terminal",
+		UserConfigUnreadable: "could not read the config handed over by lazyreview",
+		MoreThanOneValue:     "it holds more than one value",
 
 		ServerNotRunning:        "the lazyreview server is not running; lazyreview start starts it",
 		CouldNotRead:            "could not read {{.path}}",
@@ -961,8 +967,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ReadingPulls:         "Reading the open pull requests from GitHub…",
 		AccountsTitle:        "Accounts",
 		NameAccountsIn:       "No GitHub accounts are set, so there is nothing to list yet. Name them in {{.path}}:",
-		SettingsSample:       "{\"accounts\": [\n  {\"login\": \"your-login\"},\n  {\"login\": \"your-work-login\",\n   \"teams\": [\n     {\"name\": \"your-org/your-team\",\n      \"since\": \"2026-10-01\"}\n   ]}\n]}",
-		EachAccount:          "Each account is read by its own token, so each must be signed in to gh. A review asked of a team counts as asked of you, for pull requests opened on or after its since date. R reads the settings again.",
+		ConfigSample:         "github:\n  accounts:\n    - login: your-login\n    - login: your-work-login\n      teams:\n        - name: your-org/your-team\n          since: 2026-10-01",
+		EachAccount:          "Each account is read by its own token, so each must be signed in to gh. A review asked of a team counts as asked of you, for pull requests opened on or after its since date. R reads the config again.",
 		CouldNotReadAs:       "GitHub could not be read as {{.login}}:",
 		LeftOutUntil:         "Its pull requests are left out until GitHub answers. R tries again.",
 		NothingInvolves:      "No open pull request involves {{.logins}}: none asks for a review from them or their teams, none is theirs, and none has their comments.",

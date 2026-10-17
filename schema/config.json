@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "lazyreview config",
+  "description": "lazyreview's config file, config.yml. docs/Config.md lists every setting and its default.",
+  "type": "object",
+  "properties": {
+    "dataHome": {
+      "type": "string",
+      "pattern": "^(~|~/.*|/.*)$",
+      "description": "Where lazyreview keeps reviews, clones and the running app's files.",
+      "default": "~/.lazyreview"
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "The port the app listens on, on this machine only.",
+          "default": 4747
+        }
+      },
+      "additionalProperties": false
+    },
+    "claude": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The Claude Code command that answers a question about a line.",
+          "default": "claude"
+        },
+        "model": {
+          "type": "string",
+          "description": "The model that answers. Empty: Claude Code's own default.",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    },
+    "os": {
+      "type": "object",
+      "properties": {
+        "editor": {
+          "type": "string",
+          "description": "The command that opens a comment, a question or an edit. Empty: VISUAL, then EDITOR, then vi, as git chooses.",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    },
+    "github": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "login"
+            ],
+            "properties": {
+              "login": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$"
+              },
+              "teams": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9_.-]+$"
+                    },
+                    "since": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "The GitHub accounts whose open pull requests the home screen lists. Each is read by its own gh token. A review asked of a team counts as asked of the account, for pull requests opened on or after `since`.",
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

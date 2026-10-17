@@ -44,16 +44,17 @@ every key.
 
 With no link, the terminal app opens on a home screen. The home screen lists
 the open pull requests that involve your GitHub accounts, by repository. Name
-the accounts in `~/.lazyreview/settings.json`, as
-[the guide](docs/guide.md#the-home-screen) shows.
+the accounts in the config, `config.yml`, as
+[the guide](docs/guide.md#the-home-screen) shows; `lazyreview config path`
+says where it is.
 
 ![The home screen: open pull requests by repository](docs/images/terminal-home.png)
 
 ## More
 
 [The guide](docs/guide.md) covers stacks, written reviews, the web app,
-every key of the terminal app, components and packages, the settings and
-where the data is kept.
+every key of the terminal app, components and packages, and where the data is
+kept. [Config](docs/Config.md) lists every setting of the config.
 
 Run the tests with `npm test`, and the terminal app's tests with
 `npm run test:terminal`. The tests reach no network.

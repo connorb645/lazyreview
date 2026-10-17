@@ -2,8 +2,9 @@
  * Two made-up accounts and the open pull requests that involve them, for
  * tests of the home screen's list, as settings and as routes for the fake gh.
  *
- * SETTINGS are the settings file's contents: `reviewer`, with the team
- * octo/reviewers counted from 1 Oct 2026, and `reviewer-home`. homeRoutes()
+ * SETTINGS are the accounts as settings.json held them: `reviewer`, with the
+ * team octo/reviewers counted from 1 Oct 2026, and `reviewer-home`, and
+ * accountsConfig(accounts) the config file that names accounts. homeRoutes()
  * returns the routes each account's searches and the lists of open pull
  * requests take, beside the workbench's own octo/widgets:
  *
@@ -20,6 +21,10 @@ export const SETTINGS = {
     { login: 'reviewer-home' },
   ],
 };
+
+export function accountsConfig(accounts) {
+  return `github:\n  accounts: ${JSON.stringify(accounts)}\n`;
+}
 
 const OPEN = 'is:pr is:open archived:false';
 

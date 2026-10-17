@@ -32,9 +32,9 @@ func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, width int, 
 	case len(v.List.Accounts) == 0:
 		title = tr.AccountsTitle
 		b.text("")
-		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.NameAccountsIn, map[string]string{"path": fromHome(v.List.Settings, v.Home)}))
+		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.NameAccountsIn, map[string]string{"path": fromHome(v.List.Config, v.Home)}))
 		b.text("")
-		for _, l := range strings.Split(tr.SettingsSample, "\n") {
+		for _, l := range strings.Split(tr.ConfigSample, "\n") {
 			b.text("   " + th.Accent.Render(l))
 		}
 		b.text("")

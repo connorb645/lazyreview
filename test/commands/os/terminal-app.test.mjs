@@ -27,6 +27,8 @@ function folder() {
   return { root, builds, run, done: () => rmSync(root, { recursive: true, force: true }) };
 }
 
+// The part of the config the terminal app is handed.
+const PART = { path: '/home/config.yml', editor: 'vi' };
 const later = path => { const t = Date.now() / 1000 + 60; utimesSync(path, t, t); };
 
 test('the terminal app is built the first time it runs, and again only when its own code changes', async () => {
@@ -34,20 +36,20 @@ test('the terminal app is built the first time it runs, and again only when its 
   try {
     const app = new TerminalApp({ folder: f.root, run: f.run });
     assert.equal(app.stale(), true, 'with no program, it is built');
-    await app.launch({ serverFile: '/home/server.json', review: 'github.com/octo/widgets/21', env: process.env });
+    await app.launch({ serverFile: '/home/server.json', review: 'github.com/octo/widgets/21', env: process.env, userConfig: PART });
     assert.deepEqual(f.builds.map(b => [b.command, ...b.args]), [['go', 'build', '-mod=vendor', '-o', app.program, '.']]);
-    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), '--server-file /home/server.json github.com/octo/widgets/21\n');
+    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), `--server-file /home/server.json --user-config ${JSON.stringify(PART)} github.com/octo/widgets/21\n`);
     assert.equal(app.stale(), false);
     later(join(f.root, 'internal', 'view_test.go'));
     later(join(f.root, 'vendor', 'x', 'lib.go'));
     assert.equal(app.stale(), false, 'a test and a library\'s own file do not go into the program');
     later(join(f.root, 'internal', 'view.go'));
     assert.equal(app.stale(), true);
-    await app.launch({ serverFile: '/home/server.json', review: 'github.com/octo/widgets/30', env: process.env });
+    await app.launch({ serverFile: '/home/server.json', review: 'github.com/octo/widgets/30', env: process.env, userConfig: PART });
     assert.equal(f.builds.length, 2);
-    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), '--server-file /home/server.json github.com/octo/widgets/30\n');
-    await app.launch({ serverFile: '/home/server.json', review: null, env: process.env });
-    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), '--server-file /home/server.json\n', 'with no review, it opens on the home screen');
+    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), `--server-file /home/server.json --user-config ${JSON.stringify(PART)} github.com/octo/widgets/30\n`);
+    await app.launch({ serverFile: '/home/server.json', review: null, env: process.env, userConfig: PART });
+    assert.equal(readFileSync(join(f.root, 'ran.txt'), 'utf8'), `--server-file /home/server.json --user-config ${JSON.stringify(PART)}\n`, 'with no review, it opens on the home screen');
   } finally {
     f.done();
   }

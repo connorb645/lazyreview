@@ -10,19 +10,28 @@
  * `terminal` with a link opens that review, loading a pull request link
  * that no review holds yet, and with none the home screen of open pull
  * requests. `load` reads pull requests from GitHub, or with --repo a branch
- * from a repository on this machine.
+ * from a repository on this machine. `config` says where the config file
+ * is, prints the default config or every setting as read, and makes the
+ * one-time move into the config; it reads no other setting first, so a
+ * config with a mistake in it can always be found and fixed.
  */
 import { readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { parseArguments } from './arguments.mjs';
 import { App } from '../app/app.mjs';
 import { PullRef } from '../models/pull-ref.mjs';
 import { reviewRef } from '../models/review-ref.mjs';
 import { readWrittenReview, checkWrittenReview } from '../review/written-review.mjs';
 import { english } from '../i18n/english.mjs';
+import { findConfigFile } from '../config/config-file.mjs';
+import { readUserConfig, terminalPart } from '../config/user-config.mjs';
+import { defaultConfigText, checkedConfigText } from '../config/config-text.mjs';
+import { planMove, checkLines, move } from '../config/config-move.mjs';
 
 export async function run(argv, { env = process.env, bin, say = () => {}, terminal }) {
   const options = parseArguments(argv);
   if (options.command === 'help') return [english.cli.usage];
+  if (options.command === 'config') return config(options, { env, platform: process.platform, home: homedir() });
   const app = new App({ env, bin, terminal });
 
   switch (options.command) {
@@ -35,7 +44,7 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
     case 'terminal': {
       const review = options.positional.length ? await reviewToOpen(options.positional[0], { app, say }) : null;
       if (!(await app.background.running())) await app.background.start();
-      await app.terminal.launch({ serverFile: app.home.serverFile, review, env });
+      await app.terminal.launch({ serverFile: app.home.serverFile, review, env, userConfig: terminalPart(app.config, env) });
       return [];
     }
     case 'start': {
@@ -81,13 +90,32 @@ async function attach({ store, home, background }, options) {
   return [english.cli.attached(found.ref.id, address && reviewAddress(address, found.ref))];
 }
 
-async function list({ store, settings, background }) {
-  const address = (await background.running()) || 'http://127.0.0.1:' + settings.port;
+async function list({ store, config, background }) {
+  const address = (await background.running()) || 'http://127.0.0.1:' + config.values.server.port;
   const reviews = store.list();
   if (!reviews.length) return [english.cli.noReviews];
   return reviews.map(({ ref, review }) => (review.moved
     ? english.cli.listedMoved(ref.id, review.moved.to)
     : english.cli.listed(reviewAddress(address, ref), changeName(review), review.title)));
+}
+
+function config(options, where) {
+  switch (options.positional[0]) {
+    case 'path': {
+      const file = findConfigFile(where);
+      return [file.path, file.exists ? english.config.exists : english.config.missing];
+    }
+    case 'defaults':
+      return [defaultConfigText().trimEnd()];
+    case 'check': {
+      const read = readUserConfig(where);
+      return [read.exists ? english.config.checked(read.path) : english.config.unset(read.path), '', checkedConfigText(read).trimEnd()];
+    }
+    default: {
+      const plan = planMove(where);
+      return options.check ? checkLines(plan) : move(plan);
+    }
+  }
 }
 
 function changeName(review) {

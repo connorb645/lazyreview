@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(ROOT, 'src');
 const APP = join(ROOT, 'app');
-const LOGIC = ['ask', 'build', 'home', 'loader', 'queue', 'review', 'settings'];
+const LOGIC = ['ask', 'build', 'config', 'home', 'loader', 'queue', 'review'];
 const SERVED = { '/i18n/english.mjs': 'strings' };
 
 function modules(folder) {

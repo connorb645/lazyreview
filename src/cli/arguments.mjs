@@ -6,11 +6,14 @@
  */
 import { english } from '../i18n/english.mjs';
 
+const CONFIG_COMMANDS = ['path', 'defaults', 'check', 'move'];
+
 const COMMANDS = {
   load: { valued: ['--account', '--config', '--repo', '--base', '--head', '--title'], flags: ['--context', '--no-context'], check: checkLoad },
   attach: { min: 2, max: 2 },
   list: { max: 0 },
   terminal: { max: 1 },
+  config: { max: 1, flags: ['--check'], check: checkConfig },
   serve: { max: 0 },
   start: { max: 0 },
   stop: { max: 0 },
@@ -51,6 +54,12 @@ function checkLoad(options, fail) {
   if (options.positional.length) fail(english.cli.notBoth);
   if (options.account !== undefined) fail(english.cli.accountForPulls);
   for (const option of ['--base', '--head']) if (options[name(option)] === undefined) fail(english.cli.repoNeeds(option));
+}
+
+function checkConfig(options, fail) {
+  const [what] = options.positional;
+  if (!CONFIG_COMMANDS.includes(what)) fail(english.cli.configNeeds(what, CONFIG_COMMANDS));
+  if (options.check && what !== 'move') fail(english.cli.checkIsForMove);
 }
 
 function name(option) {

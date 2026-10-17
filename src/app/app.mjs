@@ -15,7 +15,7 @@
  */
 import { mkdirSync, rmSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
-import { readSettings } from '../settings/settings.mjs';
+import { readUserConfig } from '../config/user-config.mjs';
 import { DataHome } from '../store/data-home.mjs';
 import { ReviewStore } from '../store/review-store.mjs';
 import { writeWhole, readJSON } from '../store/whole-file.mjs';
@@ -32,18 +32,19 @@ import { english } from '../i18n/english.mjs';
 
 export class App {
   constructor({ env = process.env, bin, terminal = new TerminalApp() }) {
-    const settings = readSettings(env);
-    const home = new DataHome(settings.home);
+    const config = readUserConfig({ env });
+    const { values } = config;
+    const home = new DataHome(values.dataHome);
     mkdirSync(home.root, { recursive: true });
     const store = new ReviewStore(home);
-    this.settings = settings;
+    this.config = config;
     this.home = home;
     this.store = store;
     this.loader = new Loader({ store });
     this.branches = new BranchLoader({ store });
     this.queue = new QueueService({ store });
-    this.threads = new ThreadService({ store, claude: new Claude({ ...settings.claude, folder: home.root }) });
-    this.pulls = new OpenPulls({ store });
+    this.threads = new ThreadService({ store, claude: new Claude({ command: values.claude.command, model: values.claude.model || null, folder: home.root }) });
+    this.pulls = new OpenPulls({ store, config: () => readUserConfig({ env }) });
     this.background = new BackgroundServer({ home, bin, env });
     this.terminal = terminal;
     Object.freeze(this);
@@ -60,7 +61,7 @@ export class App {
       threads: this.threads,
       pulls: this.pulls,
       token,
-      port: this.settings.port,
+      port: this.config.values.server.port,
     });
     const address = await server.listen();
     const serverFile = this.home.serverFile;

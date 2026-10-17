@@ -12,7 +12,7 @@ import { Claude } from '../../src/commands/claude/claude.mjs';
 import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 import { PullRef } from '../../src/models/pull-ref.mjs';
 import { OpenPulls } from '../../src/home/open-pulls.mjs';
-import { SETTINGS, homeRoutes } from '../support/home-routes.mjs';
+import { SETTINGS, homeRoutes, accountsConfig } from '../support/home-routes.mjs';
 
 const RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal', 'testdata', 'record.json');
 const STACK = 'github.com/octo/widgets/21';
@@ -26,8 +26,8 @@ const thread = (id, path, line, login, body, extra = {}) => ({
 
 const TOKEN = 'record-token';
 const UNREACHABLE = { $fail: 'error connecting to api.github.com\ncheck your internet connection or https://githubstatus.com' };
-// The data home the answers name, in place of the throwaway one, so the same review gives the same record.
-const STAND_IN_HOME = '/home/reviewer/.lazyreview';
+// The config file the answers name, in place of the throwaway one, so the same review gives the same record.
+const STAND_IN_CONFIG = '/home/reviewer/Library/Application Support/lazyreview/config.yml';
 
 // Sends a request as the terminal app does, a change carrying the token and its fields as JSON.
 function send(address, method, path, body = null) {
@@ -78,18 +78,18 @@ async function recordAnswers() {
     const now = () => new Date(Date.UTC(2026, 9, 15, 13, 0, tick++)).toISOString();
     const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }), now });
     const server = new AppServer({
-      store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, pulls: new OpenPulls({ store: w.store }), token: TOKEN, port: 0,
+      store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, pulls: new OpenPulls({ store: w.store, config: w.config }), token: TOKEN, port: 0,
     });
     const address = await server.listen();
     try {
       const answers = {};
       const home = async (variant, settings, extra) => {
-        if (settings) writeFileSync(w.home.settingsFile, JSON.stringify(settings));
-        else rmSync(w.home.settingsFile, { force: true });
+        if (settings) writeFileSync(w.configFile, accountsConfig(settings.accounts));
+        else rmSync(w.configFile, { force: true });
         w.routes({ reviews, extra });
         const answer = await send(address, 'GET', '/api/pulls');
         assert.equal(answer.status, 200, variant);
-        answers[`GET /api/pulls${variant}`] = { ...answer, body: { ...answer.body, settings: answer.body.settings.replace(w.home.root, STAND_IN_HOME) } };
+        answers[`GET /api/pulls${variant}`] = { ...answer, body: { ...answer.body, config: answer.body.config.replace(w.configFile, STAND_IN_CONFIG) } };
       };
       await home('', SETTINGS, homeRoutes());
       await home('#one repository', { accounts: [SETTINGS.accounts[1]] }, homeRoutes());

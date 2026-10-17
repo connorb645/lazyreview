@@ -205,18 +205,18 @@ func TestRReadsGitHubAgainAndKeepsTheListMeanwhile(t *testing.T) {
 	if a.Home.Reading || selectedPull(a) != "octo/widgets#22" || a.Home.Panels[0].Title != "Not read from GitHub" {
 		t.Fatalf("the list read again keeps the place: %s, %s", selectedPull(a), a.Home.Panels[0].Title)
 	}
-	changed.set("GET /api/pulls", answer{Status: 409, Body: []byte(`{"error":"settings.json needs \"accounts\""}`)})
+	changed.set("GET /api/pulls", answer{Status: 409, Body: []byte(`{"error":"config.yml gives github.accounts 3, which is not a list of accounts"}`)})
 	a = press(t, a, "R")
-	if !a.Bad || a.Notice != `Could not read GitHub again: settings.json needs "accounts"` || selectedPull(a) != "octo/widgets#22" {
+	if !a.Bad || a.Notice != `Could not read GitHub again: config.yml gives github.accounts 3, which is not a list of accounts` || selectedPull(a) != "octo/widgets#22" {
 		t.Fatalf("a read that fails keeps the list and says why: %q", a.Notice)
 	}
 }
 
 func TestAListThatCannotBeReadSaysWhy(t *testing.T) {
 	changed := &changes{answers: map[string]answer{}}
-	changed.set("GET /api/pulls", answer{Status: 409, Body: []byte(`{"error":"settings.json gives account 1 no GitHub login"}`)})
+	changed.set("GET /api/pulls", answer{Status: 409, Body: []byte(`{"error":"config.yml gives account 1 no GitHub login"}`)})
 	a, _ := openedOn(t, changed, "", 100, 30)
-	if a.Home.Failed != "settings.json gives account 1 no GitHub login" {
+	if a.Home.Failed != "config.yml gives account 1 no GitHub login" {
 		t.Fatalf("the failure: %q", a.Home.Failed)
 	}
 	screenIs(t, a, "home-failed")

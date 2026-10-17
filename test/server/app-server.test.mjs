@@ -9,7 +9,7 @@ import { ThreadService } from '../../src/ask/thread-service.mjs';
 import { Claude } from '../../src/commands/claude/claude.mjs';
 import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 import { notices } from '../support/notices.mjs';
-import { SETTINGS, homeRoutes } from '../support/home-routes.mjs';
+import { SETTINGS, homeRoutes, accountsConfig } from '../support/home-routes.mjs';
 import { OpenPulls } from '../../src/home/open-pulls.mjs';
 import { PullRef } from '../../src/models/pull-ref.mjs';
 
@@ -36,7 +36,7 @@ async function started({ token } = {}) {
   const branches = new BranchLoader({ store: w.store });
   const server = new AppServer({
     store: w.store, loader: w.loader, branches, queue: w.queue,
-    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), pulls: new OpenPulls({ store: w.store }), token, port: 0,
+    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), pulls: new OpenPulls({ store: w.store, config: w.config }), token, port: 0,
   });
   const address = await server.listen();
   const own = { Origin: address, 'Content-Type': 'application/json' };
@@ -110,7 +110,7 @@ test('the API lists the open pull requests involving the accounts, and loads the
   const s = await started({ token: 'secret-token-1234' });
   const json = { 'Content-Type': 'application/json' };
   try {
-    writeFileSync(s.w.home.settingsFile, JSON.stringify(SETTINGS));
+    writeFileSync(s.w.configFile, accountsConfig(SETTINGS.accounts));
     s.w.routes({ extra: homeRoutes() });
     const listed = await call(s.address, 'GET', '/api/pulls');
     assert.equal(listed.status, 200);
@@ -129,9 +129,9 @@ test('the API lists the open pull requests involving the accounts, and loads the
     const none = await call(s.address, 'POST', '/api/load', { body: { links: [] }, headers: { ...json, Authorization: 'Bearer secret-token-1234' } });
     assert.deepEqual([none.status, none.json], [409, { error: 'give the pull requests to load as links, bottom first' }]);
 
-    writeFileSync(s.w.home.settingsFile, '{"accounts": 3}');
+    writeFileSync(s.w.configFile, 'github:\n  accounts: 3\n');
     const wrong = await call(s.address, 'GET', '/api/pulls');
-    assert.deepEqual([wrong.status, wrong.json], [409, { error: `${s.w.home.settingsFile} needs "accounts", a list of {"login": "..."}` }]);
+    assert.deepEqual([wrong.status, wrong.json], [409, { error: `${s.w.configFile} gives github.accounts 3, which is not a list of accounts` }]);
   } finally {
     await s.done();
   }

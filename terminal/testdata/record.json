@@ -2,7 +2,7 @@
  "GET /api/pulls": {
   "status": 200,
   "body": {
-   "settings": "/home/reviewer/.lazyreview/settings.json",
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
    "accounts": [
     {
      "login": "reviewer",
@@ -168,7 +168,7 @@
  "GET /api/pulls#one repository": {
   "status": 200,
   "body": {
-   "settings": "/home/reviewer/.lazyreview/settings.json",
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
    "accounts": [
     {
      "login": "reviewer-home",
@@ -222,7 +222,7 @@
  "GET /api/pulls#none": {
   "status": 200,
   "body": {
-   "settings": "/home/reviewer/.lazyreview/settings.json",
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
    "accounts": [
     {
      "login": "reviewer",
@@ -235,7 +235,7 @@
  "GET /api/pulls#one unreachable": {
   "status": 200,
   "body": {
-   "settings": "/home/reviewer/.lazyreview/settings.json",
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
    "accounts": [
     {
      "login": "reviewer",
@@ -361,7 +361,7 @@
  "GET /api/pulls#unreachable": {
   "status": 200,
   "body": {
-   "settings": "/home/reviewer/.lazyreview/settings.json",
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
    "accounts": [
     {
      "login": "reviewer",
@@ -378,7 +378,7 @@
  "GET /api/pulls#no settings": {
   "status": 200,
   "body": {
-   "settings": "/home/reviewer/.lazyreview/settings.json",
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
    "accounts": [],
    "repos": []
   }

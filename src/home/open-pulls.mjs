@@ -1,12 +1,14 @@
 /**
- * The open pull requests that involve the accounts in the settings, for the
+ * The open pull requests that involve the accounts in the config, for the
  * terminal app's home screen.
  *
- * new OpenPulls({store, accounts, github}) reads the accounts with
- * `accounts()` at each list, the settings file's by default, and asks GitHub
- * as each one by its own token through `github({account})`. list() resolves
- * with {settings, accounts, repos}: `settings` is the settings file's path,
- * `accounts` each account as {login, error}, where `error` says why GitHub
+ * new OpenPulls({store, config, github, exists}) reads the config with
+ * `config()` at each list, and asks GitHub as each of its accounts by the
+ * account's own token through `github({account})`. While the data home
+ * still holds settings.json, which the config replaced, a list fails,
+ * saying how to move it; `exists` says whether a file exists. list()
+ * resolves with {config, accounts, repos}: `config` is the config file's
+ * path, `accounts` each account as {login, error}, where `error` says why GitHub
  * could not be read as it, or is null, and `repos` each repository with
  * pull requests that involve an account, by name:
  *
@@ -24,9 +26,11 @@
  * account or its team, `review` the review holding it, or null, and a unit's
  * `review` is the one review holding every member, or null.
  */
+import { existsSync } from 'node:fs';
 import { PullRef } from '../models/pull-ref.mjs';
 import { GitHub } from '../commands/github/github.mjs';
-import { readAccounts } from '../settings/settings.mjs';
+import { readUserConfig } from '../config/user-config.mjs';
+import { english } from '../i18n/english.mjs';
 import { stacks } from './stacks.mjs';
 
 const OPEN = 'is:pr is:open archived:false';
@@ -34,17 +38,22 @@ const HOST = 'github.com';
 
 export class OpenPulls {
   #store;
-  #accounts;
+  #config;
   #github;
+  #exists;
 
-  constructor({ store, accounts = () => readAccounts(store.home.settingsFile), github = options => new GitHub(options) }) {
+  constructor({ store, config = () => readUserConfig(), github = options => new GitHub(options), exists = existsSync }) {
     this.#store = store;
-    this.#accounts = accounts;
+    this.#config = config;
     this.#github = github;
+    this.#exists = exists;
   }
 
   async list() {
-    const accounts = this.#accounts();
+    const config = this.#config();
+    const settings = this.#store.home.settingsFile;
+    if (this.#exists(settings)) throw new Error(english.config.notMoved(settings, config.path));
+    const accounts = config.values.github.accounts;
     const read = await Promise.all(accounts.map(account => this.#read(account).then(
       repos => ({ login: account.login, error: null, repos }),
       error => ({ login: account.login, error: error.message, repos: [] }),
@@ -58,7 +67,7 @@ export class OpenPulls {
       }
     }
     return {
-      settings: this.#store.home.settingsFile,
+      config: config.path,
       accounts: read.map(({ login, error }) => ({ login, error })),
       repos: [...repos.values()].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
         .map(repo => ({ host: HOST, name: repo.name, account: repo.account, units: this.#units(repo) })),

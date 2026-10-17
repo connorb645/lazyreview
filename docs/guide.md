@@ -182,24 +182,26 @@ and why, and the others are still listed.
 | `Space v` | back to the review open |
 | `Space h` | from any review, the home screen |
 
-The accounts are named in `settings.json` in the data home,
-`~/.lazyreview/settings.json`, which the home screen reads each time it
-reads GitHub:
+The accounts are named in the config, `config.yml`, which the home screen
+reads each time it reads GitHub. `lazyreview config path` says where it is;
+on macOS that is `~/Library/Application Support/lazyreview/config.yml`:
 
-```json
-{
-  "accounts": [
-    { "login": "lee" },
-    { "login": "lee-at-work", "teams": [{ "name": "example-org/mobile", "since": "2026-10-01" }] }
-  ]
-}
+```yaml
+github:
+  accounts:
+    - login: lee
+    - login: lee-at-work
+      teams:
+        - name: example-org/mobile
+          since: 2026-10-01
 ```
 
 Each account is read by its own token, as `gh auth token --user <login>`
 gives it, so each must be signed in to gh; the account gh has active is never
 changed. A review asked of one of an account's teams counts as asked of you,
 for pull requests opened on or after the team's `since` date when it has one.
-With no settings file, the home screen says how to write one.
+With no accounts in the config, the home screen says how to name them.
+[The config's own page](Config.md) lists every setting.
 
 ### In a review
 
@@ -306,9 +308,9 @@ line, show within a second. When the review is loaded again, the app loads it
 in place and keeps your view, folds and filter. With a draft open it says so
 instead, and `R` loads it when you are ready.
 
-A comment, a question or an edit is written in your own editor: the first of
-`LAZYREVIEW_EDITOR`, `VISUAL` and `EDITOR` that is set, or `vi`, as git
-chooses. Write above the cut line and save; what is below it says where the
+A comment, a question or an edit is written in your own editor: the
+config's `os.editor`, or with none the first of `VISUAL` and `EDITOR` that
+is set, or `vi`, as git chooses. `LAZYREVIEW_EDITOR` overrides the config. Write above the cut line and save; what is below it says where the
 comment goes and is never sent. Saving with no text sends nothing. When the
 server refuses a comment, the bar at the bottom says why and `c` or `e` opens
 your text again.
@@ -349,34 +351,48 @@ the queue and the reviews sent), the drawn page (`page.json`, with the review
 threads GitHub had when it was loaded), any config and written review, and one
 file per conversation. A branch's review lives under
 `reviews/local/`, its record holding the branch, its base and the folder it
-was read from; it is read from the repository itself, with no clone. The
-accounts the terminal app's home screen lists are in `settings.json`, as
-above. Other settings come from the environment:
+was read from; it is read from the repository itself, with no clone.
 
-| Variable | Meaning | Default |
-| --- | --- | --- |
-| `LAZYREVIEW_HOME` | where reviews and clones are kept | `~/.lazyreview` |
-| `LAZYREVIEW_PORT` | the app's port, on this machine only | `4747` |
-| `LAZYREVIEW_CLAUDE` | the Claude Code command | `claude` |
-| `LAZYREVIEW_MODEL` | the model that answers questions | Claude Code's default |
+Every setting is in the config, `config.yml`: the data home itself, the
+app's port, the Claude Code command and model, the editor and the accounts
+the home screen lists. [Config](Config.md)
+lists every setting, its default and the variable that overrides it, such
+as `LAZYREVIEW_HOME` for the data home and `LAZYREVIEW_PORT` for the port.
+`lazyreview config check` prints them as read. An earlier version's
+`settings.json` is no longer read; `lazyreview config move` moves it in.
 
 The server answers only requests addressed to 127.0.0.1 or localhost, and
 takes changes only as JSON from its own pages.
 
 ## Code
 
-- `bin/lazyreview` is the command; `src/cli` reads it.
-- `src/loader` loads a review, of pull requests or of a branch; `src/local`
-  names a branch's review; `src/build` reads the diff, the types and the
-  stack, and lays out the diagram with ELK (`vendor/`).
-- `src/queue` holds the queue's rules and the one way a review is posted;
-  `src/review` reads a written review and places GitHub's review threads.
-- `src/ask` asks Claude; `src/server` serves the app and its JSON.
+The code takes lazygit's layers, each part in its own language: the
+commands that run other programs sit apart from the logic that uses them,
+and the logic apart from what the user sees.
+
+- `bin/lazyreview` is the command. `src/cli` reads its arguments and runs
+  one command; `src/app` reads the config and builds every service once.
+- `src/commands` runs every other program: git and the clones, `gh`, Claude
+  Code, the background server and the terminal app. `src/models` names a
+  pull request, a branch or a review.
+- `src/loader` loads a review, of pull requests or of a branch; `src/build`
+  reads the diff, the types and the stack, and lays out the diagram with ELK
+  (`vendor/`). `src/queue` holds the queue's rules and the one way a review
+  is posted; `src/review` reads a written review and places GitHub's review
+  threads; `src/ask` asks Claude; `src/home` lists the open pull requests.
+- `src/store` keeps the files on disk, and `src/config` reads the config.
+- `src/server` serves the app and its JSON. `src/i18n/english.mjs` holds
+  every sentence of the command, the server and the web app, which the
+  server serves to the browser.
 - `terminal/` is the terminal app, in Go with Bubble Tea, Lip Gloss, Bubbles
-  and Glamour; `src/terminal` builds it and runs it.
-- `app/` is the web app, plain JavaScript modules with no build step. Its
-  look is one stylesheet, `app/styles.css`, with a dark and a light theme
-  that follow the system setting.
+  and Glamour, laid out as lazygit's own: `internal/gui` with its views,
+  contexts, controllers and presentation, `internal/i18n/english.go` for its
+  words and `internal/theme` for its colours. `lazyreview terminal` builds it
+  and runs it.
+- `app/` is the web app, plain JavaScript modules with no build step, in the
+  same layers: `api/`, `context/`, `controllers/`, `presentation/` and
+  `views.mjs`. Its look is one stylesheet, `app/styles.css`, with a dark and
+  a light theme that follow the system setting.
 
 Run the tests with `npm test`, and the terminal app's with `npm run
 test:terminal`. They make their own throwaway repositories and answer for

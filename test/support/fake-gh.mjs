@@ -3,7 +3,9 @@
  * check exactly what would have been sent.
  *
  * fakeGh() makes a folder holding an executable `gh` and returns {env, bin,
- * routes, calls, done}: `env` puts it first on PATH for a child process, and
+ * routes, calls, done}: `env` puts it first on PATH for a child process,
+ * with no LAZYREVIEW_ or XDG config variable this process inherited, so no
+ * child reads a real config, and
  * `bin` is its folder, for this process's own PATH; `routes(map)` sets the
  * answers, as {"GET repos/o/r/pulls/1": body} or {"POST ...": body}, and a
  * GraphQL query by its variables, as {"POST graphql o/r#1": body}, with
@@ -82,6 +84,10 @@ function refusal(files, c) {
 }
 `;
 
+function inherited(env) {
+  return Object.fromEntries(Object.entries(env).filter(([name]) => !name.startsWith('LAZYREVIEW_') && !name.startsWith('XDG_CONFIG_')));
+}
+
 export function fakeGh() {
   const dir = mkdtempSync(join(tmpdir(), 'lazyreview-gh-'));
   writeFileSync(join(dir, 'gh'), SCRIPT);
@@ -93,7 +99,7 @@ export function fakeGh() {
   return {
     bin: dir,
     extra,
-    env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, ...extra },
+    env: { ...inherited(process.env), PATH: `${dir}:${process.env.PATH}`, ...extra },
     routes: map => writeFileSync(routesFile, JSON.stringify(map)),
     calls: () => (existsSync(logFile) ? readFileSync(logFile, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : []),
     done: () => rmSync(dir, { recursive: true, force: true }),

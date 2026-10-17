@@ -1,7 +1,7 @@
 ╭─Pull requests──────────────────────────────────╮╭─[0]─Pull requests──────────────────────────────╮
 │ Could not read the list                        ││                                                │
 │                                                ││ Could not read the open pull requests:         │
-│                                                ││ settings.json gives account 1 no GitHub login  │
+│                                                ││ config.yml gives account 1 no GitHub login     │
 │                                                ││                                                │
 │                                                ││ R tries again; :q quits.                       │
 │                                                ││                                                │

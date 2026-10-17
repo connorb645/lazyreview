@@ -5,7 +5,9 @@
  *   reviews/<host>/<owner>/<repo>/<pull>/     one folder per pull request review
  *   reviews/local/<repo key>/<branch>/        one folder per branch review
  *   server.json, server.log                   the running app, while it runs
- *   settings.json                             the accounts the home screen lists
+ *   settings.json                             the accounts, before the config held them;
+ *                                             no longer read, and moved by
+ *                                             lazyreview config move
  *
  * DataHome only names paths. It reads and writes nothing.
  */
