@@ -5,13 +5,15 @@ import { createRequire } from 'node:module';
 import { readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import '../support/served-strings.mjs';
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'app');
 globalThis.window = { marked: createRequire(import.meta.url)('../../vendor/marked-12.0.2.min.js') };
-const { drawRendered } = await import('../../app/lib/rendered-markdown.mjs');
+const { drawRendered } = await import('../../app/presentation/rendered-markdown.mjs');
 const { safeMarkdown } = await import('../../app/lib/markdown.mjs');
-const { indexPage } = await import('../../app/review/review-data.mjs');
-const { breakable, plural } = await import('../../app/lib/text.mjs');
+const { indexPage } = await import('../../app/context/review-data.mjs');
+const { breakable } = await import('../../app/lib/text.mjs');
+const { english } = await import('/i18n/english.mjs');
 
 function modules(folder) {
   return readdirSync(folder, { withFileTypes: true }).flatMap(e => (e.isDirectory() ? modules(join(folder, e.name)) : e.name.endsWith('.mjs') ? [join(folder, e.name)] : []));
@@ -59,5 +61,5 @@ test('the page data is indexed with the totals of the change and of each compone
   assert.equal(data.contextFiles['c.ts'].index, 'c0');
   assert.equal(data.build, 'abc');
   assert.equal(breakable('Sources/A_b.swift'), 'Sources/<wbr>A_<wbr>b.swift');
-  assert.equal(plural(1, 'file') + ', ' + plural(1200, 'file'), '1 file, 1,200 files');
+  assert.equal(english.web.counts.files(1) + ', ' + english.web.counts.files(1200), '1 file, 1,200 files');
 });

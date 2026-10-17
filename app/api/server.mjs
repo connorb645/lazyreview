@@ -1,8 +1,11 @@
 /**
- * Calls the app's server. Each call resolves with the answer's JSON, or
- * rejects with an error carrying the server's own words for what went wrong.
- * A DELETE carries no body, so send() puts its fields in the address.
+ * The one way to the app's server. Each call resolves with the answer's
+ * JSON, or rejects with an error carrying the server's own words for what
+ * went wrong. A DELETE carries no body, so send() puts its fields in the
+ * address. events(path) opens the stream of a review's change notices.
  */
+import { english } from '/i18n/english.mjs';
+
 export async function getJSON(path) {
   return answer(await fetch(path, { headers: { Accept: 'application/json' } }));
 }
@@ -16,14 +19,13 @@ export async function send(method, path, body = {}) {
   }));
 }
 
+export function events(path) {
+  return new EventSource(path);
+}
+
 /** The address of a review's API, from its id. */
 export function reviewPath(id, rest = '') {
   return '/api/reviews/' + id.split('/').map(encodeURIComponent).join('/') + rest;
-}
-
-/** The address of a review's page in the app, from its id. */
-export function reviewAddress(id) {
-  return '/review/' + id.split('/').map(encodeURIComponent).join('/');
 }
 
 async function answer(response) {
@@ -31,8 +33,8 @@ async function answer(response) {
   try {
     body = await response.json();
   } catch (error) {
-    throw new Error('the server sent something that is not JSON (' + response.status + ')', { cause: error });
+    throw new Error(english.web.server.notJSON(response.status), { cause: error });
   }
-  if (!response.ok) throw new Error(body && body.error ? body.error : 'the server answered ' + response.status);
+  if (!response.ok) throw new Error(body && body.error ? body.error : english.web.server.answered(response.status));
   return body;
 }

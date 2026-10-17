@@ -91,7 +91,7 @@ async function list({ store, settings, background }) {
 }
 
 function changeName(review) {
-  return review.kind === 'branch' ? english.cli.branchName(review.head.ref, review.base.ref) : english.cli.pullsName(review.members.map(m => m.pull));
+  return review.kind === 'branch' ? english.review.branchName(review.head.ref, review.base.ref) : english.review.pullsName(review.members.map(m => m.pull));
 }
 
 function reviewAddress(address, ref) {

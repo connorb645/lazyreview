@@ -16,6 +16,8 @@
  * a stream of its change notices, as `events` gives them, one JSON object
  * to each server-sent event.
  * listen() resolves once it is listening, with its address; close() stops it.
+ * The page is sent with its words filled in from the strings, each where
+ * index.html names it as {{area.name}} of english.web.
  *
  * It answers only requests addressed to this machine by name, so a page from
  * elsewhere cannot reach it through a name it controls, and it takes a change
@@ -141,7 +143,7 @@ export class AppServer {
 
     if (!path.startsWith('/api/')) {
       if (request.method !== 'GET' && request.method !== 'HEAD') return send(response, 405, { error: english.server.notAllowed });
-      if (path === '/' || /^\/review\//.test(path)) return sendFile(response, PAGE, 'text/html; charset=utf-8', true);
+      if (path === '/' || /^\/review\//.test(path)) return sendPage(response);
       let file = null;
       try { file = staticFile(path); } catch { file = null; }
       return file ? sendFile(response, file.path, file.type) : send(response, 404, { error: english.server.noSuchPage });
@@ -291,8 +293,17 @@ function sendRaw(response, status, json) {
   response.end(json);
 }
 
-function sendFile(response, path, type, page = false) {
-  response.writeHead(200, headers(type, page ? { 'Content-Security-Policy': PAGE_SECURITY } : {}));
-  if (page) response.end(readFileSync(path));
-  else createReadStream(path).pipe(response);
+function sendPage(response) {
+  const page = readFileSync(PAGE, 'utf8').replace(/\{\{([\w.]+)\}\}/g, (marker, name) => {
+    const words = name.split('.').reduce((area, key) => (area ? area[key] : undefined), english.web);
+    if (typeof words !== 'string') throw new Error(english.server.noWords(marker));
+    return words;
+  });
+  response.writeHead(200, headers('text/html; charset=utf-8', { 'Content-Security-Policy': PAGE_SECURITY }));
+  response.end(page);
+}
+
+function sendFile(response, path, type) {
+  response.writeHead(200, headers(type));
+  createReadStream(path).pipe(response);
 }

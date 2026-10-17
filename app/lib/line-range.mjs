@@ -13,7 +13,6 @@
  *   rowFor(file, side, line)   the table row showing a line, or null
  *   rowsOf(file, lines)        every row from a range's first line to its
  *                              last, in order
- *   linesWords(lines)          a range in words, such as "lines 7-10"
  */
 export function pointOf(cell) {
   const at = cell.getAttribute('data-at');
@@ -51,14 +50,6 @@ export function rowsOf(file, n) {
     if (row === end) return rows;
   }
   return [end];
-}
-
-export function linesWords(n) {
-  const side = s => (s === 'LEFT' ? 'removed line' : 'line');
-  const startSide = n.start_side || n.side;
-  if (!n.start_line) return side(n.side) + ' ' + n.line;
-  if (startSide !== n.side) return side(startSide) + ' ' + n.start_line + ' to ' + side(n.side) + ' ' + n.line;
-  return side(n.side) + 's ' + n.start_line + '-' + n.line;
 }
 
 function numbers(row) {

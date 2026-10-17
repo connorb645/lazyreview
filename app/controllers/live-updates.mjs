@@ -8,10 +8,12 @@
  * no draft is open; with one open, a note says the review was loaded again
  * and offers the reload, so the draft is kept until then.
  */
-import { getJSON, reviewPath } from '../lib/api.mjs';
+import { getJSON, events, reviewPath } from '../api/server.mjs';
+import { views } from '../views.mjs';
+import { english } from '/i18n/english.mjs';
 
 export function createLiveUpdates(ctx, reloadHere) {
-  const note = document.getElementById('reload-note');
+  const note = views.reloadNote;
   let wanted = null;
   let reading = false;
 
@@ -26,7 +28,7 @@ export function createLiveUpdates(ctx, reloadHere) {
         if (wanted === asked) break;
       }
     } catch (error) {
-      ctx.flash('A change made elsewhere could not be read: ' + error.message);
+      ctx.flash(english.web.live.unread(error.message));
     } finally {
       reading = false;
     }
@@ -38,8 +40,8 @@ export function createLiveUpdates(ctx, reloadHere) {
   }
 
   note.querySelector('button').addEventListener('click', reloadHere);
-  const events = new EventSource(reviewPath(ctx.state.id, '/events'));
-  events.addEventListener('message', e => {
+  const notices = events(reviewPath(ctx.state.id, '/events'));
+  notices.addEventListener('message', e => {
     const notice = JSON.parse(e.data);
     if (notice.build && notice.build !== ctx.data.build) { loadedAgain(); return; }
     if (notice.state) {

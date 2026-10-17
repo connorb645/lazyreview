@@ -7,6 +7,8 @@
  * mail, anchor or relative address. trustedMarkdown(text) renders a written
  * review, which may hold inline SVG for its diagrams.
  */
+import { english } from '/i18n/english.mjs';
+
 export function escapeHTML(text) {
   return String(text)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -24,7 +26,7 @@ export const safe = new window.marked.Marked({
     html(html) { return escapeHTML(html); },
     link(href, title, text) { return allowedHref(href) ? false : text; },
     image(href, title, text) {
-      return '<span class="mdx-image">[image: ' + text + (href ? ' - ' + escapeHTML(href) : '') + ']</span>';
+      return '<span class="mdx-image">' + english.web.markdown.image(text, href ? escapeHTML(href) : '') + '</span>';
     },
   },
 });

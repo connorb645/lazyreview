@@ -1,13 +1,16 @@
 /**
- * Every sentence lazyreview's Node code shows, in English: the command's
- * lines and its usage, every error, the server's answers, the queue's and
- * the loader's words, the words a review's page draws, and the message
- * that asks Claude about a line.
+ * Every sentence lazyreview shows, in English: the command's lines and its
+ * usage, every error, the server's answers, the queue's and the loader's
+ * words, the words a review's page draws, the message that asks Claude
+ * about a line, and in `web` the web app's words. The server serves this
+ * module to the browser at /i18n/english.mjs, so it imports nothing.
  *
  * `english` is frozen and grouped by area. Fixed text is a string; text
  * with values is a function that holds the sentence's shape, plurals
  * included. A function that refuses something takes why, as words or as a
- * list of them.
+ * list of them. The web's words are HTML text, apart from those it puts in
+ * the page as plain text, and a function's values arrive ready for the
+ * page.
  */
 const plural = (count, one, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
 const pulls = (numbers, joiner = ', ') => numbers.map(n => `#${n}`).join(joiner);
@@ -16,6 +19,8 @@ const refusal = what => why => `${what}: ${reasons(why)}`;
 const listed = (count, problems) => `${count}:\n${problems.map(p => `  - ${p}`).join('\n')}`;
 const named = (kind, id, number) => `${kind} ${id === null ? number : `"${id}"`}`;
 const capital = words => `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
+const grouped = count => Number(count).toLocaleString('en-GB');
+const counted = (count, one) => `${grouped(count)} ${count === 1 ? one : `${one}s`}`;
 
 const USAGE = `usage: lazyreview <command> [options]
 
@@ -67,8 +72,6 @@ export const english = frozen({
     loaded: (name, counts) => `loaded ${name}: ${plural(counts.files, 'file')} +${counts.adds} -${counts.dels}, ${plural(counts.components, 'component')}, ${plural(counts.types, 'type')}`,
     open: address => `open ${address}`,
     note: note => `note: ${note}`,
-    pullsName: numbers => pulls(numbers),
-    branchName: (head, base) => `${head} against ${base}`,
     notLoaded: link => `${link} is not loaded; load it first`,
     reviewMoved: to => `that review moved to ${to}`,
     attached: (id, address) => `attached to ${id}${address ? `; open ${address}` : ''}`,
@@ -156,6 +159,7 @@ export const english = frozen({
     nothingAt: (method, path) => `nothing at ${method} ${path}`,
     noSuchReview: 'no such review',
     noFile: refusal('no file'),
+    noWords: marker => `index.html names ${marker}, which the strings do not hold`,
     notAFile: path => `${path} is not a file of this review`,
     textMissing: 'a text field is missing',
     giveLinks: 'give the pull requests to load as links, bottom first',
@@ -205,6 +209,8 @@ export const english = frozen({
       return `${side(n.side)}s ${n.start_line}-${n.line}`;
     },
     none: id => `there is no review ${id}`,
+    pullsName: numbers => pulls(numbers),
+    branchName: (head, base) => `${head} against ${base}`,
   },
 
   written: {
@@ -377,6 +383,273 @@ export const english = frozen({
     noneShows: 'Unchanged, and no pull request in the stack shows this line, so it takes no comment.',
     oneShows: place => `Unchanged. A comment here goes on ${place}.`,
     severalShow: places => `Unchanged, and shown by ${places.join(' and ')}. A comment here names which one it is for.`,
+  },
+
+  web: {
+    page: {
+      everyReview: 'Every review',
+      views: 'Views',
+      review: 'Review',
+      diagram: 'Diagram',
+      findType: 'Find a type',
+      findTypeOrFile: 'Find a type or file',
+      allLinksTitle: 'Draw every dependency, faintly',
+      allLinks: 'All links',
+      pullRequest: 'Pull request',
+      loading: 'Loading&hellip;',
+      reviews: 'Reviews',
+      reviewsLead: 'The pull requests, stacks and branches loaded here, newest first.',
+      loadingAReview: 'Loading a review',
+      askAnAgent: 'Ask an agent to load a pull request, or run it yourself:',
+      aStack: 'A stack is every pull request, bottom first:',
+      aBranch: 'A branch with no pull request yet loads from its repository, read only:',
+      components: 'Components',
+      notation: 'Notation',
+      hint: 'Drag or scroll to move. Pinch, <kbd>&#8984;</kbd>/<kbd>Ctrl</kbd> and scroll, or the buttons, to zoom. Point at a type to see everything it links to. Select a type or a component to open its diff.',
+      diagramLabel: 'Class diagram of the change, grouped by component',
+      zoomOut: 'Zoom out',
+      fit: 'Fit',
+      zoomIn: 'Zoom in',
+      filesLabel: 'Files in this component',
+      loadedAgain: 'This review was loaded again. Reload to see it; what you are writing stays here until then.',
+      reload: 'Reload',
+    },
+
+    app: {
+      reviewFailed: 'This review could not open',
+      listFailed: 'The list of reviews could not load',
+    },
+
+    server: {
+      notJSON: status => `the server sent something that is not JSON (${status})`,
+      answered: status => `the server answered ${status}`,
+    },
+
+    counts: {
+      files: count => counted(count, 'file'),
+      lines: count => counted(count, 'line'),
+      unchangedLines: count => counted(count, 'unchanged line'),
+      comments: count => counted(count, 'comment'),
+      moreComments: count => counted(count, 'more comment'),
+      queuedComments: count => counted(count, 'queued comment'),
+      messages: count => counted(count, 'message'),
+      questions: count => counted(count, 'question'),
+      others: count => counted(count, 'other'),
+      reviewThreads: count => counted(count, 'review thread'),
+      githubThreads: count => counted(count, 'GitHub thread'),
+      conversations: count => counted(count, 'conversation'),
+    },
+
+    markdown: {
+      image: (text, address) => `[image: ${text}${address ? ` - ${address}` : ''}]`,
+    },
+
+    home: {
+      ended: (pull, state) => `#${pull} ${state}`,
+      loaded: at => `loaded ${at}`,
+      queued: count => `${count} queued`,
+      none: 'No reviews yet.',
+    },
+
+    bar: {
+      all: 'All',
+      allPulls: (count, base, top) => `All ${count} pull requests, combined, from <b>${base}</b> to the head of <b>#${top}</b>`,
+      ofCombined: totals => `${totals} of the combined diff`,
+      backToReview: '&larr; Review',
+      backToDiagram: '&larr; Diagram',
+    },
+
+    refresh: {
+      refresh: 'Refresh',
+      refreshing: 'Refreshing',
+      branch: 'Load the branch again',
+      pulls: 'Load again from GitHub',
+      title: (what, at) => `${what}. Loaded ${at}.`,
+      failed: why => `Not refreshed: ${why}`,
+    },
+
+    live: {
+      unread: why => `A change made elsewhere could not be read: ${why}`,
+    },
+
+    review: {
+      pull: number => `Pull request #${number}`,
+      by: (pull, author) => `${pull} by <b>${author}</b>`,
+      base: base => `Base <b>${base}</b>`,
+      head: head => `Head <b>${head}</b>`,
+      stack: count => `A stack of ${count} pull requests, each built on the one before, reviewed together`,
+      byAuthor: author => `by <b>${author}</b>`,
+      onBase: base => `on <b>${base}</b>`,
+      atHead: head => `head <b>${head}</b>`,
+      combined: 'Combined: ',
+      branch: (branch, repo) => `Branch <b>${branch}</b> in <b>${repo}</b>, with no pull request yet`,
+      moved: (pulls, review) => `This review moved: ${pulls} are reviewed together on ${review}. Its queued comments moved there, and nothing can be sent from here.`,
+      range: (first, last) => `${first} to ${last}`,
+      itsPull: 'its pull request',
+      stacksReview: 'the stack’s review',
+      branchReadOnly: 'This branch has no pull request yet, so its review is read only. The diagram and the diffs hold the change; select a line number in a diff to ask Claude about it.',
+      noWritten: 'No written review is attached. The diagram and the diffs hold the change; select a line number in a diff to ask Claude about it or to queue a comment.',
+      staleWritten: head => `This written review read head ${head}; the pull request has moved on since, so it may not match the diff.`,
+      conversations: 'Conversations',
+      waiting: 'Waiting for Claude…',
+      onGitHub: 'On GitHub',
+      githubThreads: (threads, open) => `${threads}, ${open} unresolved, as GitHub had them when this review was loaded.`,
+      resolved: 'resolved',
+      outdated: 'outdated',
+      queuedComments: 'Queued comments',
+      openDiagram: 'Open the diagram &rarr;',
+      showOnDiagram: 'Show on the diagram',
+      showPull: (pull, title) => `Show #${pull} on the diagram${title ? `: ${title}` : ''}`,
+      theChange: 'The change',
+      onThisPage: 'On this page',
+      thisReview: 'This review',
+      loaded: (at, account) => `Loaded ${at}${account ? ` as <b>${account}</b>` : ''}`,
+      openAt: (path, line) => `Open ${path} at line ${line}`,
+    },
+
+    queue: {
+      title: 'Queued comments',
+      labels: { 'comment': 'Add Comments', 'approve-with-comments': 'Approve With Comments', 'approve': 'Approve' },
+      yes: { 'comment': 'Yes, add comments', 'approve-with-comments': 'Yes, approve with comments', 'approve': 'Yes, approve' },
+      cancel: 'Cancel',
+      save: 'Save',
+      edit: 'Edit',
+      drop: 'Drop',
+      note: 'Add Comments sends a review that only comments. Approve With Comments approves and sends the comments with it. Approve approves alone. None of them asks for changes.',
+      stackNote: 'A comment goes on the pull request that last changed its line, shown as → #number. Each pull request has its own buttons and gets its own review.',
+      empty: 'No comments queued. Select a line number in the diff, write the comment, and press Queue comment. Ask Claude there to draft one.',
+      noneFor: pull => `No comments queued for #${pull}.`,
+      staleHere: 'Nothing queued here can be sent until each comment marked stale is queued again or dropped.',
+      goesOn: target => `Each comment goes on ${target} exactly as shown.`,
+      ended: (target, state, at, stacked) => `${target} was ${state}${at ? ` on ${at}` : ''}. Nothing can be sent ${stacked ? 'to it' : 'from here'}.`,
+      leftStack: pull => `#${pull} left this stack. Nothing can be sent to it from here.`,
+      shownHere: (line, path) => `line ${line}${path ? ` of ${path}` : ''} on this page`,
+      stale: why => `Its line may have moved: ${why}. No button sends it until it is queued again or dropped.`,
+      posted: (action, count, at) => `${action === 'approve' ? 'Approved' : `${action === 'approve-with-comments' ? 'Approved with' : 'Posted'} ${count} comment${count === 1 ? '' : 's'}`}, ${at}: `,
+      theReview: 'the review',
+      movedTo: 'This review moved to ',
+      movedThere: '. Its queued comments moved there.',
+      result: message => capital(message),
+      sending: 'Checking the pull request with GitHub, then sending…',
+      saveAgain: why => `${why}. Save again to replace it with your text.`,
+      droppedElsewhere: (id, text) => `Comment ${id} was dropped elsewhere while you edited it. Your text was: ${text}`,
+    },
+
+    notes: {
+      askClaude: 'Ask Claude',
+      queueComment: 'Queue comment',
+      you: 'You',
+      claude: 'Claude',
+      noAnswer: why => `No answer: ${why}`,
+      useAsComment: 'Use as comment',
+      waiting: 'waiting for an answer',
+      thinking: 'Claude is reading the file and the diff&hellip;',
+      reading: 'Claude is reading the file and the diff…',
+      followUpOrComment: 'Ask a follow-up, or write a comment for the pull request',
+      followUp: 'Ask a follow-up',
+      queued: id => `Queued ${id}`,
+      stale: 'stale',
+      edit: 'Edit',
+      drop: 'Drop',
+      bot: 'bot',
+      youTag: 'you',
+      wholeFile: 'the whole file',
+      wasOnLine: line => `was on line ${line}`,
+      andOthers: others => ` and ${others}`,
+      github: 'GitHub',
+      resolved: 'Resolved',
+      outdated: 'Outdated',
+      moreOnGitHub: more => `${more} on GitHub. `,
+      resolvedBy: who => `Resolved by ${who}. `,
+      openOnGitHub: 'Open on GitHub',
+      checking: 'Checking where a comment here goes…',
+      checkingTitle: 'Checking where a comment here goes.',
+      whereUnchecked: why => `Where a comment here goes could not be checked: ${why}`,
+      commentOn: 'Comment on ',
+      askClaudeAbout: 'Ask Claude about ',
+      option: (pull, line) => `#${pull}, line ${line}`,
+      passageHint: 'Select another passage to change the lines.',
+      tapHint: 'Tap another line number for a range.',
+      dragHint: 'Drag across line numbers, or shift-select another, for a range.',
+      askOrComment: 'Ask Claude about these lines, or write a comment for the pull request',
+      askAbout: 'Ask Claude about these lines',
+      close: 'Close',
+      cancel: 'Cancel',
+      onNoLine: 'On no line shown here',
+      checkingLine: 'Checking the line with GitHub…',
+    },
+
+    diagram: {
+      kinds: { has: 'holds', realize: 'conforms to', inherit: 'inherits from', extend: 'extends', use: 'uses', test: 'tests' },
+      unchangedCount: files => `${files} · unchanged`,
+      readContext: head => `Unchanged. Select to read its code at ${head}`,
+      readWhole: 'Unchanged, in a changed file. Select to read the file whole',
+      removedOpen: component => `Removed by this change. Select to open the ${component} diff`,
+      open: component => `Select to open the ${component} diff`,
+      nodeLabel: (name, file, pulls, go) => `${name}, ${file}. ${pulls.length ? `Changed in ${pulls.map(p => `#${p}`).join(', ')}. ` : ''}${go}`,
+      changed: 'changed',
+      unchanged: 'unchanged',
+      removed: 'removed',
+      readCodeOf: component => `Read the code of ${component}`,
+      openDiffFor: component => `Open the diff for ${component}`,
+      readCode: 'Read code →',
+      storedProperties: count => (count === 1 ? '1 stored property' : count ? `${grouped(count)} stored properties` : 'no stored properties'),
+      inferred: 'inferred',
+      inferredTitle: 'Read from what its initializer constructs',
+      line: line => `line ${line}`,
+      holds: name => `holds ${name}`,
+      legend: {
+        holds: 'Holds one as a stored property',
+        conforms: 'Conforms to a protocol or interface',
+        inherits: 'Inherits from a type',
+        uses: 'Uses it (named links only, until you point)',
+        added: 'New in this change',
+        changed: 'Existing, changed',
+        unchanged: 'Unchanged, shown for context',
+        removed: 'Removed by this change',
+        pull: 'Changed in that pull request of the stack',
+      },
+    },
+
+    diffs: {
+      showUnchanged: count => `show ${counted(count, 'unchanged line')}`,
+      unchangedAt: head => `Unchanged at ${head}. Read only: select a line number to ask about it.`,
+      binary: 'A binary file. Its contents are not shown.',
+      renamedOnly: 'Renamed, with no change to its contents.',
+      modeOnly: 'No change to its contents, only to its mode.',
+      passageHint: 'Select a passage to comment on it or ask Claude about it.',
+      passageHintAsk: 'Select a passage to ask Claude about it.',
+      showOnDiagram: name => `Show ${name} on the diagram`,
+      badges: { unchanged: 'unchanged', added: 'new', deleted: 'deleted', renamed: 'renamed', changed: 'changed' },
+      from: path => `from ${path}`,
+      wholeFile: 'Whole file',
+      rendered: 'Rendered',
+      pullLines: (pull, adds, dels) => `#${pull}&rsquo;s lines; the file changes +${adds} &minus;${dels} in all`,
+      contextTotals: (files, head) => `${files}, unchanged at ${head}, read only`,
+      otherComponents: 'Other components',
+      noFileChanged: (component, pull) => `No file in ${component} changed in #${pull}.`,
+      showEveryPull: 'Show every pull request',
+      notLoaded: why => `The diff could not load: ${why}`,
+      fileNotLoaded: why => `This file could not load: ${why}`,
+      collapseAll: 'Collapse all',
+      expandAll: 'Expand all',
+      splitView: 'Split view',
+      unifiedView: 'Unified view',
+      wrapLines: 'Wrap lines',
+      unwrapLines: 'Unwrap lines',
+    },
+
+    rendered: {
+      added: 'Added',
+      removed: 'Removed',
+      addedKey: 'added',
+      removedKey: 'removed',
+      newFile: 'New file.',
+      deletedFile: 'Deleted file. It read:',
+      changedParts: 'Only the changed parts: the app holds the diff of this file, not its whole text. Marked:',
+      marked: 'Marked:',
+      readsTheSame: 'The change does not alter how the file reads.',
+    },
   },
 });
 

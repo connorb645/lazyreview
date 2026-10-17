@@ -13,50 +13,50 @@
 </head>
 <body>
 <header class="bar" id="bar">
-  <a class="home-link" href="/" title="Every review" aria-label="Every review"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="currentColor"><circle cx="2.5" cy="3.5" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="2.5" cy="12.5" r="1.3"/></g><path d="M6 3.5h8M6 8h8M6 12.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></a>
-  <button class="back" id="back" hidden>&larr; Diagram</button>
+  <a class="home-link" href="/" title="{{page.everyReview}}" aria-label="{{page.everyReview}}"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="currentColor"><circle cx="2.5" cy="3.5" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="2.5" cy="12.5" r="1.3"/></g><path d="M6 3.5h8M6 8h8M6 12.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></a>
+  <button class="back" id="back" hidden>{{bar.backToDiagram}}</button>
   <div class="bar-title">
     <h1 id="page-title">lazy<span class="accent-word">review</span></h1>
     <span class="context" id="context"></span>
   </div>
-  <nav class="views" id="views" aria-label="Views" hidden>
-    <button type="button" data-view="review">Review<span class="vcount" hidden></span></button>
-    <button type="button" data-view="map">Diagram</button>
+  <nav class="views" id="views" aria-label="{{page.views}}" hidden>
+    <button type="button" data-view="review">{{page.review}}<span class="vcount" hidden></span></button>
+    <button type="button" data-view="map">{{page.diagram}}</button>
   </nav>
   <span class="spacer"></span>
   <div class="tools" id="diagram-tools" hidden>
-    <label for="search" hidden>Find a type</label>
-    <input id="search" type="search" placeholder="Find a type or file" autocomplete="off" spellcheck="false">
-    <button class="btn" id="all-links" aria-pressed="false" title="Draw every dependency, faintly">All links</button>
+    <label for="search" hidden>{{page.findType}}</label>
+    <input id="search" type="search" placeholder="{{page.findTypeOrFile}}" autocomplete="off" spellcheck="false">
+    <button class="btn" id="all-links" aria-pressed="false" title="{{page.allLinksTitle}}">{{page.allLinks}}</button>
   </div>
   <div class="tools" id="diff-tools" hidden>
-    <button class="btn" id="toggle-all">Collapse all</button>
-    <button class="btn" id="toggle-view">Split view</button>
-    <button class="btn" id="toggle-wrap">Wrap lines</button>
+    <button class="btn" id="toggle-all">{{diffs.collapseAll}}</button>
+    <button class="btn" id="toggle-view">{{diffs.splitView}}</button>
+    <button class="btn" id="toggle-wrap">{{diffs.wrapLines}}</button>
   </div>
   <span class="totals" id="totals"></span>
-  <button class="btn refresh" id="refresh" type="button" hidden><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12.6 1.6v3.2H9.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="refresh-label">Refresh</span></button>
+  <button class="btn refresh" id="refresh" type="button" hidden><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12.6 1.6v3.2H9.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="refresh-label">{{refresh.refresh}}</span></button>
 </header>
 <div class="stack-strip" id="stack-strip" hidden>
-  <span class="strip-h" id="strip-h">Pull request</span>
+  <span class="strip-h" id="strip-h">{{page.pullRequest}}</span>
   <div class="pull-filter" id="pull-filter" role="group" aria-labelledby="strip-h"></div>
   <span class="strip-note" id="strip-note" aria-live="polite"></span>
 </div>
 
-<p class="loading" id="loading">Loading&hellip;</p>
+<p class="loading" id="loading">{{page.loading}}</p>
 
 <section id="home-view" hidden>
   <div class="home-wrap">
-    <h2>Reviews</h2>
-    <p class="home-sub">The pull requests, stacks and branches loaded here, newest first.</p>
+    <h2>{{page.reviews}}</h2>
+    <p class="home-sub">{{page.reviewsLead}}</p>
     <ul class="home-list" id="home-list"></ul>
     <div class="home-how">
-      <p class="rail-h">Loading a review</p>
-      <p>Ask an agent to load a pull request, or run it yourself:</p>
+      <p class="rail-h">{{page.loadingAReview}}</p>
+      <p>{{page.askAnAgent}}</p>
       <pre><code>lazyreview load https://github.com/owner/repo/pull/12</code></pre>
-      <p>A stack is every pull request, bottom first:</p>
+      <p>{{page.aStack}}</p>
       <pre><code>lazyreview load &lt;bottom&gt; &lt;next&gt; &lt;top&gt;</code></pre>
-      <p>A branch with no pull request yet loads from its repository, read only:</p>
+      <p>{{page.aBranch}}</p>
       <pre><code>lazyreview load --repo &lt;folder&gt; --base main --head &lt;branch&gt;</code></pre>
     </div>
   </div>
@@ -72,29 +72,29 @@
 <section id="diagram-view" hidden>
   <aside id="rail">
     <div>
-      <p class="rail-h">Components</p>
+      <p class="rail-h">{{page.components}}</p>
       <ul class="comp-list" id="comp-list"></ul>
     </div>
     <div class="legend-block">
-      <p class="rail-h">Notation</p>
+      <p class="rail-h">{{page.notation}}</p>
       <div class="legend" id="legend"></div>
     </div>
-    <p class="hint">Drag or scroll to move. Pinch, <kbd>&#8984;</kbd>/<kbd>Ctrl</kbd> and scroll, or the buttons, to zoom. Point at a type to see everything it links to. Select a type or a component to open its diff.</p>
+    <p class="hint">{{page.hint}}</p>
   </aside>
   <div id="canvas">
-    <svg id="diagram" role="img" aria-label="Class diagram of the change, grouped by component"></svg>
+    <svg id="diagram" role="img" aria-label="{{page.diagramLabel}}"></svg>
     <aside class="props-panel" id="props-panel" aria-live="polite" hidden></aside>
     <div class="zoom-tools">
       <span class="scale-readout" id="scale"></span>
-      <button class="btn icon" id="zoom-out" aria-label="Zoom out">&minus;</button>
-      <button class="btn" id="zoom-fit">Fit</button>
-      <button class="btn icon" id="zoom-in" aria-label="Zoom in">+</button>
+      <button class="btn icon" id="zoom-out" aria-label="{{page.zoomOut}}">&minus;</button>
+      <button class="btn" id="zoom-fit">{{page.fit}}</button>
+      <button class="btn icon" id="zoom-in" aria-label="{{page.zoomIn}}">+</button>
     </div>
   </div>
 </section>
 
 <section id="diff-view" hidden>
-  <nav id="files-nav" aria-label="Files in this component"></nav>
+  <nav id="files-nav" aria-label="{{page.filesLabel}}"></nav>
   <main id="main"></main>
 </section>
 
@@ -103,11 +103,11 @@
     <div class="glyph"><span class="minus">-&nbsp;-&nbsp;-</span>&nbsp;&nbsp;<span class="plus">+&nbsp;+&nbsp;+</span></div>
     <h2></h2>
     <p></p>
-    <p class="empty-home"><a href="/">Every review</a></p>
+    <p class="empty-home"><a href="/">{{page.everyReview}}</a></p>
   </div>
 </section>
 
 <p class="toast" id="toast" role="status" hidden></p>
-<div class="toast reload-note" id="reload-note" role="status" hidden><span>This review was loaded again. Reload to see it; what you are writing stays here until then.</span><button class="btn" type="button">Reload</button></div>
+<div class="toast reload-note" id="reload-note" role="status" hidden><span>{{page.loadedAgain}}</span><button class="btn" type="button">{{page.reload}}</button></div>
 </body>
 </html>

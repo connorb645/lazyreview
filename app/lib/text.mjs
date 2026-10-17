@@ -11,10 +11,6 @@ export function fmt(n) {
   return Number(n).toLocaleString('en-GB');
 }
 
-export function plural(n, word) {
-  return fmt(n) + ' ' + word + (n === 1 ? '' : 's');
-}
-
 export function baseName(path) {
   return path.split('/').pop();
 }

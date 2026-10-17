@@ -8,24 +8,28 @@
  * and restore(), which scrolls back to where the page was when it was opened
  * again so, and does nothing otherwise.
  */
-import { send, reviewPath, reviewAddress } from '../lib/api.mjs';
+import { send, reviewPath } from '../api/server.mjs';
+import { views } from '../views.mjs';
+import { reviewAddress } from '../lib/addresses.mjs';
 import { when } from '../lib/text.mjs';
+import { remember, recall } from '../context/return-place.mjs';
+import { english } from '/i18n/english.mjs';
 
-const RETURN = 'lazyreview:return';
+const words = english.web.refresh;
 
 export function createRefresh(ctx) {
-  const button = document.getElementById('refresh');
+  const button = views.refresh;
   const label = button.querySelector('.refresh-label');
   const branch = ctx.state.kind === 'branch';
-  const what = branch ? 'Load the branch again' : 'Load again from GitHub';
+  const what = branch ? words.branch : words.pulls;
   button.hidden = !!ctx.state.moved;
-  button.title = what + '. Loaded ' + when(ctx.state.loaded_at) + '.';
+  button.title = words.title(what, when(ctx.state.loaded_at));
   button.setAttribute('aria-label', what);
 
   button.addEventListener('click', async () => {
     button.disabled = true;
     button.classList.add('busy');
-    label.textContent = 'Refreshing';
+    label.textContent = words.refreshing;
     try {
       const done = await send('POST', reviewPath(ctx.state.id, '/refresh'));
       remember({ id: done.id, hash: location.hash, y: window.scrollY, line: firstLineShown() });
@@ -34,8 +38,8 @@ export function createRefresh(ctx) {
     } catch (error) {
       button.disabled = false;
       button.classList.remove('busy');
-      label.textContent = 'Refresh';
-      ctx.flash('Not refreshed: ' + error.message);
+      label.textContent = words.refresh;
+      ctx.flash(words.failed(error.message));
     }
   });
 
@@ -61,26 +65,8 @@ export function createRefresh(ctx) {
 }
 
 function firstLineShown() {
-  const bar = document.getElementById('bar').getBoundingClientRect().bottom;
+  const bar = views.bar.getBoundingClientRect().bottom;
   const row = Array.prototype.find.call(document.querySelectorAll('#main:not([hidden]) tr[data-l]'), r => r.getBoundingClientRect().top >= bar);
-  if (!row || document.getElementById('diff-view').hidden) return null;
+  if (!row || views.diffView.hidden) return null;
   return { path: row.closest('details.file').getAttribute('data-path'), key: row.getAttribute('data-l'), top: row.getBoundingClientRect().top };
-}
-
-function remember(place) {
-  try {
-    sessionStorage.setItem(RETURN, JSON.stringify(place));
-  } catch {
-    // Without storage the page opens at the top of its view, which is where a reload puts it anyway.
-  }
-}
-
-function recall() {
-  try {
-    const text = sessionStorage.getItem(RETURN);
-    sessionStorage.removeItem(RETURN);
-    return text ? JSON.parse(text) : null;
-  } catch {
-    return null;
-  }
 }

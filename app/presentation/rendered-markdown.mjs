@@ -19,7 +19,10 @@
  *
  * The output is safe to put in a page, as safeMarkdown's is.
  */
-import { safeMarkdown } from './markdown.mjs';
+import { safeMarkdown } from '../lib/markdown.mjs';
+import { english } from '/i18n/english.mjs';
+
+const words = english.web.rendered;
 
 function lineData(b) {
   if (b.start_line === null) return '';
@@ -30,7 +33,7 @@ function lineData(b) {
 
 function block(b, plain) {
   const kind = plain ? '' : ' mdx-' + b.state;
-  const title = plain ? '' : b.state === 'add' ? ' title="Added"' : b.state === 'del' ? ' title="Removed"' : '';
+  const title = plain ? '' : b.state === 'add' ? ' title="' + words.added + '"' : b.state === 'del' ? ' title="' + words.removed + '"' : '';
   return '<div class="mdx-block' + kind + '"' + title + lineData(b) + '>' + safeMarkdown(b.markdown) + '</div>';
 }
 
@@ -49,18 +52,18 @@ function body(blocks, plain) {
 }
 
 function legend(text) {
-  return '<p class="mdx-note">' + text + '<span class="mdx-key mdx-add"></span>added<span class="mdx-key mdx-del"></span>removed</p>';
+  return '<p class="mdx-note">' + text + '<span class="mdx-key mdx-add"></span>' + words.addedKey + '<span class="mdx-key mdx-del"></span>' + words.removedKey + '</p>';
 }
 
 export function drawRendered(rendered, status) {
   const { blocks, partial } = rendered;
-  if (status === 'A') return '<div class="mdx"><p class="mdx-note">New file.</p>' + body(blocks, true) + '</div>';
-  if (status === 'D') return '<div class="mdx"><p class="mdx-note">Deleted file. It read:</p>' + body(blocks, true) + '</div>';
+  if (status === 'A') return '<div class="mdx"><p class="mdx-note">' + words.newFile + '</p>' + body(blocks, true) + '</div>';
+  if (status === 'D') return '<div class="mdx"><p class="mdx-note">' + words.deletedFile + '</p>' + body(blocks, true) + '</div>';
   if (partial) {
     const parts = [...new Set(blocks.map(b => b.part))].map(part => body(blocks.filter(b => b.part === part), false));
-    return '<div class="mdx">' + legend('Only the changed parts: the app holds the diff of this file, not its whole text. Marked:') +
+    return '<div class="mdx">' + legend(words.changedParts) +
       parts.join('<p class="mdx-gap">&middot; &middot; &middot;</p>') + '</div>';
   }
   const marked = blocks.some(b => b.state !== 'same');
-  return '<div class="mdx">' + (marked ? legend('Marked:') : '<p class="mdx-note">The change does not alter how the file reads.</p>') + body(blocks, false) + '</div>';
+  return '<div class="mdx">' + (marked ? legend(words.marked) : '<p class="mdx-note">' + words.readsTheSame + '</p>') + body(blocks, false) + '</div>';
 }

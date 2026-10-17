@@ -8,38 +8,33 @@
  * to date with changes made elsewhere. It opens on the diagram, or on the
  * Review when a written review is attached.
  */
-import { getJSON, reviewPath } from '../lib/api.mjs';
-import { esc, fmt, plural } from '../lib/text.mjs';
-import { indexPage } from './review-data.mjs';
-import { createPulls } from './pulls.mjs';
+import { getJSON, reviewPath } from '../api/server.mjs';
+import { views } from '../views.mjs';
+import { createReview } from '../context/review.mjs';
+import { headingContext, totals as totalsHTML, filteredTotals, allPulls, onePull, pullButtons as pullButtonsHTML, warnLine, backLabel } from '../presentation/bar.mjs';
 import { createDiagram } from './diagram.mjs';
 import { createDiffs } from './diffs.mjs';
 import { createLineNotes } from './line-notes.mjs';
-import { createQueuePanel } from './queue-panel.mjs';
+import { createQueuePanel } from './queue.mjs';
 import { createOverview } from './overview.mjs';
 import { createRefresh } from './refresh.mjs';
 import { createPassages } from './passages.mjs';
 import { createLiveUpdates } from './live-updates.mjs';
+import { english } from '/i18n/english.mjs';
 
 export async function openReview(id) {
   const [state, page] = await Promise.all([getJSON(reviewPath(id)), getJSON(reviewPath(id, '/page'))]);
-  const ctx = { state, data: indexPage(page), filter: { pull: null } };
+  const ctx = createReview(state, page);
   const { model, comps, files, totals } = ctx.data;
-  ctx.pulls = createPulls(ctx);
   const pulls = ctx.pulls;
 
-  const reviewView = document.getElementById('review-view');
-  const diagramView = document.getElementById('diagram-view');
-  const diffView = document.getElementById('diff-view');
-  const back = document.getElementById('back');
-  const viewsNav = document.getElementById('views');
-  const totalsEl = document.getElementById('totals');
+  const { reviewView, diagramView, diffView, back, viewsNav } = views;
+  const totalsEl = views.totals;
 
   document.title = model.heading.title + ' - lazyreview';
-  document.getElementById('page-title').textContent = model.heading.title;
-  document.getElementById('page-title').title = model.heading.title;
-  document.getElementById('context').innerHTML = model.heading.context.map(part => (part[1] ? '<b>' + esc(part[0]) + '</b>' : esc(part[0]))).join('');
-  const totalsHTML = t => plural(t.files, 'file') + ' &nbsp;<span class="plus">+' + fmt(t.adds) + '</span> <span class="minus">&minus;' + fmt(t.dels) + '</span>';
+  views.pageTitle.textContent = model.heading.title;
+  views.pageTitle.title = model.heading.title;
+  views.context.innerHTML = headingContext(model.heading.context);
   const combinedTotals = totalsHTML(totals);
   totalsEl.innerHTML = combinedTotals;
   viewsNav.hidden = false;
@@ -80,12 +75,12 @@ export async function openReview(id) {
   }
 
   /* ---------- the pull request filter ---------- */
-  const strip = document.getElementById('stack-strip');
-  const pullButtons = document.getElementById('pull-filter');
+  const strip = views.stackStrip;
+  const pullButtons = views.pullFilter;
   function stripNote() {
     const m = pulls.memberOf[ctx.filter.pull];
-    if (!m) return 'All ' + pulls.members.length + ' pull requests, combined, from <b>' + esc(model.heading.base.slice(0, 8)) + '</b> to the head of <b>#' + esc(pulls.members[pulls.members.length - 1].pull) + '</b>';
-    return (m.title ? '<b>' + esc(m.title) + '</b> &middot; ' : '') + totalsHTML(memberTotals()) + ' of the combined diff';
+    if (!m) return allPulls(pulls, model.heading.base.slice(0, 8));
+    return onePull(m, memberTotals());
   }
   function memberTotals() {
     const t = { files: 0, adds: 0, dels: 0 };
@@ -98,9 +93,9 @@ export async function openReview(id) {
   function setPullFilter(pull, quiet) {
     ctx.filter.pull = pulls.memberOf[pull] ? pull : null;
     pullButtons.querySelectorAll('.pf').forEach(b => b.setAttribute('aria-pressed', String((+b.getAttribute('data-pull') || null) === ctx.filter.pull)));
-    document.getElementById('strip-note').innerHTML = stripNote();
+    views.stripNote.innerHTML = stripNote();
     ctx.diagram.filterTo(ctx.filter.pull);
-    totalsEl.innerHTML = ctx.filter.pull ? pulls.pullPill(ctx.filter.pull) + ' ' + totalsHTML(memberTotals()) : combinedTotals;
+    totalsEl.innerHTML = ctx.filter.pull ? filteredTotals(pulls, ctx.filter.pull, memberTotals()) : combinedTotals;
     if (!diagramView.hidden && !quiet) ctx.diagram.showFiltered();
     else filterMoved = !quiet;
     const cid = ctx.diffs.current();
@@ -108,19 +103,17 @@ export async function openReview(id) {
     if (!diffView.hidden && cid) ctx.diffs.renderComponent(cid);
   }
   if (pulls.members.length) {
-    pullButtons.innerHTML = '<button type="button" class="pf" data-pull="" aria-pressed="true">All</button>' + pulls.members.map(m =>
-      '<button type="button" class="pf" data-pull="' + m.pull + '" aria-pressed="false" style="--pc:' + pulls.pullColor(m.pull) + '"' +
-      (m.title ? ' title="' + esc(m.title) + '"' : '') + '><i></i>#' + m.pull + '</button>').join('');
+    pullButtons.innerHTML = pullButtonsHTML(pulls);
     pullButtons.addEventListener('click', e => {
       const b = e.target.closest('.pf');
       if (b) setPullFilter(+b.getAttribute('data-pull') || null);
     });
-    ctx.data.stack.warnings.forEach(w => strip.insertAdjacentHTML('beforeend', '<p class="warn-line">' + esc(w) + '</p>'));
-    document.getElementById('strip-note').innerHTML = stripNote();
+    ctx.data.stack.warnings.forEach(w => strip.insertAdjacentHTML('beforeend', warnLine(w)));
+    views.stripNote.innerHTML = stripNote();
   }
 
   /* ---------- state changes ---------- */
-  const toast = document.getElementById('toast');
+  const toast = views.toast;
   function flash(message) {
     toast.textContent = message;
     toast.hidden = false;
@@ -132,7 +125,7 @@ export async function openReview(id) {
     const badge = viewsNav.querySelector('.vcount');
     badge.textContent = n ? String(n) : '';
     badge.hidden = !n;
-    badge.title = n ? plural(n, 'queued comment') : '';
+    badge.title = n ? english.web.counts.queuedComments(n) : '';
   }
   // Which draft has the keyboard, and where its caret is, so a page drawn again from a new state keeps it there.
   function draftFocus() {
@@ -145,9 +138,8 @@ export async function openReview(id) {
         : (holder.matches('.qc-item') ? '.qc-item' : '.queued-note') + '[data-comment="' + of('data-comment') + '"] .edit-box textarea';
     return { selector, start: area.selectionStart, end: area.selectionEnd };
   }
-  function setState(next, message) {
+  function drawState(message) {
     const focus = draftFocus();
-    ctx.state = next;
     ctx.overview.render(message);
     ctx.notes.refresh();
     ctx.queuePanel.restore();
@@ -159,8 +151,9 @@ export async function openReview(id) {
     }
   }
 
+  ctx.onChange(drawState);
   Object.assign(ctx, {
-    go, setPullFilter, setState, flash,
+    go, setPullFilter, flash,
     open: { component: openComponent, node: openNode, onDiagram: showOnDiagram },
   });
   ctx.notes = createLineNotes(ctx);
@@ -185,14 +178,14 @@ export async function openReview(id) {
     diffView.hidden = which !== 'diff';
     document.body.classList.toggle('map-mode', which === 'map');
     back.hidden = which !== 'diff';
-    document.getElementById('diagram-tools').hidden = which !== 'map';
-    document.getElementById('diff-tools').hidden = which !== 'diff';
+    views.diagramTools.hidden = which !== 'map';
+    views.diffTools.hidden = which !== 'diff';
     strip.hidden = !pulls.members.length || which === 'review';
     viewsNav.querySelectorAll('button').forEach(b => {
       if (b.getAttribute('data-view') === which) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     if (which !== 'diff') from = which;
-    back.innerHTML = from === 'review' ? '&larr; Review' : '&larr; Diagram';
+    back.innerHTML = backLabel(from);
     if (which === 'review') { window.scrollTo(0, 0); pending = null; return; }
     if (which === 'map') {
       ctx.diagram.fitTexts();

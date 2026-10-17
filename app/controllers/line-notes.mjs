@@ -13,7 +13,6 @@
  *                    view came from, quoting it
  *   decorate(file)   draw a file's notes under their lines, again, or in the
  *                    Rendered view under the passage holding their lines
- *   countBadge(path) the file header's count of its notes
  *   refresh()        draw every open file's notes again, after a change
  *   drafting()       whether a question or a comment is being written
  *
@@ -28,57 +27,21 @@
  * A GitHub thread that is resolved or outdated starts folded, as on GitHub.
  * A note on no line the view shows sits at the top of its file.
  */
-import { esc, plural } from '../lib/text.mjs';
-import { send, getJSON, reviewPath } from '../lib/api.mjs';
-import { createFolds } from '../lib/folds.mjs';
-import { pointOf, rangeOf, rowFor, rowsOf, linesWords } from './line-range.mjs';
-import { createNoteCards } from './note-cards.mjs';
+import { send, getJSON, reviewPath } from '../api/server.mjs';
+import { views } from '../views.mjs';
+import { createFolds } from '../context/folds.mjs';
+import { pointOf, rangeOf, rowFor, rowsOf } from '../lib/line-range.mjs';
+import { fromHTML } from '../lib/html.mjs';
+import { createNotesMarkup, countBadge } from '../presentation/line-notes.mjs';
+import { english } from '/i18n/english.mjs';
 
-const QUOTE = 200;
 const BLANK_LINES = 2;
+const words = english.web.notes;
 
 export function createLineNotes(ctx) {
-  const cards = createNoteCards(ctx);
   const folds = createFolds(ctx.state.id);
+  const markup = createNotesMarkup(ctx, folds);
   let composer = null;
-
-  function threadsOn(path) {
-    return ctx.state.threads.filter(t => t.path === path);
-  }
-  function githubOn(path) {
-    return ctx.state.github.filter(t => (t.at ? t.at.path : t.path) === path);
-  }
-  function queuedOn(path) {
-    const out = [];
-    const q = ctx.state.queue;
-    if (!q) return out;
-    q.members.concat(q.earlier).forEach(m => m.comments.forEach(c => {
-      const at = c.shown || c;
-      if (at.path === path) out.push({ member: m, comment: c, side: at.side, line: at.line, start_line: at.start_line, start_side: at.start_side });
-    }));
-    return out;
-  }
-
-  function countBadge(path) {
-    const g = githubOn(path).length, t = threadsOn(path).length, q = queuedOn(path).length;
-    if (!g && !t && !q) return '';
-    const words = [g ? plural(g, 'GitHub thread') : '', t ? plural(t, 'conversation') : '', q ? plural(q, 'queued comment') : ''].filter(Boolean).join(', ');
-    return '<span class="ncount" title="' + esc(words) + '">' + esc(words) + '</span>';
-  }
-
-  // Where a comment on the composer's lines goes, as far as the server has said.
-  function whereOf(c) {
-    if (!ctx.state.queue) return { words: '' };
-    if (!c.where) return { words: 'Checking where a comment here goes…', off: 'Checking where a comment here goes.' };
-    if (c.where.refused) return { words: c.where.refused, off: c.where.refused };
-    return { words: c.where.words, choose: c.where.choose || c.choices };
-  }
-
-  function chooseHTML(c, choose) {
-    if (!choose) return '';
-    return '<label class="composer-choose">Comment on <select data-pull>' + choose.map(x =>
-      '<option value="' + x.pull + '"' + (c.pull === x.pull ? ' selected' : '') + '>#' + x.pull + ', line ' + x.line + '</option>').join('') + '</select></label>';
-  }
 
   async function lookWhere(c, named) {
     if (!ctx.state.queue) return;
@@ -90,7 +53,7 @@ export function createLineNotes(ctx) {
     try {
       answer = await getJSON(reviewPath(ctx.state.id, '/where?' + new URLSearchParams(asked)));
     } catch (error) {
-      answer = { refused: 'Where a comment here goes could not be checked: ' + error.message };
+      answer = { refused: words.whereUnchecked(error.message) };
     }
     if (composer !== c || c.asking !== asked) return;
     c.where = answer;
@@ -104,9 +67,9 @@ export function createLineNotes(ctx) {
   function showWhere(c) {
     const box = document.querySelector('#main .composer-row .composer');
     if (!box) return;
-    const to = whereOf(c);
+    const to = markup.whereOf(c);
     box.querySelector('.where-words').textContent = to.words ? ' · ' + to.words : '';
-    box.querySelector('.choose-slot').innerHTML = chooseHTML(c, to.choose);
+    box.querySelector('.choose-slot').innerHTML = markup.chooseHTML(c, to.choose);
     const button = box.querySelector('button[data-act="queue"]');
     if (button) {
       button.disabled = !!to.off;
@@ -114,27 +77,11 @@ export function createLineNotes(ctx) {
     }
   }
 
-  function composerHTML(c) {
-    const to = whereOf(c);
-    const hint = c.quote !== undefined ? 'Select another passage to change the lines.'
-      : touch ? 'Tap another line number for a range.' : 'Drag across line numbers, or shift-select another, for a range.';
-    return '<div class="composer">' +
-      '<p class="composer-where"><b>' + esc(linesWords(c)) + '</b><span class="where-words">' + (to.words ? ' &middot; ' + esc(to.words) : '') + '</span>' +
-      ' <span class="hint-inline">' + hint + '</span></p>' +
-      (c.quote ? '<blockquote class="composer-quote">' + esc(c.quote.length > QUOTE ? c.quote.slice(0, QUOTE) + '…' : c.quote) + '</blockquote>' : '') +
-      '<div class="choose-slot">' + chooseHTML(c, to.choose) + '</div>' +
-      cards.textArea(ctx.state.queue ? 'Ask Claude about these lines, or write a comment for the pull request' : 'Ask Claude about these lines', c.text) +
-      cards.actions(to.off) + '<button type="button" class="nbtn quiet close" data-act="cancel" aria-label="Close">Cancel</button></div>';
-  }
-
   function columns(row) {
     return Array.from(row.cells).reduce((n, cell) => n + cell.colSpan, 0);
   }
   function noteRow(row, cls, html) {
-    const tr = document.createElement('tr');
-    tr.className = 'note-row ' + cls;
-    tr.innerHTML = '<td colspan="' + columns(row) + '">' + html + '</td>';
-    return tr;
+    return fromHTML(markup.noteRow(columns(row), cls, html));
   }
 
   function decorate(file) {
@@ -148,7 +95,7 @@ export function createLineNotes(ctx) {
     });
     file.querySelectorAll('.picked').forEach(el => el.classList.remove('picked'));
     const badge = file.querySelector('summary .ncount');
-    const fresh = countBadge(path);
+    const fresh = countBadge(ctx.state, path);
     if (badge) badge.outerHTML = fresh || '';
     else if (fresh) file.querySelector('summary .fstats').insertAdjacentHTML('beforebegin', fresh);
     const view = file.querySelector('.mdview');
@@ -162,17 +109,11 @@ export function createLineNotes(ctx) {
     ctx.queuePanel.restore();
   }
 
-  function notesOn(path) {
-    return githubOn(path).map(t => ({ ...t.at, html: githubCard(t), cls: 'gh-row' }))
-      .concat(threadsOn(path).map(t => ({ side: t.side, line: t.line, html: cards.conversation(t, folds.isOpen('t' + t.id, true)), cls: 'thread-row' })))
-      .concat(queuedOn(path).map(n => ({ side: n.side, line: n.line, html: cards.queued(n), cls: 'queued-row' })));
-  }
-
   function drawTable(file, path) {
     const first = file.querySelector('tr[data-l]');
     if (!first) return;
     const away = [];
-    notesOn(path).forEach(n => {
+    markup.notesOn(path).forEach(n => {
       let row = n.line ? rowFor(file, n.side, n.line) : null;
       if (!row && n.line && n.side === 'RIGHT') { ctx.diffs.expandFor(file, n.line); row = rowFor(file, n.side, n.line); }
       if (!row) { if (n.cls === 'gh-row') away.push(n.html); return; }
@@ -180,24 +121,21 @@ export function createLineNotes(ctx) {
       while (after.nextElementSibling && after.nextElementSibling.classList.contains('note-row')) after = after.nextElementSibling;
       after.after(noteRow(row, n.cls, n.html));
     });
-    if (away.length) first.parentElement.prepend(noteRow(first, 'gh-row gh-away-row', awayBand(away)));
+    if (away.length) first.parentElement.prepend(noteRow(first, 'gh-row gh-away-row', markup.awayBand(away)));
   }
 
   function drawRendered(view, path) {
     const away = [];
-    notesOn(path).forEach(n => {
+    markup.notesOn(path).forEach(n => {
       const block = n.line ? blockFor(view, n.side, n.line) : null;
       if (!block) { away.push(n.html); return; }
       afterNotes(block).after(mdNote(n.cls, n.html));
     });
-    if (away.length) view.querySelector('.mdx').prepend(mdNote('gh-row', awayBand(away)));
+    if (away.length) view.querySelector('.mdx').prepend(mdNote('gh-row', markup.awayBand(away)));
   }
 
   function mdNote(cls, html) {
-    const div = document.createElement('div');
-    div.className = 'md-note ' + cls;
-    div.innerHTML = html;
-    return div;
+    return fromHTML(markup.mdNote(cls, html));
   }
 
   function afterNotes(block) {
@@ -219,14 +157,6 @@ export function createLineNotes(ctx) {
     return near;
   }
 
-  function githubCard(t) {
-    return cards.github(t, folds.isOpen('g' + t.id, !t.resolved && !t.outdated));
-  }
-
-  function awayBand(html) {
-    return '<div class="gh-away"><p class="gh-away-h">On no line shown here</p>' + html.join('') + '</div>';
-  }
-
   function placeComposer(file, focus) {
     const view = file.querySelector('.mdview');
     if (view) { placeInRendered(view, focus); return; }
@@ -235,7 +165,7 @@ export function createLineNotes(ctx) {
     rowsOf(file, composer).forEach(r => r.classList.add('picked'));
     let after = row;
     while (after.nextElementSibling && after.nextElementSibling.classList.contains('note-row') && !after.nextElementSibling.classList.contains('composer-row')) after = after.nextElementSibling;
-    const tr = noteRow(row, 'composer-row', composerHTML(composer));
+    const tr = noteRow(row, 'composer-row', markup.composerHTML(composer, touch));
     after.after(tr);
     if (focus) focusEnd(tr.querySelector('textarea'));
   }
@@ -255,7 +185,7 @@ export function createLineNotes(ctx) {
       if (picking) block.classList.add('picked');
       if (block === end) break;
     }
-    const note = mdNote('composer-row', composerHTML(composer));
+    const note = mdNote('composer-row', markup.composerHTML(composer, touch));
     afterNotes(end).after(note);
     if (focus) focusEnd(note.querySelector('textarea'));
   }
@@ -295,9 +225,9 @@ export function createLineNotes(ctx) {
     document.querySelectorAll('#main details.file[open]').forEach(decorate);
   }
 
-  function busy(box, words) {
+  function busy(box, said) {
     box.querySelectorAll('button, textarea, select').forEach(el => { el.disabled = true; });
-    box.querySelector('.note-status').textContent = words;
+    box.querySelector('.note-status').textContent = said;
   }
   function failed(box, error) {
     box.querySelectorAll('button, textarea, select').forEach(el => { el.disabled = false; });
@@ -307,7 +237,7 @@ export function createLineNotes(ctx) {
   }
 
   async function ask(box, anchor, text, threadId) {
-    busy(box, 'Claude is reading the file and the diff…');
+    busy(box, words.reading);
     try {
       const done = threadId
         ? await send('POST', reviewPath(ctx.state.id, '/threads/' + threadId + '/messages'), { text, build: ctx.data.build })
@@ -321,7 +251,7 @@ export function createLineNotes(ctx) {
   }
 
   async function queue(box, anchor, text, pull) {
-    busy(box, 'Checking the line with GitHub…');
+    busy(box, words.checkingLine);
     try {
       const done = await send('POST', reviewPath(ctx.state.id, '/comments'), {
         path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, body: text, pull: pull || null, build: ctx.data.build,
@@ -334,7 +264,7 @@ export function createLineNotes(ctx) {
     }
   }
 
-  const main = document.getElementById('main');
+  const main = views.main;
   const touch = matchMedia('(pointer: coarse)').matches;
   let drag = null;
   let dragged = false;
@@ -427,5 +357,5 @@ export function createLineNotes(ctx) {
     return !!(composer && composer.text.trim()) || Array.prototype.some.call(document.querySelectorAll('#main .thread .reply textarea'), area => area.value.trim());
   }
 
-  return { pick, composeLines, decorate, countBadge, refresh, drafting };
+  return { pick, composeLines, decorate, refresh, drafting };
 }

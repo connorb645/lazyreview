@@ -15,8 +15,9 @@
  * breaks, so a sentence maps to the lines it is on; elsewhere a passage
  * maps to its blocks' lines whole.
  */
-import { esc } from '../lib/text.mjs';
-import { linesWords } from './line-range.mjs';
+import { views } from '../views.mjs';
+import { fromHTML } from '../lib/html.mjs';
+import { passageButton, passageLabel } from '../presentation/passages.mjs';
 
 export function passageLines(view, range) {
   const blocks = Array.prototype.filter.call(view.querySelectorAll('.mdx-block[data-side]'), b => range.intersectsNode(b));
@@ -55,11 +56,8 @@ function endsAtStart(block, range) {
 }
 
 export function createPassages(ctx) {
-  const main = document.getElementById('main');
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'passage-pick';
-  button.hidden = true;
+  const main = views.main;
+  const button = fromHTML(passageButton());
   document.body.appendChild(button);
   let held = false;
   let offer = null;
@@ -80,7 +78,7 @@ export function createPassages(ctx) {
     const lines = view && passageLines(view, range);
     if (!lines) { hide(); return; }
     offer = { file: view.closest('details.file'), lines, quote: range.toString().trim() };
-    button.innerHTML = (ctx.state.queue ? 'Comment on ' : 'Ask Claude about ') + esc(linesWords(lines));
+    button.innerHTML = passageLabel(ctx.state.queue, lines);
     button.hidden = false;
     const rects = range.getClientRects();
     const box = rects.length ? rects[rects.length - 1] : range.getBoundingClientRect();
