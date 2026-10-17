@@ -231,9 +231,10 @@ the highlight chose stays as you move to other panels, and when the review
 loads again. Back in the Review panel, `j` and `k` choose again, and `Esc`
 goes back to All. `]p` and `[p` move the cursor from any panel. A run of every
 pull request is the whole stack. What the filter leaves out is dim: a box of
-the diagram has a dotted outline, and a line of the diff a dot in place of its
-bar. With no colour, a row of a panel on the left that it leaves out starts
-with `·`. A comment still goes to the pull request that last changed its line.
+the diagram has a dotted outline, a link a dotted line, and a line of the diff
+a dot in place of its bar. With no colour, a row of a panel on the left that
+it leaves out starts with `·`. A comment still goes to the pull request that
+last changed its line.
 
 Every panel:
 

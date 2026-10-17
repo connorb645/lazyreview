@@ -5,6 +5,7 @@ type route struct {
 	words    string
 	lit      bool
 	faint    bool
+	out      bool
 	side     bool
 	across   int
 	gaps     []int

@@ -283,6 +283,22 @@ func TestAnArrowCountsOnlyTheLinksTheFilterShows(t *testing.T) {
 	if !out["Order>Pricer"] || out["Order>group:kinds"] {
 		t.Errorf("under #22 the links between types left out are %v", out)
 	}
+	dottedLinks := func(filter types.PullFilter) int {
+		scene := draw.Scene{Level: model, Grid: diagram.Arrange(tr, model.Cards, 4), Focus: -1}
+		c, _, _ := draw.Draw(tr, d, scene, filter)
+		n := 0
+		for _, row := range c.Cells {
+			for _, cell := range row {
+				if cell.Dirs != 0 && cell.R == '·' {
+					n++
+				}
+			}
+		}
+		return n
+	}
+	if dottedLinks(nil) != 0 || dottedLinks(types.PullFilter{22}) == 0 {
+		t.Errorf("a link the filter leaves out is not dotted: %d dots with no filter, %d under #22", dottedLinks(nil), dottedLinks(types.PullFilter{22}))
+	}
 	scene := draw.Scene{Level: components, Grid: diagram.Arrange(tr, components.Cards, 4), Focus: -1}
 	c, _, _ := draw.Draw(tr, d, scene, types.PullFilter{22})
 	if drawn := strings.Join(c.Lines(0, 0, c.W, c.H, draw.Styles(testCommon().Theme)), "\n"); !strings.Contains(drawn, "→ 2 links") || strings.Contains(drawn, "→ 3 links") {

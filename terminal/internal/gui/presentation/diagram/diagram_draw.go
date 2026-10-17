@@ -73,6 +73,7 @@ func Draw(tr *i18n.TranslationSet, d types.ReviewData, v Scene, filter types.Pul
 			}
 		}
 	}
+	dotted(c)
 	for _, pass := range []func(route) bool{isFaint, isPlain, isLit} {
 		for _, r := range routes {
 			if pass(r) {
@@ -130,8 +131,8 @@ func stubWords(tr *i18n.TranslationSet, lvl model.Level, v Scene) []string {
 	return append(out, in...)
 }
 
-func isFaint(r route) bool { return r.faint }
-func isPlain(r route) bool { return !r.faint && !r.lit }
+func isFaint(r route) bool { return r.faint || r.out }
+func isPlain(r route) bool { return !r.faint && !r.out && !r.lit }
 func isLit(r route) bool   { return r.lit }
 
 func routesOf(lvl model.Level, g model.Grid, focus int, all, stubbed bool) ([]route, []int) {
@@ -153,7 +154,8 @@ func routesOf(lvl model.Level, g model.Grid, focus int, all, stubbed bool) ([]ro
 		if i, ok := at[[2]int{from, to}]; ok {
 			r := &routes[i]
 			r.lit = r.lit || lit
-			r.faint = r.faint && !lit && (!l.AtRest || l.Out)
+			r.faint = r.faint && !lit && !l.AtRest
+			r.out = r.out && !lit && l.Out
 			if words != "" && r.words != "" {
 				r.words += " · " + words
 			} else if words != "" {
@@ -162,7 +164,7 @@ func routesOf(lvl model.Level, g model.Grid, focus int, all, stubbed bool) ([]ro
 			continue
 		}
 		at[[2]int{from, to}] = len(routes)
-		routes = append(routes, route{from: from, to: to, words: words, lit: lit, faint: !lit && (!l.AtRest || l.Out)})
+		routes = append(routes, route{from: from, to: to, words: words, lit: lit, faint: !lit && !l.AtRest, out: !lit && l.Out})
 	}
 	centre := func(i int) int { return g.Spots[i].Col + g.Spots[i].Width/2 }
 	for i := range routes {
@@ -356,10 +358,24 @@ func routeStyle(r route) string {
 	switch {
 	case r.lit:
 		return "lit"
+	case r.out:
+		return "out"
 	case r.faint:
 		return "faint"
 	}
 	return "line"
+}
+
+// dotted draws every line of a link the filter leaves out as dots, the
+// shape of a box it leaves out, where no other link crosses it.
+func dotted(c views.Canvas) {
+	for y, row := range c.Cells {
+		for x, cell := range row {
+			if cell.Style == "out" && cell.Dirs != 0 {
+				c.Cells[y][x].R = '·'
+			}
+		}
+	}
 }
 
 func (r route) path(g model.Grid, tops []int, laneY func(gap, lane int) int) ([][2]int, int) {
@@ -639,7 +655,7 @@ func box(c views.Canvas, x0, y0, x1, y1 int, style string, tl, tr, bl, br, h, v 
 // Styles are the styles a drawn canvas names, in a theme.
 func Styles(th theme.Theme) map[string]lipgloss.Style {
 	styles := map[string]lipgloss.Style{
-		"line": th.Muted, "lit": th.Accent, "faint": th.Muted.Faint(true), "border": th.Muted, "focus": th.Accent, "dim": th.Muted.Faint(true),
+		"line": th.Muted, "lit": th.Accent, "faint": th.Muted.Faint(true), "out": th.Muted.Faint(true), "border": th.Muted, "focus": th.Accent, "dim": th.Muted.Faint(true),
 		"title": th.Text, "bold": th.Bold, "detail": th.Muted, "area": th.Muted, "tag": th.Key.Reverse(true),
 		"state:new": th.Added, "state:changed": th.Warning, "state:removed": th.Removed, "state:same": th.Muted, "state:context": th.Muted,
 	}
