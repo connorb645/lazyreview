@@ -52,7 +52,7 @@ func OfTotal(tr *i18n.TranslationSet, at, total int) string {
 
 func sideLine(row SideRow, width int) string {
 	right := row.Right
-	if right != "" {
+	if ansi.StringWidth(right) > 0 {
 		right = " " + right + " "
 	}
 	room := max(1, width-1-ansi.StringWidth(right))

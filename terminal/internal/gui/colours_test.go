@@ -3,11 +3,15 @@ package gui
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/muesli/termenv"
+
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
 
 // The screens drawn in true colour, on a dark terminal and a light one, kept
@@ -62,6 +66,26 @@ func TestTheColourScreens(t *testing.T) {
 			}
 			colourScreenIs(t, s.draw(t, open), s.name+"-"+theme)
 		}
+	}
+}
+
+// A row of a panel on the left with nothing on its right, such as the
+// Notes panel's line when nothing is queued, is cut where it is cut with
+// no colour: an empty right side takes no room.
+func TestARowWithNothingOnItsRightIsCutAlikeInColour(t *testing.T) {
+	notesLine := func(profile termenv.Profile) string {
+		lipgloss.SetColorProfile(profile)
+		defer lipgloss.SetColorProfile(termenv.Ascii)
+		for _, line := range strings.Split(ansi.Strip(relaid(showBox(pathsStandInApp(80, 24), types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"})).View()), "\n") {
+			if at := strings.Index(line, "Nothing queued"); at >= 0 {
+				return line[:at+strings.Index(line[at:], "│")]
+			}
+		}
+		return ""
+	}
+	plain, coloured := notesLine(termenv.Ascii), notesLine(termenv.TrueColor)
+	if plain != "│ Nothing queued or aske…" || coloured != plain {
+		t.Errorf("the Notes panel's line is %q with no colour and %q in colour", plain, coloured)
 	}
 }
 

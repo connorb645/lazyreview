@@ -300,12 +300,16 @@ func pathsStandIn() types.ReviewData {
 	}}
 }
 
-func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
-	d := pathsStandIn()
+func pathsStandInApp(width, height int) App {
 	a := New(testCommon(), Options{})
-	a.Review, a.Loading, a.Width, a.Height = &d, false, 80, 24
+	d := pathsStandIn()
+	a.Review, a.Loading, a.Width, a.Height = &d, false, width, height
 	a.ContextTree = a.Focused(context.DiagramPanel, context.DiagramPanel)
-	a = relaid(showBox(a, types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"}))
+	return a
+}
+
+func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
+	a := relaid(showBox(pathsStandInApp(80, 24), types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"}))
 	screenIs(t, a, "paths-packages")
 	shown := a.View()
 	for _, want := range []string{"┃ …/RemoteOverrides/Experiments ", "│ docs/store/help/local ", "▌…/Experiments ", "│ Pricing rules for ever…│",
