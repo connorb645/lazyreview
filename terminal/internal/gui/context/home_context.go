@@ -80,49 +80,26 @@ func (h HomeContext) Pull() (server.PullRepo, server.Unit, server.OpenPull, bool
 	return server.PullRepo{}, server.Unit{}, server.OpenPull{}, false
 }
 
-// Moved is the home screen with the selection moved by rows, on through the
-// next or previous panel.
+// Moved is the home screen with the selection moved by rows in the panel
+// with the keys, stopping at its ends.
 func (h HomeContext) Moved(by int) HomeContext {
-	for n := by * sign(by); n > 0; n-- {
-		next, ok := h.stepped(sign(by))
-		if !ok {
-			break
-		}
-		h = next
-	}
-	return h
-}
-
-func (h HomeContext) stepped(dir int) (HomeContext, bool) {
 	rows := h.focusedRows()
-	if rows.Cursor >= 0 {
-		if next := rows.Landing(rows.Cursor+dir, dir); next >= 0 && (next-rows.Cursor)*dir > 0 {
-			return h.At(h.Focus, next), true
-		}
+	if rows.Cursor < 0 {
+		return h
 	}
-	for i := h.Focus + dir; i >= 0 && i < len(h.Panels); i += dir {
-		from := 0
-		if dir < 0 {
-			from = len(h.Panels[i].Rows.Rows) - 1
-		}
-		if at := h.Panels[i].Rows.Landing(from, dir); at >= 0 {
-			return h.At(i, at), true
-		}
-	}
-	return h, false
+	return h.At(h.Focus, rows.Move(by, len(rows.Rows)).Cursor)
 }
 
-// Ends is the home screen with its first row selected, or its last.
+// Ends is the home screen with the first row of the panel with the keys
+// selected, or its last.
 func (h HomeContext) Ends(last bool) HomeContext {
-	for n := range h.Panels {
-		i, from, dir := n, 0, 1
-		if last {
-			i = len(h.Panels) - 1 - n
-			from, dir = len(h.Panels[i].Rows.Rows)-1, -1
-		}
-		if at := h.Panels[i].Rows.Landing(from, dir); at >= 0 {
-			return h.At(i, at)
-		}
+	rows := h.focusedRows()
+	from, dir := 0, 1
+	if last {
+		from, dir = len(rows.Rows)-1, -1
+	}
+	if at := rows.Landing(from, dir); at >= 0 {
+		return h.At(h.Focus, at)
 	}
 	return h
 }

@@ -55,17 +55,19 @@ func TestTheHomeScreenGivesEachRepositoryAPanelOfItsPullRequests(t *testing.T) {
 	screenIs(t, a, "home")
 	for _, size := range [][2]int{{80, 24}, {161, 48}} {
 		sized, _, _ := homeOn(t, "", size[0], size[1])
-		screenIs(t, press(t, sized, "j", "j"), "home-"+utils.Itoa(size[0]))
+		screenIs(t, press(t, sized, "j", "l"), "home-"+utils.Itoa(size[0]))
 	}
 }
 
-func TestMovingOnTheHomeScreenRunsThroughEveryRepository(t *testing.T) {
+// j, k, gg and G move only in the repository's panel with the keys, and
+// stop at its ends; h, l and the number keys go to another panel.
+func TestMovingOnTheHomeScreenStaysInTheRepositoryWithTheKeys(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
 	steps := []struct{ keys, at string }{
-		{"j", "octo/gadgets#9"}, {"j", "octo/widgets#21"}, {"j", "octo/widgets#22"}, {"j", "octo/widgets#30"},
-		{"j", "reviewer-home/notes#3"}, {"j", "reviewer-home/notes#4"}, {"j", "reviewer-home/notes#4"},
-		{"k", "reviewer-home/notes#3"}, {"k", "octo/widgets#30"}, {"gg", "octo/gadgets#7"}, {"G", "reviewer-home/notes#4"},
-		{"2", "octo/widgets#30"}, {"gg", "octo/gadgets#7"}, {"3", "reviewer-home/notes#4"}, {"9", "reviewer-home/notes#4"},
+		{"j", "octo/gadgets#9"}, {"j", "octo/gadgets#9"}, {"k", "octo/gadgets#7"}, {"k", "octo/gadgets#7"},
+		{"G", "octo/gadgets#9"}, {"gg", "octo/gadgets#7"}, {"2", "octo/widgets#21"}, {"G", "octo/widgets#30"},
+		{"gg", "octo/widgets#21"}, {"j", "octo/widgets#22"}, {"3", "reviewer-home/notes#3"}, {"G", "reviewer-home/notes#4"},
+		{"j", "reviewer-home/notes#4"}, {"gg", "reviewer-home/notes#3"}, {"9", "reviewer-home/notes#3"},
 	}
 	for _, s := range steps {
 		a = press(t, a, strings.Split(s.keys, "")...)
@@ -74,7 +76,7 @@ func TestMovingOnTheHomeScreenRunsThroughEveryRepository(t *testing.T) {
 		}
 	}
 	if a.Home.Focus != 2 {
-		t.Fatalf("the panel with the keys follows the pull request: %d", a.Home.Focus)
+		t.Fatalf("the panel with the keys is the repository chosen: %d", a.Home.Focus)
 	}
 }
 
@@ -185,7 +187,7 @@ func TestTheHomeScreenSaysWhenThereIsNothingToList(t *testing.T) {
 		}
 		screenIs(t, a, c.screen)
 		if c.variant == "one unreachable" {
-			screenIs(t, press(t, a, "j"), c.screen+"-list")
+			screenIs(t, press(t, a, "l"), c.screen+"-list")
 		}
 	}
 	small, _, _ := homeOn(t, "unreachable", 80, 24)

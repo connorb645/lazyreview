@@ -173,8 +173,8 @@ and why, and the others are still listed.
 
 | Key | Does |
 | --- | --- |
-| `j` `k` | the next or previous pull request, on into the next or previous repository |
-| `gg` `G` | the first or last pull request |
+| `j` `k` | the next or previous pull request of the repository |
+| `gg` `G` | the first or last pull request of the repository |
 | `h` `l` | the repository above or below, going round from the last to the first and back |
 | `1` to `9` | the first nine repositories |
 | `Enter` | opens the pull request's review; one no review holds yet is loaded from GitHub first, as the account that found it |
