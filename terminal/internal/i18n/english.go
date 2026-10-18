@@ -606,7 +606,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpPostAtCursor:   "post: the actions offered for the pull request at the cursor",
 		HelpLinesMove:      "the next or previous line",
 		HelpPages:          "half a page and a page, down and up",
-		HelpLineEnds:       "the top, the bottom, or line n of this file",
+		HelpLineEnds:       "the first or last line of this file, or line n of it",
 		HelpHunks:          "the next or previous hunk",
 		HelpFiles:          "the next or previous file",
 		HelpNotes:          "the next or previous note: a queued comment, a conversation or a colleague's thread",

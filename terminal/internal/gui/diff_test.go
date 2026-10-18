@@ -57,8 +57,12 @@ func TestEnterOnAQueuedCommentOpensItsLineInTheDiff(t *testing.T) {
 func TestMovingThroughTheDiffByLineHunkFileAndSearch(t *testing.T) {
 	a := openedOnComment(t)
 	a = press(t, a, "g", "g")
+	if got := cursorAt(a); got != "Sources/Catalog/MemoryCatalog.swift RIGHT 4" {
+		t.Fatalf("gg went to %s, not the first line of the file", got)
+	}
+	a = press(t, a, "[", "f", "[", "f")
 	if got := cursorAt(a); got != "Sources/Basket/Basket.swift file" {
-		t.Fatalf("gg went to %s", got)
+		t.Fatalf("[f [f went to %s", got)
 	}
 	a = press(t, a, "]", "c")
 	if got := cursorAt(a); got != "Sources/Basket/Basket.swift RIGHT 3" {
@@ -92,6 +96,39 @@ func TestMovingThroughTheDiffByLineHunkFileAndSearch(t *testing.T) {
 	}
 }
 
+// In the diff, gg and G go to the first and last line of the file at the
+// cursor, its header shown above the first, and the Files panel stays on
+// that file. In the Files panel, they go to its first and last row.
+func TestGgAndGMoveOnlyWhatHasTheKeys(t *testing.T) {
+	a, _ := opened(t, stack, 100, 30)
+	a = press(t, a, "2", "j", "j", "j", "j", "enter", "j", "j", "j", "j")
+	if a.Focus() != context.MainPanel || cursorAt(a) != "Sources/Catalog/MemoryCatalog.swift RIGHT 5" {
+		t.Fatalf("the diff of MemoryCatalog has the keys at %s", cursorAt(a))
+	}
+	a = press(t, a, "G")
+	if got := cursorAt(a); got != "Sources/Catalog/MemoryCatalog.swift RIGHT 11" {
+		t.Fatalf("G in the diff went to %s, not the file's last line", got)
+	}
+	a = press(t, a, "g", "g")
+	if got := cursorAt(a); got != "Sources/Catalog/MemoryCatalog.swift RIGHT 4" {
+		t.Fatalf("gg in the diff went to %s, not the file's first line", got)
+	}
+	if r := a.Diff.Rows[a.Diff.Top]; r.Kind != "file" || r.Path != "Sources/Catalog/MemoryCatalog.swift" {
+		t.Fatalf("after gg the diff shows from %s %s, not the file's header", r.Path, r.Kind)
+	}
+	if got := selectedKey(a, context.FilesPanel); got != "file:Sources/Catalog/MemoryCatalog.swift" {
+		t.Fatalf("gg and G in the diff moved the Files panel to %s", got)
+	}
+	a = press(t, a, "esc", "G")
+	if got := selectedKey(a, context.FilesPanel); got != "file:Sources/Catalog/Catalog.swift" {
+		t.Fatalf("G in the Files panel went to %s, not its last row", got)
+	}
+	a = press(t, a, "g", "g")
+	if got := selectedKey(a, context.FilesPanel); got != "component:root" {
+		t.Fatalf("gg in the Files panel went to %s, not its first row", got)
+	}
+}
+
 func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 	a := openedOnComment(t)
 	a = press(t, a, "[", "f", "j")
@@ -116,11 +153,11 @@ func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 	if strings.Count(a.View(), "unchanged line") != 0 {
 		t.Fatal("zR opened every run of unchanged lines")
 	}
-	a = press(t, a, "g", "g", "]", "c", "space", "s")
+	a = press(t, a, "9", "[", "f", "]", "c", "space", "s")
 	screenIs(t, a, "diff-split")
 	a = press(t, a, "space", "s", "space", "o")
 	screenIs(t, a, "diff-whole")
-	a = press(t, a, "space", "o", "g", "g", "enter")
+	a = press(t, a, "space", "o", "9", "[", "f", "enter")
 	if !a.Diff.Folded["Sources/Basket/Basket.swift"] {
 		t.Fatal("Enter on a file's header folds it")
 	}

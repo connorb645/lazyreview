@@ -218,6 +218,39 @@ func (v DiffContext) File() string {
 	return ""
 }
 
+// AtFileEnd is the diff with the cursor on the first line of the file it
+// is in, that file's header shown above it, or on its last line, shown in a
+// height. A line is a line of code or a block of a rendered file; a file
+// that shows none, such as a folded one, ends at its header.
+func (v DiffContext) AtFileEnd(last bool, height int) DiffContext {
+	path := v.File()
+	header, first, end := -1, -1, -1
+	for i, r := range v.Rows {
+		if r.Path != path {
+			continue
+		}
+		if header < 0 {
+			header = i
+		}
+		if _, _, ok := r.At(); !ok && r.Kind != "block" {
+			continue
+		}
+		if first < 0 {
+			first = i
+		}
+		end = i
+	}
+	switch {
+	case header < 0:
+		return v
+	case first < 0:
+		return v.To(header, height)
+	case last:
+		return v.To(end, height)
+	}
+	return v.To(header, height).AtTop(height).To(first, height)
+}
+
 // Copied is the diff with its own copies of its folds, so changing them
 // changes no other copy.
 func (v DiffContext) Copied() DiffContext {

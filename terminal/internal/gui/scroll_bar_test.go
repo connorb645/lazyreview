@@ -69,7 +69,7 @@ func TestTheDiffShowsWhereItIsInTheMainPanelsBorder(t *testing.T) {
 	if len(middle) != len(top) || middle[0] == 0 || middle[len(middle)-1] == last {
 		t.Fatalf("halfway down the diff, the thumb is on rows %v", middle)
 	}
-	a = press(t, a, "G")
+	a = press(t, a, "9", "]", "f", "G")
 	end := mainThumb(a)
 	if len(end) != len(top) || end[len(end)-1] != last {
 		t.Fatalf("at the end of the diff, the thumb is on rows %v", end)

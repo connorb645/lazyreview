@@ -300,7 +300,7 @@ The diff, in the main panel, shows one component's files:
 | Key | Does |
 | --- | --- |
 | `j` `k` `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` | move by a line, half a page or a page |
-| `gg` `G` `{n}G` `:{n}` | the top, the bottom, or line n of this file |
+| `gg` `G` `{n}G` `:{n}` | the first or last line of this file, or line n of it |
 | `]c` `[c` `]f` `[f` | the next or previous hunk or file |
 | `]n` `[n` | the next or previous note: a queued comment, a conversation or a colleague's thread |
 | `/` `?` `n` `N` | search the text |

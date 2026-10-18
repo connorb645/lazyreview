@@ -102,16 +102,11 @@ func (self *DiffController) paged(half, up bool) Handler {
 
 func (self *DiffController) end(bottom bool) Handler {
 	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
-		h, v := self.height(s), s.Diff
 		s = self.c.Helpers.Jump.Leave(s)
 		if count.Typed {
 			return self.c.Helpers.Diff.ToLine(s, count.N)
 		}
-		if bottom {
-			s.Diff = v.To(len(v.Rows)-1, h)
-		} else {
-			s.Diff = v.To(0, h)
-		}
+		s.Diff = s.Diff.AtFileEnd(bottom, self.height(s))
 		return s, nil
 	}
 }
