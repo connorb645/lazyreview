@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -89,6 +90,32 @@ func TestANewBuildLoadsInPlaceUnlessADraftIsOpen(t *testing.T) {
 		t.Fatalf("the reload left the diagram for %v", a.Screen())
 	}
 	focusedOn(t, a, "Basket")
+}
+
+// R in the Diagram panel names its boxes as the review now draws them,
+// as the main panel does, not as they were drawn before.
+func TestRNamesTheDiagramPanelsBoxesAfresh(t *testing.T) {
+	page := recorded(t)["GET /api/reviews/"+stack+"/page"]
+	var drawn map[string]any
+	if err := json.Unmarshal(page.Body, &drawn); err != nil {
+		t.Fatal(err)
+	}
+	drawn["build"] = "0123456789ab"
+	component := drawn["model"].(map[string]any)["components"].([]any)[0].(map[string]any)
+	component["packages"].([]any)[0].(map[string]any)["title"] = "Shelves"
+	body, _ := json.Marshal(drawn)
+	a, _, changed := openedWith(t, stack, 100, 30)
+	a = press(t, a, "4", "enter", "enter")
+	changed.set("GET /api/reviews/"+stack+"/page", answer{Status: 200, Body: body})
+	changed.set("POST /api/reviews/"+stack+"/refresh {}", answer{Status: 200, Body: json.RawMessage(`{"id":"` + stack + `","notes":[]}`)})
+	a = press(t, a, "R")
+	var titles []string
+	for _, row := range a.Side(context.DiagramPanel).Rows {
+		titles = append(titles, row.Title)
+	}
+	if a.Notice != "Loaded again." || !slices.Contains(titles, "Shelves") || !strings.Contains(a.View(), "Shelves") {
+		t.Fatalf("after %q the Diagram panel's boxes are %q", a.Notice, titles)
+	}
 }
 
 func TestRLoadsTheReviewAgainInPlace(t *testing.T) {
