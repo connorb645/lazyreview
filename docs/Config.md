@@ -263,7 +263,7 @@ keybinding:
     properties: '<space>p'
     boxDiff: '<space>d'
     allLinks: '<space>a'
-  menu:                   # a list that pops up, such as Space ?
+  menu:                   # every list that pops up
     down: ['j', '<down>']
     up: ['k', '<up>']
     top: 'gg'

@@ -129,7 +129,7 @@ export const english = frozen({
         panels: 'every panel on the left',
         reviewView: 'the Review view in the main panel',
         diagram: 'the diagram in the main panel',
-        menu: 'a list that pops up, such as Space ?',
+        menu: 'every list that pops up',
       },
       accountsExample: ['accounts:', '  - login: lee', '  - login: lee-at-work', '    teams:', '      - name: example-org/mobile', '        since: 2026-10-01'],
     },
