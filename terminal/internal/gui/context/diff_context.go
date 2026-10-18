@@ -64,7 +64,7 @@ func (v DiffContext) Find(at server.Lines) DiffContext {
 			header = i
 		}
 		side, line, ok := r.At()
-		if ok && line == at.Line && (side == at.Side || SameLine(r, at)) {
+		if ok && line == at.Line && (side == at.Side || SameLine(r, at)) || r.Left != nil && at.Side == "LEFT" && r.Left.Old == at.Line {
 			v.Cursor = i
 			return v
 		}

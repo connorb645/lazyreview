@@ -163,6 +163,23 @@ func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 	}
 }
 
+// Splitting keeps the cursor on its line, a removed line too, which the
+// split view shows on the left of a row. Back in the unified view, the
+// cursor goes to the line a comment on that row goes on, its right side.
+func TestSplittingKeepsTheCursorOnARemovedLine(t *testing.T) {
+	a := press(t, openedOnComment(t), "[", "f", "[", "f", "]", "c", "1", "0", "j")
+	if got := cursorAt(a); got != "Sources/Basket/Basket.swift LEFT 9" {
+		t.Fatalf("the cursor is on %s, not the removed line", got)
+	}
+	split := press(t, a, "space", "s")
+	if r := split.Diff.Rows[split.Diff.Cursor]; r.Left == nil || r.Left.Kind != "del" || r.Left.Old != 9 {
+		t.Fatalf("splitting moved the cursor to %s", cursorAt(split))
+	}
+	if got := cursorAt(press(t, split, "space", "s")); got != "Sources/Basket/Basket.swift RIGHT 11" {
+		t.Fatalf("unsplitting moved the cursor to %s", got)
+	}
+}
+
 func TestThePullRequestFilterDimsWhatItLeavesOut(t *testing.T) {
 	a := openedOnComment(t)
 	a = press(t, a, "]", "p")
