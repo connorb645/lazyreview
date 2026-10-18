@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -141,6 +142,16 @@ func TestVDoesNothingOnOnePullRequest(t *testing.T) {
 	filterIs(t, a, "[]")
 	if a.GrowFrom != 0 || a.View() != before {
 		t.Fatalf("v changed a review of one pull request:\n%s", a.View())
+	}
+}
+
+func TestTheFilesBarOffersThePullRequestKeysOnlyOnAStack(t *testing.T) {
+	for review, offered := range map[string]bool{stack: true, "github.com/octo/widgets/30": false} {
+		a, _ := opened(t, review, 100, 30)
+		a = press(t, a, "2")
+		if got := slices.Contains(a.controllers.Hints(a.ContextTree), [2]string{"]p [p", "Pull request"}); got != offered {
+			t.Errorf("on %s the Files bar offers ]p [p: %v", review, got)
+		}
 	}
 }
 

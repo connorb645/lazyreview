@@ -56,6 +56,9 @@ func (self *FilesPanelController) Help(labels presentation.KeyLabels) []HelpSect
 func (self *FilesPanelController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
+		if s.Review.Page.Stack == nil {
+			return [][2]string{{labels.Of("open"), tr.Diff}, {labels.Of("toggle fold"), tr.Fold}, panelsHint(self.c, labels)}
+		}
 		return [][2]string{{labels.Of("open"), tr.Diff}, {labels.Of("toggle fold"), tr.Fold}, {labels.Of("next pull", "previous pull"), tr.PullRequest}, panelsHint(self.c, labels)}
 	})
 }
