@@ -81,3 +81,27 @@ func TestPagesMoveTheRepositoryWithTheKeys(t *testing.T) {
 		t.Fatalf("Ctrl-u went to %s", selectedPull(a))
 	}
 }
+
+// In the Diagram panel, Ctrl-d and Ctrl-u move through the boxes by half
+// the panel, and {n}G goes to box n in reading order, or the last; 2 there
+// still jumps to the Files panel.
+func TestPagesAndCountsMoveTheDiagramPanel(t *testing.T) {
+	a, _ := opened(t, stack, 100, 30)
+	a = press(t, a, "4", "enter", "enter", "esc")
+	focusedOn(t, a, "sources")
+	last := len(a.Diagram.Level.Cards)
+	if half := max(1, a.helpers.Window.SideHeight(a.ContextTree, context.DiagramPanel)/2); half < last-1 {
+		t.Fatalf("the level has %d boxes, more than half the panel, %d, can show the test", last, half)
+	}
+	a = press(t, a, "ctrl+d")
+	if a.Focus() != context.DiagramPanel || a.Diagram.Focus != last-1 {
+		t.Fatalf("Ctrl-d in the Diagram panel went to box %d of %d in panel %d", a.Diagram.Focus+1, last, a.Focus())
+	}
+	focusedOn(t, press(t, a, "ctrl+u"), "sources")
+	if b := press(t, a, "ctrl+u", "5", "G"); b.Focus() != context.DiagramPanel || b.Diagram.Focus != last-1 {
+		t.Fatalf("5G in the Diagram panel went to box %d in panel %d", b.Diagram.Focus+1, b.Focus())
+	}
+	if b := press(t, a, "2"); b.Focus() != context.FilesPanel || b.Keys.Typed() != "" {
+		t.Fatalf("2 in the Diagram panel went to panel %d, typed %q", b.Focus(), b.Keys.Typed())
+	}
+}
