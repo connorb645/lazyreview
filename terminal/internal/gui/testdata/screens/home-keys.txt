@@ -4,24 +4,24 @@
 │                                                ││                                                │
 │ ╭─Keys─────────────────────────────────────────────────────────────────────────────────────────╮ │
 │ │ Home                                                                                         │ │
-│ │▌j k         the next or previous pull request of the repository                              │ │
-│ │ gg G        the first or last pull request of the repository                                 │ │
-╰─│ h l         the repository above or below, going round at the ends                           │ │
-╭─│ 1 to 9      the first nine repositories                                                      │ │
-│ │ Enter       opens the pull request's review; one no review holds yet is loaded from GitHub   │ │
-│ │             first                                                                            │ │
-│ │ R :refresh  reads the open pull requests from GitHub again                                   │ │
-│ │ gx          opens the pull request on GitHub                                                 │ │
-│ │ gX          opens the web app's list of reviews                                              │ │
-│ │ Space v     the Review view of the review open                                               │ │
-│ │ + _         more of the screen for the list, then all of it; _ goes back                     │ │
-│ │ :           the command line: :q quits                                                       │ │
-╰─│ ZZ          quits, as :q does                                                                │ │
-╭─│ Marks                                                                                        │ │
-│ │ ●           your review is waiting: asked of you, or of your team                            │ │
-│ │ ◆           loaded in lazyreview                                                             │ │
-│ │ ┌ └         a stack, bottom first, reviewed as one                                           │ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 16─╯ │
+│ │▌j k            the next or previous pull request of the repository                           │ │
+│ │ gg G           the first or last pull request of the repository                              │ │
+╰─│ Ctrl-d Ctrl-u  half a page down or up                                                        │ │
+╭─│ Ctrl-f Ctrl-b  a page down or up                                                             │ │
+│ │ h l            the repository above or below, going round at the ends                        │ │
+│ │ 1 to 9         the first nine repositories                                                   │ │
+│ │ Enter          opens the pull request's review; one no review holds yet is loaded from       │ │
+│ │                GitHub first                                                                  │ │
+│ │ R :refresh     reads the open pull requests from GitHub again                                │ │
+│ │ gx             opens the pull request on GitHub                                              │ │
+│ │ gX             opens the web app's list of reviews                                           │ │
+│ │ Space v        the Review view of the review open                                            │ │
+╰─│ + _            more of the screen for the list, then all of it; _ goes back                  │ │
+╭─│ :              the command line: :q quits                                                    │ │
+│ │ ZZ             quits, as :q does                                                             │ │
+│ │ Marks                                                                                        │ │
+│ │ ●              your review is waiting: asked of you, or of your team                         │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 18─╯ │
 │                                                ││                                                │
 │                                                ││                                                │
 │                                                ││                                                │

@@ -146,6 +146,10 @@ keybinding:
     up: ['k', '<up>']
     top: 'gg'
     bottom: 'G'
+    halfDown: '<c-d>'
+    halfUp: '<c-u>'
+    pageDown: '<c-f>'
+    pageUp: '<c-b>'
     open: '<enter>'
     previousPanel: 'h'
     nextPanel: 'l'
@@ -164,6 +168,10 @@ keybinding:
     up: ['k', '<up>']
     top: 'gg'
     bottom: 'G'
+    halfDown: '<c-d>'
+    halfUp: '<c-u>'
+    pageDown: '<c-f>'
+    pageUp: '<c-b>'
     open: '<enter>'
     previousPanel: 'h'
     nextPanel: 'l'
@@ -197,6 +205,10 @@ keybinding:
     up: ['k', '<up>']
     top: 'gg'
     bottom: 'G'
+    halfDown: '<c-d>'
+    halfUp: '<c-u>'
+    pageDown: '<c-f>'
+    pageUp: '<c-b>'
     nextSection: ']]'
     previousSection: '[['
     fold: 'za'

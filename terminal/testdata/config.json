@@ -123,6 +123,18 @@
    "bottom": [
     "G"
    ],
+   "halfDown": [
+    "ctrl+d"
+   ],
+   "halfUp": [
+    "ctrl+u"
+   ],
+   "pageDown": [
+    "ctrl+f"
+   ],
+   "pageUp": [
+    "ctrl+b"
+   ],
    "open": [
     "enter"
    ],
@@ -184,6 +196,18 @@
    ],
    "bottom": [
     "G"
+   ],
+   "halfDown": [
+    "ctrl+d"
+   ],
+   "halfUp": [
+    "ctrl+u"
+   ],
+   "pageDown": [
+    "ctrl+f"
+   ],
+   "pageUp": [
+    "ctrl+b"
    ],
    "open": [
     "enter"
@@ -283,6 +307,18 @@
    ],
    "bottom": [
     "G"
+   ],
+   "halfDown": [
+    "ctrl+d"
+   ],
+   "halfUp": [
+    "ctrl+u"
+   ],
+   "pageDown": [
+    "ctrl+f"
+   ],
+   "pageUp": [
+    "ctrl+b"
    ],
    "nextSection": [
     "] ]"

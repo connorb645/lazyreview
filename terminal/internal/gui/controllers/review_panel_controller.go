@@ -46,6 +46,8 @@ func (self *ReviewPanelController) Help(labels presentation.KeyLabels) []HelpSec
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: sideMoveKeys(labels), Words: tr.HelpPullsMove},
+		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
+		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("previous panel", "next panel"), Words: utils.ResolvePlaceholderString(tr.HelpPanelsRound, map[string]string{"previousPanel": labels.Of("previous panel")})},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenReviewView},
 		{Keys: labels.Of("highlight"), Words: utils.ResolvePlaceholderString(tr.HelpHighlight, map[string]string{"move": labels.Of("down", "up")})},

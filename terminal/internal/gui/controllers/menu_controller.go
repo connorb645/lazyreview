@@ -89,13 +89,6 @@ func menuEnd(h *helpers.Helpers, last bool) Handler {
 
 func menuPaged(h *helpers.Helpers, half, up bool) Handler {
 	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
-		by := h.Window.MenuRows(s)
-		if half {
-			by = max(1, by/2)
-		}
-		if up {
-			by = -by
-		}
-		return h.Menu.Moved(s, by*count.N), nil
+		return h.Menu.Moved(s, pageBy(h.Window.MenuRows(s), half, up)*count.N), nil
 	}
 }

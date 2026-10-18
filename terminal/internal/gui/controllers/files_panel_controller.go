@@ -45,6 +45,8 @@ func (self *FilesPanelController) Help(labels presentation.KeyLabels) []HelpSect
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: sideMoveKeys(labels), Words: tr.HelpFilesMove},
+		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
+		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("previous panel", "next panel"), Words: tr.HelpPanels},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenFile},
 		{Keys: labels.Of("toggle fold"), Words: tr.HelpFoldTree},

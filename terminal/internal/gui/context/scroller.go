@@ -55,6 +55,34 @@ func (s Scroller) Scroll(by, height int) Scroller {
 	return s
 }
 
+// Paged is the view scrolled by lines in a height, its selection moved as
+// many lines on, to the item there or the next one past it, or to the
+// first or last item when there is none.
+func (s Scroller) Paged(by, height int) Scroller {
+	from := 0
+	for i, l := range s.Lines {
+		if l.Item == s.Cursor {
+			from = i
+			break
+		}
+	}
+	s = s.Scroll(by, height)
+	if len(s.Items) == 0 || len(s.Lines) == 0 {
+		return s
+	}
+	for i := utils.Clamp(from+by, 0, len(s.Lines)-1); i >= 0 && i < len(s.Lines); i += sign(by) {
+		if s.Lines[i].Item >= 0 {
+			s.Cursor = s.Lines[i].Item
+			return s.Shown(height)
+		}
+	}
+	s.Cursor = 0
+	if by > 0 {
+		s.Cursor = len(s.Items) - 1
+	}
+	return s.Shown(height)
+}
+
 // Shown is the view scrolled to show as much of the selected item as fits
 // in a height.
 func (s Scroller) Shown(height int) Scroller {

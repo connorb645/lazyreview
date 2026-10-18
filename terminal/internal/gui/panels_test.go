@@ -164,11 +164,14 @@ func TestInTheDiagramPanelJAndKMoveAndEnterGivesTheMainPanelsDiagramHJKL(t *test
 		t.Fatalf("the bar names Enter for the diagram and h l for the panels: %v", hints)
 	}
 	listed := press(t, a, "space", "?").Menu.Rows
-	if listed[2].Left != "h l" || listed[2].Right != "the panel above or below; l goes round to Review" {
-		t.Fatalf("Space ? lists h l as %q: %q", listed[2].Left, listed[2].Right)
+	if listed[2].Left != "Ctrl-d Ctrl-u" || listed[2].Right != "half a page down or up" || listed[3].Left != "Ctrl-f Ctrl-b" {
+		t.Fatalf("Space ? lists the pages as %q: %q, then %q", listed[2].Left, listed[2].Right, listed[3].Left)
 	}
-	if listed[3].Left != "Enter" || listed[3].Right != "the diagram in the main panel, which moves to the nearest box and steps in" {
-		t.Fatalf("Space ? lists Enter as %q: %q", listed[3].Left, listed[3].Right)
+	if listed[4].Left != "h l" || listed[4].Right != "the panel above or below; l goes round to Review" {
+		t.Fatalf("Space ? lists h l as %q: %q", listed[4].Left, listed[4].Right)
+	}
+	if listed[5].Left != "Enter" || listed[5].Right != "the diagram in the main panel, which moves to the nearest box and steps in" {
+		t.Fatalf("Space ? lists Enter as %q: %q", listed[5].Left, listed[5].Right)
 	}
 	a = press(t, a, "enter")
 	if a.Focus() != context.MainPanel || a.Screen() != context.ScreenDiagram {

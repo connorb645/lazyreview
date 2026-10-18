@@ -7,6 +7,10 @@ type KeybindingHomeConfig struct {
 	Up               []string `json:"up"`
 	Top              []string `json:"top"`
 	Bottom           []string `json:"bottom"`
+	HalfDown         []string `json:"halfDown"`
+	HalfUp           []string `json:"halfUp"`
+	PageDown         []string `json:"pageDown"`
+	PageUp           []string `json:"pageUp"`
 	Open             []string `json:"open"`
 	PreviousPanel    []string `json:"previousPanel"`
 	NextPanel        []string `json:"nextPanel"`

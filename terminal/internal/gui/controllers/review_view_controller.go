@@ -37,12 +37,22 @@ func (self *ReviewViewController) Bindings() []Binding {
 		{Action: "up", Keys: kb.ReviewView.Up, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
 			return v.Move(-count.N, height)
 		}), Description: tr.Up},
-		{Action: "top", Keys: kb.ReviewView.Top, Handler: self.moved(func(v context.Scroller, _ Count, height int) context.Scroller {
+		{Action: "top", Keys: kb.ReviewView.Top, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+			if count.Typed {
+				return v.To(count.N-1, height)
+			}
 			return v.To(0, height)
 		}), Description: tr.Top},
-		{Action: "bottom", Keys: kb.ReviewView.Bottom, Handler: self.moved(func(v context.Scroller, _ Count, height int) context.Scroller {
+		{Action: "bottom", Keys: kb.ReviewView.Bottom, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+			if count.Typed {
+				return v.To(count.N-1, height)
+			}
 			return v.To(len(v.Items)-1, height)
 		}), Description: tr.Bottom},
+		{Action: "half down", Keys: kb.ReviewView.HalfDown, Handler: self.paged(true, false), Description: tr.HalfPageDown},
+		{Action: "half up", Keys: kb.ReviewView.HalfUp, Handler: self.paged(true, true), Description: tr.HalfPageUp},
+		{Action: "page down", Keys: kb.ReviewView.PageDown, Handler: self.paged(false, false), Description: tr.PageDown},
+		{Action: "page up", Keys: kb.ReviewView.PageUp, Handler: self.paged(false, true), Description: tr.PageUp},
 		{Action: "next section", Keys: kb.ReviewView.NextSection, Handler: self.section(false), Description: tr.NextSection},
 		{Action: "previous section", Keys: kb.ReviewView.PreviousSection, Handler: self.section(true), Description: tr.PreviousSection},
 		{Action: "fold", Keys: kb.ReviewView.Fold, Handler: stateOnly(self.fold), Description: tr.Fold},
@@ -59,6 +69,12 @@ func (self *ReviewViewController) moved(move func(v context.Scroller, count Coun
 		s.ReviewView.View = move(s.ReviewView.View, count, self.c.Helpers.Window.MainHeight(s))
 		return s, nil
 	}
+}
+
+func (self *ReviewViewController) paged(half, up bool) Handler {
+	return self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+		return v.Paged(pageBy(height, half, up)*count.N, height)
+	})
 }
 
 func (self *ReviewViewController) section(back bool) Handler {
@@ -121,8 +137,10 @@ func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSect
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: labels.Of("down", "up"), Words: tr.HelpItemsMove},
+		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
+		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("next section", "previous section"), Words: tr.HelpSections},
-		{Keys: labels.Of("top", "bottom"), Words: tr.HelpItemsEnds},
+		{Keys: utils.ResolvePlaceholderString(tr.HelpLineEndsKeys, map[string]string{"top": labels.Of("top"), "bottom": labels.Of("bottom")}), Words: tr.HelpItemsEnds},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenItem},
 		{Keys: labels.Of("fold"), Words: tr.HelpFoldSection},
 		{Keys: labels.Of("edit", "drop"), Words: tr.HelpEditDrop},

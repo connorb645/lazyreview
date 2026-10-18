@@ -72,6 +72,7 @@ type TranslationSet struct {
 	HelpWeb            string
 	HelpPullFilter     string
 	HelpJumps          string
+	HelpCount          string
 	HelpClose          string
 	HelpQuit           string
 	HelpPullsMove      string
@@ -109,6 +110,7 @@ type TranslationSet struct {
 	HelpFoldSection    string
 	HelpPostAtCursor   string
 	HelpLinesMove      string
+	HelpHalfPages      string
 	HelpPages          string
 	HelpLineEnds       string
 	HelpHunks          string
@@ -278,6 +280,7 @@ type TranslationSet struct {
 	QuitCommandKeys  string
 	HelpRefreshKeys  string
 	HelpLineEndsKeys string
+	CountKeys        string
 
 	Stale            string
 	QueuedHeading    string
@@ -568,6 +571,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpWeb:            "opens this place in the web app",
 		HelpPullFilter:     "on a stack, moves the Review panel's cursor to the next or previous pull request: All, then each one",
 		HelpJumps:          "back and forward through jumps",
+		HelpCount:          "a count before a move, as 5j or 12G; on the left, a digit that jumps to a panel starts none",
 		HelpClose:          "closes the top popup",
 		HelpQuit:           "quits, as {{.command}}q does",
 		HelpPullsMove:      "the next, previous, first or last pull request, or All on a stack; the other panels show only what the cursor is on",
@@ -600,12 +604,13 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpAllLinks:       "draws every link faintly, or stops",
 		HelpItemsMove:      "the next or previous item: a section, a queued comment, a conversation or a link",
 		HelpSections:       "the next or previous section",
-		HelpItemsEnds:      "the first or last item",
+		HelpItemsEnds:      "the first or last item, or item n",
 		HelpOpenItem:       "opens the item in its diff; a component opens its diff",
 		HelpFoldSection:    "folds or unfolds a section",
 		HelpPostAtCursor:   "post: the actions offered for the pull request at the cursor",
 		HelpLinesMove:      "the next or previous line",
-		HelpPages:          "half a page and a page, down and up",
+		HelpHalfPages:      "half a page down or up",
+		HelpPages:          "a page down or up",
 		HelpLineEnds:       "the first or last line of this file, or line n of it",
 		HelpHunks:          "the next or previous hunk",
 		HelpFiles:          "the next or previous file",
@@ -774,6 +779,7 @@ func EnglishTranslationSet() *TranslationSet {
 		QuitCommandKeys:  "{{.command}}q",
 		HelpRefreshKeys:  "{{.refresh}} {{.command}}refresh",
 		HelpLineEndsKeys: "{{.top}} {{.bottom}} {n}{{.bottom}}",
+		CountKeys:        "{n}",
 
 		Stale:            "stale",
 		QueuedHeading:    "Queued",

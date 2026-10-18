@@ -33,8 +33,12 @@ func (self *HomeController) Bindings() []Binding {
 	bindings := []Binding{
 		{Action: "down", Keys: kb.Home.Down, Handler: self.moved(func(h context.HomeContext, count Count) context.HomeContext { return h.Moved(count.N) }), Description: tr.Down},
 		{Action: "up", Keys: kb.Home.Up, Handler: self.moved(func(h context.HomeContext, count Count) context.HomeContext { return h.Moved(-count.N) }), Description: tr.Up},
-		{Action: "top", Keys: kb.Home.Top, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.Ends(false) }), Description: tr.Top},
-		{Action: "bottom", Keys: kb.Home.Bottom, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.Ends(true) }), Description: tr.Bottom},
+		{Action: "top", Keys: kb.Home.Top, Handler: self.ends(false), Description: tr.Top},
+		{Action: "bottom", Keys: kb.Home.Bottom, Handler: self.ends(true), Description: tr.Bottom},
+		{Action: "half down", Keys: kb.Home.HalfDown, Handler: self.paged(true, false), Description: tr.HalfPageDown},
+		{Action: "half up", Keys: kb.Home.HalfUp, Handler: self.paged(true, true), Description: tr.HalfPageUp},
+		{Action: "page down", Keys: kb.Home.PageDown, Handler: self.paged(false, false), Description: tr.PageDown},
+		{Action: "page up", Keys: kb.Home.PageUp, Handler: self.paged(false, true), Description: tr.PageUp},
 		{Action: "open", Keys: kb.Home.Open, Handler: uncounted(self.c.Helpers.Home.OpenSelected), Description: tr.Open},
 		{Action: "previous panel", Keys: kb.Home.PreviousPanel, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(-1) }), Description: tr.PreviousPanel},
 		{Action: "next panel", Keys: kb.Home.NextPanel, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(1) }), Description: tr.NextPanel},
@@ -57,6 +61,26 @@ func (self *HomeController) moved(move func(h context.HomeContext, count Count) 
 	}
 }
 
+func (self *HomeController) ends(last bool) Handler {
+	return self.moved(func(h context.HomeContext, count Count) context.HomeContext {
+		if count.Typed {
+			return h.Nth(count.N)
+		}
+		return h.Ends(last)
+	})
+}
+
+func (self *HomeController) paged(half, up bool) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		height := 1
+		if panels := self.c.Helpers.Window.HomeLayout(s).Panels; s.Home.Focus < len(panels) {
+			height = max(1, panels[s.Home.Focus].Inner().H)
+		}
+		s.Home = s.Home.Moved(pageBy(height, half, up) * count.N)
+		return self.c.Helpers.Refresh.HomeRelaid(s), nil
+	}
+}
+
 // Help is the home screen's keys, then what its marks mean.
 func (self *HomeController) Help(labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
@@ -64,6 +88,8 @@ func (self *HomeController) Help(labels presentation.KeyLabels) []HelpSection {
 	rows := []presentation.HelpRow{
 		{Keys: labels.Of("down", "up"), Words: tr.HelpHomeMove},
 		{Keys: labels.Of("top", "bottom"), Words: tr.HelpHomeEnds},
+		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
+		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("previous panel", "next panel"), Words: tr.HelpRepositories},
 		{Keys: utils.ResolvePlaceholderString(tr.HelpFirstNineKeys, map[string]string{"first": labels.Of("repository 1"), "last": labels.Of("repository 9")}), Words: tr.HelpFirstNine},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenPull},

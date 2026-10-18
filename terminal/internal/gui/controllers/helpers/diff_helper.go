@@ -155,19 +155,28 @@ func (self *DiffHelper) ToLine(s context.ContextTree, n int) (context.ContextTre
 	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoSuchLine, map[string]string{"path": path, "line": utils.Itoa(n)}), true), nil
 }
 
-// MatchNext is the state with the diff's cursor on the next row, or the
-// previous, that holds what was searched for.
-func (self *DiffHelper) MatchNext(s context.ContextTree, back bool) (context.ContextTree, tea.Cmd) {
+// MatchNext is the state with the diff's cursor on the nth next row, or
+// the nth previous, that holds what was searched for, or as far on as
+// there are such rows.
+func (self *DiffHelper) MatchNext(s context.ContextTree, back bool, n int) (context.ContextTree, tea.Cmd) {
 	query := s.Diff.Query
 	if query == "" {
 		return s, nil
 	}
-	if i := s.Diff.Next(back, func(r presentation.DiffRow) bool { return context.Matches(r, query) }); i >= 0 {
-		s = self.c.Helpers.Jump.Leave(s)
-		s.Diff = s.Diff.To(i, self.c.Helpers.Window.MainHeight(s))
-		return s, nil
+	v, found := s.Diff, -1
+	for ; n > 0; n-- {
+		i := v.Next(back, func(r presentation.DiffRow) bool { return context.Matches(r, query) })
+		if i < 0 {
+			break
+		}
+		v.Cursor, found = i, i
 	}
-	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoMoreOf, map[string]string{"query": strconv.Quote(query)}), true), nil
+	if found < 0 {
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoMoreOf, map[string]string{"query": strconv.Quote(query)}), true), nil
+	}
+	s = self.c.Helpers.Jump.Leave(s)
+	s.Diff = s.Diff.To(found, self.c.Helpers.Window.MainHeight(s))
+	return s, nil
 }
 
 // Rebuilt is a diff built again from the review in the state, shown in

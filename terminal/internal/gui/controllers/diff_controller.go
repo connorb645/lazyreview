@@ -88,13 +88,7 @@ func (self *DiffController) moved(by int) Handler {
 func (self *DiffController) paged(half, up bool) Handler {
 	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
 		h := self.height(s)
-		by := h * count.N
-		if half {
-			by = max(1, h/2) * count.N
-		}
-		if up {
-			by = -by
-		}
+		by := pageBy(h, half, up) * count.N
 		s.Diff = s.Diff.Scroll(by, h).Move(by, h)
 		return s, nil
 	}
@@ -155,8 +149,8 @@ func (self *DiffController) search(back bool) Handler {
 }
 
 func (self *DiffController) match(back bool) Handler {
-	return func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
-		return self.c.Helpers.Diff.MatchNext(s, back != s.SearchBack)
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		return self.c.Helpers.Diff.MatchNext(s, back != s.SearchBack, count.N)
 	}
 }
 
@@ -289,7 +283,8 @@ func (self *DiffController) Help(labels presentation.KeyLabels) []HelpSection {
 	dropping := utils.ResolvePlaceholderString(tr.HelpDropAtCursor, map[string]string{"confirm": labels.Of("confirm")})
 	rows := []presentation.HelpRow{
 		{Keys: labels.Of("down", "up"), Words: tr.HelpLinesMove},
-		{Keys: labels.Of("half down", "half up", "page down", "page up"), Words: tr.HelpPages},
+		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
+		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: lineEnds, Words: tr.HelpLineEnds},
 		{Keys: labels.Of("next hunk", "previous hunk"), Words: tr.HelpHunks},
 		{Keys: labels.Of("next file", "previous file"), Words: tr.HelpFiles},

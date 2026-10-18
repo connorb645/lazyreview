@@ -36,8 +36,8 @@ func (self *DiagramController) Bindings() []Binding {
 		{Action: "right", Keys: kb.Diagram.Right, Handler: self.nearest("l"), Description: tr.Right},
 		{Action: "next box", Keys: kb.Diagram.NextBox, Handler: self.movedBy(1), Description: tr.NextBox},
 		{Action: "previous box", Keys: kb.Diagram.PreviousBox, Handler: self.movedBy(-1), Description: tr.PreviousBox},
-		{Action: "top", Keys: kb.Diagram.Top, Handler: stateOnly(self.top), Description: tr.Top},
-		{Action: "bottom", Keys: kb.Diagram.Bottom, Handler: stateOnly(self.bottom), Description: tr.Bottom},
+		{Action: "top", Keys: kb.Diagram.Top, Handler: self.end(false), Description: tr.Top},
+		{Action: "bottom", Keys: kb.Diagram.Bottom, Handler: self.end(true), Description: tr.Bottom},
 		{Action: "open", Keys: kb.Diagram.Open, Handler: uncounted(self.c.Helpers.Diagram.StepIn), Description: tr.In},
 	}
 	d := kb.Diagram
@@ -78,12 +78,24 @@ func (self *DiagramController) movedBy(by int) Handler {
 	}
 }
 
-func (self *DiagramController) top(s context.ContextTree) context.ContextTree {
-	return self.c.Helpers.Diagram.MovedBy(s, -len(s.Diagram.Level.Cards))
+func (self *DiagramController) end(last bool) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		h, boxes := self.c.Helpers.Diagram, len(s.Diagram.Level.Cards)
+		switch {
+		case count.Typed:
+			return h.MovedBy(h.MovedBy(s, -boxes), count.N-1), nil
+		case last:
+			return h.MovedBy(s, boxes), nil
+		}
+		return h.MovedBy(s, -boxes), nil
+	}
 }
 
-func (self *DiagramController) bottom(s context.ContextTree) context.ContextTree {
-	return self.c.Helpers.Diagram.MovedBy(s, len(s.Diagram.Level.Cards))
+func (self *DiagramController) paged(half, up bool) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		by := pageBy(self.c.Helpers.Window.SideHeight(s, context.DiagramPanel), half, up)
+		return self.c.Helpers.Diagram.MovedBy(s, by*count.N), nil
+	}
 }
 
 func (self *DiagramController) search(back bool) Handler {
@@ -93,8 +105,8 @@ func (self *DiagramController) search(back bool) Handler {
 }
 
 func (self *DiagramController) match(back bool) Handler {
-	return func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
-		return self.c.Helpers.Diagram.FindBox(s, back != s.SearchBack)
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		return self.c.Helpers.Diagram.FindBox(s, back != s.SearchBack, count.N)
 	}
 }
 

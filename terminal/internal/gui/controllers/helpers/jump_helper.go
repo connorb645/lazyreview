@@ -20,23 +20,23 @@ func (self *JumpHelper) Leave(s context.ContextTree) context.ContextTree {
 	return s
 }
 
-// JumpBy is the state with the main panel back at the jump before, or on
-// at the one after, the keys in it.
-func (self *JumpHelper) JumpBy(s context.ContextTree, back bool) (context.ContextTree, tea.Cmd) {
+// JumpBy is the state with the main panel back by jumps, or on by them,
+// as far as there are, the keys in it.
+func (self *JumpHelper) JumpBy(s context.ContextTree, by int) (context.ContextTree, tea.Cmd) {
 	h := self.c.Helpers
-	if back {
+	if by < 0 {
 		if s.JumpAt == 0 {
 			return s, nil
 		}
 		if s.JumpAt == len(s.Jumps) {
 			s.Jumps = append(append([]context.Jump{}, s.Jumps...), here(s))
 		}
-		s.JumpAt--
+		s.JumpAt = max(0, s.JumpAt+by)
 	} else {
 		if s.JumpAt+1 >= len(s.Jumps) {
 			return s, nil
 		}
-		s.JumpAt++
+		s.JumpAt = min(len(s.Jumps)-1, s.JumpAt+by)
 	}
 	j := s.Jumps[s.JumpAt]
 	s = s.Focused(context.MainPanel, s.Driving())

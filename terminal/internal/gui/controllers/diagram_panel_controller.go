@@ -35,7 +35,10 @@ func (self *DiagramPanelController) Context() context.ContextKey {
 // reading order, and the Diagram panel's own, which win a key both bind.
 func (self *DiagramPanelController) Bindings() []Binding {
 	tr, kb, d := self.c.Tr, self.c.Config.Keybinding.DiagramPanel, self.diagram
-	boxMoves := map[string]Handler{"down": d.movedBy(1), "up": d.movedBy(-1), "top": stateOnly(d.top), "bottom": stateOnly(d.bottom)}
+	boxMoves := map[string]Handler{
+		"down": d.movedBy(1), "up": d.movedBy(-1), "top": d.end(false), "bottom": d.end(true),
+		"half down": d.paged(true, false), "half up": d.paged(true, true), "page down": d.paged(false, false), "page up": d.paged(false, true),
+	}
 	panels := sidePanelBindings(self.c)
 	for i, b := range panels {
 		if move, ok := boxMoves[b.Action]; ok {
@@ -70,6 +73,8 @@ func (self *DiagramPanelController) Help(labels presentation.KeyLabels) []HelpSe
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: labels.Of("down", "up", "next box", "previous box", "top", "bottom"), Words: tr.HelpBoxesMove},
+		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
+		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("previous panel", "next panel"), Words: utils.ResolvePlaceholderString(tr.HelpPanelsToReview, map[string]string{"nextPanel": labels.Of("next panel")})},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenDiagram},
 		{Keys: labels.Of("back"), Words: tr.HelpStepOut},

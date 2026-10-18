@@ -175,6 +175,7 @@ and why, and the others are still listed.
 | --- | --- |
 | `j` `k` | the next or previous pull request of the repository |
 | `gg` `G` | the first or last pull request of the repository |
+| `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` | half a page or a page down or up the repository |
 | `h` `l` | the repository above or below, going round from the last to the first and back |
 | `1` to `9` | the first nine repositories |
 | `Enter` | opens the pull request's review; one no review holds yet is loaded from GitHub first, as the account that found it |
@@ -215,8 +216,10 @@ note in its diff, or the diagram. When that runs past the main panel, a thumb
 in its right border shows how much of it fits and where you are, as in
 Lazygit. `Enter` gives the main panel the keys and `Esc` gives them back. The
 bar at the bottom lists the keys that matter where you are, and `Space ?`
-lists them all. A count goes before a move in the main panel, such as `5j` or
-`3]c`. In `Space ?` and every list that pops up, `j` `k` `gg` `G` and
+lists them all. A count goes before a move, such as `5j`, `3]c` or `12G`. In
+a panel on the left, `1` to `4` jump to the panels, so a count there starts
+with `5` to `9`, such as `7j` or `52j`; `jumpToBlock` in the config can free
+them. In `Space ?` and every list that pops up, `j` `k` `gg` `G` and
 `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` move the list, after a count too; any
 other key closes it and goes on to the panel under it.
 
@@ -262,6 +265,7 @@ The panels on the left:
 | Key | Does |
 | --- | --- |
 | `j` `k` `gg` `G` | move; the main panel follows, and in Review on a stack, every other panel shows only what the cursor is on |
+| `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` `{n}G` | half a page or a page down or up, or row n |
 | `h` `l` | the panel above or below, as Lazygit moves between its panels; `h` in Review goes round to Diagram, and `l` in Diagram to Review |
 | `Enter` | gives the main panel the keys; in Files, on a component or a folder, folds it |
 | `v` | in Review, on a stack, highlights the pull request selected; `j` `k` grow or shrink the highlight |
@@ -276,6 +280,7 @@ The Review view, in the main panel:
 | Key | Does |
 | --- | --- |
 | `j` `k` `gg` `G` | move |
+| `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` `{n}G` | half a page or a page down or up, or item n |
 | `Enter` | opens the item at the cursor in its diff |
 | `]]` `[[` | the next or previous section |
 | `za` | folds or unfolds a section |
@@ -288,7 +293,7 @@ one, then the types of one package, as rows of boxes:
 | Key | Does |
 | --- | --- |
 | `h` `j` `k` `l` | the nearest box left, down, up or right |
-| `w` `b` `gg` `G` | the next, previous, first or last box |
+| `w` `b` `gg` `G` `{n}G` | the next, previous, first or last box, or box n in reading order |
 | `Enter` `-` | steps in or out; on a type, `Enter` opens its diff |
 | `gd` `gr` | follows a link of the box, or lists what links to it |
 | `/` `?` `n` `N` | finds a type or file at any level |

@@ -90,6 +90,16 @@ func (h HomeContext) Moved(by int) HomeContext {
 	return h.At(h.Focus, rows.Move(by, len(rows.Rows)).Cursor)
 }
 
+// Nth is the home screen with the nth row of the panel with the keys
+// selected, counting from 1, or the nearest one after it that can be.
+func (h HomeContext) Nth(n int) HomeContext {
+	rows := h.focusedRows()
+	if at := rows.Landing(utils.Clamp(n-1, 0, len(rows.Rows)-1), 1); at >= 0 {
+		return h.At(h.Focus, at)
+	}
+	return h
+}
+
 // Ends is the home screen with the first row of the panel with the keys
 // selected, or its last.
 func (h HomeContext) Ends(last bool) HomeContext {

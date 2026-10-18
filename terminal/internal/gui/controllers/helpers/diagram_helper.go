@@ -271,9 +271,10 @@ func (self *DiagramHelper) Properties(s context.ContextTree) context.ContextTree
 	return s.WithMenu(pn)
 }
 
-// FindBox is the state with the diagram on the next type or file whose
-// name holds what was searched for, or the previous.
-func (self *DiagramHelper) FindBox(s context.ContextTree, back bool) (context.ContextTree, tea.Cmd) {
+// FindBox is the state with the diagram on the nth next type or file whose
+// name holds what was searched for, or the nth previous, going round at
+// the ends.
+func (self *DiagramHelper) FindBox(s context.ContextTree, back bool, n int) (context.ContextTree, tea.Cmd) {
 	query := strings.ToLower(s.Diagram.Query)
 	if query == "" {
 		return s, nil
@@ -311,6 +312,11 @@ func (self *DiagramHelper) FindBox(s context.ContextTree, back bool) (context.Co
 				break
 			}
 		}
+	}
+	if back {
+		pick = utils.Around(pick-(n-1), len(hits))
+	} else {
+		pick = utils.Around(pick+n-1, len(hits))
 	}
 	s = self.c.Helpers.Jump.Leave(s)
 	s = self.ShowBox(s, BoxOf(nodes[hits[pick]]))

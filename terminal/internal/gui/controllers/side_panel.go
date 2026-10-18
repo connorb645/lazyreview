@@ -16,17 +16,33 @@ func sidePanelBindings(c *helpers.HelperCommon) []Binding {
 	up := sideMoved(h, func(side context.SideContext, count Count, height int) context.SideContext {
 		return side.Move(-count.N, height)
 	})
-	top := sideMoved(h, func(side context.SideContext, _ Count, height int) context.SideContext {
+	top := sideMoved(h, func(side context.SideContext, count Count, height int) context.SideContext {
+		if count.Typed {
+			return side.To(count.N-1, height)
+		}
 		return side.To(0, height)
 	})
-	bottom := sideMoved(h, func(side context.SideContext, _ Count, height int) context.SideContext {
+	bottom := sideMoved(h, func(side context.SideContext, count Count, height int) context.SideContext {
+		if count.Typed {
+			return side.To(count.N-1, height)
+		}
 		return side.To(side.Landing(len(side.Rows)-1, -1), height)
 	})
+	paged := func(half, up bool) Handler {
+		return sideMoved(h, func(side context.SideContext, count Count, height int) context.SideContext {
+			by := pageBy(height, half, up) * count.N
+			return side.Scroll(by, height).Move(by, height)
+		})
+	}
 	return withReviewAll([]Binding{
 		{Action: "down", Keys: kb.Panels.Down, Handler: down, Description: tr.Down},
 		{Action: "up", Keys: kb.Panels.Up, Handler: up, Description: tr.Up},
 		{Action: "top", Keys: kb.Panels.Top, Handler: top, Description: tr.Top},
 		{Action: "bottom", Keys: kb.Panels.Bottom, Handler: bottom, Description: tr.Bottom},
+		{Action: "half down", Keys: kb.Panels.HalfDown, Handler: paged(true, false), Description: tr.HalfPageDown},
+		{Action: "half up", Keys: kb.Panels.HalfUp, Handler: paged(true, true), Description: tr.HalfPageUp},
+		{Action: "page down", Keys: kb.Panels.PageDown, Handler: paged(false, false), Description: tr.PageDown},
+		{Action: "page up", Keys: kb.Panels.PageUp, Handler: paged(false, true), Description: tr.PageUp},
 		{Action: "open", Keys: kb.Panels.Open, Handler: uncounted(func(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 			return openSide(c, s)
 		}), Description: tr.Open},
@@ -81,4 +97,15 @@ func panelsHint(c *helpers.HelperCommon, labels presentation.KeyLabels) [2]strin
 
 func sideMoveKeys(labels presentation.KeyLabels) string {
 	return labels.Of("down", "up", "top", "bottom")
+}
+
+func pageBy(height int, half, up bool) int {
+	by := height
+	if half {
+		by = max(1, height/2)
+	}
+	if up {
+		return -by
+	}
+	return by
 }

@@ -53,11 +53,11 @@ func (self *PromptHelper) Submitted(s context.ContextTree) (context.ContextTree,
 	switch {
 	case s.Screen() == context.ScreenDiagram && (kind == "/" || kind == "?"):
 		s.Diagram.Query = typed
-		next, cmd := h.Diagram.FindBox(s, s.SearchBack)
+		next, cmd := h.Diagram.FindBox(s, s.SearchBack, 1)
 		return h.Refresh.Mirrored(next), cmd
 	case kind == "/" || kind == "?":
 		s.Diff.Query = typed
-		next, cmd := h.Diff.MatchNext(s, s.SearchBack)
+		next, cmd := h.Diff.MatchNext(s, s.SearchBack, 1)
 		return h.Refresh.Mirrored(next), cmd
 	}
 	return self.command(s, typed)

@@ -57,14 +57,14 @@ const notes = english.config.about.keySections;
 
 const KEYBINDING = section({
   universal: keys({ command: ':', keys: '<space>?', review: '<space>v', github: 'gx', web: 'gX', close: ['q', '<esc>'], quit: ['ZZ', '<c-c>'], refresh: 'R', bigger: '+', smaller: '_' }, notes.universal),
-  home: keys({ ...MOVE, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9'] }, notes.home),
+  home: keys({ ...MOVE, ...PAGES, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9'] }, notes.home),
   reviewScreen: keys({ nextPull: ']p', previousPull: '[p', jumpBack: '<c-o>', jumpForward: '<c-i>', diagram: '<space>m', finder: '<space>f', home: '<space>h', focusMain: '0' }, notes.reviewScreen),
-  panels: keys({ ...MOVE, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToBlock: ['1', '2', '3', '4'] }, notes.panels),
+  panels: keys({ ...MOVE, ...PAGES, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToBlock: ['1', '2', '3', '4'] }, notes.panels),
   reviewPanel: keys({ post: 'P', highlight: 'v' }),
   filesPanel: keys({ toggleFold: 'za' }),
   notesPanel: keys({ edit: 'e', drop: 'dd', post: 'P' }),
   diagramPanel: keys(Object.fromEntries(Object.entries(BOXES).filter(([action]) => !['top', 'bottom', 'open'].includes(action)))),
-  reviewView: keys({ ...MOVE, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P' }, notes.reviewView),
+  reviewView: keys({ ...MOVE, ...PAGES, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P' }, notes.reviewView),
   diff: keys({
     down: ['j', '<down>'], up: ['k', '<up>'], halfDown: '<c-d>', halfUp: '<c-u>', pageDown: '<c-f>', pageUp: '<c-b>', top: 'gg', bottom: 'G',
     nextHunk: ']c', previousHunk: '[c', nextFile: ']f', previousFile: '[f', search: '/', searchBack: '?', nextMatch: 'n', previousMatch: 'N',

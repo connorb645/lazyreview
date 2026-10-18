@@ -18,11 +18,11 @@ func reviewScreenBindings(c *helpers.HelperCommon) []Binding {
 		{Action: "previous pull", Keys: kb.ReviewScreen.PreviousPull, Handler: func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
 			return h.Filter.FilterBy(s, -count.N), nil
 		}, Description: tr.PreviousPull},
-		{Action: "jump back", Keys: kb.ReviewScreen.JumpBack, Handler: func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
-			return h.Jump.JumpBy(s, true)
+		{Action: "jump back", Keys: kb.ReviewScreen.JumpBack, Handler: func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+			return h.Jump.JumpBy(s, -count.N)
 		}, Description: tr.JumpBack},
-		{Action: "jump forward", Keys: kb.ReviewScreen.JumpForward, Handler: func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
-			return h.Jump.JumpBy(s, false)
+		{Action: "jump forward", Keys: kb.ReviewScreen.JumpForward, Handler: func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+			return h.Jump.JumpBy(s, count.N)
 		}, Description: tr.JumpForward},
 		{Action: "diagram", Keys: kb.ReviewScreen.Diagram, Handler: stateOnly(h.Diagram.OpenDiagram), Description: tr.Diagram},
 		{Action: "finder", Keys: kb.ReviewScreen.Finder, Handler: stateOnly(h.Menu.OpenFinder), Description: tr.Find},
@@ -53,6 +53,7 @@ func reviewScreenHelp(c *helpers.HelperCommon, heading string, rows []presentati
 	every := []presentation.HelpRow{
 		{Keys: labels.Of("focus review", "focus files", "focus notes", "focus diagram"), Words: tr.HelpFocusPanels},
 		{Keys: labels.Of("focus main"), Words: tr.HelpFocusMain},
+		{Keys: tr.CountKeys, Words: tr.HelpCount},
 		{Keys: labels.Nth("close", 1), Words: tr.HelpEscape},
 		{Keys: labels.Of("bigger", "smaller"), Words: utils.ResolvePlaceholderString(tr.HelpScreenMode, map[string]string{"smaller": labels.Of("smaller")})},
 		{Keys: labels.Of("command"), Words: utils.ResolvePlaceholderString(tr.HelpCommandLine, command)},
