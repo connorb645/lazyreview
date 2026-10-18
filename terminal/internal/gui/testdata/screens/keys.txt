@@ -27,4 +27,4 @@
 │ ■ widgets                     ││                                                                 │
 │ ■ Unchanged code              ││  #21  Add search to the catalog                                 │
 ╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
- Move: j k | Go: Enter | Close: Esc
+ Move: j k | Close: Esc

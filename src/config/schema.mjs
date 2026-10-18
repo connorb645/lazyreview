@@ -48,6 +48,7 @@ const keys = (given, note = '') => section(Object.fromEntries(Object.entries(giv
   setting({ check: NUMBERED.includes(action) ? 'numberedKeys' : 'keys', default: value, about: [] })])), [], { note });
 const NUMBERED = ['jumpToRepository', 'jumpToBlock', 'choose'];
 const MOVE = { down: ['j', '<down>'], up: ['k', '<up>'], top: 'gg', bottom: 'G' };
+const PAGES = { halfDown: '<c-d>', halfUp: '<c-u>', pageDown: '<c-f>', pageUp: '<c-b>' };
 const BOXES = {
   nextBox: 'w', previousBox: 'b', top: 'gg', bottom: 'G', open: '<enter>', back: '-', follow: 'gd', references: 'gr', search: '/', searchBack: '?',
   nextMatch: 'n', previousMatch: 'N', labels: 'f', links: '<space>l', properties: '<space>p', boxDiff: '<space>d', allLinks: '<space>a',
@@ -71,7 +72,7 @@ const KEYBINDING = section({
     whole: '<space>o', rendered: '<space>r', showType: 'gd', nextNote: ']n', previousNote: '[n', select: 'V', otherEnd: 'o', comment: 'c', ask: 'a', edit: 'e', drop: 'dd',
   }),
   diagram: keys({ left: ['h', '<left>'], down: ['j', '<down>'], up: ['k', '<up>'], right: ['l', '<right>'], ...BOXES }, notes.diagram),
-  menu: keys({ down: ['j', '<down>'], up: ['k', '<up>'], open: '<enter>', close: ['<esc>', 'q'] }),
+  menu: keys({ ...MOVE, ...PAGES, open: '<enter>', close: ['<esc>', 'q'] }, notes.menu),
   finder: keys({ down: ['<c-n>', '<down>'], up: ['<c-p>', '<up>'], open: '<enter>', close: '<esc>', clear: '<c-u>' }),
   posting: keys({ down: ['j', '<down>'], up: ['k', '<up>'], choose: ['1', '2', '3'], open: '<enter>', close: ['<esc>', 'n', 'q'], post: 'y', back: ['n', '<esc>', 'q'] }),
   confirmation: keys({ confirm: 'y' }),

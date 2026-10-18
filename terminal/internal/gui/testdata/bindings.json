@@ -236,9 +236,15 @@
   "up": "up"
  },
  "menu": {
+  "G": "bottom",
+  "ctrl+b": "page up",
+  "ctrl+d": "half down",
+  "ctrl+f": "page down",
+  "ctrl+u": "half up",
   "down": "down",
   "enter": "open",
   "esc": "close",
+  "g g": "top",
   "j": "down",
   "k": "up",
   "q": "close",

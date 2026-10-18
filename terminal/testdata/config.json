@@ -496,6 +496,24 @@
     "k",
     "up"
    ],
+   "top": [
+    "g g"
+   ],
+   "bottom": [
+    "G"
+   ],
+   "halfDown": [
+    "ctrl+d"
+   ],
+   "halfUp": [
+    "ctrl+u"
+   ],
+   "pageDown": [
+    "ctrl+f"
+   ],
+   "pageUp": [
+    "ctrl+b"
+   ],
    "open": [
     "enter"
    ],

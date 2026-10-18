@@ -24,3 +24,7 @@ func (self *baseController) Hints(s context.ContextTree, labels presentation.Key
 func (self *baseController) Unbound(s context.ContextTree, name string, msg tea.KeyMsg) (context.ContextTree, tea.Cmd, bool) {
 	return s, nil, true
 }
+
+func (self *baseController) ReadsSequences() bool {
+	return false
+}

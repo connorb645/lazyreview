@@ -216,7 +216,9 @@ in its right border shows how much of it fits and where you are, as in
 Lazygit. `Enter` gives the main panel the keys and `Esc` gives them back. The
 bar at the bottom lists the keys that matter where you are, and `Space ?`
 lists them all. A count goes before a move in the main panel, such as `5j` or
-`3]c`.
+`3]c`. In `Space ?` and every list that pops up, `j` `k` `gg` `G` and
+`Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` move the list, after a count too; any
+other key closes it and goes on to the panel under it.
 
 On a stack, the Review panel lists All, then each pull request, and its cursor
 chooses what the other panels show. On All they show the whole stack. On a

@@ -257,6 +257,38 @@ func TestTheKeysOfAPanelAndTheCommandLine(t *testing.T) {
 	}
 }
 
+// In Space ? and every list that pops up, j, k, gg, G, half pages and
+// pages move the list, after a count too, and leave the diff under it as
+// it was. A key the list does not take closes it and goes on to the diff,
+// with the count typed before it, as 2]c.
+func TestAListThatPopsUpTakesItsOwnMoves(t *testing.T) {
+	under := press(t, onBasket(t), "j", "j")
+	at := cursorAt(under)
+	a := press(t, under, "space", "?")
+	rows, pn := a.helpers.Window.MenuRows(a.ContextTree), a.Menu
+	steps := []struct {
+		keys []string
+		want int
+	}{
+		{[]string{"G"}, pn.Nth(len(pn.Rows), rows).Cursor},
+		{[]string{"g", "g"}, pn.Nth(1, rows).Cursor},
+		{[]string{"5", "j"}, pn.Nth(6, rows).Cursor},
+		{[]string{"ctrl+d"}, pn.Nth(6, rows).Move(rows/2, rows).Cursor},
+		{[]string{"ctrl+u", "k"}, pn.Nth(5, rows).Cursor},
+		{[]string{"1", "2", "G"}, pn.Nth(12, rows).Cursor},
+	}
+	for _, s := range steps {
+		a = press(t, a, s.keys...)
+		if !a.MenuOpen() || a.Menu.Cursor != s.want || cursorAt(a) != at {
+			t.Fatalf("%v in Space ? left the list open %v on row %d, not %d, and the diff at %s", s.keys, a.MenuOpen(), a.Menu.Cursor, s.want, cursorAt(a))
+		}
+	}
+	a = press(t, a, "2", "]", "c")
+	if want := cursorAt(press(t, under, "2", "]", "c")); a.MenuOpen() || cursorAt(a) != want {
+		t.Fatalf("2]c in Space ? left the list open %v and the diff at %s, not %s", a.MenuOpen(), cursorAt(a), want)
+	}
+}
+
 func TestAReviewThatWillNotOpenSaysWhyAndTriesAgain(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/99", 80, 20)
 	if a.Review != nil || !strings.HasPrefix(a.Failed, "could not open github.com/octo/widgets/99") {

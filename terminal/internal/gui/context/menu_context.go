@@ -73,6 +73,13 @@ func (pn MenuContext) Move(by, height int) MenuContext {
 	return pn
 }
 
+// Nth is the menu with its cursor on its nth row that is not a heading,
+// counting from 1, or on its last such row when it has fewer, shown in a
+// height.
+func (pn MenuContext) Nth(n, height int) MenuContext {
+	return pn.First().Move(n-1, height)
+}
+
 // First is the menu with its cursor on its first row that is not a heading.
 func (pn MenuContext) First() MenuContext {
 	for i, r := range pn.Rows {

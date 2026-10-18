@@ -43,6 +43,16 @@ func (r Reader) Typed() string {
 	return r.count + strings.Join(r.pending, "")
 }
 
+// Keys are the keys typed so far toward a sequence, the count's digits
+// first, each named as Bindings name keys.
+func (r Reader) Keys() []string {
+	var out []string
+	for _, digit := range r.count {
+		out = append(out, string(digit))
+	}
+	return append(out, r.pending...)
+}
+
 // Pending is the keys typed so far after any count, joined by spaces, as
 // Bindings name them.
 func (r Reader) Pending() string {

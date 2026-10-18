@@ -148,7 +148,8 @@ func firstKey(sequence string) string {
 func keyFor(name string) tea.KeyMsg {
 	named := map[string]tea.KeyType{
 		"up": tea.KeyUp, "down": tea.KeyDown, "left": tea.KeyLeft, "right": tea.KeyRight, "backspace": tea.KeyBackspace,
-		"ctrl+b": tea.KeyCtrlB, "ctrl+c": tea.KeyCtrlC, "ctrl+f": tea.KeyCtrlF, "ctrl+n": tea.KeyCtrlN, "ctrl+p": tea.KeyCtrlP,
+		"ctrl+b": tea.KeyCtrlB, "ctrl+c": tea.KeyCtrlC, "ctrl+d": tea.KeyCtrlD, "ctrl+f": tea.KeyCtrlF, "ctrl+n": tea.KeyCtrlN, "ctrl+p": tea.KeyCtrlP,
+		"ctrl+u": tea.KeyCtrlU,
 	}
 	if k, ok := named[name]; ok {
 		return tea.KeyMsg{Type: k}
@@ -161,30 +162,49 @@ func pressed(a App, name string) App {
 	return next.(App)
 }
 
-// menuKeys opens a menu whose rows each open a place, with its cursor on the
-// second row, and names each key by what it does to it.
+// menuKeys opens a menu of sixty rows that each open a place, with its
+// cursor on the twenty-fifth, and names each key, and each sequence it
+// binds, by what it does to it.
 func menuKeys(t *testing.T, keys []string) map[string]string {
 	a, _ := opened(t, stack, 100, 30)
 	a = a.with(a.helpers.Menu.OpenFinder(a.ContextTree))
+	rows := a.helpers.Window.MenuRows(a.ContextTree)
 	pn := a.Menu
-	pn.Finding, pn.Rows = false, pn.All
-	pn = pn.Move(1, a.helpers.Window.MenuRows(a.ContextTree))
+	pn.Finding, pn.Rows = false, nil
+	for len(pn.Rows) < 60 {
+		pn.Rows = append(pn.Rows, pn.All...)
+	}
+	pn = pn.Nth(25, rows)
 	a = a.with(a.WithMenu(pn))
 	a = a.with(a.Said("probe", false))
 	closed := a.with(a.WithoutMenu())
 	opening, _ := a.helpers.Menu.OpenRow(a.ContextTree)
+	moves := map[string]int{
+		"down": pn.Move(1, rows).Cursor, "up": pn.Move(-1, rows).Cursor, "top": pn.Nth(1, rows).Cursor, "bottom": pn.Nth(len(pn.Rows), rows).Cursor,
+		"half down": pn.Move(rows/2, rows).Cursor, "half up": pn.Move(-rows/2, rows).Cursor, "page down": pn.Move(rows, rows).Cursor, "page up": pn.Move(-rows, rows).Cursor,
+	}
+	sequences := append([]string{}, keys...)
+	for sequence := range controllers.Sequences(a.controllers.Bindings(a.controllers.For(context.MenuKey))) {
+		if strings.Contains(sequence, " ") {
+			sequences = append(sequences, sequence)
+		}
+	}
 	out := map[string]string{}
-	for _, name := range keys {
-		b := pressed(a, name)
+	for _, sequence := range sequences {
+		b := a
+		for _, name := range strings.Split(sequence, " ") {
+			b = pressed(b, name)
+		}
+		for action, cursor := range moves {
+			if b.MenuOpen() && b.Keys.Typed() == "" && b.Menu.Cursor == cursor {
+				out[sequence] = action
+			}
+		}
 		switch {
-		case b.MenuOpen() && b.Menu.Cursor == pn.Move(1, a.helpers.Window.MenuRows(a.ContextTree)).Cursor:
-			out[name] = "down"
-		case b.MenuOpen() && b.Menu.Cursor == pn.Move(-1, a.helpers.Window.MenuRows(a.ContextTree)).Cursor:
-			out[name] = "up"
 		case !b.MenuOpen() && b.Keys.Typed() == "" && b.View() == closed.View():
-			out[name] = "close"
+			out[sequence] = "close"
 		case !b.MenuOpen() && b.Keys.Typed() == "" && b.View() == a.with(opening).View():
-			out[name] = "open"
+			out[sequence] = "open"
 		}
 	}
 	return out

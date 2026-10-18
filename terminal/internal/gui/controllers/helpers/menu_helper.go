@@ -79,3 +79,10 @@ func (self *MenuHelper) Moved(s context.ContextTree, by int) context.ContextTree
 	s.Menu = s.Menu.Move(by, self.c.Helpers.Window.MenuRows(s))
 	return s
 }
+
+// MovedTo is the state with the menu's cursor on its nth row that is not a
+// heading, counting from 1, or on its last when it has fewer.
+func (self *MenuHelper) MovedTo(s context.ContextTree, n int) context.ContextTree {
+	s.Menu = s.Menu.Nth(n, self.c.Helpers.Window.MenuRows(s))
+	return s
+}

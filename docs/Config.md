@@ -263,9 +263,15 @@ keybinding:
     properties: '<space>p'
     boxDiff: '<space>d'
     allLinks: '<space>a'
-  menu:
+  menu:                   # a list that pops up, such as Space ?
     down: ['j', '<down>']
     up: ['k', '<up>']
+    top: 'gg'
+    bottom: 'G'
+    halfDown: '<c-d>'
+    halfUp: '<c-u>'
+    pageDown: '<c-f>'
+    pageUp: '<c-b>'
     open: '<enter>'
     close: ['<esc>', 'q']
   finder:

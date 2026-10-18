@@ -33,6 +33,16 @@ func (m Menu) Choosing() bool {
 	return m.Finding
 }
 
+// Opens says whether a row of the menu opens a place.
+func (m Menu) Opens() bool {
+	for _, r := range m.Rows {
+		if r.Open != nil {
+			return true
+		}
+	}
+	return false
+}
+
 func (m Menu) choices() (int, int) {
 	at, n := 0, 0
 	for i, r := range m.Rows {
