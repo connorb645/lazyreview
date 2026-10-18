@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { pathPattern } from '../../src/build/placement/path-pattern.mjs';
 import { groupByFolder } from '../../src/build/placement/folder-grouping.mjs';
-import { placeFiles, humanize, commonFolder, whereFiles } from '../../src/build/placement/placement.mjs';
+import { placeFiles, commonFolder, whereFiles } from '../../src/build/placement/placement.mjs';
 import { readConfig } from '../../src/build/config/config.mjs';
 
 test('path patterns: literals cover their folder, wildcards stay within a folder', () => {
@@ -39,7 +39,7 @@ test('a folder one subfolder dominates splits into that subfolder\'s parts, with
   assert.deepEqual(groupByFolder(paths, { splitAbove: 8, balanced: true }).map(g => [g.folder, g.paths.length]),
     [['Modules/Basket/Sources', 8], ['Modules/Search/Sources', 14], [null, 2]]);
   const { components } = placeFiles(paths, readConfig(undefined), { rootTitle: 'app' });
-  assert.deepEqual(components.map(c => [c.title, c.size]), [['Search Sources', 14], ['Basket Sources', 8], ['Other files', 2]]);
+  assert.deepEqual(components.map(c => [c.title, c.size]), [['Search/Sources', 14], ['Basket/Sources', 8], ['Other files', 2]]);
   const flat = [...Array(30)].map((_, i) => `src/f${i}.ts`).concat(['README.md', 'docs/a.md']);
   assert.deepEqual(groupByFolder(flat, { splitAbove: 8, balanced: true }).map(g => g.folder), [''], 'a dominant folder with nothing to split into stays whole');
 });
@@ -47,16 +47,31 @@ test('a folder one subfolder dominates splits into that subfolder\'s parts, with
 test('a small diff with no config is one component named after the repository', () => {
   const { components } = placeFiles(['Sources/Core/A.swift', 'Tests/CoreTests/ATests.swift'], readConfig(undefined), { rootTitle: 'core' });
   assert.deepEqual(components.map(c => [c.id, c.title]), [['root', 'core']]);
-  assert.deepEqual(components[0].packages.map(p => p.title), ['Sources/Core', 'Tests/Core Tests'], 'a package of folders is titled as their path, with no spaces round its slashes');
+  assert.deepEqual(components[0].packages.map(p => p.title), ['Sources/Core', 'Tests/CoreTests'], 'a package of folders is titled as their path, with no spaces round its slashes');
+});
+
+test('a name taken from a folder is the folder as it is on disk, its spaces and nothing more', () => {
+  const config = readConfig({ components: [{ id: 'orchard', title: 'Orchard', paths: ['Sources/**'] }] });
+  const paths = [
+    ...['FrostWarning', 'FrostAlarm'].map(n => `Sources/Orchard/Features/SeasonFlows/HarvestPlanner/LateFrostWarnings/${n}.swift`),
+    ...['Picker', 'RotaBoard'].map(n => `Sources/Orchard/Features/SeasonFlows/HarvestPlanner/PickingRota/${n}.swift`),
+    ...['RareSeed', 'SeedVault'].map(n => `Sources/Orchard/Features/Seed Catalog/rare_seeds/${n}.swift`),
+    ...['frost-map', 'night-chart', 'frost-page', 'frost-banner'].map(n => `web/orchard-site/frost-warnings/${n}.ts`),
+  ];
+  const { components } = placeFiles(paths, config);
+  assert.deepEqual(components.map(c => [c.title, c.packages.map(p => p.title)]), [
+    ['Orchard', ['SeasonFlows/HarvestPlanner/LateFrostWarnings', 'SeasonFlows/HarvestPlanner/PickingRota', 'Seed Catalog/rare_seeds']],
+    ['frost-warnings', ['frost-warnings']],
+  ]);
 });
 
 test('without a config, files are grouped by folder into components and packages', () => {
   const paths = ['Sources/Core/Log/A.swift', 'Sources/Core/Log/B.swift', 'Sources/Core/Log/E.swift', 'Sources/Core/Net/C.swift', 'Sources/Core/Net/D.swift',
     'Tests/CoreTests/ATests.swift', 'Tests/CoreTests/BTests.swift', 'Tests/CoreTests/CTests.swift', 'Tests/CoreTests/DTests.swift'];
   const { components, placement } = placeFiles(paths, readConfig(undefined));
-  assert.deepEqual(components.map(c => [c.id, c.title, c.tag]), [['sources-core', 'Core', 'Sources/Core/'], ['tests-coretests', 'Core Tests', 'Tests/CoreTests/']]);
+  assert.deepEqual(components.map(c => [c.id, c.title, c.tag]), [['sources-core', 'Core', 'Sources/Core/'], ['tests-coretests', 'CoreTests', 'Tests/CoreTests/']]);
   assert.deepEqual(components[0].packages.map(p => [p.title, p.path]), [['Log', 'Sources/Core/Log/'], ['Net', 'Sources/Core/Net/']]);
-  assert.deepEqual(components[1].packages.map(p => p.title), ['Core Tests']);
+  assert.deepEqual(components[1].packages.map(p => p.title), ['CoreTests']);
   assert.equal(placement.get('Sources/Core/Net/D.swift').package, components[0].packages[1].id);
   assert.equal(components[0].packages.length, 2);
 });
@@ -99,10 +114,7 @@ test('context files go to context components, and the rest to one Unchanged code
   assert.deepEqual(components.map(c => [c.id, c.title, c.context]), [['sdk', 'SDK around it', true], ['context', 'Unchanged code', true]]);
 });
 
-test('names and folders for headings', () => {
-  assert.equal(humanize('ShopFront'), 'Shop Front');
-  assert.equal(humanize('log_upload-v2'), 'log upload v2');
-  assert.equal(humanize('HTTPClient'), 'HTTP Client');
+test('folders for headings', () => {
   assert.equal(commonFolder(['a/b/c.ts', 'a/b/d/e.ts']), 'a/b/');
   assert.equal(commonFolder(['a.ts', 'b/c.ts']), '');
   assert.equal(whereFiles(['Tests/A/x.swift', 'Tests/A/y.swift', 'Package.swift', 'scripts/run.sh']), 'Tests/ · Package.swift · scripts/');

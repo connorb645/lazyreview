@@ -6,9 +6,9 @@
  * config breaking a tie. Changed files match the ordinary components; with
  * `context`, the paths are unchanged files shown as context and match only
  * components marked `context`, and whatever matches none goes to one
- * "Unchanged code" component. Files no pattern names are grouped by folder;
- * a group of the whole repository takes `rootTitle`, such as the repository's
- * name.
+ * "Unchanged code" component. Files no pattern names are grouped by folder,
+ * each group named by its folder as it is on disk; a group of the whole
+ * repository takes `rootTitle`, such as the repository's name.
  *
  * Returns {components, placement}: the components that hold at least one
  * path, each with its packages, and a Map from path to {component, package}.
@@ -97,10 +97,10 @@ function folderPackages(paths, componentId, taken, splitAbove = 3) {
   const used = new Set(taken);
   const base = commonFolder(paths).replace(/\/$/, '');
   const groups = groupByFolder(paths, { maxGroups: 12, splitAbove, splitTop: true });
-  const baseName = base ? humanize(base.split('/').pop()) : english.diagram.repositoryRoot;
+  const baseName = base ? base.split('/').pop() : english.diagram.repositoryRoot;
   return groups.map(g => {
     const relative = g.folder === base ? '' : base ? g.folder.slice(base.length + 1) : g.folder;
-    const title = relative ? relative.split('/').map(humanize).join('/') : groups.length > 1 && base ? english.diagram.topLevel(baseName) : baseName;
+    const title = relative || (groups.length > 1 && base ? english.diagram.topLevel(baseName) : baseName);
     return { id: uniqueId(slug(relative || 'top'), used), title, paths: g.paths };
   });
 }
@@ -116,18 +116,9 @@ function mergeSmall(groups) {
 function titleFor(folder, groups) {
   if (folder === '') return english.diagram.repositoryRoot;
   const segments = folder.split('/');
-  const last = humanize(segments[segments.length - 1]);
-  const clash = groups.some(g => g.folder && g.folder !== folder && g.folder.split('/').pop() === segments[segments.length - 1]);
-  return clash && segments.length > 1 ? `${humanize(segments[segments.length - 2])} ${last}` : last;
-}
-
-/** Words for a folder name: SearchIndex is "Search Index", log_upload is "log upload". */
-export function humanize(name) {
-  return name
-    .replace(/[_-]+/g, ' ')
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-    .trim() || name;
+  const last = segments[segments.length - 1];
+  const clash = groups.some(g => g.folder && g.folder !== folder && g.folder.split('/').pop() === last);
+  return clash && segments.length > 1 ? segments.slice(-2).join('/') : last;
 }
 
 /**

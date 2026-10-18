@@ -286,7 +286,7 @@ func pathsStandIn() types.ReviewData {
 	return types.ReviewData{ID: "paths", State: server.State{Kind: "branch", Base: server.Ref{Ref: "main"}, Head: server.Ref{Ref: "feature/pricing"}}, Page: server.Page{
 		Model: server.Model{
 			Components: []server.Component{{ID: "shop", Title: "Shop", Color: "blue", Packages: []server.Package{
-				pkg("checkout", "Checkout"), pkg("experiments", "Pricing/Remote Overrides/Experiments"),
+				pkg("checkout", "Checkout"), pkg("experiments", "Pricing/RemoteOverrides/Experiments"),
 				pkg("local", "docs/store/help/local"), pkg("pricing", "Pricing rules for every basket kind"),
 			}}},
 			Files: []server.FileEntry{file("Sources/Store/Web/BasketFlow/Checkout/CheckoutFlow.swift", "checkout"), file(flag, "experiments")},
@@ -308,8 +308,8 @@ func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 	a = relaid(showBox(a, types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"}))
 	screenIs(t, a, "paths-packages")
 	shown := a.View()
-	for _, want := range []string{"┃ …/Remote Overrides/Experiments ", "│ docs/store/help/local ", "▌…/Experiments ", "│ Pricing rules for ever…│",
-		"─…/Remote Overrides/Experiments · package · 1 type─╯"} {
+	for _, want := range []string{"┃ …/RemoteOverrides/Experiments ", "│ docs/store/help/local ", "▌…/Experiments ", "│ Pricing rules for ever…│",
+		"─…/RemoteOverrides/Experiments · package · 1 type─╯"} {
 		if !strings.Contains(shown, want) {
 			t.Errorf("the packages show no %q", want)
 		}
@@ -317,7 +317,7 @@ func TestAPathTitleLosesItsFirstFoldersWhereverItIsCut(t *testing.T) {
 	a = relaid(showBox(a, types.DiagramPlace{Level: "types", Component: "shop", Package: "experiments", Box: "ExperimentFlag"}))
 	screenIs(t, a, "paths-types")
 	shown = a.View()
-	for _, want := range []string{"[0]─Diagram · Shop › …/Experiments─", "│ Shop › …/Experiments ", "─ExperimentFlag · struct · …erimentFlag.swift · new─╯"} {
+	for _, want := range []string{"[0]─Diagram · Shop › …/RemoteOverrides/Experiments─", "│ Shop › …/Experiments ", "─ExperimentFlag · struct · …erimentFlag.swift · new─╯"} {
 		if !strings.Contains(shown, want) {
 			t.Errorf("the types show no %q", want)
 		}

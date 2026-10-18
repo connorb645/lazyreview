@@ -1,7 +1,7 @@
 ╭─[1]─Review─────────────╮╭─[0]─Diagram · Shop─────────────────────────────────╮
 │ feature/pricing → main ││                                                    │
 ╰─────────────────1 of 1─╯│              ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
-╭─[2]─Files──────────────╮│              ┃ …/Remote Overrides/Experiments   ┃  │
+╭─[2]─Files──────────────╮│              ┃ …/RemoteOverrides/Experiments    ┃  │
 │ ▾ ■ Shop         +6 −0 ││              ┃ 1 type                           ┃  │
 │   ▾ …/Checkout         ││              ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛  │
 │     A CheckoutFlow.swi…││                                                    │
@@ -20,5 +20,5 @@
 │ docs/store/help/local  ││                                                    │
 │ Pricing rules for ever…││                                                    │
 │                        ││                                                    │
-╰─────────────────2 of 4─╯╰──…/Remote Overrides/Experiments · package · 1 type─╯
+╰─────────────────2 of 4─╯╰───…/RemoteOverrides/Experiments · package · 1 type─╯
  Diagram: Enter | Out: - | Panels: h l | Follow: gd | Keys: Space ?

@@ -331,7 +331,8 @@ owner can read, and the terminal app sends it with each change.
 
 ## Components and packages
 
-Without a config, files are grouped by folder. A config names the parts:
+Without a config, files are grouped by folder, each group named by its
+folder as it is on disk. A config names the parts:
 
 ```json
 {
