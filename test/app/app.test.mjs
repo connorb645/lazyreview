@@ -60,7 +60,8 @@ test('the page data is indexed with the totals of the change and of each compone
   assert.deepEqual(Object.keys(data.nodesByFile), ['a.ts', 'b.ts']);
   assert.equal(data.contextFiles['c.ts'].index, 'c0');
   assert.equal(data.build, 'abc');
-  assert.equal(breakable('Sources/A_b.swift'), 'Sources/<wbr>A_<wbr>b.swift');
+  assert.equal(breakable('Sources/HarvestPlanner/late_frost-v2/A&B.swift'), 'Sources/<wbr>HarvestPlanner/<wbr>late_frost-v2/<wbr>A&amp;B.swift',
+    'a path breaks after its slashes only, so a wrap never splits a name into what looks like two words');
   assert.equal(english.web.counts.files(1) + ', ' + english.web.counts.files(1200), '1 file, 1,200 files');
 });
 

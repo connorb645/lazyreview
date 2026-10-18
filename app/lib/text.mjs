@@ -19,9 +19,14 @@ export function short(sha) {
   return String(sha).slice(0, 8);
 }
 
-/** Escaped text with break opportunities after slashes and inside long names, so a path never breaks mid-word. */
+/**
+ * Escaped text with a break opportunity after each slash, so a path wraps
+ * between its folders and never splits a name into what looks like two
+ * words. A name too long for a whole line is left to the style's
+ * overflow-wrap.
+ */
 export function breakable(text) {
-  return esc(text).replace(/([/+_-])/g, '$1<wbr>').replace(/([a-z])([A-Z])/g, '$1<wbr>$2');
+  return esc(text).replace(/\//g, '/<wbr>');
 }
 
 /** Markdown read as plain words, for a short preview. */
