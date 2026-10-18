@@ -6,11 +6,13 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 // DiagramPanelController binds the keys of the Diagram panel, which lists
-// the boxes of the diagram's level. Its keys move through the diagram in
-// the main panel, as the diagram's own keys do.
+// the boxes of the diagram's level. Its moves go through the boxes in
+// reading order, Enter gives the diagram in the main panel the keys, and
+// the diagram's other keys do what they do there.
 type DiagramPanelController struct {
 	baseController
 	c       *helpers.HelperCommon
@@ -33,10 +35,7 @@ func (self *DiagramPanelController) Context() context.ContextKey {
 // reading order, and the Diagram panel's own, which win a key both bind.
 func (self *DiagramPanelController) Bindings() []Binding {
 	tr, kb, d := self.c.Tr, self.c.Config.Keybinding.DiagramPanel, self.diagram
-	boxMoves := map[string]Handler{
-		"down": d.movedBy(1), "up": d.movedBy(-1), "top": stateOnly(d.top), "bottom": stateOnly(d.bottom),
-		"open": uncounted(self.c.Helpers.Diagram.StepIn),
-	}
+	boxMoves := map[string]Handler{"down": d.movedBy(1), "up": d.movedBy(-1), "top": stateOnly(d.top), "bottom": stateOnly(d.bottom)}
 	panels := sidePanelBindings(self.c)
 	for i, b := range panels {
 		if move, ok := boxMoves[b.Action]; ok {
@@ -44,8 +43,6 @@ func (self *DiagramPanelController) Bindings() []Binding {
 		}
 	}
 	own := append([]Binding{
-		{Action: "left", Keys: kb.Left, Handler: d.nearest("h"), Description: tr.Left},
-		{Action: "right", Keys: kb.Right, Handler: d.nearest("l"), Description: tr.Right},
 		{Action: "next box", Keys: kb.NextBox, Handler: d.movedBy(1), Description: tr.NextBox},
 		{Action: "previous box", Keys: kb.PreviousBox, Handler: d.movedBy(-1), Description: tr.PreviousBox},
 	}, d.boxBindings(boxKeys{
@@ -73,8 +70,8 @@ func (self *DiagramPanelController) Help(labels presentation.KeyLabels) []HelpSe
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: labels.Of("down", "up", "next box", "previous box", "top", "bottom"), Words: tr.HelpBoxesMove},
-		{Keys: labels.Of("left", "right"), Words: tr.HelpBoxesSideways},
-		{Keys: labels.Of("open"), Words: tr.HelpStepIn},
+		{Keys: labels.Of("previous panel", "next panel"), Words: utils.ResolvePlaceholderString(tr.HelpPanelsToReview, map[string]string{"nextPanel": labels.Of("next panel")})},
+		{Keys: labels.Of("open"), Words: tr.HelpOpenDiagram},
 		{Keys: labels.Of("back"), Words: tr.HelpStepOut},
 		{Keys: labels.Of("follow"), Words: tr.HelpFollowBox},
 		{Keys: labels.Of("references"), Words: tr.HelpReferences},
@@ -92,9 +89,12 @@ func (self *DiagramPanelController) Help(labels presentation.KeyLabels) []HelpSe
 func (self *DiagramPanelController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
+		out := tr.Out
+		if s.Diagram.Level.Kind == "components" {
+			out = tr.ReviewView
+		}
 		return [][2]string{
-			{labels.Of("left", "down", "up", "right"), tr.Move}, {labels.Of("open"), tr.In}, {labels.Of("back"), tr.Out},
-			{labels.Of("focus review", "focus files", "focus notes"), tr.Panels}, {labels.Of("follow"), tr.Follow},
+			{labels.Of("open"), tr.Diagram}, {labels.Of("back"), out}, panelsHint(self.c, labels), {labels.Of("follow"), tr.Follow},
 			{labels.Of("links"), tr.Links}, {labels.Of("search"), tr.Find},
 		}
 	})

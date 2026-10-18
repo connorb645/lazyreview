@@ -21,4 +21,4 @@
 │                        ││                                                    │
 │                        ││                                                    │
 ╰─────────────────1 of 1─╯╰─ExperimentFlag · struct · …erimentFlag.swift · new─╯
- Move: h j k l | In: Enter | Out: - | Panels: 1 2 3 | Keys: Space ?
+ Diagram: Enter | Out: - | Panels: h l | Follow: gd | Keys: Space ?

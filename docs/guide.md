@@ -260,14 +260,14 @@ The panels on the left:
 | Key | Does |
 | --- | --- |
 | `j` `k` `gg` `G` | move; the main panel follows, and in Review on a stack, every other panel shows only what the cursor is on |
-| `h` `l` | the panel above or below, as Lazygit moves between its panels; `h` in Review goes round to Diagram; in Diagram, the box to the left or right |
-| `Enter` | gives the main panel the keys; in Files, on a component or a folder, folds it; in Diagram, steps in |
+| `h` `l` | the panel above or below, as Lazygit moves between its panels; `h` in Review goes round to Diagram, and `l` in Diagram to Review |
+| `Enter` | gives the main panel the keys; in Files, on a component or a folder, folds it |
 | `v` | in Review, on a stack, highlights the pull request selected; `j` `k` grow or shrink the highlight |
 | `Esc` | in Review, goes to All, to show the whole stack |
 | `P` | in Review and Notes, posts for the pull request selected |
 | `e` `dd` | in Notes, edits or drops the queued comment |
 | `za` | in Files, folds a component or a folder |
-| `-` and the diagram's keys | in Diagram, as in the diagram below, with `j` `k` in reading order |
+| `-` and the diagram's other keys | in Diagram, as in the diagram below; `j` `k` go through the boxes in reading order |
 
 The Review view, in the main panel:
 

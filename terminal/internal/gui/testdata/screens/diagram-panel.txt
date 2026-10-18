@@ -27,4 +27,4 @@
 │ Sources                       ││                                                                 │
 │▌web/src                       ││                                                                 │
 ╰────────────────────────2 of 2─╯╰──────────────────────────────────────web/src · package · 1 file─╯
- Move: h j k l | In: Enter | Out: - | Panels: 1 2 3 | Follow: gd | Links: Space l | Keys: Space ?
+ Diagram: Enter | Out: - | Panels: h l | Follow: gd | Links: Space l | Find: / | Keys: Space ?

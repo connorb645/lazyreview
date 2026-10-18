@@ -139,6 +139,10 @@ export const english = frozen({
     problems: (path, problems) => `${path} has ${listed(plural(problems.length, 'problem'), problems)}`,
     notAMap: 'holds no settings, written as lazyreview config defaults shows them',
     unknown: key => `sets ${key}, which is not a setting`,
+    retired: (key, why) => `sets ${key}, which is no longer a setting, so remove it: ${why}`,
+    retiredWhy: {
+      diagramPanelMove: side => `the Diagram panel switches panels as every panel on the left does, and keybinding.diagram.${side} moves to the box on the ${side} in the main panel's diagram`,
+    },
     notASection: (key, value) => `gives ${key} ${shown(value)}, which is not a group of settings`,
     notAFolder: (key, value) => `gives ${key} ${shown(value)}, which is not a full path, or one starting with ~/`,
     notAPort: (key, value) => `gives ${key} ${shown(value)}, which is not a port number from 1 to 65535`,

@@ -3,8 +3,6 @@ package config
 // KeybindingDiagramPanelConfig is the Diagram panel's own keys, on top of
 // the panels'.
 type KeybindingDiagramPanelConfig struct {
-	Left          []string `json:"left"`
-	Right         []string `json:"right"`
 	NextBox       []string `json:"nextBox"`
 	PreviousBox   []string `json:"previousBox"`
 	Back          []string `json:"back"`

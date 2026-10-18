@@ -104,3 +104,10 @@ test('every mistake in the file is named at once, each with what it must be', ()
   one('gui:\n  theme:\n    dark:\n      componentColors: {cyan: "#00ffff"}\n', 'sets gui.theme.dark.componentColors.cyan, which is not a setting');
   assert.throws(() => read('server:\n  port: abc\nkeybindings: {}\n'), new RegExp(`^Error: ${PATH.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} has 2 problems:\n  - gives server.port "abc", which is not a port number from 1 to 65535\n  - sets keybindings, which is not a setting$`));
 });
+
+test('the Diagram panel\'s old left and right keys are refused, saying what does their work now', () => {
+  const why = side => `sets keybinding.diagramPanel.${side}, which is no longer a setting, so remove it: the Diagram panel switches panels as every panel on the left does, and keybinding.diagram.${side} moves to the box on the ${side} in the main panel's diagram`;
+  assert.throws(() => read("keybinding:\n  diagramPanel:\n    left: 'H'\n"), { message: `${PATH} ${why('left')}` });
+  assert.throws(() => read("keybinding:\n  diagramPanel:\n    left: 'h'\n    right: 'l'\n"), { message: `${PATH} has 2 problems:\n  - ${why('left')}\n  - ${why('right')}` });
+  assert.deepEqual(read("keybinding:\n  diagram:\n    left: 'H'\n").values.keybinding.diagram.left, 'H');
+});

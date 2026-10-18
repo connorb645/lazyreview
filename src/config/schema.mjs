@@ -11,7 +11,9 @@
  * section with `flow` is written on one line. defaults() returns the default config as plain values,
  * and leaves(section) every setting with its dotted key, such as
  * "server.port", in the tree's order. PATTERNS are what a login, a team's
- * name and a date must match, as regular expressions' sources.
+ * name and a date must match, as regular expressions' sources. RETIRED
+ * names, by dotted key, each setting lazyreview no longer has, with what
+ * does its work now.
  */
 import { english } from '../i18n/english.mjs';
 
@@ -22,6 +24,11 @@ export const PATTERNS = Object.freeze({
   login: '^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$',
   team: '^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9_.-]+$',
   date: '^\\d{4}-\\d{2}-\\d{2}$',
+});
+
+export const RETIRED = Object.freeze({
+  'keybinding.diagramPanel.left': english.config.retiredWhy.diagramPanelMove('left'),
+  'keybinding.diagramPanel.right': english.config.retiredWhy.diagramPanelMove('right'),
 });
 
 const setting = fields => Object.freeze({ kind: 'setting', env: null, example: [], ...fields });
@@ -55,7 +62,7 @@ const KEYBINDING = section({
   reviewPanel: keys({ post: 'P', highlight: 'v' }),
   filesPanel: keys({ toggleFold: 'za' }),
   notesPanel: keys({ edit: 'e', drop: 'dd', post: 'P' }),
-  diagramPanel: keys({ left: 'h', right: 'l', ...Object.fromEntries(Object.entries(BOXES).filter(([action]) => !['top', 'bottom', 'open'].includes(action))) }),
+  diagramPanel: keys(Object.fromEntries(Object.entries(BOXES).filter(([action]) => !['top', 'bottom', 'open'].includes(action)))),
   reviewView: keys({ ...MOVE, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P' }, notes.reviewView),
   diff: keys({
     down: ['j', '<down>'], up: ['k', '<up>'], halfDown: '<c-d>', halfUp: '<c-u>', pageDown: '<c-f>', pageUp: '<c-b>', top: 'gg', bottom: 'G',

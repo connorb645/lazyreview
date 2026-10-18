@@ -71,7 +71,7 @@ func TestTheReviewPanelsCursorFiltersTheStack(t *testing.T) {
 
 func TestTheDiagramFollowsTheReviewPanelsCursor(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
-	a = press(t, a, "j", "4", "enter", "enter")
+	a = press(t, a, "j", "4", "enter", "enter", "enter")
 	filterIs(t, a, "[21]")
 	dimmed := map[string]bool{}
 	for _, card := range a.Diagram.Level.Cards {

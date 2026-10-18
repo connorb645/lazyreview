@@ -9,7 +9,7 @@
  * variable that set it. A missing file means every default. A file that is
  * not YAML, or that holds a setting lazyreview does not have or a value it
  * cannot take, fails with one error naming the file and every mistake in
- * it. A variable with a value it cannot take fails as it always did.
+ * it; a setting it no longer has is named with what does its work now. A variable with a value it cannot take fails as it always did.
  *
  * Objects merge key by key, at every depth; a list or a single value in
  * the file replaces the default whole, as lazygit's YAML reader merges.
@@ -25,7 +25,7 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve, isAbsolute } from 'node:path';
 import { english } from '../i18n/english.mjs';
-import { SCHEMA, PATTERNS, defaults, leaves } from './schema.mjs';
+import { SCHEMA, PATTERNS, RETIRED, defaults, leaves } from './schema.mjs';
 import { findConfigFile } from './config-file.mjs';
 import { parseYAML } from './yaml.mjs';
 import { readerName, labelProblem, DISABLED } from './key-labels.mjs';
@@ -78,7 +78,7 @@ function merge(section, given, values, sources, prefix, problems) {
   for (const [name, value] of Object.entries(given)) {
     const key = prefix ? `${prefix}.${name}` : name;
     const node = Object.hasOwn(section.settings, name) ? section.settings[name] : null;
-    if (!node) { problems.push(words.unknown(key)); continue; }
+    if (!node) { problems.push(Object.hasOwn(RETIRED, key) ? words.retired(key, RETIRED[key]) : words.unknown(key)); continue; }
     if (node.kind === 'section') {
       if (!isMap(value)) { problems.push(words.notASection(key, value)); continue; }
       merge(node, value, values[name], sources, key, problems);

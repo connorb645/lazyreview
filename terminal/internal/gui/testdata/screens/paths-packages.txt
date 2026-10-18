@@ -21,4 +21,4 @@
 │ Pricing rules for ever…││                                                    │
 │                        ││                                                    │
 ╰─────────────────2 of 4─╯╰──…/Remote Overrides/Experiments · package · 1 type─╯
- Move: h j k l | In: Enter | Out: - | Panels: 1 2 3 | Keys: Space ?
+ Diagram: Enter | Out: - | Panels: h l | Follow: gd | Keys: Space ?

@@ -89,7 +89,8 @@ type TranslationSet struct {
 	HelpEditDrop       string
 	HelpPostComment    string
 	HelpBoxesMove      string
-	HelpBoxesSideways  string
+	HelpPanelsToReview string
+	HelpOpenDiagram    string
 	HelpStepIn         string
 	HelpStepOut        string
 	HelpFollowBox      string
@@ -584,7 +585,8 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpEditDrop:       "edit or drop the queued comment",
 		HelpPostComment:    "post: the actions offered for the comment's pull request",
 		HelpBoxesMove:      "the next, previous, first or last box, in reading order",
-		HelpBoxesSideways:  "the nearest box left or right",
+		HelpPanelsToReview: "the panel above or below; {{.nextPanel}} goes round to Review",
+		HelpOpenDiagram:    "the diagram in the main panel, which moves to the nearest box and steps in",
 		HelpStepIn:         "steps in; on a type, opens its diff; on a group, lists its members",
 		HelpStepOut:        "steps out",
 		HelpFollowBox:      "follows a link of the box",

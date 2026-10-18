@@ -219,8 +219,8 @@ func TestHighlightedRowsDrawApartFromTheCursorRow(t *testing.T) {
 
 func TestPathTitlesReadTheSameUnderAHighlight(t *testing.T) {
 	a, _ := opened(t, stack, 100, 30)
-	whole := press(t, a, "4", "enter", "enter")
-	lit := press(t, a, "j", "j", "v", "4", "enter", "enter")
+	whole := press(t, a, "4", "enter", "enter", "enter")
+	lit := press(t, a, "j", "j", "v", "4", "enter", "enter", "enter")
 	title := func(a App) string {
 		top := strings.Split(a.View(), "\n")[0]
 		return top[strings.Index(top, "[0]"):]

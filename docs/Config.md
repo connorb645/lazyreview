@@ -178,8 +178,6 @@ keybinding:
     drop: 'dd'
     post: 'P'
   diagramPanel:
-    left: 'h'
-    right: 'l'
     nextBox: 'w'
     previousBox: 'b'
     back: '-'
@@ -397,6 +395,8 @@ file has a mistake, and says what is wrong, with the file's path:
 - YAML that cannot be read gives the reason, with its line and column.
 - A setting lazyreview does not have is refused, by name, so a mistyped
   one never does nothing silently.
+- A setting lazyreview no longer has is refused the same way, and the
+  message says what does its work now.
 - A value of the wrong kind names the setting, the value, and what it
   must be.
 - Every mistake in the file is named at once.

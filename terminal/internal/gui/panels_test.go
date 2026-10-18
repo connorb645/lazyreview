@@ -102,9 +102,16 @@ func TestTheDiagramPanelListsTheBoxesInReadingOrder(t *testing.T) {
 	if a.Screen() != context.ScreenDiagram || selectedKey(a, context.DiagramPanel) != "box:root" {
 		t.Fatalf("4 shows the diagram: screen %d on %s", a.Screen(), selectedKey(a, context.DiagramPanel))
 	}
+	if hints := a.controllers.Hints(a.ContextTree); hints[1] != [2]string{"-", "Review view"} {
+		t.Fatalf("on the components, the bar names - for the Review view, as the diagram's does: %v", hints)
+	}
 	a = press(t, a, "enter")
+	if a.Focus() != context.MainPanel || a.Screen() != context.ScreenDiagram || a.Diagram.Level.Kind != "components" {
+		t.Fatalf("Enter gives the diagram in the main panel the keys: panel %d, screen %d, %s", a.Focus(), a.Screen(), a.Diagram.Level.Kind)
+	}
+	a = press(t, a, "enter", "esc")
 	if a.Focus() != context.DiagramPanel || a.Diagram.Level.Kind != "packages" {
-		t.Fatalf("Enter steps in and keeps the panel: %d, %s", a.Focus(), a.Diagram.Level.Kind)
+		t.Fatalf("Enter there steps in, and Esc gives the panel back the keys on that level: %d, %s", a.Focus(), a.Diagram.Level.Kind)
 	}
 	before := a.Diagram.Focus
 	a = press(t, a, "j")
@@ -122,15 +129,16 @@ func TestTheDiagramPanelListsTheBoxesInReadingOrder(t *testing.T) {
 	}
 }
 
-func TestHAndLGoToThePanelAboveOrBelowAndHGoesRoundFromTheFirst(t *testing.T) {
+func TestHAndLWalkEveryPanelOnTheLeftAndGoRoundAtBothEnds(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	steps := []struct {
 		key    string
 		panel  int
 		screen context.Screen
 	}{
-		{"l", context.FilesPanel, context.ScreenDiff}, {"l", context.NotesPanel, context.ScreenDiff}, {"h", context.FilesPanel, context.ScreenDiff},
-		{"h", context.ReviewPanel, context.ScreenReview}, {"h", context.DiagramPanel, context.ScreenDiagram},
+		{"l", context.FilesPanel, context.ScreenDiff}, {"l", context.NotesPanel, context.ScreenDiff}, {"l", context.DiagramPanel, context.ScreenDiagram},
+		{"l", context.ReviewPanel, context.ScreenReview}, {"h", context.DiagramPanel, context.ScreenDiagram}, {"h", context.NotesPanel, context.ScreenDiff},
+		{"h", context.FilesPanel, context.ScreenDiff}, {"h", context.ReviewPanel, context.ScreenReview},
 	}
 	for _, s := range steps {
 		from := a.Focus()
@@ -139,32 +147,39 @@ func TestHAndLGoToThePanelAboveOrBelowAndHGoesRoundFromTheFirst(t *testing.T) {
 			t.Fatalf("%s from panel %d went to panel %d, screen %d", s.key, from, a.Focus(), a.Screen())
 		}
 	}
-	a = press(t, a, "3", "l")
-	if a.Focus() != context.DiagramPanel || a.Screen() != context.ScreenDiagram {
-		t.Fatalf("l from Notes enters Diagram, not panel %d", a.Focus())
-	}
 }
 
-func TestHAndLInTheDiagramPanelGoToTheBoxLeftOrRight(t *testing.T) {
+func TestInTheDiagramPanelJAndKMoveAndEnterGivesTheMainPanelsDiagramHJKL(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
-	a = press(t, a, "4", "enter")
+	a = press(t, a, "4", "enter", "enter", "esc")
 	focusedOn(t, a, "sources")
-	for _, s := range []struct{ key, box string }{{"l", "web-src"}, {"l", "web-src"}, {"h", "sources"}, {"h", "sources"}} {
+	for _, s := range []struct{ key, box string }{{"j", "web-src"}, {"k", "sources"}} {
 		a = press(t, a, s.key)
 		focusedOn(t, a, s.box)
 		if a.Focus() != context.DiagramPanel || selectedKey(a, context.DiagramPanel) != presentation.BoxKey(s.box) {
 			t.Fatalf("%s keeps the Diagram panel and its row on the box: panel %d, %s", s.key, a.Focus(), selectedKey(a, context.DiagramPanel))
 		}
 	}
-	if a.controllers.Hints(a.ContextTree)[0] != [2]string{"h j k l", "Move"} {
-		t.Fatalf("the bar names the keys that move: %v", a.controllers.Hints(a.ContextTree)[0])
+	if hints := a.controllers.Hints(a.ContextTree); hints[0] != [2]string{"Enter", "Diagram"} || hints[2] != [2]string{"h l", "Panels"} {
+		t.Fatalf("the bar names Enter for the diagram and h l for the panels: %v", hints)
 	}
-	if listed := press(t, a, "space", "?").Menu.Rows[2]; listed.Left != "h l" || listed.Right != "the nearest box left or right" {
-		t.Fatalf("Space ? lists h l as %q: %q", listed.Left, listed.Right)
+	listed := press(t, a, "space", "?").Menu.Rows
+	if listed[2].Left != "h l" || listed[2].Right != "the panel above or below; l goes round to Review" {
+		t.Fatalf("Space ? lists h l as %q: %q", listed[2].Left, listed[2].Right)
 	}
-	a = press(t, a, "3")
-	if a.Focus() != context.NotesPanel {
-		t.Fatalf("3 leaves the Diagram panel for Notes, not panel %d", a.Focus())
+	if listed[3].Left != "Enter" || listed[3].Right != "the diagram in the main panel, which moves to the nearest box and steps in" {
+		t.Fatalf("Space ? lists Enter as %q: %q", listed[3].Left, listed[3].Right)
+	}
+	a = press(t, a, "enter")
+	if a.Focus() != context.MainPanel || a.Screen() != context.ScreenDiagram {
+		t.Fatalf("Enter gives the main panel's diagram the keys: panel %d, screen %d", a.Focus(), a.Screen())
+	}
+	for _, s := range []struct{ key, box string }{{"l", "web-src"}, {"l", "web-src"}, {"h", "sources"}, {"h", "sources"}} {
+		a = press(t, a, s.key)
+		focusedOn(t, a, s.box)
+		if a.Focus() != context.MainPanel || selectedKey(a, context.DiagramPanel) != presentation.BoxKey(s.box) {
+			t.Fatalf("%s in the main panel moves to the box, and the Diagram panel's row follows: panel %d, %s", s.key, a.Focus(), selectedKey(a, context.DiagramPanel))
+		}
 	}
 }
 
