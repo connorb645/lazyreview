@@ -43,7 +43,7 @@ func (self *DiffHelper) OpenPlace(s context.ContextTree, component string, place
 		return s, self.loadFiles(s.Review.ID, s.Review.Page.Build, component, missing, place)
 	}
 	if s.Diff.Component != component || s.Diff.Files == nil {
-		s.Diff = context.NewDiffContext(component, s.Files)
+		s.Diff = context.NewDiffContext(component, s.Files, presentation.LineNumbers(self.c.Config.LineNumbers))
 		s.Diff.Width = window.MainWidth(s)
 	}
 	s = s.Showing(context.ScreenDiff)

@@ -14,7 +14,12 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-const gutter = 14
+const (
+	gutter      = 14
+	plainGutter = 4
+	blockGutter = 12
+	plainBlock  = 3
+)
 
 func badges(tr *i18n.TranslationSet) map[string]string {
 	return map[string]string{"A": tr.New, "D": tr.Deleted, "R": tr.Renamed, "M": tr.Changed, "": tr.Unchanged}
@@ -66,18 +71,19 @@ func drawRow(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v Di
 		return []string{mark + "  " + th.Muted.Render(r.Text)}
 	}
 	if r.Line == nil {
-		return splitRow(d, v, r, mark, filter, th)
+		return splitRow(d, v, i, mark, filter, th)
 	}
-	return unifiedRow(d, v, r, mark, filter, th)
+	return unifiedRow(d, v, i, mark, filter, th)
 }
-
-const blockGutter = 12
 
 func blockLine(v DiffView, i int, th theme.Theme) string {
 	r := v.Rows[i]
 	b := r.Block
 	label := ""
-	if i == 0 || v.Rows[i-1].Block != b {
+	switch {
+	case v.Numbers == RelativeNumbers && i != v.Cursor:
+		label = distance(v, i)
+	case v.Numbers == RelativeNumbers || i == 0 || v.Rows[i-1].Block != b:
 		label = blockLabel(b)
 	}
 	bar := " "
@@ -87,7 +93,11 @@ func blockLine(v DiffView, i int, th theme.Theme) string {
 	case "del":
 		bar = th.Removed.Render("▌")
 	}
-	return th.Muted.Render(fmt.Sprintf("%8s ", label)) + bar + th.Muted.Render("│") + " " + r.Text
+	numbers := th.Muted.Render(fmt.Sprintf("%8s ", label))
+	if v.Numbers == NoNumbers {
+		numbers = ""
+	}
+	return numbers + bar + th.Muted.Render("│") + " " + r.Text
 }
 
 func blockLabel(b *server.Block) string {
@@ -102,7 +112,7 @@ func blockLabel(b *server.Block) string {
 }
 
 func noteLine(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v DiffView, r DiffRow, th theme.Theme) string {
-	indent := strings.Repeat(" ", gutter-1)
+	indent := strings.Repeat(" ", gutterOf(v)-1)
 	n, ok := NoteOf(d, r.Path, r.Key)
 	if !ok {
 		return ""
@@ -148,24 +158,32 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 	return head + th.Bold.Render(path) + tail
 }
 
-func unifiedRow(d types.ReviewData, v DiffView, r DiffRow, mark string, filter types.PullFilter, th theme.Theme) []string {
+func unifiedRow(d types.ReviewData, v DiffView, i int, mark string, filter types.PullFilter, th theme.Theme) []string {
+	r := v.Rows[i]
 	l := r.Line
 	sign := map[string]string{"add": "+", "del": "-", "same": " ", "note": " "}[l.Kind]
 	if r.Added {
 		sign = "+"
 	}
-	head := mark + stripe(d, l, filter, th) + th.Muted.Render(fmt.Sprintf("%4s %4s ", number(l.Old), number(l.New)))
+	numbers := fmt.Sprintf("%4s %4s ", number(l.Old), number(l.New))
+	switch {
+	case v.Numbers == NoNumbers:
+		numbers = ""
+	case v.Numbers == RelativeNumbers && i != v.Cursor:
+		numbers = fmt.Sprintf("%9s ", distance(v, i))
+	}
+	head := mark + stripe(d, l, filter, th) + th.Muted.Render(numbers)
 	style := rowStyle(l, r.Added, filter, th)
-	body := v.Width - gutter
-	texts := cut(ExpandTabs(l.Text), body, v.Wrap)
+	texts := cut(ExpandTabs(l.Text), v.Width-gutterOf(v), v.Wrap)
 	out := []string{head + style.Render(sign+" "+texts[0])}
 	for _, more := range texts[1:] {
-		out = append(out, strings.Repeat(" ", gutter)+style.Render(more))
+		out = append(out, strings.Repeat(" ", gutterOf(v))+style.Render(more))
 	}
 	return out
 }
 
-func splitRow(d types.ReviewData, v DiffView, r DiffRow, mark string, filter types.PullFilter, th theme.Theme) []string {
+func splitRow(d types.ReviewData, v DiffView, i int, mark string, filter types.PullFilter, th theme.Theme) []string {
+	r := v.Rows[i]
 	half := (v.Width - 3) / 2
 	side := func(l *server.Row, old bool) []string {
 		if l == nil {
@@ -180,11 +198,18 @@ func splitRow(d types.ReviewData, v DiffView, r DiffRow, mark string, filter typ
 		if l.Kind == "same" {
 			sign = " "
 		}
+		numbers := fmt.Sprintf("%4s ", number(n))
+		switch {
+		case v.Numbers == NoNumbers:
+			numbers = ""
+		case v.Numbers == RelativeNumbers && i != v.Cursor:
+			numbers = fmt.Sprintf("%4s ", distance(v, i))
+		}
 		style := rowStyle(l, false, filter, th)
-		texts := cut(ExpandTabs(l.Text), half-7, v.Wrap)
-		out := []string{th.Muted.Render(fmt.Sprintf("%4s ", number(n))) + style.Render(sign+" "+texts[0])}
+		texts := cut(ExpandTabs(l.Text), half-sideGutter(v), v.Wrap)
+		out := []string{th.Muted.Render(numbers) + style.Render(sign+" "+texts[0])}
 		for _, more := range texts[1:] {
-			out = append(out, "       "+style.Render(more))
+			out = append(out, strings.Repeat(" ", sideGutter(v))+style.Render(more))
 		}
 		for i := range out {
 			out[i] = utils.Fit(out[i], half)
@@ -247,16 +272,41 @@ func RowHeight(r DiffRow, v DiffView) int {
 		return 1
 	}
 	if r.Line != nil {
-		return len(cut(ExpandTabs(r.Line.Text), v.Width-gutter, true))
+		return len(cut(ExpandTabs(r.Line.Text), v.Width-gutterOf(v), true))
 	}
 	half := (v.Width - 3) / 2
 	h := 1
 	for _, l := range []*server.Row{r.Left, r.Right} {
 		if l != nil {
-			h = max(h, len(cut(ExpandTabs(l.Text), half-7, true)))
+			h = max(h, len(cut(ExpandTabs(l.Text), half-sideGutter(v), true)))
 		}
 	}
 	return h
+}
+
+func gutterOf(v DiffView) int {
+	if v.Numbers == NoNumbers {
+		return plainGutter
+	}
+	return gutter
+}
+
+func sideGutter(v DiffView) int {
+	if v.Numbers == NoNumbers {
+		return 2
+	}
+	return 7
+}
+
+func blockGutterOf(v DiffView) int {
+	if v.Numbers == NoNumbers {
+		return plainBlock
+	}
+	return blockGutter
+}
+
+func distance(v DiffView, i int) string {
+	return fmt.Sprint(max(i-v.Cursor, v.Cursor-i))
 }
 
 func cut(text string, width int, wrapping bool) []string {

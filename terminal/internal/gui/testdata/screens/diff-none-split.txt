@@ -1,0 +1,30 @@
+╭─[1]─Review────────────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift────────────────╮
+│┃All                           ││  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1             ▐
+│ #21 Add search to the catalog ││   @@ -1,11 +1,13 @@                                             ▐
+│ #22 Add a basket that uses se…││    final class Basket {         │  final class Basket {         ▐
+╰────────────────────────1 of 3─╯│        let catalog: Catalog     │      let catalog: Catalog     ▐
+╭─[2]─Files─────────────────────╮│ ▎                               │+     let search: Search       ▐
+│ ▾ ■ widgets            +15 −1 ││▌                                │                               ▐
+│   ▾ Sources/Basket            ││        init(catalog: Catalog) { │      init(catalog: Catalog) { ▐
+│     M Basket.swift          ● ││            self.catalog = catal…│          self.catalog = catal…▐
+│   ▾ Sources/Catalog           ││ ▎                               │+         self.search = Search…▐
+│     M MemoryCatalog.swift   ● ││    ▸ Claude · 2 messages · line 7                     a ask  za ▐
+│     A Search.swift          ● ││    ▸ sam · 1 comment · resolved                   gx GitHub  za ▐
+│   ▾ web/src                   ││        }                        │      }                        ▐
+│     M cart.ts               ● ││                                 │                               ▐
+│ ▾ ■ Unchanged code  unchanged ││        func total() -> Int {    │      func total() -> Int {    ▐
+╰───────────────────────3 of 10─╯│ ▎-         0                    │+         1                    ▐
+╭─[3]─Notes─────────────────────╮│    ▾ Queued 2 → #22 · removed line 9 to line 11 e edit  dd drop │
+│ Queued                      2 ││      Why one?                                                   │
+│ 1 MemoryCatalog.swift:8-… #21 ││        }                        │      }                        │
+│ 2 Basket.swift:9-11       #22 ││    }                            │  }                            │
+│ Claude                      1 ││  ▾ Sources/Catalog/MemoryCatalog.swift  changed  #21  +4 −0     │
+│ Basket.swift:7 Could this be …││   ··· 3 unchanged lines ···  zo                                 │
+│ On GitHub                   2 ││   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {          │
+╰────────────────────────1 of 5─╯│        func items() -> [Item] { │      func items() -> [Item] { │
+╭─[4]─Diagram───────────────────╮│            stored               │          stored               │
+│ Components                    ││        }                        │      }                        │
+│ ■ widgets                     ││ ▎                               │+                              │
+│ ■ Unchanged code              ││ ▎                               │+     func add(_ item: Item) { │
+╰────────────────────────1 of 2─╯╰─────────line 4 · Unchanged. A comment here goes on #22, line 4.─╯
+ Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Search: / | Keys: Space ?

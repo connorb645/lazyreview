@@ -58,7 +58,8 @@ function sectionSchema(section) {
 
 function settingSchema(setting) {
   const counted = setting.check === 'numberedKeys' ? { minItems: setting.default.length, maxItems: setting.default.length } : {};
-  return { ...TYPES[setting.check], ...counted, ...(setting.about.length ? { description: setting.about.join(' ') } : {}), default: setting.default };
+  const choices = setting.choices ? { enum: setting.choices } : {};
+  return { ...TYPES[setting.check], ...choices, ...counted, ...(setting.about.length ? { description: setting.about.join(' ') } : {}), default: setting.default };
 }
 
 const TYPES = {
@@ -66,6 +67,7 @@ const TYPES = {
   port: { type: 'integer', minimum: 1, maximum: 65535 },
   command: { type: 'string', minLength: 1 },
   text: { type: 'string' },
+  choice: { type: 'string' },
   colour: { oneOf: [{ type: 'string', pattern: PATTERNS.colour }, { type: 'integer', minimum: 0, maximum: 255 }] },
   keys: { oneOf: [{ type: 'string', minLength: 1 }, { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } }] },
   numberedKeys: { type: 'array', items: { type: 'string', minLength: 1 } },

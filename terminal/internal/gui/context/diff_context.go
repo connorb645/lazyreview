@@ -19,10 +19,10 @@ type DiffContext struct {
 	Query string
 }
 
-// NewDiffContext is a component's diff of the files loaded, with nothing
-// folded or opened.
-func NewDiffContext(component string, files map[string]server.File) DiffContext {
-	return DiffContext{DiffView: presentation.DiffView{Component: component, Files: files, Rendered: map[string]bool{}, Notes: map[string]bool{}, Folded: map[string]bool{}, Opened: map[string]bool{}, Whole: map[string]bool{}}}
+// NewDiffContext is a component's diff of the files loaded, its lines
+// numbered as the config says, with nothing folded or opened.
+func NewDiffContext(component string, files map[string]server.File, numbers presentation.LineNumbers) DiffContext {
+	return DiffContext{DiffView: presentation.DiffView{Component: component, Files: files, Numbers: numbers, Rendered: map[string]bool{}, Notes: map[string]bool{}, Folded: map[string]bool{}, Opened: map[string]bool{}, Whole: map[string]bool{}}}
 }
 
 // Rebuilt is the diff made again from the review, its cursor kept on its

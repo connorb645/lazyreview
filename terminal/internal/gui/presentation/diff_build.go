@@ -62,7 +62,7 @@ func blockRows(tr *i18n.TranslationSet, md *Markdown, path string, rendered serv
 		if rendered.Partial && i > 0 && b.Part != rendered.Blocks[i-1].Part {
 			rows = append(rows, DiffRow{Kind: "note", Path: path, Text: "···"})
 		}
-		drawn := withoutMargin(md.Lines(b.Markdown, max(20, v.Width-blockGutter)))
+		drawn := withoutMargin(md.Lines(b.Markdown, max(20, v.Width-blockGutterOf(v))))
 		if len(drawn) == 0 {
 			drawn = []string{""}
 		}

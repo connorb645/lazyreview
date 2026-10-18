@@ -115,6 +115,11 @@ export const english = frozen({
         'Each is read by its own gh token. A review asked of a team counts as',
         'asked of the account, for pull requests opened on or after `since`.',
       ],
+      lineNumbers: [
+        'How the terminal app\'s diff numbers its lines: absolute, each line its',
+        'own number; relative, the cursor\'s line its own number and every other',
+        'line its distance from it, as Vim\'s number and relativenumber do; or none.',
+      ],
       theme: ['The terminal app\'s colours, for a dark terminal and a light one.', 'Each is #rrggbb or a terminal colour number from 0 to 255.'],
       keys: [
         'Keys as lazygit writes them: a letter, or <space>, <enter>, <esc>,',
@@ -149,6 +154,7 @@ export const english = frozen({
     notAPort: (key, value) => `gives ${key} ${shown(value)}, which is not a port number from 1 to 65535`,
     notACommand: (key, value) => `gives ${key} ${shown(value)}, which is not a command`,
     notText: (key, value) => `gives ${key} ${shown(value)}, which is not text`,
+    notAChoice: (key, value, choices) => `gives ${key} ${shown(value)}, which is not ${choices.slice(0, -1).join(', ')} or ${choices.at(-1)}`,
     notAccounts: (key, value) => `gives ${key} ${shown(value)}, which is not a list of accounts`,
     notAColour: (key, value) => `gives ${key} ${shown(value)}, which is not a colour: #rrggbb or a terminal colour number from 0 to 255`,
     notColours: (key, value, count) => `gives ${key} ${shown(value)}, which is not a list of ${count} colours`,

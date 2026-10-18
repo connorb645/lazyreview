@@ -73,6 +73,7 @@
    }
   }
  },
+ "lineNumbers": "absolute",
  "keybinding": {
   "universal": {
    "command": [

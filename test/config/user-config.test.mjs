@@ -63,10 +63,19 @@ test('each variable overrides its setting, over the file, and says so', () => {
   }
 });
 
+test('the diff\'s line numbers are absolute unless the file says relative or none, and the terminal app is handed them', () => {
+  assert.equal(read('').values.gui.lineNumbers, 'absolute');
+  for (const numbers of ['relative', 'none']) {
+    const config = { path: PATH, ...read(`gui:\n  lineNumbers: ${numbers}\n`) };
+    assert.equal(terminalPart(config, {}).lineNumbers, numbers);
+    assert.deepEqual(config.values.gui.theme, defaults().gui.theme);
+  }
+});
+
 test('the terminal app is handed the file\'s path and the editor: the variable, the setting, then VISUAL, EDITOR and vi', () => {
   const config = editor => ({ path: PATH, values: { ...defaults(), os: { editor } } });
   const { theme, keybinding, ...rest } = terminalPart(config(''), {});
-  assert.deepEqual(rest, { path: PATH, editor: 'vi' });
+  assert.deepEqual(rest, { path: PATH, editor: 'vi', lineNumbers: 'absolute' });
   assert.deepEqual(theme, defaults().gui.theme);
   assert.deepEqual(keybinding.universal.quit, ['Z Z', 'ctrl+c']);
   assert.equal(terminalPart(config(''), { EDITOR: 'nano' }).editor, 'nano');
@@ -100,6 +109,7 @@ test('every mistake in the file is named at once, each with what it must be', ()
   one('github:\n  accounts:\n    - login: lee\n      teams:\n        - name: example-org/mobile\n          until: 2026-12-01\n', 'gives example-org/mobile "until", which a team does not have');
   one('gui:\n  theme:\n    dark:\n      accentColor: violet\n', 'gives gui.theme.dark.accentColor "violet", which is not a colour: #rrggbb or a terminal colour number from 0 to 255');
   one('gui:\n  theme:\n    light:\n      addedColor: 256\n', 'gives gui.theme.light.addedColor 256, which is not a colour: #rrggbb or a terminal colour number from 0 to 255');
+  one('gui:\n  lineNumbers: hybrid\n', 'gives gui.lineNumbers "hybrid", which is not absolute, relative or none');
   one("gui:\n  theme:\n    dark:\n      pullRequestColors: ['#ffffff']\n", 'gives gui.theme.dark.pullRequestColors \\["#ffffff"\\], which is not a list of 8 colours');
   one('gui:\n  theme:\n    dark:\n      componentColors: {cyan: "#00ffff"}\n', 'sets gui.theme.dark.componentColors.cyan, which is not a setting');
   assert.throws(() => read('server:\n  port: abc\nkeybindings: {}\n'), new RegExp(`^Error: ${PATH.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} has 2 problems:\n  - gives server.port "abc", which is not a port number from 1 to 65535\n  - sets keybindings, which is not a setting$`));

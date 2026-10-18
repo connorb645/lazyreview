@@ -302,7 +302,9 @@ one, then the types of one package, as rows of boxes:
 | `Space d` | opens the box's diff |
 | `Space a` | draws every link faintly, or stops |
 
-The diff, in the main panel, shows one component's files:
+The diff, in the main panel, shows one component's files. Its lines are
+numbered as `gui.lineNumbers` in the config says: each its own number, or
+how far each is from the cursor, as Vim's `relativenumber` does, or none.
 
 | Key | Does |
 | --- | --- |

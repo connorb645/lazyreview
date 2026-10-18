@@ -5,8 +5,9 @@
  * from this tree, as lazygit makes its own from GetDefaultConfig.
  *
  * SCHEMA is a tree of sections, {about, settings, flow, note}, whose leaves
- * are settings, {check, default, env, about, example}. `check` names how
- * the reader checks a value; `about` and `example` are lines of the default
+ * are settings, {check, default, env, about, example, choices}. `check`
+ * names how the reader checks a value, and `choices` are the words a
+ * setting checked as a choice takes; `about` and `example` are lines of the default
  * config's comments, `note` is the words beside a section's name, and a
  * section with `flow` is written on one line. defaults() returns the default config as plain values,
  * and leaves(section) every setting with its dotted key, such as
@@ -108,6 +109,7 @@ export const SCHEMA = section({
     accounts: setting({ check: 'accounts', default: [], about: words.accounts, example: words.accountsExample }),
   }),
   gui: section({
+    lineNumbers: setting({ check: 'choice', choices: ['absolute', 'relative', 'none'], default: 'absolute', about: words.lineNumbers }),
     theme: section({ dark: colours(DARK), light: colours(LIGHT) }, words.theme),
   }),
   keybinding: KEYBINDING,

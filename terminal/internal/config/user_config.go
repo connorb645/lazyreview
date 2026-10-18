@@ -13,12 +13,14 @@ import (
 
 // UserConfig is the terminal app's part of the config: the config file's
 // path, the editor a comment is written in, as a command line the shell
-// runs with the file after it, the theme's colours, and the keys.
+// runs with the file after it, the theme's colours, how the diff numbers
+// its lines, and the keys.
 type UserConfig struct {
-	Path       string           `json:"path"`
-	Editor     string           `json:"editor"`
-	Theme      ThemeConfig      `json:"theme"`
-	Keybinding KeybindingConfig `json:"keybinding"`
+	Path        string           `json:"path"`
+	Editor      string           `json:"editor"`
+	Theme       ThemeConfig      `json:"theme"`
+	LineNumbers string           `json:"lineNumbers"`
+	Keybinding  KeybindingConfig `json:"keybinding"`
 }
 
 // Decode reads the hand-over, refusing a field it does not know and

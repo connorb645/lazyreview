@@ -16,8 +16,8 @@
  *
  * terminalPart(config, env) is what the terminal app is handed: the file's
  * path, the editor, chosen from LAZYREVIEW_EDITOR, then os.editor, then
- * VISUAL, then EDITOR, then vi, the theme's colours, each as text, and the
- * keys of every place, each action's as a list of its key sequences as the
+ * VISUAL, then EDITOR, then vi, the theme's colours, each as text, how the
+ * diff numbers its lines, and the keys of every place, each action's as a list of its key sequences as the
  * terminal app's key reader names them; a numbered list keeps its places,
  * with "" for a place that has no key.
  */
@@ -52,7 +52,10 @@ export function readUserConfig({ env = process.env, platform = process.platform,
 }
 
 export function terminalPart(config, env) {
-  return { path: config.path, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi', theme: config.values.gui.theme, keybinding: readerNames(config.values.keybinding) };
+  return {
+    path: config.path, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi', theme: config.values.gui.theme,
+    lineNumbers: config.values.gui.lineNumbers, keybinding: readerNames(config.values.keybinding),
+  };
 }
 
 /** The config a file's text gives, on top of the defaults, with each setting's source. */
@@ -97,6 +100,7 @@ const CHECKS = {
   port: (value, key) => (Number.isInteger(value) && value >= 1 && value <= 65535 ? ok(value) : wrong(words.notAPort(key, value))),
   command: (value, key) => (typeof value === 'string' && value.trim() ? ok(value) : wrong(words.notACommand(key, value))),
   text: (value, key) => (typeof value === 'string' ? ok(value) : wrong(words.notText(key, value))),
+  choice: (value, key, setting) => (setting.choices.includes(value) ? ok(value) : wrong(words.notAChoice(key, value, setting.choices))),
   accounts: (value, key) => checkAccounts(value, key),
   colour: (value, key) => (isColour(value) ? ok(String(value)) : wrong(words.notAColour(key, value))),
   colours: (value, key) => (Array.isArray(value) && value.length === PULL_COLOURS && value.every(isColour)

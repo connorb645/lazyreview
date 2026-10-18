@@ -147,7 +147,7 @@ func noteRows(tr *i18n.TranslationSet, loc *time.Location, d types.ReviewData, v
 	if !v.NoteOpen(n) {
 		return rows
 	}
-	width := max(20, v.Width-gutter-6)
+	width := max(20, v.Width-gutterOf(v)-6)
 	text := func(part, words string, message int) {
 		for _, l := range utils.Wrap(words, width) {
 			rows = append(rows, DiffRow{Kind: "notetext", Path: path, Key: n.Key, Text: l, Part: part, Message: message})

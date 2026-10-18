@@ -91,6 +91,10 @@ github:
   #         since: 2026-10-01
 
 gui:
+  # How the terminal app's diff numbers its lines: absolute, each line its
+  # own number; relative, the cursor's line its own number and every other
+  # line its distance from it, as Vim's number and relativenumber do; or none.
+  lineNumbers: absolute
   theme:
     # The terminal app's colours, for a dark terminal and a light one.
     # Each is #rrggbb or a terminal colour number from 0 to 255.
@@ -378,6 +382,28 @@ A place's own keys win over `universal`'s. Typing stays as it is: in the
 command line, the finder's search and the diagram's labels, letters,
 Backspace, Enter and Esc are text. `Space ?` lists the keys of the place
 you are in, as they are bound.
+
+## Line numbers
+
+`gui.lineNumbers` sets how the terminal app's diff numbers its lines, as
+Vim's `number` and `relativenumber` do:
+
+```yaml
+gui:
+  lineNumbers: relative
+```
+
+| Value | The diff shows |
+| --- | --- |
+| `absolute` | each line's own numbers, in the old file and the new one; the default |
+| `relative` | the cursor's line its own numbers, and every other line how far it is from the cursor: the count `j` or `k` takes to reach it |
+| `none` | no numbers, so the code has their room |
+
+With relative numbers, every row the cursor stops on counts, a removed line
+as much as an added one, and a hunk's header or a note too, though those
+show no number. In the split view, each side shows the same distance, and a
+side with no line shows none. A rendered Markdown file numbers its rows the
+same way.
 
 ## Theme
 
