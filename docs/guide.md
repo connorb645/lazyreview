@@ -314,6 +314,7 @@ each its own number, or how far each is from the cursor, as Vim's
 | Key | Does |
 | --- | --- |
 | `j` `k` `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` | move by a line, half a page or a page |
+| `h` `l` | scroll the code left or right, half its width at a time, until the longest line shown ends at the edge; the gutter and the headers stay put, and `…` marks text hidden on either side. With wrap on, or in a rendered file, they do nothing. The sideways wheel, or Shift and the wheel, scrolls too |
 | `gg` `G` `{n}G` `:{n}` | the first or last line of this file, or line n of it |
 | `]c` `[c` `]f` `[f` | the next or previous hunk, or file shown; `]f` and `[f` stay at the last and first |
 | `]n` `[n` | the next or previous note: a queued comment, a conversation or a colleague's thread |

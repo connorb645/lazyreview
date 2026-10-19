@@ -10,6 +10,8 @@ type KeybindingDiffConfig struct {
 	PageUp        []string `json:"pageUp"`
 	Top           []string `json:"top"`
 	Bottom        []string `json:"bottom"`
+	ScrollLeft    []string `json:"scrollLeft"`
+	ScrollRight   []string `json:"scrollRight"`
 	NextHunk      []string `json:"nextHunk"`
 	PreviousHunk  []string `json:"previousHunk"`
 	NextFile      []string `json:"nextFile"`

@@ -186,7 +186,7 @@ func unifiedRow(d types.ReviewData, v DiffView, i int, mark string, filter types
 	}
 	head := mark + stripe(d, l, filter, th) + th.Muted.Render(numbers)
 	style := rowStyle(l, r.Added, filter, th)
-	texts := cut(ExpandTabs(l.Text), v.Width-gutterOf(v), v.Wrap)
+	texts := codeCut(ExpandTabs(l.Text), v, v.Width-gutterOf(v))
 	out := []string{head + style.Render(sign+" "+texts[0])}
 	for _, more := range texts[1:] {
 		out = append(out, strings.Repeat(" ", gutterOf(v))+style.Render(more))
@@ -218,7 +218,7 @@ func splitRow(d types.ReviewData, v DiffView, i int, mark string, filter types.P
 			numbers = fmt.Sprintf("%4s ", distance(v, i))
 		}
 		style := rowStyle(l, false, filter, th)
-		texts := cut(ExpandTabs(l.Text), half-sideGutter(v), v.Wrap)
+		texts := codeCut(ExpandTabs(l.Text), v, half-sideGutter(v))
 		out := []string{th.Muted.Render(numbers) + style.Render(sign+" "+texts[0])}
 		for _, more := range texts[1:] {
 			out = append(out, strings.Repeat(" ", sideGutter(v))+style.Render(more))
@@ -320,6 +320,68 @@ func blockGutterOf(v DiffView) int {
 
 func distance(v DiffView, i int) string {
 	return fmt.Sprint(max(i-v.Cursor, v.Cursor-i))
+}
+
+// ScrollStep is how far h and l scroll a diff's code: half the width its
+// code has, and no less than four columns.
+func ScrollStep(v DiffView) int {
+	return max(4, codeWidth(v)/2)
+}
+
+// ScrollEnd is how far a diff's code scrolls to the left: until the widest
+// line of code shown in a height, on either side of a split row, ends at
+// the right edge.
+func ScrollEnd(v DiffView, height int) int {
+	widest, used := 0, 0
+	for i := v.Top; i < len(v.Rows) && used < height; i++ {
+		r := v.Rows[i]
+		used += RowHeight(r, v)
+		if r.Kind != "line" {
+			continue
+		}
+		for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
+			if l != nil {
+				widest = max(widest, ansi.StringWidth(ExpandTabs(l.Text)))
+			}
+		}
+	}
+	return max(0, widest-codeWidth(v))
+}
+
+func codeWidth(v DiffView) int {
+	if v.Split {
+		return max(4, (v.Width-3)/2-sideGutter(v))
+	}
+	return max(4, v.Width-gutterOf(v))
+}
+
+func codeCut(text string, v DiffView, width int) []string {
+	if v.Wrap || v.Left == 0 {
+		return cut(text, width, v.Wrap)
+	}
+	return []string{shifted(text, v.Left, max(4, width))}
+}
+
+func shifted(text string, left, width int) string {
+	if ansi.StringWidth(text) == 0 {
+		return ""
+	}
+	var rest strings.Builder
+	at, hidden := 0, left+1
+	for _, r := range text {
+		w := ansi.StringWidth(string(r))
+		switch {
+		case at >= hidden:
+			rest.WriteRune(r)
+		case at+w > hidden:
+			rest.WriteString(strings.Repeat(" ", at+w-hidden))
+		}
+		at += w
+	}
+	if ansi.StringWidth(rest.String()) < width {
+		return "…" + rest.String()
+	}
+	return "…" + ansi.Truncate(rest.String(), width-1, "…")
 }
 
 func cut(text string, width int, wrapping bool) []string {

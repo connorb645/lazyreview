@@ -38,6 +38,9 @@ func (a App) mouse(s context.ContextTree, msg tea.MouseMsg) (context.ContextTree
 		if msg.Button == tea.MouseButtonWheelUp {
 			by = -3
 		}
+		if msg.Shift && n == context.MainPanel && s.Screen() == context.ScreenDiff {
+			return a.helpers.Diff.Sideways(s, 2*by), nil
+		}
 		if n != context.MainPanel {
 			return s.WithSide(n, s.Side(n).Scroll(by, at.H)), nil
 		}
@@ -51,12 +54,15 @@ func (a App) mouse(s context.ContextTree, msg tea.MouseMsg) (context.ContextTree
 		}
 		return s, nil
 	case tea.MouseButtonWheelLeft, tea.MouseButtonWheelRight:
-		if n == context.MainPanel && s.Screen() == context.ScreenDiagram {
-			by := 6
-			if msg.Button == tea.MouseButtonWheelLeft {
-				by = -6
-			}
+		by := 6
+		if msg.Button == tea.MouseButtonWheelLeft {
+			by = -6
+		}
+		switch {
+		case n == context.MainPanel && s.Screen() == context.ScreenDiagram:
 			s.Diagram = s.Diagram.Scrolled(a.c.Tr, *s.Review, by, 0, at.W, at.H, s.ShownPulls())
+		case n == context.MainPanel && s.Screen() == context.ScreenDiff:
+			s = a.helpers.Diff.Sideways(s, by)
 		}
 		return s, nil
 	case tea.MouseButtonLeft:

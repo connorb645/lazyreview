@@ -68,6 +68,7 @@ const KEYBINDING = section({
   reviewView: keys({ ...MOVE, ...PAGES, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P' }, notes.reviewView),
   diff: keys({
     down: ['j', '<down>'], up: ['k', '<up>'], halfDown: '<c-d>', halfUp: '<c-u>', pageDown: '<c-f>', pageUp: '<c-b>', top: 'gg', bottom: 'G',
+    scrollLeft: ['h', '<left>'], scrollRight: ['l', '<right>'],
     nextHunk: ']c', previousHunk: '[c', nextFile: ']f', previousFile: '[f', search: '/', searchBack: '?', nextMatch: 'n', previousMatch: 'N',
     toggleFold: 'za', openFold: 'zo', closeFold: 'zc', openFolds: 'zR', closeFolds: 'zM', open: '<enter>', back: '-', split: '<space>s', wrap: '<space>w',
     whole: '<space>o', rendered: '<space>r', showType: 'gd', nextNote: ']n', previousNote: '[n', select: 'V', otherEnd: 'o', comment: 'c', ask: 'a', edit: 'e', drop: 'dd', stop: 'x',

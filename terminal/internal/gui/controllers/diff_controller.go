@@ -42,6 +42,8 @@ func (self *DiffController) Bindings() []Binding {
 		{Action: "page up", Keys: kb.Diff.PageUp, Handler: self.paged(false, true), Description: tr.PageUp},
 		{Action: "top", Keys: kb.Diff.Top, Handler: self.end(false), Description: tr.Top},
 		{Action: "bottom", Keys: kb.Diff.Bottom, Handler: self.end(true), Description: tr.Bottom},
+		{Action: "scroll left", Keys: kb.Diff.ScrollLeft, Handler: self.sideways(-1), Description: tr.ScrollLeft},
+		{Action: "scroll right", Keys: kb.Diff.ScrollRight, Handler: self.sideways(1), Description: tr.ScrollRight},
 		{Action: "next hunk", Keys: kb.Diff.NextHunk, Handler: self.hunk(false), Description: tr.NextHunk},
 		{Action: "previous hunk", Keys: kb.Diff.PreviousHunk, Handler: self.hunk(true), Description: tr.PreviousHunk},
 		{Action: "next file", Keys: kb.Diff.NextFile, Handler: self.next("file", false), Description: tr.NextFile},
@@ -103,6 +105,12 @@ func (self *DiffController) end(bottom bool) Handler {
 		}
 		s.Diff = s.Diff.AtFileEnd(bottom, self.height(s))
 		return s, nil
+	}
+}
+
+func (self *DiffController) sideways(way int) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		return self.c.Helpers.Diff.Sideways(s, way*count.N*presentation.ScrollStep(s.Diff.DiffView)), nil
 	}
 }
 
@@ -286,6 +294,7 @@ func (self *DiffController) Help(labels presentation.KeyLabels) []HelpSection {
 		{Keys: labels.Of("down", "up"), Words: tr.HelpLinesMove},
 		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
 		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
+		{Keys: labels.Of("scroll left", "scroll right"), Words: tr.HelpScrollCode},
 		{Keys: lineEnds, Words: tr.HelpLineEnds},
 		{Keys: labels.Of("next hunk", "previous hunk"), Words: tr.HelpHunks},
 		{Keys: labels.Of("next file", "previous file"), Words: tr.HelpFiles},

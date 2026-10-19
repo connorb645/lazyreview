@@ -235,6 +235,8 @@ keybinding:
     pageUp: '<c-b>'
     top: 'gg'
     bottom: 'G'
+    scrollLeft: ['h', '<left>']
+    scrollRight: ['l', '<right>']
     nextHunk: ']c'
     previousHunk: '[c'
     nextFile: ']f'
