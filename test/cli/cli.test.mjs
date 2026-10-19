@@ -55,7 +55,7 @@ test('one command loads a pull request, starts the app, and prints where to open
     const missing = await run(['terminal', 'https://github.com/octo/widgets/pull/99'], env);
     assert.equal(missing.stdout, 'loading https://github.com/octo/widgets/pull/99…\n', 'a pull request no review holds is loaded first');
     assert.match(missing.stderr, /^lazyreview: .*pulls\/99/);
-    assert.match((await run(['terminal', 'widgets'], env)).stderr, /^lazyreview: "widgets" is not a review id/);
+    assert.equal((await run(['terminal', 'widgets'], env)).stderr, 'lazyreview: "widgets" is not the address of a review or of a pull request; lazyreview list shows every review\n');
     const listed = await run(['list'], env);
     assert.equal(listed.stdout.trim().split('\n').length, 2);
     assert.match(listed.stdout, /\/review\/github\.com\/octo\/widgets\/21 {2}#21, #22 {2}Stack #21 to #22/);
@@ -96,12 +96,14 @@ test('the terminal app opens on the review a link names, loading a pull request 
   const terminal = { launch: async ({ review }) => { opened.push(review); } };
   const open = link => command(['terminal', link], { env, bin: BIN, say: line => said.push(line), terminal });
   try {
+    await assert.rejects(open(`http://127.0.0.1:${port}/`), /is not the address of a review or of a pull request/);
+    assert.ok(!existsSync(w.home.serverFile), 'a link that names no review starts nothing');
     await open(w.link(30));
-    assert.deepEqual(said, ['loading https://github.com/octo/widgets/pull/30…']);
+    assert.deepEqual(said, ['loading https://github.com/octo/widgets/pull/30…', `started the app at http://127.0.0.1:${port}`]);
     assert.deepEqual(opened, ['github.com/octo/widgets/30']);
     await open(`http://127.0.0.1:${port}/review/github.com/octo/widgets/30#review`);
     await open(w.link(30));
-    assert.deepEqual(said, ['loading https://github.com/octo/widgets/pull/30…'], 'a review already loaded opens as it is');
+    assert.deepEqual(said.slice(2), Array(2).fill(`the app is running already at http://127.0.0.1:${port}`), 'a review already loaded opens as it is');
     assert.deepEqual(opened, ['github.com/octo/widgets/30', 'github.com/octo/widgets/30', 'github.com/octo/widgets/30']);
     await command(['terminal'], { env, bin: BIN, say: line => said.push(line), terminal });
     assert.equal(opened.at(-1), null, 'with no link, the app opens on the home screen');

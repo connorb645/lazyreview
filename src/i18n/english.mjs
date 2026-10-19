@@ -88,10 +88,13 @@ export const english = frozen({
     listedMoved: (id, to) => `${id}  moved to ${to}`,
     listed: (address, name, title) => `${address}  ${name}  ${title}`,
     running: address => `running at ${address}`,
+    started: address => `started the app at ${address}`,
+    runningAlready: address => `the app is running already at ${address}`,
     stopped: 'stopped',
     notRunning: 'not running',
     loading: url => `loading ${url}…`,
     noReview: text => `there is no review ${text}; lazyreview list shows every review`,
+    notALink: text => `"${text}" is not the address of a review or of a pull request; lazyreview list shows every review`,
     configUnreadable: (path, why) => `could not read the config ${path}: ${why}`,
     configNeeds: (given, commands) => `config needs one of ${commands.slice(0, -1).join(', ')} or ${commands.at(-1)}${given ? `, not "${given}"` : ''}`,
     checkIsForMove: '--check is for config move',
@@ -250,6 +253,7 @@ export const english = frozen({
   },
 
   terminalApp: {
+    building: 'building the terminal app…',
     needsGo: 'the terminal app is built with Go 1.24 or later, and go is not on the PATH; install it from https://go.dev/dl',
     buildFailed: why => `could not build the terminal app: ${why}`,
     stopped: code => `the terminal app stopped with exit code ${code}`,

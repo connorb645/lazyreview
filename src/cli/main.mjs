@@ -9,8 +9,10 @@
  * `terminal` start the app in the background first when it is not running.
  * `terminal` with a link opens that review, loading a pull request link
  * that no review holds yet, and with none the home screen of open pull
- * requests. `load` reads pull requests from GitHub, or with --repo a branch
- * from a repository on this machine. `config` says where the config file
+ * requests; it says whether it started the app or found it running, and
+ * refuses a link that names no review before it starts anything. `load`
+ * reads pull requests from GitHub, or with --repo a branch from a
+ * repository on this machine. `config` says where the config file
  * is, prints the default config or every setting as read, and makes the
  * one-time move into the config; it reads no other setting first, so a
  * config with a mistake in it can always be found and fixed.
@@ -18,9 +20,9 @@
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { parseArguments } from './arguments.mjs';
+import { readTerminalLink } from './terminal-link.mjs';
 import { App } from '../app/app.mjs';
 import { PullRef } from '../models/pull-ref.mjs';
-import { reviewRef } from '../models/review-ref.mjs';
 import { readWrittenReview, checkWrittenReview } from '../review/written-review.mjs';
 import { english } from '../i18n/english.mjs';
 import { findConfigFile } from '../config/config-file.mjs';
@@ -43,8 +45,9 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
       return list(app);
     case 'terminal': {
       const review = options.positional.length ? await reviewToOpen(options.positional[0], { app, say }) : null;
-      if (!(await app.background.running())) await app.background.start();
-      await app.terminal.launch({ serverFile: app.home.serverFile, review, env, userConfig: terminalPart(app.config, env) });
+      const running = await app.background.running();
+      say(running ? english.cli.runningAlready(running) : english.cli.started(await app.background.start()));
+      await app.terminal.launch({ serverFile: app.home.serverFile, review, env, userConfig: terminalPart(app.config, env), say });
       return [];
     }
     case 'start': {
@@ -127,20 +130,17 @@ function reviewAddress(address, ref) {
 }
 
 async function reviewToOpen(text, { app, say }) {
-  const address = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/review\/([^?#]+?)\/*(?:[?#].*)?$/.exec(text);
-  if (address) return reviewToOpen(address[1].split('/').map(decodeURIComponent).join('/'), { app, say });
-  if (/^https?:\/\//.test(text)) {
-    const ref = PullRef.parse(text);
-    const found = app.store.find(ref);
-    if (found) return found.ref.id;
-    say(english.cli.loading(ref.url));
-    const loaded = await app.loader.load({ links: [text] });
-    for (const note of loaded.notes) say(english.cli.note(note));
-    return loaded.ref.id;
+  const { review, pull } = readTerminalLink(text);
+  if (review) {
+    if (!app.store.read(review)) throw new Error(english.cli.noReview(review.id));
+    return review.id;
   }
-  const ref = reviewRef(text);
-  if (!app.store.read(ref)) throw new Error(english.cli.noReview(text));
-  return ref.id;
+  const found = app.store.find(pull);
+  if (found) return found.ref.id;
+  say(english.cli.loading(pull.url));
+  const loaded = await app.loader.load({ links: [text] });
+  for (const note of loaded.notes) say(english.cli.note(note));
+  return loaded.ref.id;
 }
 
 function readConfigFile(path) {

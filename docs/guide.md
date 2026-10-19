@@ -152,10 +152,10 @@ With one, it opens that review straight away: the address `load` printed, or
 a pull request link. A pull request that no review holds yet is loaded first,
 as `load` loads it, so one command opens it. A review id, such as
 `github.com/owner/repo/12`, works too. It starts the server when it is not
-running, as `load` does. The app is a Go program in `terminal/`, built on this
-machine the first time it runs and again whenever its code changes; building
-it needs Go 1.24 or later, and its libraries are vendored, so the build
-reaches no network.
+running, as `load` does, and says whether it started it or found it running.
+The app is a Go program in `terminal/`, built on this machine the first time
+it runs and again whenever its code changes; building it needs Go 1.24 or
+later, and its libraries are vendored, so the build reaches no network.
 
 ### The home screen
 

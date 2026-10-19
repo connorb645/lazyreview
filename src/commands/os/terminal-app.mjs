@@ -4,12 +4,12 @@
  * changes, then run in this terminal.
  *
  * new TerminalApp({folder, run}) names the folder; `run` runs a command and
- * resolves {code, stderr}. launch({serverFile, review, env, userConfig})
+ * resolves {code, stderr}. launch({serverFile, review, env, userConfig, say})
  * builds the app when its program is missing or older than any of its code,
- * then runs it on this terminal, telling it where the server records its
- * address and token, its part of the config, as JSON, and which review to
- * open, or none for the home screen. It resolves once
- * the app quits, and throws when it cannot be built or fails.
+ * saying so first with `say`, then runs it on this terminal, telling it where
+ * the server records its address and token, its part of the config, as
+ * JSON, and which review to open, or none for the home screen. It resolves
+ * once the app quits, and throws when it cannot be built or fails.
  */
 import { spawn, execFile } from 'node:child_process';
 import { readdirSync, statSync, existsSync } from 'node:fs';
@@ -33,8 +33,11 @@ export class TerminalApp {
     return join(this.#folder, 'bin', 'lazyreview-terminal');
   }
 
-  async launch({ serverFile, review, env, userConfig }) {
-    if (this.stale()) await this.#build(env);
+  async launch({ serverFile, review, env, userConfig, say = () => {} }) {
+    if (this.stale()) {
+      say(english.terminalApp.building);
+      await this.#build(env);
+    }
     const code = await new Promise((resolve, reject) => {
       const child = spawn(this.program, ['--server-file', serverFile, '--user-config', JSON.stringify(userConfig), ...(review ? [review] : [])], { stdio: 'inherit', env });
       child.once('error', reject);
