@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"sync"
 
@@ -14,17 +15,19 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-// DiffHelper opens a component's diff at a place, loading its files from
-// the server first when they are not loaded yet, and moves and folds in it.
+// DiffHelper opens the diff of the files the Files panel has chosen at a
+// place, loading their components' files from the server first when they
+// are not loaded yet, and moves and folds in it.
 type DiffHelper struct {
 	c *HelperCommon
 }
 
-// OpenPlace is the state with a component's diff in the main panel, its
-// cursor on a place, or on its first row with none; or, while its files
-// load, the command that loads them.
-func (self *DiffHelper) OpenPlace(s context.ContextTree, component string, place *server.Lines) (context.ContextTree, tea.Cmd) {
-	if s.Review == nil || component == "" {
+// OpenPlace is the state with the diff of the files the Files panel has
+// chosen in the main panel, its cursor on a place, or on its first row with
+// none; or, while their components' files load, the command that loads
+// them.
+func (self *DiffHelper) OpenPlace(s context.ContextTree, place *server.Lines) (context.ContextTree, tea.Cmd) {
+	if s.Review == nil {
 		return s, nil
 	}
 	window := self.c.Helpers.Window
@@ -32,7 +35,7 @@ func (self *DiffHelper) OpenPlace(s context.ContextTree, component string, place
 		s.CameFrom = s.Screen()
 	}
 	var missing []string
-	for _, f := range presentation.DiffFiles(*s.Review, component, nil) {
+	for _, f := range self.loading(s) {
 		if _, ok := s.Files[f.Path]; !ok {
 			missing = append(missing, f.Path)
 		}
@@ -40,14 +43,15 @@ func (self *DiffHelper) OpenPlace(s context.ContextTree, component string, place
 	if len(missing) > 0 {
 		s.Loading = true
 		s = s.Showing(context.ScreenDiff)
-		return s, self.loadFiles(s.Review.ID, s.Review.Page.Build, component, missing, place)
+		return s, self.loadFiles(s.Review.ID, s.Review.Page.Build, missing, place)
 	}
-	if s.Diff.Component != component || s.Diff.Files == nil {
-		s.Diff = context.NewDiffContext(component, s.Files, presentation.LineNumbers(self.c.Config.LineNumbers))
+	if s.Diff.Folded == nil {
+		s.Diff = context.NewDiffContext(s.Files, presentation.LineNumbers(self.c.Config.LineNumbers))
 		s.Diff.Width = window.MainWidth(s)
 	}
 	s = s.Showing(context.ScreenDiff)
 	s.Diff = s.Diff.Copied()
+	s.Diff.Files = s.Files
 	if place != nil {
 		s.Diff.Folded[place.Path] = false
 		s.Diff = withRunOpen(s.Diff, place.Path, place.Side, place.Line)
@@ -61,8 +65,20 @@ func (self *DiffHelper) OpenPlace(s context.ContextTree, component string, place
 	return s, nil
 }
 
-// AfterFiles is the state once a component's files have loaded, or failed
-// to: the diff open at the place it was asked for.
+// OpenFile is the state with the Files panel choosing a file, as a jump
+// into it does, and its diff open at a place.
+func (self *DiffHelper) OpenFile(s context.ContextTree, path string, place *server.Lines) (context.ContextTree, tea.Cmd) {
+	return self.OpenPlace(self.c.Helpers.Files.ChoseFile(s, path), place)
+}
+
+// OpenComponent is the state with the Files panel choosing a component, as
+// the diagram's boxes open it, and its diff open at a place.
+func (self *DiffHelper) OpenComponent(s context.ContextTree, component string, place *server.Lines) (context.ContextTree, tea.Cmd) {
+	return self.OpenPlace(self.c.Helpers.Files.ChoseComponent(s, component), place)
+}
+
+// AfterFiles is the state once files have loaded, or failed to: the diff
+// open at the place it was asked for.
 func (self *DiffHelper) AfterFiles(s context.ContextTree, msg types.FilesLoaded) (context.ContextTree, tea.Cmd) {
 	h := self.c.Helpers
 	s.Loading = false
@@ -78,11 +94,10 @@ func (self *DiffHelper) AfterFiles(s context.ContextTree, msg types.FilesLoaded)
 		files[k] = v
 	}
 	s.Files = files
-	s.Diff.Files = files
 	if s.Focus() != context.MainPanel {
 		return h.Panels.Followed(s)
 	}
-	next, cmd := self.OpenPlace(s, msg.Component, msg.Place)
+	next, cmd := self.OpenPlace(s, msg.Place)
 	return h.Refresh.Mirrored(next), cmd
 }
 
@@ -179,10 +194,23 @@ func (self *DiffHelper) MatchNext(s context.ContextTree, back bool, n int) (cont
 	return s, nil
 }
 
-// Rebuilt is a diff built again from the review in the state, shown in
-// the main panel's height.
+// Rebuilt is a diff built again from the review in the state, of the files
+// the Files panel has chosen, shown in the main panel's height.
 func (self *DiffHelper) Rebuilt(s context.ContextTree, v context.DiffContext) context.DiffContext {
-	return v.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.ShownPulls(), self.c.Helpers.Window.MainHeight(s))
+	files := presentation.ChosenFiles(*s.Review, s.FilesPanel.Chosen, s.ShownPulls())
+	return v.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, files, s.ShownPulls(), self.c.Helpers.Window.MainHeight(s))
+}
+
+// loading are the files to load for the diff the Files panel has chosen:
+// every file of each component it shows a file of, so moving within a
+// component loads nothing more.
+func (self *DiffHelper) loading(s context.ContextTree) []server.FileEntry {
+	d := *s.Review
+	components := map[string]bool{}
+	for _, f := range presentation.ChosenFiles(d, s.FilesPanel.Chosen, nil) {
+		components[f.Component] = true
+	}
+	return slices.DeleteFunc(presentation.TreeFiles(d, nil), func(f server.FileEntry) bool { return !components[f.Component] })
 }
 
 func withRunOpen(v context.DiffContext, path, side string, line int) context.DiffContext {
@@ -198,7 +226,7 @@ func withRunOpen(v context.DiffContext, path, side string, line int) context.Dif
 	return v
 }
 
-func (self *DiffHelper) loadFiles(id, build, component string, paths []string, place *server.Lines) tea.Cmd {
+func (self *DiffHelper) loadFiles(id, build string, paths []string, place *server.Lines) tea.Cmd {
 	tr, c := self.c.Tr, self.c.Server
 	return func() tea.Msg {
 		files := map[string]server.File{}
@@ -220,6 +248,6 @@ func (self *DiffHelper) loadFiles(id, build, component string, paths []string, p
 			}(path)
 		}
 		wg.Wait()
-		return types.FilesLoaded{Component: component, Files: files, Place: place, Err: failed}
+		return types.FilesLoaded{Files: files, Place: place, Err: failed}
 	}
 }

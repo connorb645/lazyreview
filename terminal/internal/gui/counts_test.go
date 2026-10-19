@@ -55,7 +55,7 @@ func TestPagesAndCountsMoveTheReviewView(t *testing.T) {
 // A count goes before n and N in the diff and the diagram, and before
 // Ctrl-o and Ctrl-i; {n}G in the diagram goes to box n in reading order.
 func TestACountGoesBeforeMatchesJumpsAndBoxes(t *testing.T) {
-	a := openedOnComment(t)
+	a := openedOnComponent(t)
 	a = typed(t, press(t, a, "g", "g", "/"), "catalog")
 	if twice, counted := cursorAt(press(t, a, "n", "n")), cursorAt(press(t, a, "2", "n")); counted != twice || counted == cursorAt(press(t, a, "n")) {
 		t.Fatalf("2n in the diff went to %s, not %s", counted, twice)

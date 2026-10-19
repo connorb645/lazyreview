@@ -179,12 +179,12 @@ func (self *DiagramHelper) BoxDiff(s context.ContextTree) (context.ContextTree, 
 	switch card.Kind {
 	case "component":
 		s = h.Jump.Leave(s)
-		return h.Diff.OpenPlace(s, card.ID, nil)
+		return h.Diff.OpenComponent(s, card.ID, nil)
 	case "package":
 		for _, f := range presentation.DiffFiles(*s.Review, s.Diagram.Level.Component, nil) {
 			if f.Package == card.ID {
 				s = h.Jump.Leave(s)
-				return h.Diff.OpenPlace(s, f.Component, &server.Lines{Path: f.Path, Side: "file:"})
+				return h.Diff.OpenComponent(s, f.Component, &server.Lines{Path: f.Path, Side: "file:"})
 			}
 		}
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoFilesInChange, map[string]string{"title": card.Title}), true), nil
@@ -385,7 +385,7 @@ func (self *DiagramHelper) openNode(s context.ContextTree, id string) (context.C
 		return s, nil
 	}
 	s = self.c.Helpers.Jump.Leave(s)
-	return self.c.Helpers.Diff.OpenPlace(s, presentation.FileEntry(*s.Review, n.File).Component, nodePlace(n))
+	return self.c.Helpers.Diff.OpenComponent(s, presentation.FileEntry(*s.Review, n.File).Component, nodePlace(n))
 }
 
 func nodePlace(n server.Node) *server.Lines {

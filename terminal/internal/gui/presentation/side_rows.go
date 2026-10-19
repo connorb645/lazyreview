@@ -91,32 +91,25 @@ func FileRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, folde
 			}
 			right = th.Added.Render(fmt.Sprintf("+%d", adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", dels))
 		}
+		first := server.Lines{Path: files[0].Path, Side: "file:"}
 		rows = append(rows, SideRow{Key: key, Text: foldMark(folded[key], th) + " " + th.Component(c.Color).Render("■") + " " + th.Bold.Render(c.Title), Right: right,
-			Item: Item{Kind: "component", Component: c.ID, Title: c.Title}})
+			Item: Item{Kind: "component", Component: c.ID, Title: c.Title, Place: &first}})
 		if folded[key] {
 			continue
 		}
-		var dirs []string
-		inDir := map[string][]server.FileEntry{}
-		for _, f := range files {
-			dir := path.Dir(f.Path)
-			if _, seen := inDir[dir]; !seen {
-				dirs = append(dirs, dir)
-			}
-			inDir[dir] = append(inDir[dir], f)
-		}
-		for _, dir := range dirs {
+		folders := byFolder(files)
+		for _, folder := range folders {
 			indent := "  "
-			if dir != "." && len(dirs) > 1 {
-				dk := DirKey(c.ID, inDir[dir][0].Path)
-				first := server.Lines{Path: inDir[dir][0].Path, Side: "file:"}
+			if dir := path.Dir(folder[0].Path); dir != "." && len(folders) > 1 {
+				dk := DirKey(c.ID, folder[0].Path)
+				first := server.Lines{Path: folder[0].Path, Side: "file:"}
 				rows = append(rows, SideRow{Key: dk, Text: "  " + foldMark(folded[dk], th) + " ", Title: dir, TitleStyle: th.Muted, Item: Item{Kind: "dir", Component: c.ID, Place: &first}})
 				if folded[dk] {
 					continue
 				}
 				indent = "    "
 			}
-			for _, f := range inDir[dir] {
+			for _, f := range folder {
 				rows = append(rows, fileRow(d, f, indent, th))
 			}
 		}

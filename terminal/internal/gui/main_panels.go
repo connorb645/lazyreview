@@ -49,9 +49,9 @@ func (a App) mainTitle(width int) string {
 		head, in := presentation.DiagramTitle(a.c.Tr, *d, a.Diagram.Level)
 		title, path = views.PanelTitle(context.MainPanel, head), in
 	case a.Screen() == context.ScreenDiff:
-		title = views.PanelTitle(context.MainPanel, a.c.Tr.DiffTitle+" · "+presentation.ComponentTitle(*d, a.Diff.Component))
+		title = views.PanelTitle(context.MainPanel, a.c.Tr.DiffTitle)
 		if path = a.Diff.File(); path != "" {
-			title += " › "
+			title = views.PanelTitle(context.MainPanel, a.c.Tr.DiffTitle+" · "+presentation.ComponentTitle(*d, presentation.FileEntry(*d, path).Component)) + " › "
 		}
 	}
 	return utils.FitPathIn(title, path, "", width)

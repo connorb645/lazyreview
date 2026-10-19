@@ -65,7 +65,7 @@ const KEYBINDING = section({
   reviewScreen: keys({ nextPull: ']p', previousPull: '[p', jumpBack: '<c-o>', jumpForward: '<c-i>', diagram: '<space>m', finder: '<space>f', home: '<space>h', focusMain: '0' }, notes.reviewScreen),
   panels: keys({ ...MOVE, ...PAGES, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToBlock: ['1', '2', '3', '4'] }, notes.panels),
   reviewPanel: keys({ post: 'P', highlight: 'v' }),
-  filesPanel: keys({ toggleFold: 'za' }),
+  filesPanel: keys({ toggleFold: 'za', select: 'v' }),
   notesPanel: keys({ edit: 'e', drop: 'dd', post: 'P', stop: 'x' }),
   diagramPanel: keys(Object.fromEntries(Object.entries(BOXES).filter(([action]) => !['top', 'bottom', 'open'].includes(action)))),
   reviewView: keys({ ...MOVE, ...PAGES, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P' }, notes.reviewView),

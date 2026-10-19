@@ -116,10 +116,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		s = h.AppStatus.AfterSpin(s)
 	case tea.MouseMsg:
 		s, cmd = a.mouse(s, msg)
-		s = h.Filter.GrowingInReview(s)
+		s = h.Files.GrowingInFiles(h.Filter.GrowingInReview(s))
 	case tea.KeyMsg:
 		s, cmd = a.key(s, msg)
-		s = h.Filter.GrowingInReview(s)
+		s = h.Files.GrowingInFiles(h.Filter.GrowingInReview(s))
 	default:
 		if s.Has(context.PromptKey) {
 			s, cmd = h.Prompt.Typed(s, msg)

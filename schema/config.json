@@ -1708,6 +1708,23 @@
                 }
               ],
               "default": "za"
+            },
+            "select": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              ],
+              "default": "v"
             }
           },
           "additionalProperties": false

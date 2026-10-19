@@ -36,7 +36,7 @@ func (self *GlobalController) Bindings() []Binding {
 		{Action: "review", Keys: kb.Universal.Review, Handler: stateOnly(h.Review.Show), Description: tr.ReviewView},
 		{Action: "github", Keys: kb.Universal.GitHub, Handler: uncounted(h.Browser.OpenGitHub), Description: tr.GitHub},
 		{Action: "web", Keys: kb.Universal.Web, Handler: uncounted(h.Browser.OpenWeb), Description: tr.WebApp},
-		{Action: "close", Keys: kb.Universal.Close, Handler: stateOnly(self.close), Description: tr.Close},
+		{Action: "close", Keys: kb.Universal.Close, Handler: uncounted(self.close), Description: tr.Close},
 		{Action: "quit", Keys: kb.Universal.Quit, Handler: self.quit, Description: tr.Quit},
 		{Action: "refresh", Keys: kb.Universal.Refresh, Handler: uncounted(h.Review.Refresh), Description: tr.Refresh},
 		{Action: "bigger", Keys: kb.Universal.Bigger, Handler: stateOnly(self.bigger), Description: tr.Bigger},
@@ -52,23 +52,25 @@ func (self *GlobalController) keys(s context.ContextTree) context.ContextTree {
 	return s.WithMenu(self.keysMenu(s))
 }
 
-func (self *GlobalController) close(s context.ContextTree) context.ContextTree {
+func (self *GlobalController) close(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 	h := self.c.Helpers
 	switch {
 	case s.MenuOpen():
 		s = s.WithoutMenu()
 	case s.Screen() == context.ScreenHome:
-		return self.howToQuit(s)
+		return self.howToQuit(s), nil
 	case s.Focus() == context.ReviewPanel && len(s.Filter) > 0:
-		return h.Filter.SetFilter(s, nil)
+		return h.Filter.SetFilter(s, nil), nil
+	case s.Focus() == context.FilesPanel && s.Review != nil && s.FilesPanel.HasSelection():
+		return h.Files.Stop(s)
 	case s.Screen() == context.ScreenDiff && s.Diff.Selecting:
 		s.Diff.Selecting = false
 	case s.Focus() == context.MainPanel && s.Review != nil:
-		return h.Refresh.Relaid(s.Focused(s.Driving(), s.Driving()))
+		return h.Refresh.Relaid(s.Focused(s.Driving(), s.Driving())), nil
 	default:
-		return self.howToQuit(s)
+		return self.howToQuit(s), nil
 	}
-	return s
+	return s, nil
 }
 
 func (self *GlobalController) howToQuit(s context.ContextTree) context.ContextTree {

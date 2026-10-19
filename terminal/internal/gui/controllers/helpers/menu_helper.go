@@ -74,7 +74,7 @@ func (self *MenuHelper) OpenRow(s context.ContextTree) (context.ContextTree, tea
 		return h.Refresh.Mirrored(h.Diagram.ShowBox(s, *it.Box)), nil
 	case it.Place != nil:
 		s = s.Focused(context.MainPanel, context.FilesPanel)
-		next, cmd := h.Diff.OpenPlace(s, h.Diff.ComponentOf(s, it.Place.Path), it.Place)
+		next, cmd := h.Diff.OpenFile(s, it.Place.Path, it.Place)
 		return h.Refresh.Mirrored(next), cmd
 	}
 	return s, nil

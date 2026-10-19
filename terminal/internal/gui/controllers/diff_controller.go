@@ -164,7 +164,7 @@ func (self *DiffController) fold(action string) Handler {
 func (self *DiffController) folds(open bool) Handler {
 	return func(s context.ContextTree, _ Count) (context.ContextTree, tea.Cmd) {
 		v := s.Diff.Copied()
-		for _, f := range presentation.DiffFiles(*s.Review, v.Component, s.ShownPulls()) {
+		for _, f := range presentation.ChosenFiles(*s.Review, s.FilesPanel.Chosen, s.ShownPulls()) {
 			v.Folded[f.Path] = !open
 			for _, n := range presentation.NotesOf(*s.Review, f.Path) {
 				v.Notes[n.Key] = open

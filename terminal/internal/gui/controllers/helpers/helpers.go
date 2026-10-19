@@ -13,6 +13,7 @@ type Helpers struct {
 	Diagram   *DiagramHelper
 	Jump      *JumpHelper
 	Filter    *FilterHelper
+	Files     *FilesHelper
 	Home      *HomeHelper
 	Review    *ReviewHelper
 	Live      *LiveHelper
@@ -35,6 +36,7 @@ func NewHelpers(c *HelperCommon) *Helpers {
 		Diagram:   &DiagramHelper{c: c},
 		Jump:      &JumpHelper{c: c},
 		Filter:    &FilterHelper{c: c},
+		Files:     &FilesHelper{c: c},
 		Home:      &HomeHelper{c: c},
 		Review:    &ReviewHelper{c: c},
 		Live:      &LiveHelper{c: c},

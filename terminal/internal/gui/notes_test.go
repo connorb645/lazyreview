@@ -67,8 +67,8 @@ func TestACommentIsWrittenInTheEditorAndQueued(t *testing.T) {
 
 func TestASelectionIsCommentedOnAsARange(t *testing.T) {
 	editor, _ := writer(t, "One add is enough.")
-	a := onBasket(t, editor)
-	a = press(t, a, "]", "f")
+	a, _ := opened(t, stack, 100, 30, editor)
+	a = typed(t, press(t, a, "space", "f"), "Catalog/MemoryCatalog")
 	a = typed(t, press(t, a, ":"), "7")
 	a = press(t, a, "V", "j", "j")
 	screenIs(t, a, "visual")

@@ -12,24 +12,24 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-// DiffContext is a component's diff in the main panel, and what was last
-// searched for in it.
+// DiffContext is the diff in the main panel of the files the Files panel
+// has chosen, and what was last searched for in it.
 type DiffContext struct {
 	presentation.DiffView
 	Query string
 }
 
-// NewDiffContext is a component's diff of the files loaded, its lines
-// numbered as the config says, with nothing folded or opened.
-func NewDiffContext(component string, files map[string]server.File, numbers presentation.LineNumbers) DiffContext {
-	return DiffContext{DiffView: presentation.DiffView{Component: component, Files: files, Numbers: numbers, Rendered: map[string]bool{}, Notes: map[string]bool{}, Folded: map[string]bool{}, Opened: map[string]bool{}, Whole: map[string]bool{}}}
+// NewDiffContext is a diff of the files loaded, its lines numbered as the
+// config says, with nothing folded or opened.
+func NewDiffContext(files map[string]server.File, numbers presentation.LineNumbers) DiffContext {
+	return DiffContext{DiffView: presentation.DiffView{Files: files, Numbers: numbers, Rendered: map[string]bool{}, Notes: map[string]bool{}, Folded: map[string]bool{}, Opened: map[string]bool{}, Whole: map[string]bool{}}}
 }
 
-// Rebuilt is the diff made again from the review, its cursor kept on its
-// place, shown in a height.
-func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown, loc *time.Location, d types.ReviewData, filter types.PullFilter, height int) DiffContext {
+// Rebuilt is the diff of files made again from the review, its cursor kept
+// on its place, shown in a height.
+func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown, loc *time.Location, d types.ReviewData, files []server.FileEntry, filter types.PullFilter, height int) DiffContext {
 	was := v.Place()
-	v.Rows = presentation.BuildDiff(tr, md, loc, d, v.DiffView, filter)
+	v.Rows = presentation.BuildDiff(tr, md, loc, d, v.DiffView, files, filter)
 	v.Cursor = 0
 	if was != nil {
 		v = v.Find(*was)

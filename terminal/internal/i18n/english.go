@@ -84,6 +84,8 @@ type TranslationSet struct {
 	HelpFilesMove      string
 	HelpPanels         string
 	HelpOpenFile       string
+	HelpSelectFiles    string
+	HelpStopSelection  string
 	HelpFoldTree       string
 	HelpNotesMove      string
 	HelpOpenNote       string
@@ -623,9 +625,11 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpHighlight:      "on a stack, highlights this pull request; {{.move}} grow or shrink the highlight, and the other panels show only what it holds",
 		HelpClearHighlight: "goes to All, to show the whole stack",
 		HelpPostPull:       "post: the actions offered for this pull request",
-		HelpFilesMove:      "the next, previous, first or last file; the main panel shows its diff",
+		HelpFilesMove:      "the next, previous, first or last row; the main panel shows the diff of its file, or of every file under its folder or component",
 		HelpPanels:         "the panel above or below",
-		HelpOpenFile:       "on a file, its diff in the main panel; on a component or a folder, folds it",
+		HelpOpenFile:       "on a file, gives the main panel the keys; on a component or a folder, folds it",
+		HelpSelectFiles:    "selects rows, from this one; {{.move}} grow or shrink the selection, {{.select}} or {{.stop}} stops it, and the main panel shows every file it holds",
+		HelpStopSelection:  "stops the selection, so the main panel shows the row the cursor is on",
 		HelpFoldTree:       "folds or unfolds a component or a folder",
 		HelpNotesMove:      "the next, previous, first or last note; the main panel shows it in its diff",
 		HelpOpenNote:       "the note in its diff, in the main panel",

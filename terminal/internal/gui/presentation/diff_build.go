@@ -11,12 +11,11 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-// BuildDiff makes a component's diff rows: each file the filter shows, its
-// hunks, runs, whole text or rendered blocks as the view has them, and the
-// notes on its lines.
-func BuildDiff(tr *i18n.TranslationSet, md *Markdown, loc *time.Location, d types.ReviewData, v DiffView, filter types.PullFilter) []DiffRow {
+// BuildDiff makes the diff rows of files: each file's hunks, runs, whole
+// text or rendered blocks as the view has them, and the notes on its lines.
+func BuildDiff(tr *i18n.TranslationSet, md *Markdown, loc *time.Location, d types.ReviewData, v DiffView, files []server.FileEntry, filter types.PullFilter) []DiffRow {
 	var rows []DiffRow
-	for _, f := range DiffFiles(d, v.Component, filter) {
+	for _, f := range files {
 		rows = append(rows, DiffRow{Kind: "file", Path: f.Path, Text: f.Path})
 		if v.Folded[f.Path] {
 			continue

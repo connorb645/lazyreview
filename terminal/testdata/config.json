@@ -247,6 +247,9 @@
   "filesPanel": {
    "toggleFold": [
     "z a"
+   ],
+   "select": [
+    "v"
    ]
   },
   "notesPanel": {
