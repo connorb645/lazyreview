@@ -2,8 +2,12 @@
  * Where lazyreview keeps its files, under one folder, the data home:
  *
  *   clones/<host>/<owner>/<repo>.git          a bare clone per repository
+ *   clones/local/<repo key>.git               a bare clone per repository of
+ *                                             this machine a branch review asks about
  *   reviews/<host>/<owner>/<repo>/<pull>/     one folder per pull request review
  *   reviews/local/<repo key>/<branch>/        one folder per branch review
+ *   copies/<review id>/<conversation>/        a throwaway copy of the code,
+ *                                             one per conversation with Claude
  *   server.json, server.log                   the running app, while it runs
  *   settings.json                             the accounts, before the config held them;
  *                                             no longer read, and moved by
@@ -37,6 +41,21 @@ export class DataHome {
   /** The folder holding every branch review. */
   get branchReviews() {
     return join(this.reviews, 'local');
+  }
+
+  /** The bare clone of a repository on this machine, by its BranchRef key. */
+  localClone(repoKey) {
+    return join(this.root, 'clones', 'local', `${repoKey}.git`);
+  }
+
+  /** The folder holding every throwaway copy of the code. */
+  get copies() {
+    return join(this.root, 'copies');
+  }
+
+  /** The throwaway copy of the code for conversation `id` of the review a ref names. */
+  copy(ref, id) {
+    return join(this.copies, ...ref.id.split('/'), String(id));
   }
 
   /** The folder holding every review of one repository. */

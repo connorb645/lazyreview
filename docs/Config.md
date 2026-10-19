@@ -177,6 +177,7 @@ keybinding:
     edit: 'e'
     drop: 'dd'
     post: 'P'
+    stop: 'x'
   diagramPanel:
     nextBox: 'w'
     previousBox: 'b'
@@ -241,6 +242,7 @@ keybinding:
     ask: 'a'
     edit: 'e'
     drop: 'dd'
+    stop: 'x'
   diagram:                # the diagram in the main panel
     left: ['h', '<left>']
     down: ['j', '<down>']

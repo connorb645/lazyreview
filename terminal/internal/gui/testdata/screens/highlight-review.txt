@@ -42,7 +42,7 @@
 ╰────────────────────────1 of 3─╯│ ▾ Conversations                                                 │
 ╭─[4]─Diagram───────────────────╮│   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
 │ Components                    ││     Could this be passed in?                                    │
-│ ■ widgets                     ││     It returns early when the list is empty.                    │
+│ ■ widgets                     ││     It could: the basket only reads from it.                    │
 │ ■ Unchanged code              ││                                                                 │
 │                               ││ ▾ The change                                                    │
 │                               ││   ■ widgets  2 files +4 −1                                      │

@@ -420,7 +420,18 @@ type TranslationSet struct {
 	QueuedAsItWas           string
 	Queueing                string
 	Saving                  string
-	AskingClaude            string
+	ClaudeIsWorking         string
+	ClaudeIsWorkingOn       string
+	Stopping                string
+	StoppedClaude           string
+	NotWorking              string
+	StopsClaude             string
+	StopClaude              string
+	HelpStop                string
+	RefusedStep             string
+	TookSteps               string
+	TookStepsRefused        string
+	StepNoun                string
 	ClaudeSaysWhy           string
 	ClaudeAnswered          string
 	SavedQueued             string
@@ -829,7 +840,7 @@ func EnglishTranslationSet() *TranslationSet {
 		TheWholeFile:        "the whole file",
 		WasLine:             "was line {{.line}}",
 		MessageNoun:         "message",
-		WaitingForClaude:    "Waiting for Claude…",
+		WaitingForClaude:    "Claude is working…",
 		NoAnswer:            "No answer",
 
 		BinaryFile:            "A binary file. Its contents are not shown.",
@@ -916,7 +927,18 @@ func EnglishTranslationSet() *TranslationSet {
 		QueuedAsItWas:           "Queued comment {{.comment}} is as it was.",
 		Queueing:                "Queueing…",
 		Saving:                  "Saving…",
-		AskingClaude:            "Asking Claude…",
+		ClaudeIsWorking:         "Claude is working",
+		ClaudeIsWorkingOn:       "Claude is working: {{.step}}",
+		Stopping:                "Stopping Claude…",
+		StoppedClaude:           "Stopped Claude.",
+		NotWorking:              "Claude is not working on this conversation.",
+		StopsClaude:             "{{.stop}} stops Claude on a conversation it is answering",
+		StopClaude:              "Stop Claude",
+		HelpStop:                "stops Claude answering the conversation at the cursor",
+		RefusedStep:             "Refused: {{.step}} ({{.why}})",
+		TookSteps:               "Took {{.steps}}.",
+		TookStepsRefused:        "Took {{.steps}}, {{.refused}} refused.",
+		StepNoun:                "step",
 		ClaudeSaysWhy:           "Claude did not answer; the conversation says why.",
 		ClaudeAnswered:          "Claude answered.",
 		SavedQueued:             "Saved queued comment {{.comment}}.",

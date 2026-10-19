@@ -2,16 +2,20 @@
  * The cards drawn under the lines of a diff: a conversation with Claude, a
  * comment queued for the pull request, and a review thread already on
  * GitHub. A conversation and a GitHub thread fold to one line, which still
- * says who wrote what and how it stands.
+ * says who wrote what and how it stands. While Claude answers, a
+ * conversation shows its latest steps and a Stop button in place of the
+ * reply box; each answer keeps the steps Claude took, open when one was
+ * refused.
  *
  * createNoteCards(ctx) returns:
  *   conversation(t, open)  a conversation with Claude, open or folded
  *   queued(n)              a queued comment, with Edit and Drop
  *   github(t, open)        a GitHub thread: its comments, whether it is
  *                          resolved or outdated, and its address there
- *   textArea(placeholder, value), actions(queueOff)
+ *   textArea(placeholder, value), actions(queueOff, busy)
  *                          the box and the buttons a composer and a
- *                          conversation's reply share
+ *                          conversation's reply share; `busy` says what
+ *                          they wait for, with every button off
  */
 import { esc, when, plainText } from '../lib/text.mjs';
 import { safeMarkdown } from '../lib/markdown.mjs';
@@ -19,6 +23,7 @@ import { pullPill } from './pulls.mjs';
 import { english } from '/i18n/english.mjs';
 
 const PREVIEW = 140;
+const LIVE = 4;
 const words = english.web.notes;
 const counts = english.web.counts;
 
@@ -27,11 +32,12 @@ export function createNoteCards(ctx) {
     return '<textarea rows="3" placeholder="' + esc(placeholder) + '">' + esc(value || '') + '</textarea>';
   }
 
-  function actions(queueOff) {
+  function actions(queueOff, busy) {
+    const off = busy ? ' disabled' : '';
     return '<div class="note-actions">' +
-      '<button type="button" class="nbtn primary" data-act="ask">' + words.askClaude + '</button>' +
-      (ctx.state.queue ? '<button type="button" class="nbtn" data-act="queue"' + (queueOff ? ' disabled title="' + esc(queueOff) + '"' : '') + '>' + words.queueComment + '</button>' : '') +
-      '<span class="note-status" aria-live="polite"></span></div>';
+      '<button type="button" class="nbtn primary" data-act="ask"' + off + '>' + words.askClaude + '</button>' +
+      (ctx.state.queue ? '<button type="button" class="nbtn" data-act="queue"' + (busy ? off : queueOff ? ' disabled title="' + esc(queueOff) + '"' : '') + '>' + words.queueComment + '</button>' : '') +
+      '<span class="note-status' + (busy ? ' working' : '') + '" aria-live="polite">' + (busy ? esc(busy) : '') + '</span></div>';
   }
 
   function head(parts, preview) {
@@ -41,9 +47,26 @@ export function createNoteCards(ctx) {
 
   function message(m) {
     if (m.from === 'you') return '<div class="msg you"><p class="who">' + words.you + '</p><div class="msg-body plain">' + esc(m.text) + '</div></div>';
-    if (m.error) return '<div class="msg claude failed"><p class="who">' + words.claude + '</p><div class="msg-body">' + words.noAnswer(esc(m.error)) + '</div></div>';
-    return '<div class="msg claude"><p class="who">' + words.claude + '</p><div class="msg-body md">' + safeMarkdown(m.text) + '</div>' +
+    if (m.error) return '<div class="msg claude failed"><p class="who">' + words.claude + '</p><div class="msg-body">' + words.noAnswer(esc(m.error)) + '</div>' + taken(m.steps) + '</div>';
+    return '<div class="msg claude"><p class="who">' + words.claude + '</p><div class="msg-body md">' + safeMarkdown(m.text) + '</div>' + taken(m.steps) +
       (ctx.state.queue ? '<button type="button" class="nbtn quiet small" data-act="use">' + words.useAsComment + '</button>' : '') + '</div>';
+  }
+
+  function step(s) {
+    return '<li' + (s.refused ? ' class="refused"' : '') + '>' + esc(s.words) + (s.refused ? '<span class="why">' + esc(words.refusedStep(s.refused)) + '</span>' : '') + '</li>';
+  }
+
+  function taken(steps) {
+    if (!steps || !steps.length) return '';
+    const refused = steps.filter(s => s.refused).length;
+    return '<details class="steps"' + (refused ? ' open' : '') + '><summary>' + esc(words.took(steps.length, refused)) + '</summary><ol>' + steps.map(step).join('') + '</ol></details>';
+  }
+
+  function working(t) {
+    const steps = (t.working && t.working.steps) || [];
+    return '<div class="working"><p class="thinking">' + words.thinking + '</p>' +
+      (steps.length ? '<ol class="steps live">' + steps.slice(-LIVE).map(step).join('') + '</ol>' : '') +
+      '<button type="button" class="nbtn quiet small" data-act="stop">' + words.stop + '</button><span class="note-status" aria-live="polite"></span></div>';
   }
 
   function conversation(t, open) {
@@ -56,9 +79,8 @@ export function createNoteCards(ctx) {
         '<span class="note-count">' + (waiting ? words.waiting : counts.questions(asked)) + '</span>',
       ], t.messages[0].text) +
       '<div class="note-body">' + t.messages.map(message).join('') +
-      (waiting ? '<p class="thinking">' + words.thinking + '</p>' : '') +
-      '<div class="reply">' + textArea(ctx.state.queue ? words.followUpOrComment : words.followUp) +
-      actions(false) + '</div></div></details>';
+      (waiting ? working(t) : '<div class="reply">' + textArea(ctx.state.queue ? words.followUpOrComment : words.followUp) + actions(false) + '</div>') +
+      '</div></details>';
   }
 
   function queued(n) {

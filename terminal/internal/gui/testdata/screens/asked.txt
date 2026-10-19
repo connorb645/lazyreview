@@ -27,4 +27,4 @@
 │ ■ widgets                     ││   ··· 3 unchanged lines ···  zo                                 │
 │ ■ Unchanged code              ││   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {          │
 ╰────────────────────────1 of 2─╯╰────line 3 · Changed in #22. A comment here goes on #22, line 3.─╯
- Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Keys: Space ? Claude answered.
+ Move: j k | Hunks: ]c [c | Select: V | Comment: c | Keys: Space ?                 Claude answered.

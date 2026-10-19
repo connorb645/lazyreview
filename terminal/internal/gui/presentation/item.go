@@ -16,6 +16,7 @@ type Item struct {
 	Component string
 	Pull      int
 	Comment   int
+	Thread    int
 	URL       string
 	Place     *server.Lines
 	Box       *types.DiagramPlace

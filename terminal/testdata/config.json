@@ -223,6 +223,9 @@
    ],
    "post": [
     "P"
+   ],
+   "stop": [
+    "x"
    ]
   },
   "diagramPanel": {
@@ -416,6 +419,9 @@
    ],
    "drop": [
     "d d"
+   ],
+   "stop": [
+    "x"
    ]
   },
   "diagram": {

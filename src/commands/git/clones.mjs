@@ -8,8 +8,13 @@
  * Network calls go through gh as git's credential helper, as the account
  * `environment` names, so a private repository needs nothing set up beyond
  * gh itself. A clone only ever holds what lazyreview fetched into it, so
- * fetching overwrites its refs freely. It takes no lock: the caller keeps
- * one fetch at a time in a clone.
+ * fetching overwrites its refs freely.
+ *
+ * clones.copyFrom(path, {from, commits}) makes the bare clone at `path` the
+ * first time, then fetches each commit in `commits` it lacks from the
+ * repository in the folder `from`, which it only reads, keeping each under a
+ * ref of its own so it stays. It returns the clone's path. Neither takes a
+ * lock: the caller keeps one fetch at a time in a clone.
  */
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -40,6 +45,14 @@ export class Clones {
     return path;
   }
 
+  async copyFrom(path, { from, commits }) {
+    if (!existsSync(path)) await this.#git(null, ['init', '--quiet', '--bare', path]);
+    const missing = [];
+    for (const commit of commits) if (!(await this.#has(path, commit))) missing.push(commit);
+    if (missing.length) await this.#git(path, ['fetch', '--quiet', '--no-tags', from, ...missing.map(c => `${c}:refs/commits/${c}`)]);
+    return path;
+  }
+
   async #has(path, commit) {
     const done = await this.#run(path, ['cat-file', '-e', `${commit}^{commit}`]);
     return done.code === 0;
@@ -47,9 +60,14 @@ export class Clones {
 
   async #git(path, args, environment = {}) {
     const done = await this.#run(path, args, environment);
-    if (done.code !== 0) throw new Error(english.git.failed(args.filter(a => !a.startsWith('credential') && a !== '-c')[0], done.stderr.trim().split('\n').pop()));
+    if (done.code !== 0) throw new Error(english.git.failed(args.filter(a => !a.startsWith('credential') && a !== '-c')[0], firstFailure(done.stderr)));
     return done.stdout;
   }
+}
+
+function firstFailure(stderr) {
+  const lines = stderr.trim().split('\n');
+  return lines.find(l => /^(fatal|error):/.test(l)) || lines.pop();
 }
 
 function runGit(path, args, environment = {}) {

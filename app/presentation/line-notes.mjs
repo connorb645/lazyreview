@@ -82,7 +82,7 @@ export function createNotesMarkup(ctx, folds) {
       (c.quote ? '<blockquote class="composer-quote">' + esc(c.quote.length > QUOTE ? c.quote.slice(0, QUOTE) + '…' : c.quote) + '</blockquote>' : '') +
       '<div class="choose-slot">' + chooseHTML(c, to.choose) + '</div>' +
       cards.textArea(ctx.state.queue ? words.askOrComment : words.askAbout, c.text) +
-      cards.actions(to.off) + '<button type="button" class="nbtn quiet close" data-act="cancel" aria-label="' + words.close + '">' + words.cancel + '</button></div>';
+      cards.actions(to.off, c.sending ? words.reading : null) + '<button type="button" class="nbtn quiet close" data-act="cancel" aria-label="' + words.close + '"' + (c.sending ? ' disabled' : '') + '>' + words.cancel + '</button></div>';
   }
 
   function githubCard(t) {

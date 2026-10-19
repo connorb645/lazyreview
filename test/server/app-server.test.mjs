@@ -206,6 +206,14 @@ test('the API asks Claude about a line and keeps the conversation', async () => 
     const replied = await call(s.address, 'POST', `${base}/threads/1/messages`, { body: { text: 'Sure?', build }, headers: s.own });
     assert.equal(replied.json.thread.messages.length, 4);
     assert.equal((await call(s.address, 'GET', base)).json.threads.length, 1);
+
+    s.fake.answer({ text: 'Too late.', wait: 60_000 });
+    const asking = call(s.address, 'POST', `${base}/threads/1/messages`, { body: { text: 'Is it tested?', build }, headers: s.own });
+    await new Promise(done => setTimeout(done, 1500));
+    assert.equal((await call(s.address, 'POST', `${base}/threads/1/stop`, {})).status, 403, 'only an app of this server stops Claude');
+    const stopped = await call(s.address, 'POST', `${base}/threads/1/stop`, { body: {}, headers: s.own });
+    assert.deepEqual(stopped.json.thread.messages.slice(-2).map(m => m.error || m.text), ['Is it tested?', 'you stopped it']);
+    assert.equal((await asking).status, 200);
   } finally {
     await s.done();
   }
@@ -232,7 +240,7 @@ test('a branch review is served read only: its state, its page and its conversat
 
     const asked = await call(s.address, 'POST', `${base}/threads`, { body: { path: 'docs/guide.md', side: 'RIGHT', line: 3, text: 'Every?', build: page.build }, headers: s.own });
     assert.deepEqual(asked.json.thread.messages.map(m => m.from), ['you', 'claude']);
-    assert.match(s.fake.asked()[0].prompt, /^Branch fix\/wording: Wording\. It has no pull request yet, and its diff is against main\.\n\nFile: docs\/guide\.md \(changed\)/);
+    assert.match(s.fake.asked()[0].prompt, /^Branch fix\/wording: Wording\. It has no pull request yet, and its diff is against main\.\n\nThe codebase as it stands after this change is in [^\n]+\/copies\/local\/[^\n]+\/1, your working folder, with the branch fix\/wording checked out and the branch main at the base of the change\.\n\nThe files this change touches:\ndocs\/guide\.md \(changed\)\n\nFile: docs\/guide\.md \(changed\), at /);
 
     s.w.repo.commit('fix/wording', { 'docs/guide.md': '# Guide\n\nThe catalog lists every single item.\n\n- Browse\n- Search\n' }, 'Again');
     s.w.repo.checkout('main');

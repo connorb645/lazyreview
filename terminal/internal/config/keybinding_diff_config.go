@@ -38,4 +38,5 @@ type KeybindingDiffConfig struct {
 	Ask           []string `json:"ask"`
 	Edit          []string `json:"edit"`
 	Drop          []string `json:"drop"`
+	Stop          []string `json:"stop"`
 }

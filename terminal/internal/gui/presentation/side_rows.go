@@ -196,7 +196,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 		for _, t := range asked {
 			at := server.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
 			right := ""
-			if m := t.Messages; len(m) > 0 && m[len(m)-1].From == "you" {
+			if Waiting(t) {
 				right = th.Muted.Render(tr.Waiting)
 			}
 			first := ""
@@ -204,7 +204,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 				first = " " + th.Muted.Render(utils.PlainText(t.Messages[0].Text))
 			}
 			rows = append(rows, SideRow{Key: fmt.Sprintf("conversation:%d", t.ID), Text: th.Text.Render(lineName(at)) + first, Right: right,
-				Item: Item{Kind: "conversation", Place: &at}})
+				Item: Item{Kind: "conversation", Place: &at, Thread: t.ID}})
 		}
 	}
 	var threads []server.GitHubThread

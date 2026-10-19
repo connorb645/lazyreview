@@ -169,9 +169,26 @@ func noteRows(tr *i18n.TranslationSet, loc *time.Location, d types.ReviewData, v
 			default:
 				text("claude", utils.ResolvePlaceholderString(tr.ClaudeSaid, map[string]string{"text": m.Text}), i)
 			}
+			if len(m.Steps) > 0 {
+				text("step", tookWords(tr, m.Steps), i)
+				for _, st := range m.Steps {
+					if st.Refused != "" {
+						text("refused", refusedWords(tr, st), i)
+					}
+				}
+			}
 		}
-		if last := n.Conversation.Messages; len(last) > 0 && last[len(last)-1].From == "you" {
+		if Waiting(*n.Conversation) {
 			text("waiting", tr.WaitingForClaude, -1)
+			if w := n.Conversation.Working; w != nil {
+				for _, st := range w.Steps[max(0, len(w.Steps)-shownSteps):] {
+					if st.Refused != "" {
+						text("refused", refusedWords(tr, st), -1)
+					} else {
+						text("step", st.Words, -1)
+					}
+				}
+			}
 		}
 	case "thread":
 		for _, c := range n.Thread.Comments {
@@ -221,7 +238,7 @@ func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n N
 		return head, utils.ResolvePlaceholderString(tr.QueuedNoteKeys, keys)
 	case "conversation":
 		head := fold + " " + tr.Claude + " · " + utils.Plural(len(n.Conversation.Messages), tr.MessageNoun) + lines
-		if m := n.Conversation.Messages; len(m) > 0 && m[len(m)-1].From == "you" {
+		if Waiting(*n.Conversation) {
 			head += " · " + tr.WaitingForClaudeWords
 		}
 		return head, utils.ResolvePlaceholderString(tr.ConversationNoteKeys, keys)
@@ -243,4 +260,24 @@ func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n N
 		head += " · " + tr.TheWholeFile
 	}
 	return head, utils.ResolvePlaceholderString(tr.ThreadNoteKeys, keys)
+}
+
+const shownSteps = 3
+
+func tookWords(tr *i18n.TranslationSet, steps []server.Step) string {
+	refused := 0
+	for _, st := range steps {
+		if st.Refused != "" {
+			refused++
+		}
+	}
+	words := map[string]string{"steps": utils.Plural(len(steps), tr.StepNoun), "refused": utils.Itoa(refused)}
+	if refused == 0 {
+		return utils.ResolvePlaceholderString(tr.TookSteps, words)
+	}
+	return utils.ResolvePlaceholderString(tr.TookStepsRefused, words)
+}
+
+func refusedWords(tr *i18n.TranslationSet, st server.Step) string {
+	return utils.ResolvePlaceholderString(tr.RefusedStep, map[string]string{"step": st.Words, "why": strings.TrimSuffix(st.Refused, ".")})
 }

@@ -49,7 +49,7 @@
 │ ■ Unchanged code              ││ ▾ Conversations                                                 │
 │                               ││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
 │                               ││     Could this be passed in?                                    │
-│                               ││     It returns early when the list is empty.                    │
+│                               ││     It could: the basket only reads from it.                    │
 │                               ││                                                                 │
 │                               ││ ▾ The change                                                    │
 │                               ││   ■ widgets  4 files +15 −1                                     │

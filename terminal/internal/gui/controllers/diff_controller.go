@@ -68,6 +68,7 @@ func (self *DiffController) Bindings() []Binding {
 		{Action: "other end", Keys: kb.Diff.OtherEnd, Handler: stateOnly(self.otherEnd), Description: tr.OtherEnd},
 		{Action: "comment", Keys: kb.Diff.Comment, Handler: uncounted(h.Editing.Comment), Description: tr.Comment},
 		{Action: "ask", Keys: kb.Diff.Ask, Handler: uncounted(h.Editing.Ask), Description: tr.AskClaude},
+		{Action: "stop", Keys: kb.Diff.Stop, Handler: uncounted(h.Editing.Stop), Description: tr.StopClaude},
 		{Action: "edit", Keys: kb.Diff.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
 		{Action: "drop", Keys: kb.Diff.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
 	}
@@ -306,6 +307,7 @@ func (self *DiffController) Help(labels presentation.KeyLabels) []HelpSection {
 		{Keys: labels.Of("select"), Words: selecting},
 		{Keys: labels.Of("comment"), Words: tr.HelpComment},
 		{Keys: labels.Of("ask"), Words: tr.HelpAsk},
+		{Keys: labels.Of("stop"), Words: tr.HelpStop},
 		{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor},
 		{Keys: labels.Of("drop"), Words: dropping},
 		{Keys: labels.Of("show type"), Words: tr.HelpShowType},
@@ -338,6 +340,8 @@ func (self *DiffController) noteHints(s context.ContextTree, labels presentation
 		switch {
 		case n.Kind == "queued":
 			return [][2]string{{labels.Of("edit"), tr.Edit}, {labels.Of("drop"), tr.Drop}, fold, notes, back}
+		case n.Kind == "conversation" && presentation.Waiting(*n.Conversation):
+			return [][2]string{{labels.Of("stop"), tr.StopClaude}, fold, notes, back}
 		case n.Kind == "conversation" && r.Part == "claude":
 			return [][2]string{{labels.Of("comment"), tr.CommentWithAnswer}, {labels.Of("ask"), tr.FollowUp}, fold, notes}
 		case n.Kind == "conversation":
