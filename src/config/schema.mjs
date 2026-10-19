@@ -12,7 +12,7 @@
  * section with `flow` is written on one line. defaults() returns the default config as plain values,
  * and leaves(section) every setting with its dotted key, such as
  * "server.port", in the tree's order. PATTERNS are what a login, a team's
- * name and a date must match, as regular expressions' sources. RETIRED
+ * name, a hidden repository and a date must match, as regular expressions' sources. RETIRED
  * names, by dotted key, each setting lazyreview no longer has, with what
  * does its work now.
  */
@@ -24,6 +24,7 @@ export const PATTERNS = Object.freeze({
   colour: '^#[0-9a-fA-F]{6}$',
   login: '^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$',
   team: '^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9_.-]+$',
+  repository: '^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/(?:[A-Za-z0-9_.-]+|\\*)$',
   date: '^\\d{4}-\\d{2}-\\d{2}$',
 });
 
@@ -58,7 +59,9 @@ const notes = english.config.about.keySections;
 
 const KEYBINDING = section({
   universal: keys({ command: ':', keys: '<space>?', review: '<space>v', github: 'gx', web: 'gX', close: ['q', '<esc>'], quit: ['ZZ', '<c-c>'], refresh: 'R', bigger: '+', smaller: '_' }, notes.universal),
-  home: keys({ ...MOVE, ...PAGES, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9'] }, notes.home),
+  home: keys({
+    ...MOVE, ...PAGES, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9'], hideRepository: 'i', showHidden: 'I',
+  }, notes.home),
   reviewScreen: keys({ nextPull: ']p', previousPull: '[p', jumpBack: '<c-o>', jumpForward: '<c-i>', diagram: '<space>m', finder: '<space>f', home: '<space>h', focusMain: '0' }, notes.reviewScreen),
   panels: keys({ ...MOVE, ...PAGES, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToBlock: ['1', '2', '3', '4'] }, notes.panels),
   reviewPanel: keys({ post: 'P', highlight: 'v' }),
@@ -107,6 +110,7 @@ export const SCHEMA = section({
   }),
   github: section({
     accounts: setting({ check: 'accounts', default: [], about: words.accounts, example: words.accountsExample }),
+    hiddenRepositories: setting({ check: 'repositories', default: [], about: words.hiddenRepositories, example: words.hiddenRepositoriesExample }),
   }),
   gui: section({
     lineNumbers: setting({ check: 'choice', choices: ['absolute', 'relative', 'none'], default: 'absolute', about: words.lineNumbers }),

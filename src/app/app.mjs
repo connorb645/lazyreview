@@ -4,8 +4,9 @@
  * new App({env, bin, terminal}) reads the settings from `env`, makes the data
  * home, and builds the services a command uses: `store`, `loader` and
  * `branches`, which load pull requests and branches, `queue`, `threads`,
- * `pulls`, `background`, the app's server running in the background, started
- * as `bin serve`, and `terminal`, the terminal app to launch. `settings` and
+ * `pulls`, `hidden`, the repositories the home screens leave out,
+ * `background`, the app's server running in the background, started as
+ * `bin serve`, and `terminal`, the terminal app to launch. `settings` and
  * `home` are what it read.
  *
  * serve() runs the app's server in this process until it is stopped, and
@@ -25,6 +26,7 @@ import { BranchLoader } from '../loader/branch-loader.mjs';
 import { QueueService } from '../queue/queue-service.mjs';
 import { ThreadService } from '../ask/thread-service.mjs';
 import { OpenPulls } from '../home/open-pulls.mjs';
+import { HiddenRepositories } from '../home/hidden-repositories.mjs';
 import { Claude } from '../commands/claude/claude.mjs';
 import { TerminalApp } from '../commands/os/terminal-app.mjs';
 import { AppServer } from '../server/app-server.mjs';
@@ -46,6 +48,7 @@ export class App {
     this.queue = new QueueService({ store });
     this.threads = new ThreadService({ store, claude: new Claude({ command: values.claude.command, model: values.claude.model || null }) });
     this.pulls = new OpenPulls({ store, config: () => readUserConfig({ env }) });
+    this.hidden = new HiddenRepositories({ config: () => readUserConfig({ env }) });
     this.background = new BackgroundServer({ home, bin, env });
     this.terminal = terminal;
     Object.freeze(this);
@@ -61,6 +64,7 @@ export class App {
       queue: this.queue,
       threads: this.threads,
       pulls: this.pulls,
+      hidden: this.hidden,
       token,
       port: this.config.values.server.port,
     });

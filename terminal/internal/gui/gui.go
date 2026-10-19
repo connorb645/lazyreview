@@ -88,6 +88,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		s, cmd = h.Home.AfterPulls(s, msg)
 	case types.PullsLoaded:
 		s, cmd = h.Home.AfterLoaded(s, msg)
+	case types.HiddenChanged:
+		s = h.Home.AfterHidden(s, msg)
 	case types.ReviewLoaded:
 		s, cmd = h.Review.AfterLoaded(s, msg)
 	case types.FilesLoaded:

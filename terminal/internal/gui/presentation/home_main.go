@@ -19,7 +19,7 @@ var htmlComment = regexp.MustCompile(`(?s)<!--.*?-->`)
 // is nothing to list, its words naming keys as labels label them.
 func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels KeyLabels, width int, v HomeMainView) (string, []string) {
 	b := &builder{width: width, tr: tr, th: th, labels: labels}
-	keys := map[string]string{"refresh": labels.Of("refresh"), "command": labels.Of("command"), "open": labels.Of("open")}
+	keys := map[string]string{"refresh": labels.Of("refresh"), "command": labels.Of("command"), "open": labels.Of("open"), "show": labels.Of("show hidden")}
 	title := tr.PullRequestsTitle
 	switch {
 	case v.List == nil && v.Failed != "":
@@ -59,8 +59,15 @@ func HomeMain(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels KeyL
 		for i, read := range v.List.Accounts {
 			logins[i] = read.Login
 		}
+		nothing := tr.NothingInvolves
+		if HiddenCount(v.List) > 0 {
+			nothing = tr.AllHidden
+		}
+		if HiddenCount(v.List) > 0 && keys["show"] != "" {
+			nothing += " " + utils.ResolvePlaceholderString(tr.ShowKeyShowsThem, keys)
+		}
 		b.text("")
-		b.prose(" ", th.Text, utils.ResolvePlaceholderString(tr.NothingInvolves, map[string]string{"logins": listed(tr, logins)}))
+		b.prose(" ", th.Text, utils.ResolvePlaceholderString(nothing, map[string]string{"logins": listed(tr, logins)}))
 		b.text("")
 		b.prose(" ", th.Muted, utils.ResolvePlaceholderString(tr.ReadsGitHubAgain, keys))
 	}
@@ -92,6 +99,13 @@ func pullLines(b *builder, md *Markdown, v HomeMainView) {
 	}
 	if m.Draft {
 		marked(b, " ", th.Muted, tr.ADraft)
+	}
+	if len(repo.HiddenBy) > 0 {
+		words := utils.ResolvePlaceholderString(tr.HiddenFromHome, map[string]string{"entries": listed(tr, repo.HiddenBy)})
+		if hide := b.labels.Of("hide"); hide != "" {
+			words += " " + utils.ResolvePlaceholderString(tr.HideKeyShowsIt, map[string]string{"hide": hide})
+		}
+		marked(b, " ", th.Muted, words)
 	}
 	open := map[string]string{"open": b.labels.Of("open")}
 	b.text("")

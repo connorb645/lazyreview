@@ -1,0 +1,48 @@
+╭─[1]─octo/widgets ● 1──────────────────────────────╮╭─[0]─octo/gadgets #7──────────────────────────────────────────────────────────────────────────────────────╮
+│  ◆ ┌ #21 Add search to the catalog            sam ││ Count the gadgets in stock                                                                               │
+│ ●◆ └ #22 Add a basket that uses search        sam ││ #7 by kim · kim/stock → main                                                                             │
+│      #30 Fix the guide wording               alex ││                                                                                                          │
+│                                                   ││ ● Waiting on your review, asked of octo/reviewers.                                                       │
+│                                                   ││   Not loaded in lazyreview yet.                                                                          │
+│                                                   ││   Hidden from the home screen by octo/gadgets in the config. i shows it again.                           │
+│                                                   ││                                                                                                          │
+│                                                   ││ Enter loads it as reviewer, then opens it.                                                               │
+│                                                   ││                                                                                                          │
+│                                                   ││ Counts each gadget once.                                                                                 │
+│                                                   ││                                                                                                          │
+│                                                   ││ • Adds a stock count                                                                                     │
+│                                                   ││ • Shows it on the shelf                                                                                  │
+│                                                   ││                                                                                                          │
+╰────────────────────────────────────────────1 of 3─╯│                                                                                                          │
+╭─[2]─octo/gadgets ● 1 hidden───────────────────────╮│                                                                                                          │
+│▌●    #7 Count the gadgets in stock            kim ││                                                                                                          │
+│      #9 Sort the gadgets by price             kim ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+╰────────────────────────────────────────────1 of 2─╯│                                                                                                          │
+╭─[3]─reviewer-home/notes hidden────────────────────╮│                                                                                                          │
+│    ┌ #3 Keep the notes in plain te… reviewer-home ││                                                                                                          │
+│    └ #4 Tag the notes               reviewer-home ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+╰────────────────────────────────────────────1 of 2─╯╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ Load and open: Enter | Repositories: h l | GitHub: gx | Refresh: R | Keys: Space ?                                              Showing 2 hidden · I hides them

@@ -72,6 +72,7 @@ const TYPES = {
   keys: { oneOf: [{ type: 'string', minLength: 1 }, { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } }] },
   numberedKeys: { type: 'array', items: { type: 'string', minLength: 1 } },
   colours: { type: 'array', minItems: 8, maxItems: 8, items: { oneOf: [{ type: 'string', pattern: PATTERNS.colour }, { type: 'integer', minimum: 0, maximum: 255 }] } },
+  repositories: { type: ['array', 'null'], items: { type: 'string', pattern: PATTERNS.repository } },
   accounts: {
     type: 'array',
     items: {

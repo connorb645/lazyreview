@@ -46,7 +46,7 @@ func (self *MenuHelper) OpenFinder(s context.ContextTree) context.ContextTree {
 
 // OpenRow is the state with the place the menu's selected row stands for
 // open, the menu closed: a box, a file, or the pull request a comment
-// goes to.
+// goes to; or the command that hides a repository, or shows it again.
 func (self *MenuHelper) OpenRow(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 	pn, h := s.Menu, self.c.Helpers
 	if !s.MenuOpen() || pn.Cursor >= len(pn.Rows) || pn.Rows[pn.Cursor].Open == nil {
@@ -54,6 +54,12 @@ func (self *MenuHelper) OpenRow(s context.ContextTree) (context.ContextTree, tea
 	}
 	it := *pn.Rows[pn.Cursor].Open
 	s = s.WithoutMenu()
+	switch it.Kind {
+	case "hide":
+		return s, h.Home.Hide(s, it.Title)
+	case "show":
+		return s, h.Home.Show(s)
+	}
 	if it.Kind == "choose" && s.Choosing != nil {
 		e := *s.Choosing
 		e.Pull, s.Choosing = it.Pull, nil

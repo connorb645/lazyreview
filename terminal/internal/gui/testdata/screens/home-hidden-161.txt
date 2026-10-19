@@ -1,0 +1,48 @@
+╭─[1]─octo/widgets ● 1──────────────────────────────╮╭─[0]─octo/widgets #21─────────────────────────────────────────────────────────────────────────────────────╮
+│▌ ◆ ┌ #21 Add search to the catalog            sam ││ Add search to the catalog                                                                                │
+│ ●◆ └ #22 Add a basket that uses search        sam ││ #21 by sam · feature/search → main                                                                       │
+│      #30 Fix the guide wording               alex ││                                                                                                          │
+│                                                   ││ ◆ Loaded in lazyreview.                                                                                  │
+│                                                   ││                                                                                                          │
+│                                                   ││ Enter opens the stack's review.                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││ The stack, bottom first:                                                                                 │
+│                                                   ││ ▸ #21 Add search to the catalog                                                                          │
+│                                                   ││   #22 Add a basket that uses search                                                                      │
+│                                                   ││                                                                                                          │
+│                                                   ││ Adds a search over the catalog by name.                                                                  │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+│                                                   ││                                                                                                          │
+╰────────────────────────────────────────────1 of 3─╯╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ Open: Enter | GitHub: gx | Refresh: R | Keys: Space ?                                                                      2 repositories hidden · I shows them

@@ -24,8 +24,9 @@ folder, then in the others. Three variables move it:
   `XDG_CONFIG_DIRS` of the folders searched after it.
 
 `lazyreview config path` prints where the file is, or would be, on its
-first line, and whether it exists on the next. lazyreview never makes the
-file itself.
+first line, and whether it exists on the next. lazyreview makes the file
+only when asked: by `config move`, or by hiding a repository from the home
+screen with no file yet, which makes one holding only that list.
 
 ## Editor help
 
@@ -89,6 +90,13 @@ github:
   #     teams:
   #       - name: example-org/mobile
   #         since: 2026-10-01
+
+  # Repositories the home screen leaves out, for every account: owner/name,
+  # or owner/* for every repository of the owner. A review of one still opens.
+  hiddenRepositories: []
+  # hiddenRepositories:
+  #   - example-org/old-app
+  #   - example-bots/*
 
 gui:
   # How the terminal app's diff numbers its lines: absolute, each line its
@@ -162,6 +170,8 @@ keybinding:
     previousPanel: 'h'
     nextPanel: 'l'
     jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+    hideRepository: 'i'
+    showHidden: 'I'
   reviewScreen:           # every panel of a review
     nextPull: ']p'
     previousPull: '[p'
@@ -341,6 +351,36 @@ Each account is read by its own token, so each must be signed in to `gh`.
 A review asked of one of an account's teams counts as asked of the
 account, for pull requests opened on or after the team's `since` date. A
 team with no `since` counts from any date.
+
+## Hidden repositories
+
+`github.hiddenRepositories` names repositories the home screen leaves out,
+for every account and team:
+
+```yaml
+github:
+  hiddenRepositories:
+    - example-org/old-app      # one repository
+    - example-bots/*           # every repository of an owner
+```
+
+Case does not count, as it does not in GitHub's names. A hidden repository
+has no panel on the home screen, and the bar counts the ones hidden. The web
+app's front page leaves out the reviews of hidden repositories, and says how
+many. Nothing else changes: a review of one still opens, and `lazyreview
+load` still loads one.
+
+The home screen's keys write the list for you: `hideRepository`, `i`, hides
+the repository selected or every repository of its owner, and on a hidden
+one takes its entry off; `showHidden`, `I`, shows the hidden ones, dim.
+Either key can be changed or disabled under `keybinding.home`. A change
+edits the file the config was read from, `LAZYREVIEW_CONFIG_FILE` or
+`LAZYREVIEW_CONFIG_DIR` included, in place: every comment, blank line,
+commented-out line, order and value stays as you wrote it, and the list
+keeps its own style. It writes a new file beside the old one and renames it
+over it, so a failure leaves the old file whole, and a config that is a
+link keeps its link. A `github` section written in braces, or a list in
+brackets over several lines, is refused, saying so; edit those by hand.
 
 ## Keys
 

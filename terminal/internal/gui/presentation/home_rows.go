@@ -35,8 +35,10 @@ func UnitName(repo server.PullRepo, u server.Unit) string {
 
 // HomePanels are the home screen's panels: one for the accounts GitHub
 // could not read, then one for each repository's open pull requests, the
-// first nine numbered; or one that says why there are none.
-func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *server.Pulls, failed string) []HomePanel {
+// first nine numbered; or one that says why there are none. A repository the
+// config hides has no panel, unless showHidden, when its panel comes after
+// the others, dim.
+func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *server.Pulls, failed string, showHidden bool) []HomePanel {
 	note := func(key, text string) []HomePanel {
 		return []HomePanel{{Title: tr.PullRequestsTitle, Repo: -1, Rows: []SideRow{{Key: key, Text: text, Heading: true}}}}
 	}
@@ -58,10 +60,19 @@ func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *server.Pulls, fai
 	if len(unread) > 0 {
 		panels = append(panels, HomePanel{Title: tr.NotReadFromGitHub, Repo: -1, Rows: unread})
 	}
-	for r, repo := range list.Repos {
-		panel := HomePanel{Title: repo.Name, Repo: r}
-		if r < repoPanels {
-			panel.Number = r + 1
+	var order []int
+	for _, hidden := range []bool{false, true} {
+		for r, repo := range list.Repos {
+			if (len(repo.HiddenBy) > 0) == hidden && (!hidden || showHidden) {
+				order = append(order, r)
+			}
+		}
+	}
+	for at, r := range order {
+		repo := list.Repos[r]
+		panel := HomePanel{Title: repo.Name, Repo: r, Hidden: len(repo.HiddenBy) > 0}
+		if at < repoPanels {
+			panel.Number = at + 1
 		}
 		widest := 0
 		for _, u := range repo.Units {
@@ -74,10 +85,13 @@ func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *server.Pulls, fai
 				if len(m.Asked) > 0 {
 					panel.Waiting++
 				}
-				panel.Rows = append(panel.Rows, pullRow(u, i, widest, th))
+				panel.Rows = append(panel.Rows, pullRow(u, i, widest, panel.Hidden, th))
 			}
 		}
 		panels = append(panels, panel)
+	}
+	if len(panels) == 0 && HiddenCount(list) > 0 {
+		return note("hidden", th.Muted.Render(tr.EveryOneHidden))
 	}
 	if len(panels) == 0 {
 		return note("none", th.Muted.Render(tr.NoneOpen))
@@ -85,14 +99,31 @@ func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *server.Pulls, fai
 	return panels
 }
 
-func pullRow(u server.Unit, i, widest int, th theme.Theme) SideRow {
+// HiddenCount is how many repositories of the list the config hides.
+func HiddenCount(list *server.Pulls) int {
+	n := 0
+	if list != nil {
+		for _, repo := range list.Repos {
+			if len(repo.HiddenBy) > 0 {
+				n++
+			}
+		}
+	}
+	return n
+}
+
+func pullRow(u server.Unit, i, widest int, hidden bool, th theme.Theme) SideRow {
 	m := u.Members[i]
 	waiting, loaded, bracket := " ", " ", " "
+	warning, accent := th.Warning, th.Accent
+	if hidden {
+		warning, accent = th.Faint, th.Faint
+	}
 	if len(m.Asked) > 0 {
-		waiting = th.Warning.Render("●")
+		waiting = warning.Render("●")
 	}
 	if m.Review != "" {
-		loaded = th.Accent.Render("◆")
+		loaded = accent.Render("◆")
 	}
 	switch {
 	case len(u.Members) == 1:
@@ -103,14 +134,17 @@ func pullRow(u server.Unit, i, widest int, th theme.Theme) SideRow {
 	default:
 		bracket = th.Muted.Render("│")
 	}
-	number, title := th.Muted, th.Text
-	if m.Draft {
+	number, title, author := th.Muted, th.Text, th.Muted
+	if m.Draft || hidden {
 		number, title = th.Faint, th.Faint
+	}
+	if hidden {
+		author = th.Faint
 	}
 	return SideRow{
 		Key:   fmt.Sprintf("pull:%d", m.Number),
 		Text:  waiting + loaded + " " + bracket + " " + number.Render(fmt.Sprintf("%*s", widest+1, fmt.Sprintf("#%d", m.Number))) + " " + title.Render(m.Title),
-		Right: th.Muted.Render(ansi.Truncate(m.Author, authorWidth, "…")),
+		Right: author.Render(ansi.Truncate(m.Author, authorWidth, "…")),
 		Item:  Item{Kind: "pull", Pull: m.Number, URL: m.URL, Title: m.Title},
 	}
 }

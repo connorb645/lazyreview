@@ -178,6 +178,22 @@ func (c *Client) Pulls() (Pulls, error) {
 	return pulls, c.get("/api/pulls", nil, pullsWait, &pulls)
 }
 
+// ChangeHidden puts an entry on the config's hidden repositories, a
+// repository as owner/name or every repository of an owner as owner/*, or
+// takes entries off it, in the file the server read; with no entry to hide,
+// hide is empty. It returns what now hides each of repos.
+func (c *Client) ChangeHidden(hide string, show, repos []string) (Hidden, error) {
+	var hidden Hidden
+	fields := map[string]any{"repos": repos}
+	if hide != "" {
+		fields["hide"] = hide
+	}
+	if len(show) > 0 {
+		fields["show"] = show
+	}
+	return hidden, c.change(http.MethodPost, "/api/hidden", nil, fields, changeWait, &hidden)
+}
+
 // Load loads pull requests from GitHub into a review, a stack bottom
 // first, as the GitHub account named, and returns the review's id and the
 // server's notes on what it found.

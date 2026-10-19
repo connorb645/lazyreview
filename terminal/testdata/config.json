@@ -159,6 +159,12 @@
     "7",
     "8",
     "9"
+   ],
+   "hideRepository": [
+    "i"
+   ],
+   "showHidden": [
+    "I"
    ]
   },
   "reviewScreen": {

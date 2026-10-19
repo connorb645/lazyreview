@@ -18,6 +18,7 @@
      "host": "github.com",
      "name": "octo/gadgets",
      "account": "reviewer",
+     "hidden_by": [],
      "units": [
       {
        "review": null,
@@ -65,6 +66,7 @@
      "host": "github.com",
      "name": "octo/widgets",
      "account": "reviewer",
+     "hidden_by": [],
      "units": [
       {
        "review": "github.com/octo/widgets/21",
@@ -126,6 +128,7 @@
      "host": "github.com",
      "name": "reviewer-home/notes",
      "account": "reviewer-home",
+     "hidden_by": [],
      "units": [
       {
        "review": null,
@@ -180,6 +183,7 @@
      "host": "github.com",
      "name": "reviewer-home/notes",
      "account": "reviewer-home",
+     "hidden_by": [],
      "units": [
       {
        "review": null,
@@ -251,6 +255,7 @@
      "host": "github.com",
      "name": "octo/gadgets",
      "account": "reviewer",
+     "hidden_by": [],
      "units": [
       {
        "review": null,
@@ -298,6 +303,7 @@
      "host": "github.com",
      "name": "octo/widgets",
      "account": "reviewer",
+     "hidden_by": [],
      "units": [
       {
        "review": "github.com/octo/widgets/21",
@@ -381,6 +387,468 @@
    "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
    "accounts": [],
    "repos": []
+  }
+ },
+ "GET /api/pulls#hidden": {
+  "status": 200,
+  "body": {
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+   "accounts": [
+    {
+     "login": "reviewer",
+     "error": null
+    },
+    {
+     "login": "reviewer-home",
+     "error": null
+    }
+   ],
+   "repos": [
+    {
+     "host": "github.com",
+     "name": "octo/gadgets",
+     "account": "reviewer",
+     "hidden_by": [
+      "octo/gadgets"
+     ],
+     "units": [
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 7,
+         "title": "Count the gadgets in stock",
+         "author": "kim",
+         "url": "https://github.com/octo/gadgets/pull/7",
+         "draft": false,
+         "base": "main",
+         "head": "kim/stock",
+         "description": "Counts each gadget once.\n\n- Adds a stock count\n- Shows it on the shelf",
+         "asked": [
+          "octo/reviewers"
+         ],
+         "yours": false,
+         "commented": false,
+         "review": null
+        }
+       ]
+      },
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 9,
+         "title": "Sort the gadgets by price",
+         "author": "kim",
+         "url": "https://github.com/octo/gadgets/pull/9",
+         "draft": false,
+         "base": "main",
+         "head": "kim/sort",
+         "description": "",
+         "asked": [],
+         "yours": false,
+         "commented": true,
+         "review": null
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "host": "github.com",
+     "name": "octo/widgets",
+     "account": "reviewer",
+     "hidden_by": [],
+     "units": [
+      {
+       "review": "github.com/octo/widgets/21",
+       "members": [
+        {
+         "number": 21,
+         "title": "Add search to the catalog",
+         "author": "sam",
+         "url": "https://github.com/octo/widgets/pull/21",
+         "draft": false,
+         "base": "main",
+         "head": "feature/search",
+         "description": "Adds a search over the catalog by name.",
+         "asked": [],
+         "yours": false,
+         "commented": false,
+         "review": "github.com/octo/widgets/21"
+        },
+        {
+         "number": 22,
+         "title": "Add a basket that uses search",
+         "author": "sam",
+         "url": "https://github.com/octo/widgets/pull/22",
+         "draft": false,
+         "base": "feature/search",
+         "head": "feature/basket",
+         "description": "",
+         "asked": [
+          "reviewer"
+         ],
+         "yours": false,
+         "commented": false,
+         "review": "github.com/octo/widgets/21"
+        }
+       ]
+      },
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 30,
+         "title": "Fix the guide wording",
+         "author": "alex",
+         "url": "https://github.com/octo/widgets/pull/30",
+         "draft": false,
+         "base": "main",
+         "head": "fix/wording",
+         "description": "",
+         "asked": [],
+         "yours": false,
+         "commented": true,
+         "review": null
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "host": "github.com",
+     "name": "reviewer-home/notes",
+     "account": "reviewer-home",
+     "hidden_by": [
+      "reviewer-home/*"
+     ],
+     "units": [
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 3,
+         "title": "Keep the notes in plain text",
+         "author": "reviewer-home",
+         "url": "https://github.com/reviewer-home/notes/pull/3",
+         "draft": false,
+         "base": "main",
+         "head": "plain-text",
+         "description": "",
+         "asked": [],
+         "yours": true,
+         "commented": false,
+         "review": null
+        },
+        {
+         "number": 4,
+         "title": "Tag the notes",
+         "author": "reviewer-home",
+         "url": "https://github.com/reviewer-home/notes/pull/4",
+         "draft": true,
+         "base": "plain-text",
+         "head": "tags",
+         "description": "",
+         "asked": [],
+         "yours": true,
+         "commented": false,
+         "review": null
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "GET /api/pulls#all hidden": {
+  "status": 200,
+  "body": {
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+   "accounts": [
+    {
+     "login": "reviewer",
+     "error": null
+    },
+    {
+     "login": "reviewer-home",
+     "error": null
+    }
+   ],
+   "repos": [
+    {
+     "host": "github.com",
+     "name": "octo/gadgets",
+     "account": "reviewer",
+     "hidden_by": [
+      "octo/*"
+     ],
+     "units": [
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 7,
+         "title": "Count the gadgets in stock",
+         "author": "kim",
+         "url": "https://github.com/octo/gadgets/pull/7",
+         "draft": false,
+         "base": "main",
+         "head": "kim/stock",
+         "description": "Counts each gadget once.\n\n- Adds a stock count\n- Shows it on the shelf",
+         "asked": [
+          "octo/reviewers"
+         ],
+         "yours": false,
+         "commented": false,
+         "review": null
+        }
+       ]
+      },
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 9,
+         "title": "Sort the gadgets by price",
+         "author": "kim",
+         "url": "https://github.com/octo/gadgets/pull/9",
+         "draft": false,
+         "base": "main",
+         "head": "kim/sort",
+         "description": "",
+         "asked": [],
+         "yours": false,
+         "commented": true,
+         "review": null
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "host": "github.com",
+     "name": "octo/widgets",
+     "account": "reviewer",
+     "hidden_by": [
+      "octo/*"
+     ],
+     "units": [
+      {
+       "review": "github.com/octo/widgets/21",
+       "members": [
+        {
+         "number": 21,
+         "title": "Add search to the catalog",
+         "author": "sam",
+         "url": "https://github.com/octo/widgets/pull/21",
+         "draft": false,
+         "base": "main",
+         "head": "feature/search",
+         "description": "Adds a search over the catalog by name.",
+         "asked": [],
+         "yours": false,
+         "commented": false,
+         "review": "github.com/octo/widgets/21"
+        },
+        {
+         "number": 22,
+         "title": "Add a basket that uses search",
+         "author": "sam",
+         "url": "https://github.com/octo/widgets/pull/22",
+         "draft": false,
+         "base": "feature/search",
+         "head": "feature/basket",
+         "description": "",
+         "asked": [
+          "reviewer"
+         ],
+         "yours": false,
+         "commented": false,
+         "review": "github.com/octo/widgets/21"
+        }
+       ]
+      },
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 30,
+         "title": "Fix the guide wording",
+         "author": "alex",
+         "url": "https://github.com/octo/widgets/pull/30",
+         "draft": false,
+         "base": "main",
+         "head": "fix/wording",
+         "description": "",
+         "asked": [],
+         "yours": false,
+         "commented": true,
+         "review": null
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "host": "github.com",
+     "name": "reviewer-home/notes",
+     "account": "reviewer-home",
+     "hidden_by": [
+      "reviewer-home/notes"
+     ],
+     "units": [
+      {
+       "review": null,
+       "members": [
+        {
+         "number": 3,
+         "title": "Keep the notes in plain text",
+         "author": "reviewer-home",
+         "url": "https://github.com/reviewer-home/notes/pull/3",
+         "draft": false,
+         "base": "main",
+         "head": "plain-text",
+         "description": "",
+         "asked": [],
+         "yours": true,
+         "commented": false,
+         "review": null
+        },
+        {
+         "number": 4,
+         "title": "Tag the notes",
+         "author": "reviewer-home",
+         "url": "https://github.com/reviewer-home/notes/pull/4",
+         "draft": true,
+         "base": "plain-text",
+         "head": "tags",
+         "description": "",
+         "asked": [],
+         "yours": true,
+         "commented": false,
+         "review": null
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "POST /api/hidden {\"hide\":\"octo/widgets\",\"repos\":[\"octo/gadgets\",\"octo/widgets\",\"reviewer-home/notes\"]}": {
+  "status": 200,
+  "body": {
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+   "repos": [
+    {
+     "name": "octo/gadgets",
+     "hidden_by": []
+    },
+    {
+     "name": "octo/widgets",
+     "hidden_by": [
+      "octo/widgets"
+     ]
+    },
+    {
+     "name": "reviewer-home/notes",
+     "hidden_by": []
+    }
+   ]
+  }
+ },
+ "POST /api/hidden {\"repos\":[\"octo/gadgets\",\"octo/widgets\",\"reviewer-home/notes\"],\"show\":[\"octo/widgets\"]}": {
+  "status": 200,
+  "body": {
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+   "repos": [
+    {
+     "name": "octo/gadgets",
+     "hidden_by": []
+    },
+    {
+     "name": "octo/widgets",
+     "hidden_by": []
+    },
+    {
+     "name": "reviewer-home/notes",
+     "hidden_by": []
+    }
+   ]
+  }
+ },
+ "POST /api/hidden {\"hide\":\"octo/*\",\"repos\":[\"octo/gadgets\",\"octo/widgets\",\"reviewer-home/notes\"]}": {
+  "status": 200,
+  "body": {
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+   "repos": [
+    {
+     "name": "octo/gadgets",
+     "hidden_by": [
+      "octo/*"
+     ]
+    },
+    {
+     "name": "octo/widgets",
+     "hidden_by": [
+      "octo/*"
+     ]
+    },
+    {
+     "name": "reviewer-home/notes",
+     "hidden_by": []
+    }
+   ]
+  }
+ },
+ "POST /api/hidden {\"repos\":[\"octo/gadgets\",\"octo/widgets\",\"reviewer-home/notes\"],\"show\":[\"octo/*\"]}": {
+  "status": 200,
+  "body": {
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+   "repos": [
+    {
+     "name": "octo/gadgets",
+     "hidden_by": []
+    },
+    {
+     "name": "octo/widgets",
+     "hidden_by": []
+    },
+    {
+     "name": "reviewer-home/notes",
+     "hidden_by": []
+    }
+   ]
+  }
+ },
+ "POST /api/hidden {\"repos\":[\"octo/gadgets\",\"octo/widgets\",\"reviewer-home/notes\"],\"show\":[\"reviewer-home/*\"]}": {
+  "status": 200,
+  "body": {
+   "config": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+   "repos": [
+    {
+     "name": "octo/gadgets",
+     "hidden_by": [
+      "octo/gadgets"
+     ]
+    },
+    {
+     "name": "octo/widgets",
+     "hidden_by": []
+    },
+    {
+     "name": "reviewer-home/notes",
+     "hidden_by": []
+    }
+   ]
+  }
+ },
+ "POST /api/hidden {\"hide\":\"reviewer-home/notes\",\"repos\":[\"octo/gadgets\",\"octo/widgets\",\"reviewer-home/notes\"]}": {
+  "status": 409,
+  "body": {
+   "error": "/home/reviewer/Library/Application Support/lazyreview/config.yml was not changed: github is written in a way lazyreview cannot change line by line; change it by hand, as docs/Config.md shows"
   }
  },
  "GET /api/reviews/github.com/octo/widgets/21": {

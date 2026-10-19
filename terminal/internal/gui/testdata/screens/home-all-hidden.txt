@@ -1,0 +1,30 @@
+╭─Pull requests──────────────────────────────────╮╭─[0]─Pull requests──────────────────────────────╮
+│ Every repository is hidden                     ││                                                │
+│                                                ││ The config hides every repository with open    │
+│                                                ││ pull requests that involve reviewer and        │
+│                                                ││ reviewer-home. I shows them.                   │
+│                                                ││                                                │
+│                                                ││ R reads GitHub again.                          │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+╰────────────────────────────────────────────────╯╰────────────────────────────────────────────────╯
+ Read again: R | Quit: :q | Keys: Space ?                      3 repositories hidden · I shows them

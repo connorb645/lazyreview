@@ -179,6 +179,8 @@ and why, and the others are still listed.
 | `h` `l` | the repository above or below, going round from the last to the first and back |
 | `1` to `9` | the first nine repositories |
 | `Enter` | opens the pull request's review; one no review holds yet is loaded from GitHub first, as the account that found it |
+| `i` | hides the repository, or every repository of its owner, from a menu; on a hidden one, shows it again |
+| `I` | shows the hidden repositories, dim, after the others, or hides them again |
 | `R` `:refresh` | reads GitHub again |
 | `gx` | opens the pull request on GitHub |
 | `Space v` | back to the review open |
@@ -204,6 +206,17 @@ changed. A review asked of one of an account's teams counts as asked of you,
 for pull requests opened on or after the team's `since` date when it has one.
 With no accounts in the config, the home screen says how to name them.
 [The config's own page](Config.md) lists every setting.
+
+A repository you do not review can be hidden. `i` on it opens a menu: hide
+this repository, or every repository of its owner. The choice goes in the
+config's `github.hiddenRepositories`, as `owner/name` or `owner/*`, for every
+account, and the file keeps every other line as you wrote it. A hidden
+repository has no panel, and the bar counts the ones hidden, so no pull
+request leaves without a word. `I` shows them, dim, marked hidden, after the
+others; `i` on one shows it again, and when an `owner/*` entry hides it, the
+menu says so before taking that entry off. A review of a hidden repository
+still opens, `load` still loads one, and the web app's front page leaves
+those reviews out as well, saying how many.
 
 ### In a review
 

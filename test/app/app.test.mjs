@@ -13,6 +13,7 @@ const { drawRendered } = await import('../../app/presentation/rendered-markdown.
 const { safeMarkdown } = await import('../../app/lib/markdown.mjs');
 const { indexPage } = await import('../../app/context/review-data.mjs');
 const { breakable } = await import('../../app/lib/text.mjs');
+const { homeList } = await import('../../app/presentation/home.mjs');
 const { english } = await import('/i18n/english.mjs');
 
 function modules(folder) {
@@ -119,4 +120,16 @@ test('under the pull request filter, unchanged code is never left out, and an ar
   assert.equal(packageCount(1), '1 link');
   ctx.filter.pull = null;
   assert.equal(pulls.countShown(summary.ways[0].links), 3);
+});
+
+test('the front page leaves out the reviews of hidden repositories, and says how many and of which', () => {
+  const review = (id, repo, hidden_by = []) => ({ id, repo, title: `Review ${id}`, loaded_at: '2026-10-15T12:00:00Z', moved: null, members: [{ pull: 1, state: 'open' }], queued: 0, hidden_by });
+  const html = homeList([review('a', 'octo/widgets', ['octo/*']), review('b', 'octo/gadgets', ['octo/*']), review('c', 'octo/gadgets', ['octo/*']), review('d', 'reviewer-home/notes')]);
+  assert.equal((html.match(/class="home-item"/g) || []).length, 1);
+  assert.match(html, /Review d/);
+  assert.ok(!/Review [abc]/.test(html));
+  assert.match(html, /<li class="home-hidden">Not listed: 3 reviews of <b>octo\/widgets<\/b> and <b>octo\/gadgets<\/b>, which <code>github\.hiddenRepositories<\/code> in the config hides\.<\/li>$/);
+  const alone = homeList([review('a', 'octo/<widgets>', ['octo/*'])]);
+  assert.equal(alone, '<li class="home-hidden">Not listed: 1 review of <b>octo/&lt;widgets&gt;</b>, which <code>github.hiddenRepositories</code> in the config hides.</li>', 'with every review hidden, it says so in place of none');
+  assert.equal(homeList([]), `<li class="home-empty">${english.web.home.none}</li>`);
 });
