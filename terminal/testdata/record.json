@@ -2043,7 +2043,8 @@
       "line": 1,
       "text_line": 1,
       "left": null,
-      "list": null
+      "list": null,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2053,7 +2054,8 @@
       "line": 3,
       "text_line": 3,
       "left": null,
-      "list": null
+      "list": null,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2063,7 +2065,8 @@
       "line": 5,
       "text_line": 5,
       "left": null,
-      "list": 0
+      "list": 0,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2073,7 +2076,8 @@
       "line": 6,
       "text_line": 6,
       "left": null,
-      "list": 0
+      "list": 0,
+      "pulls": []
      }
     ],
     "partial": false
@@ -2272,7 +2276,8 @@
        "start_line": 1,
        "line": 1
       },
-      "list": null
+      "list": null,
+      "pulls": []
      },
      {
       "state": "del",
@@ -2282,7 +2287,8 @@
       "line": 3,
       "text_line": 3,
       "left": null,
-      "list": null
+      "list": null,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2292,7 +2298,8 @@
       "line": 3,
       "text_line": 3,
       "left": null,
-      "list": null
+      "list": null,
+      "pulls": []
      },
      {
       "state": "same",
@@ -2305,7 +2312,8 @@
        "start_line": 5,
        "line": 5
       },
-      "list": 0
+      "list": 0,
+      "pulls": []
      },
      {
       "state": "same",
@@ -2318,7 +2326,8 @@
        "start_line": 6,
        "line": 6
       },
-      "list": 0
+      "list": 0,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2328,7 +2337,8 @@
       "line": 7,
       "text_line": 7,
       "left": null,
-      "list": 0
+      "list": 0,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2338,7 +2348,8 @@
       "line": 9,
       "text_line": 9,
       "left": null,
-      "list": null
+      "list": null,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2348,7 +2359,8 @@
       "line": 11,
       "text_line": 11,
       "left": null,
-      "list": 1
+      "list": 1,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2358,7 +2370,8 @@
       "line": 12,
       "text_line": 12,
       "left": null,
-      "list": 1
+      "list": 1,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2368,7 +2381,8 @@
       "line": 13,
       "text_line": 13,
       "left": null,
-      "list": 1
+      "list": 1,
+      "pulls": []
      },
      {
       "state": "add",
@@ -2378,7 +2392,8 @@
       "line": 17,
       "text_line": 16,
       "left": null,
-      "list": null
+      "list": null,
+      "pulls": []
      }
     ],
     "partial": false

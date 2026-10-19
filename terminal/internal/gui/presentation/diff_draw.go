@@ -60,7 +60,7 @@ func drawRow(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v Di
 	case "notehead", "notetext":
 		return []string{mark + noteLine(tr, labels, d, v, r, th)}
 	case "block":
-		return []string{mark + blockLine(v, i, th)}
+		return []string{mark + blockLine(v, i, filter, th)}
 	case "file":
 		return []string{mark + fileHeader(tr, d, v, r, filter, th)}
 	case "hunk":
@@ -76,7 +76,7 @@ func drawRow(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v Di
 	return unifiedRow(d, v, i, mark, filter, th)
 }
 
-func blockLine(v DiffView, i int, th theme.Theme) string {
+func blockLine(v DiffView, i int, filter types.PullFilter, th theme.Theme) string {
 	r := v.Rows[i]
 	b := r.Block
 	label := ""
@@ -86,11 +86,16 @@ func blockLine(v DiffView, i int, th theme.Theme) string {
 	case v.Numbers == RelativeNumbers || i == 0 || v.Rows[i-1].Block != b:
 		label = blockLabel(b)
 	}
+	out := len(b.Pulls) > 0 && !filter.ShowsAny(b.Pulls)
 	bar := " "
-	switch b.State {
-	case "add":
+	switch {
+	case b.State == "add" && out:
+		bar = th.DimAdded.Render("·")
+	case b.State == "add":
 		bar = th.Added.Render("▌")
-	case "del":
+	case b.State == "del" && out:
+		bar = th.DimRemoved.Render("·")
+	case b.State == "del":
 		bar = th.Removed.Render("▌")
 	}
 	numbers := th.Muted.Render(fmt.Sprintf("%8s ", label))

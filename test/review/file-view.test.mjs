@@ -32,6 +32,31 @@ test('a file of a stack is drawn row by row, each row with the pull request that
   }
 });
 
+test('a Markdown file of a stack comes with each rendered block naming the pull requests that changed its lines', async () => {
+  const w = workbench();
+  try {
+    w.repo.checkout('feature/search');
+    w.repo.commit('feature/search', { 'docs/guide.md': '# Guide\n\nThe catalog lists every item.\n\n- Browse\n- Search\n' }, 'Say every item');
+    w.repo.checkout('feature/basket');
+    w.repo.git('merge', '-q', '--no-edit', 'feature/search');
+    w.repo.commit('feature/basket', { 'docs/guide.md': '# Guide\n\nThe catalog lists every item.\n\n- Browse\n- Keep a basket\n' }, 'Keep a basket');
+    w.repo.checkout('main');
+    w.routes();
+    await w.loader.load({ links: [w.link(21), w.link(22)] });
+    const { rendered } = fileView(w.store.readPage(ref(21)).page, 'docs/guide.md');
+    assert.deepEqual(rendered.blocks.map(b => [b.state, b.markdown, b.pulls]), [
+      ['same', '# Guide', []],
+      ['del', 'The catalog lists items.', [21]],
+      ['add', 'The catalog lists every item.', [21]],
+      ['same', '- Browse', []],
+      ['del', '- Search', [22]],
+      ['add', '- Keep a basket', [22]],
+    ]);
+  } finally {
+    w.done();
+  }
+});
+
 test('a file of a single pull request has rows with no owner, and a page is parsed once per build and shared frozen', async () => {
   const w = workbench();
   try {

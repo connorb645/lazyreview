@@ -299,6 +299,30 @@ func TestTheReviewViewDimsTheCountsOfAPullRequestLeftOut(t *testing.T) {
 	}
 }
 
+// A block of a rendered Markdown file changed only by pull requests the
+// filter leaves out has a dot in place of its bar, in the dimmer green or
+// red, and with no colour the dot alone marks it.
+func TestABlockTheFilterLeavesOutHasADimmerDotForItsBar(t *testing.T) {
+	d := filterStandIn()
+	v := presentation.DiffView{Width: 60, Rows: []presentation.DiffRow{
+		{Kind: "block", Path: "docs/guide.md", Text: "Every item.", Block: &server.Block{State: "add", Side: "RIGHT", StartLine: 3, Line: 3, Pulls: []int{21}}},
+		{Kind: "block", Path: "docs/guide.md", Text: "Some items.", Block: &server.Block{State: "del", Side: "LEFT", StartLine: 3, Line: 3, Pulls: []int{22}}},
+		{Kind: "block", Path: "docs/guide.md", Text: "A basket.", Block: &server.Block{State: "add", Side: "RIGHT", StartLine: 5, Line: 5, Pulls: []int{21, 22}}},
+	}}
+	plain := testCommon()
+	if lines := presentation.DiffLines(plain.Tr, plain.Theme, presentation.KeyLabels{}, d, v, 3, types.PullFilter{21}, false); !strings.Contains(lines[0], "▌│") || !strings.Contains(lines[1], "·│") || !strings.Contains(lines[2], "▌│") {
+		t.Fatalf("with no colour, the bars read %q", lines)
+	}
+	lipgloss.SetColorProfile(termenv.TrueColor)
+	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
+	ink := func(colour string) string { return termenv.CSI + termenv.TrueColor.Color(colour).Sequence(false) + "m" }
+	cmn := testCommon()
+	lines := presentation.DiffLines(cmn.Tr, cmn.Theme, presentation.KeyLabels{}, d, v, 3, types.PullFilter{21}, false)
+	if !strings.Contains(lines[0], ink("#7ce2a7")+"▌") || !strings.Contains(lines[1], ink("#b0647a")+"·") || !strings.Contains(lines[2], ink("#7ce2a7")+"▌") {
+		t.Fatalf("in colour, the bars read %q", lines)
+	}
+}
+
 func TestUnchangedCodeIsNeverLeftOutByAFilter(t *testing.T) {
 	d := filterStandIn()
 	tr := testCommon().Tr

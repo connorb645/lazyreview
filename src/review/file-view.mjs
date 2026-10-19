@@ -18,7 +18,9 @@
  *   whole  the file's whole text at the head, as lines, or null
  *   rendered
  *          for a Markdown file with a diff, its Rendered view as
- *          markdownBlocks gives it, {blocks, partial}; otherwise null
+ *          markdownBlocks gives it, {blocks, partial}, each block with
+ *          `pulls`, the pull requests that added or removed its lines,
+ *          empty off a stack and for an unchanged block; otherwise null
  *
  * An unchanged file of the context has no hunks and no gaps, only its text.
  */
@@ -37,7 +39,7 @@ export function fileView(page, path) {
   }
   const hunks = readHunks(page.diff[path]).map(hunk => ({ ...hunk, rows: hunk.rows.map(row => ({ ...row, ...mark(page.stack, path, row) })) }));
   const whole = wholeText(page, path);
-  const rendered = MARKDOWN.test(path) && hunks.length ? markdownBlocks(file, { hunks, whole }) : null;
+  const rendered = MARKDOWN.test(path) && hunks.length ? withPulls(markdownBlocks(file, { hunks, whole }), hunks) : null;
   return { path, hunks, gaps: file.status === 'M' || file.status === 'R' ? gaps(hunks, whole) : [], whole, rendered };
 }
 
@@ -46,6 +48,16 @@ function mark(stack, path, row) {
   const entry = row.kind === 'del' ? lineEntry(stack.lines, path, row.old, 'LEFT') : lineEntry(stack.lines, path, row.new, 'RIGHT');
   const changed = row.kind !== 'same';
   return { owner: changed && entry.pull ? entry.pull : null, words: words(entry, changed, path) };
+}
+
+function withPulls(rendered, hunks) {
+  const rows = hunks.flatMap(hunk => hunk.rows).filter(row => row.owner);
+  const pulls = block => {
+    const line = row => (block.state === 'del' ? row.old : row.new);
+    const owners = rows.filter(row => row.kind === block.state && line(row) >= block.start_line && line(row) <= block.line).map(row => row.owner);
+    return [...new Set(owners)].sort((a, b) => a - b);
+  };
+  return { ...rendered, blocks: rendered.blocks.map(block => ({ ...block, pulls: pulls(block) })) };
 }
 
 function words(entry, changed, path) {
