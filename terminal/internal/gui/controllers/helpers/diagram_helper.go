@@ -57,18 +57,17 @@ func (self *DiagramHelper) Shown(s context.ContextTree) context.ContextTree {
 	return s
 }
 
-// Nearest is the state with the focus on the nearest box in a direction,
-// one of h, j, k and l, count times over.
-func (self *DiagramHelper) Nearest(s context.ContextTree, dir string, count int) context.ContextTree {
-	v := s.Diagram
-	for ; count > 0; count-- {
-		i := v.Grid.Nearest(v.Focus, dir, context.RowLines)
-		if i < 0 {
-			break
-		}
-		v.Focus = i
-	}
-	s.Diagram = v
+// Along is the state with the focus moved by boxes along its row, to the
+// right, or to the left when by is negative.
+func (self *DiagramHelper) Along(s context.ContextTree, by int) context.ContextTree {
+	s.Diagram = s.Diagram.Along(by)
+	return self.Shown(s)
+}
+
+// Down is the state with the focus moved by rows down, or up when by is
+// negative, keeping its place in the row.
+func (self *DiagramHelper) Down(s context.ContextTree, by int) context.ContextTree {
+	s.Diagram = s.Diagram.Down(by)
 	return self.Shown(s)
 }
 
@@ -112,8 +111,7 @@ func (self *DiagramHelper) TypeLabel(s context.ContextTree, name string) context
 	}
 	labels := s.Diagram.Labels
 	if at, ok := labels[typed]; ok {
-		v.Focus = at
-		s.Diagram = v
+		s.Diagram = v.FocusedOn(at)
 		return self.Shown(s)
 	}
 	for l := range labels {

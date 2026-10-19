@@ -170,7 +170,7 @@ func TestInTheDiagramPanelJAndKMoveAndEnterGivesTheMainPanelsDiagramHJKL(t *test
 	if listed[4].Left != "h l" || listed[4].Right != "the panel above or below; l goes round to Review" {
 		t.Fatalf("Space ? lists h l as %q: %q", listed[4].Left, listed[4].Right)
 	}
-	if listed[5].Left != "Enter" || listed[5].Right != "the diagram in the main panel, which moves to the nearest box and steps in" {
+	if listed[5].Left != "Enter" || listed[5].Right != "the diagram in the main panel, which moves through its rows of boxes and steps in" {
 		t.Fatalf("Space ? lists Enter as %q: %q", listed[5].Left, listed[5].Right)
 	}
 	a = press(t, a, "enter")

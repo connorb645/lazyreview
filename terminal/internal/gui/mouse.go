@@ -97,7 +97,7 @@ func (a App) mainClicked(s context.ContextTree, x, y int, double bool) (context.
 	switch s.Screen() {
 	case context.ScreenDiagram:
 		if i := s.Diagram.BoxAt(a.c.Tr, *s.Review, x, y, s.ShownPulls()); i >= 0 {
-			s.Diagram.Focus = i
+			s.Diagram = s.Diagram.FocusedOn(i)
 			s = h.Diagram.Shown(s)
 			if double {
 				return a.opened(s)

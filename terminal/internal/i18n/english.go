@@ -131,7 +131,8 @@ type TranslationSet struct {
 	HelpWrap           string
 	HelpWhole          string
 	HelpRendered       string
-	HelpBoxesNearest   string
+	HelpBoxesAlong     string
+	HelpBoxesDown      string
 	HelpBoxesOrder     string
 	HelpBoxesEnds      string
 	HelpFollow         string
@@ -590,7 +591,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpPostComment:    "post: the actions offered for the comment's pull request",
 		HelpBoxesMove:      "the next, previous, first or last box, in reading order",
 		HelpPanelsToReview: "the panel above or below; {{.nextPanel}} goes round to Review",
-		HelpOpenDiagram:    "the diagram in the main panel, which moves to the nearest box and steps in",
+		HelpOpenDiagram:    "the diagram in the main panel, which moves through its rows of boxes and steps in",
 		HelpStepIn:         "steps in; on a type, opens its diff; on a group, lists its members",
 		HelpStepOut:        "steps out",
 		HelpFollowBox:      "follows a link of the box",
@@ -630,7 +631,8 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpWrap:           "wraps lines, or stops",
 		HelpWhole:          "the whole file, or back to the diff",
 		HelpRendered:       "a Markdown file rendered, or back to the diff",
-		HelpBoxesNearest:   "focus the nearest box left, down, up or right",
+		HelpBoxesAlong:     "the box left or right in the row",
+		HelpBoxesDown:      "the row below or above, at the same place from the left, or a shorter row's last box; the next row with that place goes back to it",
 		HelpBoxesOrder:     "the next or previous box in reading order",
 		HelpBoxesEnds:      "the first or last box",
 		HelpFollow:         "follows a link of the focused box",

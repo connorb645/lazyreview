@@ -49,7 +49,7 @@ func TestTheDiagramStepsInAndOutOfItsLevels(t *testing.T) {
 	}
 }
 
-func TestTheFocusMovesToTheNearestBox(t *testing.T) {
+func TestTheFocusMovesBetweenTheBoxes(t *testing.T) {
 	a := onDiagram(t)
 	focusedOn(t, a, "MemoryCatalog")
 	a = press(t, a, "j")
@@ -355,4 +355,111 @@ func TestTheDiagramScrollsToTheFocus(t *testing.T) {
 	a = press(t, a, "G")
 	focusedOn(t, a, "Receipt")
 	screenIs(t, a, "stand-in-scrolled")
+}
+
+// tableStandIn is a package of types in three rows: ten, three and ten.
+func tableStandIn() types.ReviewData {
+	rows := [][]string{
+		{"Watered", "Pruned", "Sunlit", "Fed", "Labelled", "Staked", "Mulched", "Netted", "Weeded", "Logged"},
+		{"Bed", "Border", "Planter"},
+		{"Tomato", "Bean", "Pea", "Leek", "Kale", "Chard", "Onion", "Garlic", "Carrot", "Radish"},
+	}
+	var nodes []server.Node
+	boxes := map[string]server.Box{"pkg:garden:beds": {}}
+	for r, row := range rows {
+		for k, id := range row {
+			nodes = append(nodes, server.Node{ID: id, Name: id, Kind: "class", File: "src/beds/" + id + ".ts", Line: 1, Component: "garden", Package: "beds", State: "new"})
+			boxes[id] = server.Box{X: float64(k * 200), Y: float64(r * 200), H: 60}
+		}
+	}
+	return types.ReviewData{ID: "table", Page: server.Page{
+		Model:  server.Model{Components: []server.Component{{ID: "garden", Title: "Garden", Color: "teal", Packages: []server.Package{{ID: "beds", Title: "Beds"}}}}, Nodes: nodes},
+		Layout: server.Layout{Components: map[string]server.Box{"garden": {}}, Boxes: boxes},
+	}}
+}
+
+func onTable(width, height int) App {
+	a := New(testCommon(), Options{})
+	d := tableStandIn()
+	a.Review, a.Loading, a.Width, a.Height = &d, false, width, height
+	a.ContextTree = a.Focused(context.MainPanel, a.Driving())
+	return showBox(a, types.DiagramPlace{Level: "types", Component: "garden", Package: "beds"})
+}
+
+func TestJAndKKeepTheItemThroughAShorterRow(t *testing.T) {
+	a := press(t, onTable(80, 24), "9", "l")
+	focusedOn(t, a, "Logged")
+	a = press(t, a, "j")
+	focusedOn(t, a, "Planter")
+	a = press(t, a, "j")
+	focusedOn(t, a, "Radish")
+	screenIs(t, a, "table-last-row")
+	a = press(t, a, "k")
+	focusedOn(t, a, "Planter")
+	a = press(t, a, "k")
+	focusedOn(t, a, "Logged")
+	a = press(t, a, "2", "j")
+	focusedOn(t, a, "Radish")
+	a = press(t, a, "2", "h", "k")
+	focusedOn(t, a, "Planter")
+	a = press(t, a, "k")
+	focusedOn(t, a, "Netted")
+}
+
+func TestTheMovesStopAtTheEndsOfARowAndAtTheTopAndBottomRows(t *testing.T) {
+	a := onTable(80, 24)
+	for _, step := range []struct{ keys, want string }{
+		{"h", "Watered"}, {"k", "Watered"}, {"20l", "Logged"}, {"l", "Logged"}, {"5j", "Radish"},
+		{"j", "Radish"}, {"30h", "Tomato"}, {"h", "Tomato"}, {"9k", "Watered"},
+	} {
+		var keys []string
+		for _, r := range step.keys {
+			keys = append(keys, string(r))
+		}
+		a = press(t, a, keys...)
+		focusedOn(t, a, step.want)
+	}
+}
+
+func TestEveryOtherMoveSetsTheItemThatJAndKKeep(t *testing.T) {
+	twice := func(a App, key, picked, through, to string) App {
+		t.Helper()
+		focusedOn(t, a, picked)
+		a = press(t, a, key)
+		focusedOn(t, a, through)
+		a = press(t, a, key)
+		focusedOn(t, a, to)
+		return a
+	}
+	a := twice(onTable(161, 48), "j", "Watered", "Bed", "Tomato")
+	a = twice(press(t, a, "G", "b"), "k", "Carrot", "Planter", "Weeded")
+	a = twice(press(t, a, "w"), "j", "Logged", "Planter", "Radish")
+	a = twice(press(t, a, "f", "h"), "j", "Staked", "Planter", "Chard")
+	a = twice(press(t, a, "4", "G"), "j", "Fed", "Planter", "Leek")
+	a = twice(typed(t, press(t, a, "space", "f"), "Kale"), "k", "Kale", "Planter", "Labelled")
+	a = press(t, a, "4", "l")
+	focusedOn(t, a, "Weeded")
+	x, y := drawnAt(t, a, "Netted.ts")
+	a = send(t, a, tea.MouseMsg{X: x, Y: y, Action: tea.MouseActionPress, Button: tea.MouseButtonLeft})
+	twice(a, "j", "Netted", "Planter", "Garlic")
+}
+
+func TestAReloadKeepsTheItemThatJAndKKeep(t *testing.T) {
+	a := press(t, onTable(80, 24), "9", "l", "j")
+	focusedOn(t, a, "Planter")
+	a = send(t, a, types.ReviewReloaded{Data: *a.Review})
+	focusedOn(t, a, "Planter")
+	a = press(t, a, "j")
+	focusedOn(t, a, "Radish")
+}
+
+func TestTheKeysListSaysHowTheBoxesMove(t *testing.T) {
+	tr := testCommon().Tr
+	help := map[string]string{}
+	for _, r := range press(t, onTable(80, 24), "space", "?").Menu.Rows {
+		help[r.Left] = r.Right
+	}
+	if help["h l"] != tr.HelpBoxesAlong || help["j k"] != tr.HelpBoxesDown {
+		t.Fatalf("Space ? lists h l as %q and j k as %q", help["h l"], help["j k"])
+	}
 }

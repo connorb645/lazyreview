@@ -143,7 +143,12 @@ func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewRel
 		next, cmd := h.Diff.OpenPlace(s, s.Diff.Component, s.Diff.Place())
 		return next.Said(words, false), cmd
 	case context.ScreenDiagram:
-		return h.Refresh.Mirrored(h.Diagram.ShowBox(s, s.Diagram.Place())).Said(words, false), nil
+		at, item := s.Diagram.Place(), s.Diagram.Item
+		s = h.Diagram.ShowBox(s, at)
+		if s.Diagram.Place() == at {
+			s.Diagram.Item = item
+		}
+		return h.Refresh.Mirrored(s).Said(words, false), nil
 	}
 	return h.Refresh.Relaid(s).Said(words, false), nil
 }

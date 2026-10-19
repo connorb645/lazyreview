@@ -81,46 +81,33 @@ func (g Grid) Order() []int {
 	return out
 }
 
-// Nearest is the card nearest card `from` in a direction, one of h, j, k
-// and l, or -1 when there is none that way. Cards within a 90 degree cone
-// come first, then any card on that side; each scores its distance along the
-// direction plus twice its distance across. A row counts as rowLines lines,
-// and a line as two columns, so the score measures what the eye sees.
-func (g Grid) Nearest(from int, dir string, rowLines int) int {
-	x0, y0 := g.centre(from, rowLines)
-	best, bestScore, bestInCone := -1, 0.0, false
-	for i := range g.Spots {
-		if i == from {
-			continue
-		}
-		x, y := g.centre(i, rowLines)
-		along, across := 0.0, 0.0
-		switch dir {
-		case "l":
-			along, across = x-x0, y-y0
-		case "h":
-			along, across = x0-x, y-y0
-		case "j":
-			along, across = y-y0, x-x0
-		case "k":
-			along, across = y0-y, x-x0
-		}
-		if along <= 0 {
-			continue
-		}
-		if across < 0 {
-			across = -across
-		}
-		inCone := across <= along
-		score := along + 2*across
-		if best < 0 || (inCone && !bestInCone) || (inCone == bestInCone && score < bestScore) {
-			best, bestScore, bestInCone = i, score, inCone
+// Item is card i's place in its row, counted from 0 at the left.
+func (g Grid) Item(i int) int {
+	for item, at := range g.Rows[g.Spots[i].Row] {
+		if at == i {
+			return item
 		}
 	}
-	return best
+	return 0
 }
 
-func (g Grid) centre(i, rowLines int) (float64, float64) {
-	s := g.Spots[i]
-	return float64(s.Col) + float64(s.Width)/2, float64(s.Row*rowLines*2 + CardHeight)
+// Along is the card `by` cards along card `from`'s row: to the right, or to
+// the left when `by` is negative. It stops at the row's ends.
+func (g Grid) Along(from, by int) int {
+	row := g.Rows[g.Spots[from].Row]
+	return row[max(0, min(g.Item(from)+by, len(row)-1))]
+}
+
+// Down is the card `by` rows below card `from`, or above when `by` is
+// negative: the one at `item` in that row, or the row's last when the row
+// is shorter. It stops at the top and bottom rows, and `from` stays when
+// there is no row that way.
+func (g Grid) Down(from, by, item int) int {
+	at := g.Spots[from].Row
+	to := max(0, min(at+by, len(g.Rows)-1))
+	if to == at {
+		return from
+	}
+	row := g.Rows[to]
+	return row[min(item, len(row)-1)]
 }
