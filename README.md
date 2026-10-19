@@ -59,6 +59,11 @@ kept. [Config](docs/Config.md) lists every setting of the config.
 Run the tests with `npm test`, and the terminal app's tests with
 `npm run test:terminal`. The tests reach no network.
 
+To land a finished branch, run `make land BRANCH=<branch>` in a clone on
+`main`. It checks first, then moves `main` to the branch on every remote and
+in the clone, fast-forward only, and restarts the app. `make restart` only
+restarts the app.
+
 ## Licence
 
 MIT. The libraries in `vendor/` and `terminal/vendor/` keep their own
