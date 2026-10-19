@@ -156,6 +156,7 @@
   "space w": "wrap",
   "tab": "jump forward",
   "up": "up",
+  "x": "stop",
   "z M": "close folds",
   "z R": "open folds",
   "z a": "toggle fold",
@@ -302,7 +303,8 @@
   "space m": "diagram",
   "space v": "review",
   "tab": "jump forward",
-  "up": "up"
+  "up": "up",
+  "x": "stop"
  },
  "posting": {
   "1": "choose 1",

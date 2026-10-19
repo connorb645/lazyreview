@@ -208,6 +208,7 @@ func openedIn(t *testing.T, cmn *common.Common, changed *changes, review string,
 		Location: time.UTC,
 		Exec:     func(cmd *exec.Cmd, done tea.ExecCallback) tea.Cmd { return func() tea.Msg { return done(cmd.Run()) } },
 		Listen:   heardNothing,
+		Tick:     func(time.Duration, func(time.Time) tea.Msg) tea.Cmd { return nil },
 	}
 	for _, s := range set {
 		s(&opts)

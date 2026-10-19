@@ -105,7 +105,7 @@ export function createLineNotes(ctx) {
       const area = file.querySelector('.thread[data-thread="' + id + '"] textarea');
       if (area) area.value = typed[id];
     });
-    if (composer && composer.path === path) placeComposer(file, false);
+    if (composer && composer.path === path && !questionShown(composer)) placeComposer(file, false);
     ctx.queuePanel.restore();
   }
 
@@ -227,24 +227,45 @@ export function createLineNotes(ctx) {
 
   function busy(box, said) {
     box.querySelectorAll('button, textarea, select').forEach(el => { el.disabled = true; });
-    box.querySelector('.note-status').textContent = said;
+    const status = box.querySelector('.note-status');
+    status.textContent = said;
+    status.classList.add('working');
   }
   function failed(box, error) {
     box.querySelectorAll('button, textarea, select').forEach(el => { el.disabled = false; });
     const status = box.querySelector('.note-status');
     status.textContent = error.message;
+    status.classList.remove('working');
     status.classList.add('bad');
+  }
+
+  function questionShown(c) {
+    return c.sending && ctx.state.threads.some(t => t.path === c.path && t.side === c.side && t.line === c.line && t.messages.length === 1 && t.messages[0].text === c.sending);
   }
 
   async function ask(box, anchor, text, threadId) {
     busy(box, words.reading);
+    const sent = threadId ? null : composer;
+    if (sent) sent.sending = text;
     try {
       const done = threadId
         ? await send('POST', reviewPath(ctx.state.id, '/threads/' + threadId + '/messages'), { text, build: ctx.data.build })
         : await send('POST', reviewPath(ctx.state.id, '/threads'), { path: anchor.path, side: anchor.side, line: anchor.line, start_line: anchor.start_line || null, start_side: anchor.start_side || null, text, build: ctx.data.build });
       const others = ctx.state.threads.filter(t => t.id !== done.thread.id);
-      if (!threadId) composer = null;
+      if (sent && composer === sent) composer = null;
       ctx.setState({ ...ctx.state, threads: others.concat([done.thread]).sort((a, b) => a.id - b.id) });
+    } catch (error) {
+      if (sent) delete sent.sending;
+      const shown = document.querySelector('#main .composer') || box;
+      failed(shown, error);
+    }
+  }
+
+  async function stop(box, threadId) {
+    busy(box, words.stopping);
+    try {
+      const done = await send('POST', reviewPath(ctx.state.id, '/threads/' + threadId + '/stop'));
+      ctx.setState({ ...ctx.state, threads: ctx.state.threads.map(t => (t.id === done.thread.id ? done.thread : t)) });
     } catch (error) {
       failed(box, error);
     }
@@ -333,6 +354,10 @@ export function createLineNotes(ctx) {
     const threadBox = button.closest('.thread');
     if (threadBox) {
       const thread = ctx.state.threads.find(t => t.id === +threadBox.getAttribute('data-thread'));
+      if (act === 'stop') {
+        stop(threadBox.querySelector('.working'), thread.id);
+        return;
+      }
       const area = threadBox.querySelector('.reply textarea');
       if (act === 'use') {
         const msg = button.closest('.msg');

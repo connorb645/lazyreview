@@ -5,4 +5,5 @@ type KeybindingNotesPanelConfig struct {
 	Edit []string `json:"edit"`
 	Drop []string `json:"drop"`
 	Post []string `json:"post"`
+	Stop []string `json:"stop"`
 }

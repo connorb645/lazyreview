@@ -25,7 +25,7 @@ import (
 const (
 	readWait    = 20 * time.Second
 	changeWait  = 60 * time.Second
-	askWait     = 200 * time.Second
+	askWait     = 40 * time.Minute
 	refreshWait = 120 * time.Second
 	pullsWait   = 180 * time.Second
 	loadWait    = 20 * time.Minute
@@ -142,6 +142,13 @@ func (c *Client) Reply(id string, conversation int, text, build string) (Convers
 	var answer struct{ Thread Conversation }
 	fields := map[string]any{"text": text, "build": build}
 	return answer.Thread, c.change(http.MethodPost, ReviewPath(id, fmt.Sprintf("/threads/%d/messages", conversation)), nil, fields, askWait, &answer)
+}
+
+// Stop stops Claude answering in a conversation, and returns it once it
+// says so.
+func (c *Client) Stop(id string, conversation int) (Conversation, error) {
+	var answer struct{ Thread Conversation }
+	return answer.Thread, c.change(http.MethodPost, ReviewPath(id, fmt.Sprintf("/threads/%d/stop", conversation)), nil, map[string]any{}, changeWait, &answer)
 }
 
 // Post sends one action offered for a pull request, naming the set of

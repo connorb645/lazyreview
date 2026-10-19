@@ -78,7 +78,9 @@ async function recordAnswers() {
     await w.loader.load({ links: [w.link(21), w.link(22)], context: true });
     let tick = 0;
     const now = () => new Date(Date.UTC(2026, 9, 15, 13, 0, tick++)).toISOString();
-    const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }), now });
+    let sessions = 0;
+    const session = () => `00000000-0000-4000-8000-${String(++sessions).padStart(12, '0')}`;
+    const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }), session, now });
     const server = new AppServer({
       store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, pulls: new OpenPulls({ store: w.store, config: w.config }), token: TOKEN, port: 0,
     });
@@ -105,7 +107,12 @@ async function recordAnswers() {
       const build = w.store.pageBuild(stack);
       await w.queue.add(stack, { build, path: 'Sources/Catalog/MemoryCatalog.swift', start_line: 8, line: 10, side: 'RIGHT', body: 'Keep the order items came in.' });
       await w.queue.add(stack, { build, path: 'Sources/Basket/Basket.swift', start_line: 9, start_side: 'LEFT', line: 11, side: 'RIGHT', body: 'Why one?' });
+      fake.answer({ text: 'It could: the basket only reads from it.', steps: [
+        { tool: 'Grep', input: { pattern: 'Search(' } },
+        { tool: 'Bash', input: { command: 'gh pr comment 22 --body "Pass the search in."' }, refused: 'lazyreview refused this: gh may only read, one command at a time.' },
+      ] });
       await threads.start(stack, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 7, text: 'Could this be passed in?', build });
+      fake.answer('It returns early when the list is empty.');
       const single = new PullRef('github.com', 'octo/widgets', 30);
       await w.queue.add(single, { build: w.store.pageBuild(single), path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item, or every item shown?' });
       await w.store.change([stack], async () => ({
@@ -138,12 +145,21 @@ async function recordAnswers() {
       const changes = [
         ['POST', `${base}/comments`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 3, body: 'Name the search for what it finds.', build }],
         ['POST', `${base}/comments`, { path: 'Sources/Catalog/MemoryCatalog.swift', side: 'RIGHT', start_line: 7, start_side: 'RIGHT', line: 9, body: 'One add is enough.', build }],
-        ['POST', `${base}/comments`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 7, body: 'It returns early when the list is empty.', build }],
+        ['POST', `${base}/comments`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 7, body: 'It could: the basket only reads from it.', build }],
         ['PATCH', `${base}/comments/1`, { body: 'Keep the order the items came in.', version: 'stale1', build }],
         ['PATCH', `${base}/comments/1`, { body: 'Keep the order the items came in.', version: version(1), build }],
         ['DELETE', `${base}/comments/2?${new URLSearchParams({ build, version: version(2) })}`, null],
         ['POST', `${base}/threads`, { path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 3, text: 'Why keep a search here?', build }],
         ['POST', `${base}/threads/1/messages`, { text: 'Could it be passed in?', build }],
+        // A conversation left waiting, as after the server stopped mid-answer, then stopped.
+        () => w.store.change([stack], async () => ({
+          files: [[w.store.home.review(stack).thread(9), JSON.stringify({
+            id: 9, path: 'Sources/Basket/Basket.swift', side: 'RIGHT', line: 3, created_at: now(), session: session(),
+            messages: [{ from: 'you', text: 'Does anything test this?', at: now() }], working: { steps: [{ words: 'Read Sources/Basket/Basket.swift' }, { words: 'Ran swift test' }] },
+          }, null, 2) + '\n']],
+          result: null,
+        })),
+        ['POST', `${base}/threads/9/stop`, {}],
       ];
       const one = `/api/reviews/${SINGLE}`;
       const oneState = (await send(address, 'GET', one)).body;
@@ -166,7 +182,14 @@ async function recordAnswers() {
         ['POST', '/api/load', { links: [w.link(30)], account: 'reviewer' }],
         ['POST', '/api/load', { links: ['https://github.com/octo/gadgets/pull/7'], account: 'reviewer' }],
       );
-      for (const [method, path, body] of changes) answers[key(method, path, body)] = await send(address, method, path, body);
+      for (const change of changes) {
+        if (typeof change === 'function') {
+          await change();
+          continue;
+        }
+        const [method, path, body] = change;
+        answers[key(method, path, body)] = await send(address, method, path, body);
+      }
       return answers;
     } finally {
       await server.close();

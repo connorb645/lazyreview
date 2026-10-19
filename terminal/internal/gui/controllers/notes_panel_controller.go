@@ -35,6 +35,7 @@ func (self *NotesPanelController) Bindings() []Binding {
 		{Action: "post", Keys: kb.NotesPanel.Post, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 			return h.Posting.Open(s, row.Item.Pull), nil
 		}), Description: tr.Post},
+		{Action: "stop", Keys: kb.NotesPanel.Stop, Handler: uncounted(h.Editing.Stop), Description: tr.StopClaude},
 	})
 	return join(reviewScreenBindings(self.c), sidePanelBindings(self.c), focusPanelBindings(self.c), own)
 }
@@ -50,6 +51,7 @@ func (self *NotesPanelController) Help(labels presentation.KeyLabels) []HelpSect
 		{Keys: labels.Of("open"), Words: tr.HelpOpenNote},
 		{Keys: labels.Of("edit", "drop"), Words: tr.HelpEditDrop},
 		{Keys: labels.Of("post"), Words: tr.HelpPostComment},
+		{Keys: labels.Of("stop"), Words: tr.HelpStop},
 	}
 	return reviewScreenHelp(self.c, presentation.PanelNames(tr)[context.NotesPanel], rows, labels)
 }

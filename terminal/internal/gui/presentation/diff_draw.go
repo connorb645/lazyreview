@@ -137,7 +137,7 @@ func noteLine(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v D
 		}
 		return utils.Spread(indent+style.Render(head), th.Key.Render(keys)+" ", v.Width-1)
 	}
-	style := map[string]lipgloss.Style{"body": th.Text, "you": th.Bold, "claude": th.Text, "error": th.Bad, "stale": th.Warning, "author": th.Muted, "waiting": th.Muted}[r.Part]
+	style := map[string]lipgloss.Style{"body": th.Text, "you": th.Bold, "claude": th.Text, "error": th.Bad, "stale": th.Warning, "author": th.Muted, "waiting": th.Muted, "step": th.Muted, "refused": th.Bad}[r.Part]
 	return indent + "  " + style.Render(r.Text)
 }
 

@@ -157,6 +157,45 @@ func (self *EditingHelper) Ask(s context.ContextTree) (context.ContextTree, tea.
 	return self.edit(s, types.Editing{Purpose: "ask", At: at, Key: "ask " + LinesKey(at), About: about})
 }
 
+// Stop is the state asking the server to stop Claude answering the
+// conversation at the cursor, or saying why it cannot, and the command that
+// asks.
+func (self *EditingHelper) Stop(s context.ContextTree) (context.ContextTree, tea.Cmd) {
+	tr := self.c.Tr
+	c, ok := self.conversationAt(s)
+	if !ok {
+		return s.Said(self.keyed(s, tr.StopsClaude, "stop"), true), nil
+	}
+	if !presentation.Waiting(c) {
+		return s.Said(tr.NotWorking, false), nil
+	}
+	client, id := self.c.Server, s.Review.ID
+	e := types.Editing{Purpose: "stop", Conversation: c.ID}
+	s.Stopped = c.ID
+	return s.Said(tr.Stopping, false), func() tea.Msg {
+		stopped, err := client.Stop(id, c.ID)
+		return types.Changed{E: e, Conversation: &stopped, Err: err}
+	}
+}
+
+func (self *EditingHelper) conversationAt(s context.ContextTree) (server.Conversation, bool) {
+	id := 0
+	if n, _, ok := self.NoteAt(s); ok && n.Kind == "conversation" {
+		id = n.Conversation.ID
+	}
+	if s.Focus() == context.NotesPanel {
+		if row, ok := s.Side(context.NotesPanel).Selected(); ok && row.Item.Kind == "conversation" {
+			id = row.Item.Thread
+		}
+	}
+	for _, c := range s.Review.State.Threads {
+		if id != 0 && c.ID == id {
+			return c, true
+		}
+	}
+	return server.Conversation{}, false
+}
+
 // EditQueued is the state with the editor open on the queued comment at
 // the cursor.
 func (self *EditingHelper) EditQueued(s context.ContextTree) (context.ContextTree, tea.Cmd) {
@@ -240,13 +279,15 @@ func (self *EditingHelper) AfterEditing(s context.ContextTree, msg types.Edited)
 			state, err := client.Edit(id, e.Comment, text, e.Version, build)
 			return types.Changed{E: e, State: &state, Err: err}
 		}
-	case "reply":
-		return s.Said(tr.AskingClaude, false), func() tea.Msg {
+	}
+	s.Asking++
+	if e.Purpose == "reply" {
+		return s.Said("", false), func() tea.Msg {
 			c, err := client.Reply(id, e.Conversation, text, build)
 			return types.Changed{E: e, Conversation: &c, Err: err}
 		}
 	}
-	return s.Said(tr.AskingClaude, false), func() tea.Msg {
+	return s.Said("", false), func() tea.Msg {
 		c, err := client.Ask(id, e.At, text, build)
 		return types.Changed{E: e, Conversation: &c, Err: err}
 	}
@@ -256,6 +297,9 @@ func (self *EditingHelper) AfterEditing(s context.ContextTree, msg types.Edited)
 // comment, or Claude answered, or why it did not.
 func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed) (context.ContextTree, tea.Cmd) {
 	e, h := msg.E, self.c.Helpers
+	if e.Purpose == "ask" || e.Purpose == "reply" {
+		s.Asking = max(0, s.Asking-1)
+	}
 	if msg.Err != nil {
 		var refusal server.Refusal
 		if (e.Purpose == "edit" || e.Purpose == "drop") && errors.As(msg.Err, &refusal) {
@@ -270,7 +314,11 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 		s.Diff.Notes = utils.CopyBools(s.Diff.Notes)
 		s.Diff.Notes[fmt.Sprintf("conversation:%d", c.ID)] = true
 		s = h.Refresh.Relaid(s)
-		if last := c.Messages[len(c.Messages)-1]; last.Error != "" {
+		last := c.Messages[len(c.Messages)-1]
+		if e.Purpose == "stop" || last.Error != "" && c.ID == s.Stopped {
+			return s.Said(self.c.Tr.StoppedClaude, false), nil
+		}
+		if last.Error != "" {
 			return s.Said(self.c.Tr.ClaudeSaysWhy, true), nil
 		}
 		return s.Said(self.c.Tr.ClaudeAnswered, false), nil

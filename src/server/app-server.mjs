@@ -114,6 +114,9 @@ export class AppServer {
       ['POST', new RegExp(`^/api/reviews/${REVIEW}/threads/(\\d+)/messages$`), async (ref, body, id) => ({
         thread: await this.#threads.reply(ref, Number(id), { text: text(body.text), build: build(body) }),
       })],
+      ['POST', new RegExp(`^/api/reviews/${REVIEW}/threads/(\\d+)/stop$`), async (ref, body, id) => ({
+        thread: await this.#threads.stop(ref, Number(id)),
+      })],
     ];
   }
 

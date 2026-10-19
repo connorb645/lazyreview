@@ -9,22 +9,22 @@
 │     M Basket.swift          ● ││ ▎        7 +         self.search = Search(catalog: catalog)     ▐
 │   ▾ Sources/Catalog           ││              ▾ Claude · 2 messages · line 7           a ask  za ▐
 │     M MemoryCatalog.swift   ● ││                You: Could this be passed in?                    ▐
-│     A Search.swift          ● ││                Claude: It returns early when the list is        ▐
-│   ▾ web/src                   ││                empty.                                           ▐
-╰───────────────────────3 of 10─╯│              ▾ sam · 1 comment · resolved         gx GitHub  za ▐
-╭─[3]─Notes─────────────────────╮│                sam · 15 Oct, 10:00                              │
-│ Queued                      2 ││                Could the search be passed in?                   │
-│ 1 MemoryCatalog.swift:8-… #21 ││          8       }                                              │
-│ 2 Basket.swift:9-11       #22 ││          9                                                      │
-│ Claude                      1 ││         10       func total() -> Int {                          │
-│ Basket.swift:7 Could this be …││ ▎       11 +         1                                          │
-│ On GitHub                   2 ││              ▾ Queued 2 → #22 · removed line 9 to line 11       │
-│ sam MemoryCatalog.swift:9     ││                Why one?                                         │
-│ sam Basket.swift:7   resolved ││         12       }                                              │
-╰────────────────────────1 of 5─╯│         13   }                                                  │
-╭─[4]─Diagram───────────────────╮│  ▾ Sources/Catalog/MemoryCatalog.swift  changed  #21  +4 −0     │
-│ Components                    ││     1    1   final class MemoryCatalog: Catalog {               │
-│ ■ widgets                     ││     2    2       private var stored: [Item] = []                │
-│ ■ Unchanged code              ││     3    3                                                      │
+│     A Search.swift          ● ││                Claude: It could: the basket only reads from     ▐
+│   ▾ web/src                   ││                it.                                              ▐
+╰───────────────────────3 of 10─╯│                Took 2 steps, 1 refused.                         │
+╭─[3]─Notes─────────────────────╮│                Refused: Ran gh pr comment 22 --body "Pass       │
+│ Queued                      2 ││                the search in." (gh may only read, one           │
+│ 1 MemoryCatalog.swift:8-… #21 ││                command at a time)                               │
+│ 2 Basket.swift:9-11       #22 ││              ▾ sam · 1 comment · resolved         gx GitHub  za │
+│ Claude                      1 ││                sam · 15 Oct, 10:00                              │
+│ Basket.swift:7 Could this be …││                Could the search be passed in?                   │
+│ On GitHub                   2 ││          8       }                                              │
+│ sam MemoryCatalog.swift:9     ││          9                                                      │
+│ sam Basket.swift:7   resolved ││         10       func total() -> Int {                          │
+╰────────────────────────1 of 5─╯│ ▎       11 +         1                                          │
+╭─[4]─Diagram───────────────────╮│              ▾ Queued 2 → #22 · removed line 9 to line 11       │
+│ Components                    ││                Why one?                                         │
+│ ■ widgets                     ││         12       }                                              │
+│ ■ Unchanged code              ││         13   }                                                  │
 ╰────────────────────────1 of 2─╯╰────line 3 · Changed in #22. A comment here goes on #22, line 3.─╯
  Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Search: / | Keys: Space ?

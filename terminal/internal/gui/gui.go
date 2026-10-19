@@ -54,9 +54,12 @@ func New(cmn *common.Common, opts Options) App {
 	if opts.Listen == nil {
 		opts.Listen = helpers.Listen
 	}
+	if opts.Tick == nil {
+		opts.Tick = tea.Tick
+	}
 	hc := &helpers.HelperCommon{
 		Common: cmn, Server: opts.Server, Open: opts.Open, Now: opts.Now, Location: opts.Location, Home: opts.Home,
-		Editor: opts.Editor, Exec: opts.Exec, Listen: opts.Listen, Markdown: presentation.NewMarkdown(cmn.Theme.Dark),
+		Editor: opts.Editor, Exec: opts.Exec, Listen: opts.Listen, Tick: opts.Tick, Markdown: presentation.NewMarkdown(cmn.Theme.Dark),
 	}
 	a := App{c: hc, helpers: helpers.NewHelpers(hc), controllers: controllers.NewControllers(hc), styles: diagram.Styles(cmn.Theme), ContextTree: context.NewContextTree(opts.Review)}
 	a.Home = a.Home.Rebuilt(cmn.Tr, cmn.Theme)
@@ -107,6 +110,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		s = h.Live.AfterStopped(s, msg)
 	case types.ReviewReloaded:
 		s, cmd = h.Review.AfterReload(s, msg)
+	case types.Spun:
+		s = h.AppStatus.AfterSpin(s)
 	case tea.MouseMsg:
 		s, cmd = a.mouse(s, msg)
 		s = h.Filter.GrowingInReview(s)
@@ -118,6 +123,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s, cmd = h.Prompt.Typed(s, msg)
 		}
 	}
+	s, spin := h.AppStatus.Kept(s)
 	a.ContextTree = s
-	return a, cmd
+	return a, tea.Batch(cmd, spin)
 }

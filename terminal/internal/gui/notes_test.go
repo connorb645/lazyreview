@@ -2,8 +2,13 @@ package gui
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
@@ -206,5 +211,105 @@ func TestALineSeveralPullRequestsShowAsksWhichFirst(t *testing.T) {
 	a = press(t, a, "j", "enter")
 	if !strings.Contains(a.Notice, "pull=22") {
 		t.Fatalf("the choice was not asked about again with its pull request: %q", a.Notice)
+	}
+}
+
+func barSays(a App) string {
+	return strings.TrimSpace(ansi.Strip(a.barLine()))
+}
+
+func TestTheBarSaysClaudeIsWorkingWithASpinnerUntilItAnswers(t *testing.T) {
+	ticks := 0
+	a := onBasket(t, func(o *Options) {
+		o.Tick = func(time.Duration, func(time.Time) tea.Msg) tea.Cmd { ticks++; return nil }
+	})
+	question := filepath.Join(t.TempDir(), "question.md")
+	if err := os.WriteFile(question, []byte("Why keep a search here?\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	at := server.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3}
+	next, ask := a.Update(types.Edited{E: types.Editing{Purpose: "ask", At: at, Key: "ask " + at.Path}, File: question})
+	a = next.(App)
+	if got := barSays(a); !strings.HasSuffix(got, "Claude is working |") || ticks != 1 {
+		t.Fatalf("while Claude answers, the bar says %q after %d ticks asked for", got, ticks)
+	}
+	a = send(t, a, types.Spun{})
+	if got := barSays(a); !strings.HasSuffix(got, "Claude is working /") || ticks != 2 {
+		t.Fatalf("a tick turns the spinner: %q after %d ticks", got, ticks)
+	}
+	a = press(t, drive(t, a, ask), "j")
+	if got := barSays(a); strings.Contains(got, "Claude is working") {
+		t.Fatalf("once Claude answered, the bar still says %q", got)
+	}
+	a = send(t, a, types.Spun{})
+	if ticks != 2 {
+		t.Fatalf("the spinner went on after the answer: %d ticks", ticks)
+	}
+}
+
+func TestAQuestionWaitingFromTheOtherAppTurnsTheSpinnerToo(t *testing.T) {
+	ticks := 0
+	a := onBasket(t, func(o *Options) {
+		o.Tick = func(time.Duration, func(time.Time) tea.Msg) tea.Cmd { ticks++; return nil }
+	})
+	st := a.Review.State
+	st.Threads = append(append([]server.Conversation{}, st.Threads...), server.Conversation{
+		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Who calls this?"}},
+	})
+	a = send(t, a, types.StateLoaded{State: st})
+	if got := barSays(a); !strings.HasSuffix(got, "Claude is working |") || ticks != 1 {
+		t.Fatalf("the bar says %q after %d ticks", got, ticks)
+	}
+	screenIs(t, press(t, a, "]", "n", "]", "n", "]", "n"), "asked-elsewhere")
+}
+
+func TestStoppingClaudeShowsWhatItDidAndSaysItStopped(t *testing.T) {
+	a := onBasket(t)
+	st := a.Review.State
+	st.Threads = append(append([]server.Conversation{}, st.Threads...), server.Conversation{
+		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Does anything test this?"}},
+		Working: &server.Working{Steps: []server.Step{{Words: "Read Sources/Basket/Basket.swift"}, {Words: "Ran swift test"}}},
+	})
+	a = send(t, a, types.StateLoaded{State: st})
+	if got := barSays(a); !strings.HasSuffix(got, "Claude is working: Ran swift test |") {
+		t.Fatalf("the bar says %q", got)
+	}
+	a = press(t, a, "x")
+	if a.Notice != "x stops Claude on a conversation it is answering" || !a.Bad {
+		t.Fatalf("off a conversation, x says %q", a.Notice)
+	}
+	a = press(t, a, "]", "n")
+	if got := noteKeyAt(a); got != "notehead conversation:9" {
+		t.Fatalf("]n went to %s", got)
+	}
+	a = press(t, a, "z", "a")
+	screenIs(t, a, "working")
+	a = press(t, a, "x")
+	if a.Notice != "Stopped Claude." || a.Bad {
+		t.Fatalf("the status line says %q", a.Notice)
+	}
+	n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "conversation:9")
+	if m := n.Conversation.Messages; len(m) != 2 || m[1].Error != "you stopped it" || n.Conversation.Working != nil {
+		t.Fatalf("the conversation after stopping: %+v", n.Conversation)
+	}
+	screenIs(t, a, "stopped")
+	a = send(t, a, types.Changed{E: types.Editing{Purpose: "ask"}, Conversation: n.Conversation})
+	if a.Notice != "Stopped Claude." || a.Bad {
+		t.Fatalf("when the question stopped here comes back, the status line says %q", a.Notice)
+	}
+}
+
+func TestTheSpinnerStaysWhenTheBarCutsClaudesStep(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 60, 24, func(o *Options) {
+		o.Tick = func(time.Duration, func(time.Time) tea.Msg) tea.Cmd { return nil }
+	})
+	st := a.Review.State
+	st.Threads = append(append([]server.Conversation{}, st.Threads...), server.Conversation{
+		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Does anything test this?"}},
+		Working: &server.Working{Steps: []server.Step{{Words: "Ran swift test --filter BasketTests --parallel --enable-code-coverage"}}},
+	})
+	a = send(t, a, types.StateLoaded{State: st})
+	if got := barSays(a); !strings.HasSuffix(got, "… |") || !strings.Contains(got, "Claude is working: Ran swift") {
+		t.Fatalf("the bar says %q", got)
 	}
 }

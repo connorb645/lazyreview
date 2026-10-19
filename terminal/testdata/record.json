@@ -539,10 +539,20 @@
       },
       {
        "from": "claude",
-       "text": "It returns early when the list is empty.",
+       "text": "It could: the basket only reads from it.",
+       "steps": [
+        {
+         "words": "Searched for Search("
+        },
+        {
+         "words": "Ran gh pr comment 22 --body \"Pass the search in.\"",
+         "refused": "gh may only read, one command at a time."
+        }
+       ],
        "at": "2026-10-15T13:00:02.000Z"
       }
-     ]
+     ],
+     "session": "00000000-0000-4000-8000-000000000001"
     }
    ],
    "github": [
@@ -649,7 +659,7 @@
     ],
     "stale": false
    },
-   "version": "92c77de9802f"
+   "version": "64f96910a7ec"
   }
  },
  "GET /api/reviews/github.com/octo/widgets/21/page": {
@@ -2661,10 +2671,20 @@
        },
        {
         "from": "claude",
-        "text": "It returns early when the list is empty.",
+        "text": "It could: the basket only reads from it.",
+        "steps": [
+         {
+          "words": "Searched for Search("
+         },
+         {
+          "words": "Ran gh pr comment 22 --body \"Pass the search in.\"",
+          "refused": "gh may only read, one command at a time."
+         }
+        ],
         "at": "2026-10-15T13:00:02.000Z"
        }
-      ]
+      ],
+      "session": "00000000-0000-4000-8000-000000000001"
      }
     ],
     "github": [
@@ -2771,7 +2791,7 @@
      ],
      "stale": false
     },
-    "version": "16f50991c7c3"
+    "version": "9dbc0ec9b401"
    }
   }
  },
@@ -2982,10 +3002,20 @@
        },
        {
         "from": "claude",
-        "text": "It returns early when the list is empty.",
+        "text": "It could: the basket only reads from it.",
+        "steps": [
+         {
+          "words": "Searched for Search("
+         },
+         {
+          "words": "Ran gh pr comment 22 --body \"Pass the search in.\"",
+          "refused": "gh may only read, one command at a time."
+         }
+        ],
         "at": "2026-10-15T13:00:02.000Z"
        }
-      ]
+      ],
+      "session": "00000000-0000-4000-8000-000000000001"
      }
     ],
     "github": [
@@ -3092,11 +3122,11 @@
      ],
      "stale": false
     },
-    "version": "c57e1dc7b068"
+    "version": "83d25764648a"
    }
   }
  },
- "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"It returns early when the list is empty.\",\"build\":\"820d4fabc897\",\"line\":7,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\"}": {
+ "POST /api/reviews/github.com/octo/widgets/21/comments {\"body\":\"It could: the basket only reads from it.\",\"build\":\"820d4fabc897\",\"line\":7,\"path\":\"Sources/Basket/Basket.swift\",\"side\":\"RIGHT\"}": {
   "status": 200,
   "body": {
    "comment": {
@@ -3104,7 +3134,7 @@
     "path": "Sources/Basket/Basket.swift",
     "line": 7,
     "side": "RIGHT",
-    "body": "It returns early when the list is empty.",
+    "body": "It could: the basket only reads from it.",
     "code": "        self.search = Search(catalog: catalog)",
     "shown": {
      "path": "Sources/Basket/Basket.swift",
@@ -3232,11 +3262,11 @@
        "ended_at": null,
        "sets": {
         "comment": {
-         "set": "1a7e0836cd1d",
+         "set": "460ab60b14a8",
          "words": "These 3 comments go on octo/widgets#22 under your name, exactly as shown."
         },
         "approve-with-comments": {
-         "set": "5f034cbd18d6",
+         "set": "40390920f8a7",
          "words": "You approve octo/widgets#22, and these 3 comments go with the approval under your name, exactly as shown."
         },
         "approve": {
@@ -3282,14 +3312,14 @@
          "path": "Sources/Basket/Basket.swift",
          "line": 7,
          "side": "RIGHT",
-         "body": "It returns early when the list is empty.",
+         "body": "It could: the basket only reads from it.",
          "code": "        self.search = Search(catalog: catalog)",
          "shown": {
           "path": "Sources/Basket/Basket.swift",
           "line": 7,
           "side": "RIGHT"
          },
-         "version": "8bf3c2f7c64d"
+         "version": "3be883e3e52a"
         }
        ],
        "posted": []
@@ -3313,10 +3343,20 @@
        },
        {
         "from": "claude",
-        "text": "It returns early when the list is empty.",
+        "text": "It could: the basket only reads from it.",
+        "steps": [
+         {
+          "words": "Searched for Search("
+         },
+         {
+          "words": "Ran gh pr comment 22 --body \"Pass the search in.\"",
+          "refused": "gh may only read, one command at a time."
+         }
+        ],
         "at": "2026-10-15T13:00:02.000Z"
        }
-      ]
+      ],
+      "session": "00000000-0000-4000-8000-000000000001"
      }
     ],
     "github": [
@@ -3423,7 +3463,7 @@
      ],
      "stale": false
     },
-    "version": "31e3805348c5"
+    "version": "e1c0aec999e0"
    }
   }
  },
@@ -3555,11 +3595,11 @@
        "ended_at": null,
        "sets": {
         "comment": {
-         "set": "1a7e0836cd1d",
+         "set": "460ab60b14a8",
          "words": "These 3 comments go on octo/widgets#22 under your name, exactly as shown."
         },
         "approve-with-comments": {
-         "set": "5f034cbd18d6",
+         "set": "40390920f8a7",
          "words": "You approve octo/widgets#22, and these 3 comments go with the approval under your name, exactly as shown."
         },
         "approve": {
@@ -3605,14 +3645,14 @@
          "path": "Sources/Basket/Basket.swift",
          "line": 7,
          "side": "RIGHT",
-         "body": "It returns early when the list is empty.",
+         "body": "It could: the basket only reads from it.",
          "code": "        self.search = Search(catalog: catalog)",
          "shown": {
           "path": "Sources/Basket/Basket.swift",
           "line": 7,
           "side": "RIGHT"
          },
-         "version": "8bf3c2f7c64d"
+         "version": "3be883e3e52a"
         }
        ],
        "posted": []
@@ -3636,10 +3676,20 @@
        },
        {
         "from": "claude",
-        "text": "It returns early when the list is empty.",
+        "text": "It could: the basket only reads from it.",
+        "steps": [
+         {
+          "words": "Searched for Search("
+         },
+         {
+          "words": "Ran gh pr comment 22 --body \"Pass the search in.\"",
+          "refused": "gh may only read, one command at a time."
+         }
+        ],
         "at": "2026-10-15T13:00:02.000Z"
        }
-      ]
+      ],
+      "session": "00000000-0000-4000-8000-000000000001"
      }
     ],
     "github": [
@@ -3746,7 +3796,7 @@
      ],
      "stale": false
     },
-    "version": "e4630d9cc649"
+    "version": "519ed8e36238"
    }
   }
  },
@@ -3872,11 +3922,11 @@
        "ended_at": null,
        "sets": {
         "comment": {
-         "set": "f8ee8f485b8e",
+         "set": "56650ca298a8",
          "words": "These 2 comments go on octo/widgets#22 under your name, exactly as shown."
         },
         "approve-with-comments": {
-         "set": "f26b0e3e3a88",
+         "set": "5eb01a5e2863",
          "words": "You approve octo/widgets#22, and these 2 comments go with the approval under your name, exactly as shown."
         },
         "approve": {
@@ -3904,14 +3954,14 @@
          "path": "Sources/Basket/Basket.swift",
          "line": 7,
          "side": "RIGHT",
-         "body": "It returns early when the list is empty.",
+         "body": "It could: the basket only reads from it.",
          "code": "        self.search = Search(catalog: catalog)",
          "shown": {
           "path": "Sources/Basket/Basket.swift",
           "line": 7,
           "side": "RIGHT"
          },
-         "version": "8bf3c2f7c64d"
+         "version": "3be883e3e52a"
         }
        ],
        "posted": []
@@ -3935,10 +3985,20 @@
        },
        {
         "from": "claude",
-        "text": "It returns early when the list is empty.",
+        "text": "It could: the basket only reads from it.",
+        "steps": [
+         {
+          "words": "Searched for Search("
+         },
+         {
+          "words": "Ran gh pr comment 22 --body \"Pass the search in.\"",
+          "refused": "gh may only read, one command at a time."
+         }
+        ],
         "at": "2026-10-15T13:00:02.000Z"
        }
-      ]
+      ],
+      "session": "00000000-0000-4000-8000-000000000001"
      }
     ],
     "github": [
@@ -4045,7 +4105,7 @@
      ],
      "stale": false
     },
-    "version": "d9738e80d301"
+    "version": "ec8c1033c947"
    }
   }
  },
@@ -4069,7 +4129,8 @@
       "text": "It returns early when the list is empty.",
       "at": "2026-10-15T13:00:05.000Z"
      }
-    ]
+    ],
+    "session": "00000000-0000-4000-8000-000000000002"
    }
   }
  },
@@ -4090,7 +4151,16 @@
      },
      {
       "from": "claude",
-      "text": "It returns early when the list is empty.",
+      "text": "It could: the basket only reads from it.",
+      "steps": [
+       {
+        "words": "Searched for Search("
+       },
+       {
+        "words": "Ran gh pr comment 22 --body \"Pass the search in.\"",
+        "refused": "gh may only read, one command at a time."
+       }
+      ],
       "at": "2026-10-15T13:00:02.000Z"
      },
      {
@@ -4102,6 +4172,32 @@
       "from": "claude",
       "text": "It returns early when the list is empty.",
       "at": "2026-10-15T13:00:07.000Z"
+     }
+    ],
+    "session": "00000000-0000-4000-8000-000000000001"
+   }
+  }
+ },
+ "POST /api/reviews/github.com/octo/widgets/21/threads/9/stop {}": {
+  "status": 200,
+  "body": {
+   "thread": {
+    "id": 9,
+    "path": "Sources/Basket/Basket.swift",
+    "side": "RIGHT",
+    "line": 3,
+    "created_at": "2026-10-15T13:00:08.000Z",
+    "session": "00000000-0000-4000-8000-000000000003",
+    "messages": [
+     {
+      "from": "you",
+      "text": "Does anything test this?",
+      "at": "2026-10-15T13:00:09.000Z"
+     },
+     {
+      "from": "claude",
+      "error": "you stopped it",
+      "at": "2026-10-15T13:00:10.000Z"
      }
     ]
    }

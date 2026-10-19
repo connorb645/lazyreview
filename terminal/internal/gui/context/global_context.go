@@ -16,7 +16,9 @@ import (
 // mode, the review open or opening, its files loaded, the pull request
 // filter and its highlight, the jumps, the notice in the bar, the keys typed
 // toward a sequence, the last click, the drafts and the editing under way,
-// and the stream of the review's changes.
+// the questions sent to Claude and not yet answered, the conversation last
+// stopped here, the spinner's frame and whether its next tick is due, and
+// the stream of the review's changes.
 type GlobalContext struct {
 	Width      int
 	Height     int
@@ -41,6 +43,10 @@ type GlobalContext struct {
 	Where      types.WhereShown
 	Choosing   *types.Editing
 	EditingNow bool
+	Asking     int
+	Stopped    int
+	Spin       int
+	Spinning   bool
 	Live       <-chan tea.Msg
 	StopLive   stdcontext.CancelFunc
 	LiveFor    string

@@ -11,7 +11,8 @@
  * serve() runs the app's server in this process until it is stopped, and
  * resolves at once with the line saying where. The server records its
  * address and a token in server.json, which only its owner can read; a
- * client such as the terminal app sends the token with each change.
+ * client such as the terminal app sends the token with each change. When
+ * stopped, it stops Claude on every conversation it is answering first.
  */
 import { mkdirSync, rmSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -43,7 +44,7 @@ export class App {
     this.loader = new Loader({ store });
     this.branches = new BranchLoader({ store });
     this.queue = new QueueService({ store });
-    this.threads = new ThreadService({ store, claude: new Claude({ command: values.claude.command, model: values.claude.model || null, folder: home.root }) });
+    this.threads = new ThreadService({ store, claude: new Claude({ command: values.claude.command, model: values.claude.model || null }) });
     this.pulls = new OpenPulls({ store, config: () => readUserConfig({ env }) });
     this.background = new BackgroundServer({ home, bin, env });
     this.terminal = terminal;
@@ -73,6 +74,7 @@ export class App {
       } catch (error) {
         console.error(english.cli.failed(error.message));
       } finally {
+        await this.threads.stopAll();
         await server.close();
         process.exit(0);
       }

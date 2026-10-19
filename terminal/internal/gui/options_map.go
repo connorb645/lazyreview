@@ -15,21 +15,28 @@ func (a App) barLine() string {
 		return utils.Fit(" "+a.Prompt.Input.View(), a.Width)
 	}
 	right := ""
+	widest := max(10, a.Width*2/3)
 	status := a.helpers.Home.Status(a.ContextTree)
+	if status == "" {
+		status = a.helpers.AppStatus.Status(a.ContextTree, widest)
+	}
 	switch {
 	case a.Notice != "":
 		style := th.Text
 		if a.Bad {
 			style = th.Bad
 		}
-		right = style.Render(ansi.Truncate(a.Notice, max(10, a.Width*2/3), "…"))
+		right = style.Render(ansi.Truncate(a.Notice, widest, "…"))
 	case a.Keys.Typed() != "":
 		right = th.Accent.Render(a.Keys.Typed())
 	case status != "":
-		right = th.Muted.Render(ansi.Truncate(status, max(10, a.Width*2/3), "…"))
+		right = th.Muted.Render(ansi.Truncate(status, widest, "…"))
 	}
 	hints := a.controllers.Hints(a.ContextTree)
-	room := a.Width - ansi.StringWidth(right) - 3
+	room := a.Width - 3
+	if right != "" {
+		room -= ansi.StringWidth(right) + 1
+	}
 	sep := th.Faint.Render(" | ")
 	parts := make([]string, len(hints))
 	for i, h := range hints {
