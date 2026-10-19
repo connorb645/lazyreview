@@ -204,3 +204,25 @@ func TestReadingAgainKeepsTheKeysInTheirRepositoryWhenAnotherHasTheSameNumber(t 
 		t.Fatalf("read again, the keys went to %s, panel %d", selectedPull(a), a.Home.Focus)
 	}
 }
+
+// A hidden panel's title says hidden before the repository's name, so the
+// count of pull requests waiting follows the name, never the word, and a
+// name too long for the panel is cut before the count is.
+func TestAHiddenPanelsTitleSaysHiddenBeforeItsNameApartFromItsCount(t *testing.T) {
+	for _, size := range [][2]int{{80, 24}, {161, 48}} {
+		a, _, _ := homeOn(t, "hidden", size[0], size[1])
+		view := ansi.Strip(press(t, a, "I").View())
+		for _, title := range []string{"╭─[2]─hidden octo/gadgets ● 1─", "╭─[3]─hidden reviewer-home/notes─"} {
+			if !strings.Contains(view, title) {
+				t.Errorf("at %d by %d no title %q:\n%s", size[0], size[1], title, view)
+			}
+		}
+	}
+	kept := recorded(t)["GET /api/pulls#hidden"]
+	body := strings.ReplaceAll(string(kept.Body), `"octo/gadgets"`, `"octo/gadgets-for-the-garden-shed"`)
+	changed := &changes{answers: map[string]answer{"GET /api/pulls": {Status: 200, Body: []byte(body)}}}
+	a, _ := openedOn(t, changed, "", 80, 24)
+	if view := ansi.Strip(press(t, a, "I").View()); !strings.Contains(view, "╭─[2]─hidden octo/gadgets-for-the… ● 1─╮") {
+		t.Errorf("a long name is not cut before its count:\n%s", view)
+	}
+}

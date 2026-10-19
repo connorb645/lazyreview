@@ -6,14 +6,14 @@
 │                                      ││   octo/reviewers.                    │
 │                                      ││   Not loaded in lazyreview yet.      │
 ╰───────────────────────────────1 of 3─╯│   Hidden from the home screen by     │
-╭─[2]─octo/gadgets ● 1 hidden──────────╮│   octo/gadgets in the config. i      │
+╭─[2]─hidden octo/gadgets ● 1──────────╮│   octo/gadgets in the config. i      │
 │▌●    #7 Count the gadgets in st… kim ││   shows it again.                    │
 │      #9 Sort the gadgets by pri… kim ││                                      │
 │                                      ││ Enter loads it as reviewer, then     │
 │                                      ││ opens it.                            │
 │                                      ││                                      │
 ╰───────────────────────────────1 of 2─╯│ Counts each gadget once.             │
-╭─[3]─reviewer-home/notes hidden───────╮│                                      │
+╭─[3]─hidden reviewer-home/notes───────╮│                                      │
 │    ┌ #3 Keep the note… reviewer-home ││ • Adds a stock count                 │
 │    └ #4 Tag the notes  reviewer-home ││ • Shows it on the shelf              │
 │                                      ││                                      │

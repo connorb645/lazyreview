@@ -7,7 +7,7 @@
 │                                                ││   config. i shows it again.                    │
 │                                                ││                                                │
 ╰─────────────────────────────────────────2 of 2─╯│ Enter opens the stack's review.                │
-╭─[2]─octo/gadgets ● 1 hidden────────────────────╮│                                                │
+╭─[2]─hidden octo/gadgets ● 1────────────────────╮│                                                │
 │ ●    #7 Count the gadgets in stock         kim ││ The stack, bottom first:                       │
 │      #9 Sort the gadgets by price          kim ││ ▸ #21 Add search to the catalog                │
 │                                                ││   #22 Add a basket that uses search            │
@@ -16,7 +16,7 @@
 │             ╰──────────────────────────────────────────────────────────────1 of 1─╯              │
 │                                                ││                                                │
 ╰─────────────────────────────────────────1 of 2─╯│                                                │
-╭─[3]─octo/widgets ● 1 hidden────────────────────╮│                                                │
+╭─[3]─hidden octo/widgets ● 1────────────────────╮│                                                │
 │  ◆ ┌ #21 Add search to the catalog         sam ││                                                │
 │ ●◆ └ #22 Add a basket that uses search     sam ││                                                │
 │      #30 Fix the guide wording            alex ││                                                │

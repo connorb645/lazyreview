@@ -212,11 +212,11 @@ this repository, or every repository of its owner. The choice goes in the
 config's `github.hiddenRepositories`, as `owner/name` or `owner/*`, for every
 account, and the file keeps every other line as you wrote it. A hidden
 repository has no panel, and the bar counts the ones hidden, so no pull
-request leaves without a word. `I` shows them, dim, marked hidden, after the
-others; `i` on one shows it again, and when an `owner/*` entry hides it, the
-menu says so before taking that entry off. A review of a hidden repository
-still opens, `load` still loads one, and the web app's front page leaves
-those reviews out as well, saying how many.
+request leaves without a word. `I` shows them, dim, after the others, each
+title starting with `hidden`; `i` on one shows it again, and when an
+`owner/*` entry hides it, the menu says so before taking that entry off. A
+review of a hidden repository still opens, `load` still loads one, and the
+web app's front page leaves those reviews out as well, saying how many.
 
 ### In a review
 

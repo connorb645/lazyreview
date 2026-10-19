@@ -3,6 +3,8 @@ package gui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/x/ansi"
+
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
@@ -23,22 +25,19 @@ func (a App) homePanelBox(i int, r views.Rect, focused bool) []string {
 	if panel.Rows.Cursor < 0 {
 		place = ""
 	}
-	title := panel.Title
+	title, waiting, tags := panel.Title, th.Warning, ""
+	if panel.Hidden {
+		title, waiting = a.c.Tr.HiddenTag+" "+title, th.Faint
+	}
 	if panel.Number > 0 {
 		title = views.PanelTitle(panel.Number, title)
-	}
-	waiting, tags := th.Warning, ""
-	if panel.Hidden && !focused {
-		title = th.Faint.Render(title)
-	}
-	if panel.Hidden {
-		waiting = th.Faint
 	}
 	if panel.Waiting > 0 {
 		tags = " " + waiting.Render(fmt.Sprintf("● %d", panel.Waiting))
 	}
-	if panel.Hidden {
-		tags += " " + th.Faint.Render(a.c.Tr.HiddenTag)
+	title = ansi.Truncate(title, max(0, r.W-4-ansi.StringWidth(tags)), "…")
+	if panel.Hidden && !focused {
+		title = th.Faint.Render(title)
 	}
 	return views.Framed(content, views.Extent{}, r.W, r.H, title, tags, place, focused, th)
 }

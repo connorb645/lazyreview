@@ -8,7 +8,7 @@
 │                                                ││   reviewer-home/* in the config. i shows it    │
 │                                                ││   again.                                       │
 ╰─────────────────────────────────────────1 of 3─╯│                                                │
-╭─[2]─octo/gadgets ● 1 hidden────────────────────╮│ Enter loads the stack, #3 → #4, as             │
+╭─[2]─hidden octo/gadgets ● 1────────────────────╮│ Enter loads the stack, #3 → #4, as             │
 │ ●    #7 Count the gadgets in stock         kim ││ reviewer-home, then opens it.                  │
 │      #9 Sort the gadgets by price          kim ││                                                │
 │                                                ││ The stack, bottom first:                       │
@@ -17,7 +17,7 @@
 │                                                ││                                                │
 │                                                ││ No description.                                │
 ╰─────────────────────────────────────────1 of 2─╯│                                                │
-╭─[3]─reviewer-home/notes hidden─────────────────╮│                                                │
+╭─[3]─hidden reviewer-home/notes─────────────────╮│                                                │
 │▌   ┌ #3 Keep the notes in plain… reviewer-home ││                                                │
 │    └ #4 Tag the notes            reviewer-home ││                                                │
 │                                                ││                                                │
