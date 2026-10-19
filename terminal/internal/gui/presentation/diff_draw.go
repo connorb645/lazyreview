@@ -229,10 +229,6 @@ func splitRow(d types.ReviewData, v DiffView, i int, mark string, filter types.P
 		return out
 	}
 	left, right := side(r.Left, true), side(r.Right, false)
-	owner := r.Right
-	if owner == nil || owner.Kind == "same" {
-		owner = r.Left
-	}
 	var out []string
 	for i := 0; i < max(len(left), len(right)); i++ {
 		a, b := strings.Repeat(" ", half), strings.Repeat(" ", half)
@@ -242,11 +238,14 @@ func splitRow(d types.ReviewData, v DiffView, i int, mark string, filter types.P
 		if i < len(right) {
 			b = right[i]
 		}
-		lead := "  "
+		lead, between := "  ", th.Muted.Render("│")
 		if i == 0 {
-			lead = mark + stripe(d, owner, filter, th)
+			lead = mark + stripe(d, r.Left, filter, th)
+			if bar := stripe(d, r.Right, filter, th); bar != " " {
+				between = bar
+			}
 		}
-		out = append(out, lead+a+th.Muted.Render("│")+b)
+		out = append(out, lead+a+between+b)
 	}
 	return out
 }

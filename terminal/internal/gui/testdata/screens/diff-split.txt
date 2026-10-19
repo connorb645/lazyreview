@@ -3,11 +3,11 @@
 │ #21 Add search to the catalog ││   @@ -1,11 +1,13 @@                                             ▐
 │ #22 Add a basket that uses se…││     1   final class Basket {    │   1   final class Basket {    ▐
 ╰────────────────────────1 of 3─╯│     2       let catalog: Catalog│   2       let catalog: Catalog▐
-╭─[2]─Files─────────────────────╮│▌▎                               │   3 +     let search: Search  ▐
+╭─[2]─Files─────────────────────╮│▌                                ▎   3 +     let search: Search  ▐
 │ ▾ ■ widgets            +15 −1 ││     3                           │   4                           ▐
 │   ▾ Sources/Basket            ││     4       init(catalog: Catal…│   5       init(catalog: Catal…▐
 │     M Basket.swift          ● ││     5           self.catalog = …│   6           self.catalog = …▐
-│   ▾ Sources/Catalog           ││ ▎                               │   7 +         self.search = S…▐
+│   ▾ Sources/Catalog           ││                                 ▎   7 +         self.search = S…▐
 │     M MemoryCatalog.swift   ● ││              ▾ Claude · 2 messages · line 7           a ask  za ▐
 │     A Search.swift          ● ││                You: Could this be passed in?                    ▐
 │   ▾ web/src                   ││                Claude: It returns early when the list is        ▐
@@ -18,7 +18,7 @@
 │ 2 Basket.swift:9-11       #22 ││     6       }                   │   8       }                   │
 │ Claude                      1 ││     7                           │   9                           │
 │ Basket.swift:7 Could this be …││     8       func total() -> Int…│  10       func total() -> Int…│
-│ On GitHub                   2 ││ ▎   9 -         0               │  11 +         1               │
+│ On GitHub                   2 ││ ▎   9 -         0               ▎  11 +         1               │
 │ sam MemoryCatalog.swift:9     ││              ▾ Queued 2 → #22 · removed line 9 to line 11       │
 │ sam Basket.swift:7   resolved ││                Why one?                                         │
 ╰────────────────────────1 of 5─╯│    10       }                   │  12       }                   │

@@ -334,6 +334,39 @@ func TestABlockTheFilterLeavesOutFadesWithADimmerBar(t *testing.T) {
 	}
 }
 
+// In the split view, each side of a row has its pull request's mark at its
+// left edge: the left side's where the row starts, the right side's in
+// place of the line between them. So with no colour, a side the filter
+// leaves out has a dot beside a side it holds.
+func TestEachSideOfASplitRowIsMarkedForItsPullRequest(t *testing.T) {
+	d := filterStandIn()
+	cmn := testCommon()
+	removed := func(owner int) *server.Row {
+		return &server.Row{Kind: "del", Old: 4, Text: "let fee = 1", Owner: owner}
+	}
+	added := func(owner int) *server.Row {
+		return &server.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: owner}
+	}
+	same := &server.Row{Kind: "same", Old: 5, New: 5, Text: "}"}
+	v := presentation.DiffView{Width: 60, Split: true, Cursor: -1, Rows: []presentation.DiffRow{
+		{Kind: "line", Path: "Sources/Core/Order.swift", Left: removed(22), Right: added(21)},
+		{Kind: "line", Path: "Sources/Core/Order.swift", Left: removed(21), Right: added(22)},
+		{Kind: "line", Path: "Sources/Core/Order.swift", Right: added(21)},
+		{Kind: "line", Path: "Sources/Core/Order.swift", Left: same, Right: same},
+	}}
+	lines := presentation.DiffLines(cmn.Tr, cmn.Theme, presentation.KeyLabels{}, d, v, 4, types.PullFilter{21}, false)
+	half := (v.Width - 3) / 2
+	marks := func(line string) string {
+		cells := []rune(line)
+		return string(cells[1]) + string(cells[2+half])
+	}
+	for i, want := range []string{"·▎", "▎·", " ▎", " │"} {
+		if got := marks(lines[i]); got != want {
+			t.Errorf("row %d is marked %q, not %q: %q", i, got, want, lines[i])
+		}
+	}
+}
+
 func TestUnchangedCodeIsNeverLeftOutByAFilter(t *testing.T) {
 	d := filterStandIn()
 	tr := testCommon().Tr
