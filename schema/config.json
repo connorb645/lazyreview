@@ -227,6 +227,34 @@
                   ],
                   "default": "#ff9fb6"
                 },
+                "dimAddedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "default": "#4d9a74"
+                },
+                "dimRemovedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "default": "#b0647a"
+                },
                 "warningColor": {
                   "oneOf": [
                     {
@@ -560,6 +588,34 @@
                     }
                   ],
                   "default": "#b21f43"
+                },
+                "dimAddedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "default": "#5c9a78"
+                },
+                "dimRemovedColor": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    }
+                  ],
+                  "default": "#c8768a"
                 },
                 "warningColor": {
                   "oneOf": [

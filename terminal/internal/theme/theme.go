@@ -15,8 +15,9 @@ import (
 
 // Theme is the styles the terminal app draws with, made from its colours
 // for a dark or a light terminal and the colours the terminal can show.
-// Keys and the focused title are bold. Plain is a terminal of no colour,
-// which marks the selected line in its first cell instead.
+// Keys and the focused title are bold. DimAdded and DimRemoved colour the
+// added and removed lines the filter leaves out. Plain is a terminal of no
+// colour, which marks the selected line in its first cell instead.
 type Theme struct {
 	Colours                    config.Colours
 	Dark                       bool
@@ -28,6 +29,8 @@ type Theme struct {
 	Accent                     lipgloss.Style
 	Added                      lipgloss.Style
 	Removed                    lipgloss.Style
+	DimAdded                   lipgloss.Style
+	DimRemoved                 lipgloss.Style
 	Warning                    lipgloss.Style
 	Bad                        lipgloss.Style
 	Key                        lipgloss.Style
@@ -51,6 +54,8 @@ func New(colours config.Colours, dark bool, profile termenv.Profile) Theme {
 	t.Accent = fg(colours.AccentColor)
 	t.Added = fg(colours.AddedColor)
 	t.Removed = fg(colours.RemovedColor)
+	t.DimAdded = fg(colours.DimAddedColor)
+	t.DimRemoved = fg(colours.DimRemovedColor)
 	t.Warning = fg(colours.WarningColor)
 	t.Bad = t.Removed.Bold(true)
 	t.Key = t.Accent.Bold(true)

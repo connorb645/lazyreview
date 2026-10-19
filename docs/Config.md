@@ -107,6 +107,8 @@ gui:
       inactiveBorderColor: '#4a4766'
       addedColor: '#7ce2a7'
       removedColor: '#ff9fb6'
+      dimAddedColor: '#4d9a74'
+      dimRemovedColor: '#b0647a'
       warningColor: '#f2b26a'
       selectedLineBgColor: '#3a3270'
       inactiveViewSelectedLineBgColor: '#26233d'
@@ -122,6 +124,8 @@ gui:
       inactiveBorderColor: '#c4c0dc'
       addedColor: '#146b3a'
       removedColor: '#b21f43'
+      dimAddedColor: '#5c9a78'
+      dimRemovedColor: '#c8768a'
       warningColor: '#9c5212'
       selectedLineBgColor: '#dcd4ff'
       inactiveViewSelectedLineBgColor: '#efebfb'
@@ -424,10 +428,11 @@ gui:
 A colour the file leaves out keeps its default, so this changes three
 colours of the dark set and nothing else. `pullRequestColors` are the
 colours of a stack's pull requests, in order: a list of 8, which replaces
-the default list whole. `componentColors` are the colours a components
-config can name, one by one. The names follow lazygit's where the colour
-does the same thing, such as `activeBorderColor` and `selectedLineBgColor`.
-Bold and plain text stay as they are.
+the default list whole. `dimAddedColor` and `dimRemovedColor` colour the
+added and removed lines a stack's filter leaves out. `componentColors` are
+the colours a components config can name, one by one. The names follow
+lazygit's where the colour does the same thing, such as `activeBorderColor`
+and `selectedLineBgColor`. Bold and plain text stay as they are.
 
 The web app keeps its own colours, dark and light by the system setting.
 

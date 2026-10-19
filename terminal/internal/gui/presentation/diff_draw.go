@@ -251,12 +251,14 @@ func stripe(d types.ReviewData, l *server.Row, filter types.PullFilter, th theme
 }
 
 func rowStyle(l *server.Row, added bool, filter types.PullFilter, th theme.Theme) lipgloss.Style {
-	if l.Kind != "same" && !filter.Shows(l.Owner) {
-		return th.Muted
-	}
+	out := l.Kind != "same" && !filter.Shows(l.Owner)
 	switch {
+	case (l.Kind == "add" || added) && out:
+		return th.DimAdded
 	case l.Kind == "add" || added:
 		return th.Added
+	case l.Kind == "del" && out:
+		return th.DimRemoved
 	case l.Kind == "del":
 		return th.Removed
 	case l.Kind == "note":

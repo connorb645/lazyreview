@@ -6,6 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
+	"github.com/muesli/termenv"
+
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
@@ -226,6 +230,72 @@ func TestWithNoColourWhatTheFilterLeavesOutIsMarked(t *testing.T) {
 	out, _ := presentation.SideContent(tr, plain, []presentation.SideRow{{Key: "a", Text: "Order"}, {Key: "b", Text: "Pricer", Out: true}}, 0, 0, views.Rect{W: 20, H: 2}, false)
 	if !strings.HasPrefix(out[1], "·Pricer") {
 		t.Fatalf("with no colour a row the filter leaves out reads %q", out[1])
+	}
+}
+
+// A line the filter leaves out keeps its green or red, in a dimmer shade,
+// sign and all, in the unified and the split view, so an added line and a
+// removed one still read apart, and neither reads as unchanged code.
+func TestALineTheFilterLeavesOutKeepsADimmerGreenOrRed(t *testing.T) {
+	lipgloss.SetColorProfile(termenv.TrueColor)
+	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
+	ink := func(colour string) string { return termenv.CSI + termenv.TrueColor.Color(colour).Sequence(false) + "m" }
+	d := filterStandIn()
+	held := &server.Row{Kind: "add", New: 3, Text: "let total = 0", Owner: 21}
+	added := &server.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: 22}
+	removed := &server.Row{Kind: "del", Old: 4, Text: "let fee = 1", Owner: 22}
+	unified := presentation.DiffView{Width: 60, Rows: []presentation.DiffRow{
+		{Kind: "line", Path: "Sources/Core/Order.swift", Line: held},
+		{Kind: "line", Path: "Sources/Core/Order.swift", Line: removed},
+		{Kind: "line", Path: "Sources/Core/Order.swift", Line: added},
+	}}
+	split := presentation.DiffView{Width: 80, Split: true, Rows: []presentation.DiffRow{{Kind: "line", Path: "Sources/Core/Order.swift", Left: removed, Right: added}}}
+	for _, c := range []struct {
+		theme                                       string
+		added, dimAdded, dimRemoved, outPullRequest string
+	}{
+		{"dark", "#7ce2a7", "#4d9a74", "#b0647a", "#d95926"},
+		{"light", "#146b3a", "#5c9a78", "#c8768a", "#eb6834"},
+	} {
+		cmn := commonFor(c.theme == "dark")
+		lines := presentation.DiffLines(cmn.Tr, cmn.Theme, presentation.KeyLabels{}, d, unified, 3, types.PullFilter{21}, false)
+		lines = append(lines, presentation.DiffLines(cmn.Tr, cmn.Theme, presentation.KeyLabels{}, d, split, 1, types.PullFilter{21}, false)...)
+		for i, want := range [][]string{
+			{ink(c.added) + "+ let total = 0"},
+			{ink(c.outPullRequest) + "·", ink(c.dimRemoved) + "- let fee = 1"},
+			{ink(c.outPullRequest) + "·", ink(c.dimAdded) + "+ let tax = 0"},
+			{ink(c.outPullRequest) + "·", ink(c.dimRemoved) + "- let fee = 1", ink(c.dimAdded) + "+ let tax = 0"},
+		} {
+			for _, part := range want {
+				if !strings.Contains(lines[i], part) {
+					t.Errorf("on a %s terminal, line %d has no %q: %q", c.theme, i, part, lines[i])
+				}
+			}
+		}
+	}
+}
+
+// In the Review view, a pull request the filter leaves out has its counts
+// of lines in the dimmer green and red, as its number and title are faint.
+func TestTheReviewViewDimsTheCountsOfAPullRequestLeftOut(t *testing.T) {
+	lipgloss.SetColorProfile(termenv.TrueColor)
+	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
+	ink := func(colour string) string { return termenv.CSI + termenv.TrueColor.Color(colour).Sequence(false) + "m" }
+	a, _ := opened(t, stack, 160, 30)
+	a = press(t, a, "j", "space", "v")
+	counts := map[string]string{}
+	for _, line := range strings.Split(a.View(), "\n") {
+		for _, pull := range []string{"#21", "#22"} {
+			if at := strings.Index(line, "by sam"); at >= 0 && strings.Contains(ansi.Strip(line[:at]), "  "+pull+"  ") {
+				counts[pull] = line[at:]
+			}
+		}
+	}
+	if !strings.Contains(counts["#21"], ink("#7ce2a7")+"+") || !strings.Contains(counts["#21"], ink("#ff9fb6")+"−") {
+		t.Errorf("#21, which the filter holds, counts its lines as %q", counts["#21"])
+	}
+	if !strings.Contains(counts["#22"], ink("#4d9a74")+"+") || !strings.Contains(counts["#22"], ink("#b0647a")+"−") {
+		t.Errorf("#22, which the filter leaves out, counts its lines as %q", counts["#22"])
 	}
 }
 

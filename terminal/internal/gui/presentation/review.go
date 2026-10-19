@@ -141,15 +141,15 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 		b.prose(" ", th.Bold, title)
 		for _, m := range s.Members {
 			own := StackMember(d.Page.Stack, m.Pull)
+			number, name, added, removed := th.PullRequest(m.Color), th.Text, th.Added, th.Removed
+			if !filter.Shows(m.Pull) {
+				number, name, added, removed = th.Faint, th.Faint, th.DimAdded, th.DimRemoved
+			}
 			parts := []string{th.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author})), th.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base})),
 				th.Muted.Render(utils.ResolvePlaceholderString(tr.MemberHead, map[string]string{"sha": utils.Short(m.Head)})),
-				th.Muted.Render(utils.Plural(own.Files, tr.FileNoun)+" ") + th.Added.Render(fmt.Sprintf("+%d", own.Adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", own.Dels))}
+				th.Muted.Render(utils.Plural(own.Files, tr.FileNoun)+" ") + added.Render(fmt.Sprintf("+%d", own.Adds)) + " " + removed.Render(fmt.Sprintf("−%d", own.Dels))}
 			if m.State != "" && m.State != "open" {
 				parts = append(parts, th.Removed.Render(m.State))
-			}
-			number, name := th.PullRequest(m.Color), th.Text
-			if !filter.Shows(m.Pull) {
-				number, name = th.Faint, th.Faint
 			}
 			head := "  " + number.Render(fmt.Sprintf("#%d", m.Pull)) + "  " + name.Render(m.Title)
 			if tail := strings.Join(parts, th.Muted.Render(" · ")); ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {

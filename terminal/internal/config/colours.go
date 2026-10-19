@@ -13,6 +13,8 @@ type Colours struct {
 	InactiveBorderColor             string            `json:"inactiveBorderColor"`
 	AddedColor                      string            `json:"addedColor"`
 	RemovedColor                    string            `json:"removedColor"`
+	DimAddedColor                   string            `json:"dimAddedColor"`
+	DimRemovedColor                 string            `json:"dimRemovedColor"`
 	WarningColor                    string            `json:"warningColor"`
 	SelectedLineBgColor             string            `json:"selectedLineBgColor"`
 	InactiveViewSelectedLineBgColor string            `json:"inactiveViewSelectedLineBgColor"`
