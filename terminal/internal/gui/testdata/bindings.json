@@ -201,6 +201,7 @@
   "space v": "review",
   "tab": "jump forward",
   "up": "up",
+  "v": "select",
   "z a": "toggle fold"
  },
  "finder": {

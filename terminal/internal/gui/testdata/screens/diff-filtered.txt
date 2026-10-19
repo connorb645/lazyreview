@@ -4,14 +4,14 @@
 │·#22 Add a basket that uses se…││                Keep the order items came in.                    │
 ╰────────────────────────2 of 3─╯│     7   11   }                                                  │
 ╭─[2]─Files─────────────────────╮│  ▾ Sources/Catalog/Search.swift  new  #21  +7 −0                │
-│ ▾ ■ widgets            +11 −0 ││   @@ -0,0 +1,7 @@                                               │
+│┃▾ ■ widgets            +11 −0 ││   @@ -0,0 +1,7 @@                                               │
 │   M MemoryCatalog.swift     ● ││ ▎        1 + struct Search {                                    │
 │   A Search.swift            ● ││ ▎        2 +     let catalog: Catalog                           │
 │ ▾ ■ Unchanged code  unchanged ││ ▎        3 +                                                    │
 │   · Catalog.swift             ││ ▎        4 +     func find(_ text: String) -> [Item] {          │
 │                               ││ ▎        5 +         catalog.items().filter { $0.name.contains(…│
 │                               ││ ▎        6 +     }                                              │
-╰────────────────────────2 of 5─╯│ ▎        7 + }                                                  │
+╰────────────────────────1 of 5─╯│ ▎        7 + }                                                  │
 ╭─[3]─Notes─────────────────────╮│                                                                 │
 │ Queued                      1 ││                                                                 │
 │ 1 MemoryCatalog.swift:8-… #21 ││                                                                 │

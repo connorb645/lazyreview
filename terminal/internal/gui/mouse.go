@@ -83,7 +83,7 @@ func (a App) sideClicked(s context.ContextTree, n, y int, double bool) (context.
 		return h.Refresh.Relaid(s), nil
 	}
 	s = s.WithSide(n, s.Side(n).To(i, h.Window.SideHeight(s, n)))
-	s, cmd := h.Panels.Followed(h.Refresh.Relaid(h.Filter.FromCursor(s)))
+	s, cmd := h.Panels.Followed(h.Refresh.Relaid(h.Files.FromCursor(h.Filter.FromCursor(s))))
 	if !double {
 		return s, cmd
 	}

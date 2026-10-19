@@ -1,26 +1,26 @@
 ╭─[1]─Review────────────────────╮╭─[0]─Diff · docs › docs/guide.md─────────────────────────────────╮
-│ #30 Fix the guide wording     ││  ▾ docs/basket.md  new  +6 −0                                   │
-╰────────────────────────1 of 1─╯│   @@ -0,0 +1,6 @@                                               │
-╭─[2]─Files─────────────────────╮│          1 + # Basket                                           │
-│ ▾ ■ docs               +18 −1 ││          2 +                                                    │
-│   A basket.md                 ││          3 + A basket keeps its prices until checkout.          │
-│   M guide.md                  ││          4 +                                                    │
-│                               ││          5 + 1. Add an item                                     │
-│                               ││          6 + 2. Remove an item                                  │
-│                               ││  ▾ docs/guide.md  changed  rendered  +12 −1                     │
-│                               ││        1  │ # Guide                                             │
-╰────────────────────────3 of 3─╯│┃      -3 ▌│ The catalog lists items.                            │
-╭─[3]─Notes─────────────────────╮│▌       3 ▌│ The catalog lists every item.                       │
-│ Queued                      1 ││              ▾ Queued 1 → #30 · line 3          e edit  dd drop │
-│ 1 guide.md:3                  ││                Every item, or every item shown?                 │
+│ #30 Fix the guide wording     ││  ▾ docs/guide.md  changed  rendered  +12 −1                     │
+╰────────────────────────1 of 1─╯│        1  │ # Guide                                             │
+╭─[2]─Files─────────────────────╮│┃      -3 ▌│ The catalog lists items.                            │
+│ ▾ ■ docs               +18 −1 ││▌       3 ▌│ The catalog lists every item.                       │
+│   A basket.md                 ││              ▾ Queued 1 → #30 · line 3          e edit  dd drop │
+│┃  M guide.md                  ││                Every item, or every item shown?                 │
 │                               ││        5  │ • Browse                                            │
 │                               ││        6  │ • Search                                            │
 │                               ││        7 ▌│ • Keep a basket                                     │
 │                               ││        9 ▌│ ## Steps                                            │
-╰────────────────────────1 of 1─╯│       11 ▌│ 1. Open the catalog.                                │
-╭─[4]─Diagram───────────────────╮│       12 ▌│ 2. Pick an item.                                    │
-│ Components                    ││       13 ▌│ 3. Add it to the basket.                            │
-│ ■ docs                        ││    15-17 ▌│   let basket = Basket(catalog: catalog)             │
+╰────────────────────────3 of 3─╯│       11 ▌│ 1. Open the catalog.                                │
+╭─[3]─Notes─────────────────────╮│       12 ▌│ 2. Pick an item.                                    │
+│ Queued                      1 ││       13 ▌│ 3. Add it to the basket.                            │
+│ 1 guide.md:3                  ││    15-17 ▌│   let basket = Basket(catalog: catalog)             │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 1─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ docs                        ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │

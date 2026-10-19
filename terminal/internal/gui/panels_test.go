@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -43,8 +44,8 @@ func TestTheAppOpensOnTheReviewPanelBesideTheReviewView(t *testing.T) {
 func TestTheFilesPanelShowsTheSelectedFilesDiff(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "2")
-	if a.Focus() != context.FilesPanel || a.Screen() != context.ScreenDiff || a.Diff.Component != "root" {
-		t.Fatalf("2 shows the first component's diff: panel %d, screen %d, %q", a.Focus(), a.Screen(), a.Diff.Component)
+	if a.Focus() != context.FilesPanel || a.Screen() != context.ScreenDiff || !slices.Equal(a.FilesPanel.Chosen, []string{"component:root"}) {
+		t.Fatalf("2 shows the first component's diff: panel %d, screen %d, %q", a.Focus(), a.Screen(), a.FilesPanel.Chosen)
 	}
 	a = press(t, a, "j", "j")
 	if got := selectedKey(a, context.FilesPanel); got != "file:Sources/Basket/Basket.swift" {
@@ -59,8 +60,8 @@ func TestTheFilesPanelShowsTheSelectedFilesDiff(t *testing.T) {
 		t.Fatalf("Enter gives the diff the keys: panel %d at %s", a.Focus(), cursorAt(a))
 	}
 	a = press(t, a, "]", "f")
-	if got := selectedKey(a, context.FilesPanel); got != "file:Sources/Catalog/MemoryCatalog.swift" {
-		t.Fatalf("]f in the diff moves the Files panel with it, to %s", got)
+	if got := selectedKey(a, context.FilesPanel); got != "file:Sources/Basket/Basket.swift" || cursorAt(a) == "Sources/Catalog/MemoryCatalog.swift file" {
+		t.Fatalf("]f in the diff of one file stays in it, the Files panel on %s, the diff at %s", got, cursorAt(a))
 	}
 	a = press(t, a, "esc", "g", "g", "z", "a")
 	if a.Side(context.FilesPanel).Index("file:Sources/Basket/Basket.swift") >= 0 {

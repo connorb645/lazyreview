@@ -211,8 +211,8 @@ The screen is laid out as in Lazygit. Four panels run down the left: 1
 Review, the pull requests; 2 Files, the changed files by component and
 folder; 3 Notes, the queued comments, conversations with Claude and threads on
 GitHub; and 4 Diagram, the boxes of the level shown. The main panel, 0, on the
-right shows what is selected on the left: the Review view, a file's diff, a
-note in its diff, or the diagram. When that runs past the main panel, a thumb
+right shows what is selected on the left: the Review view, the diff of the
+files selected, a note in its file's diff, or the diagram. When that runs past the main panel, a thumb
 in its right border shows how much of it fits and where you are, as in
 Lazygit. `Enter` gives the main panel the keys and `Esc` gives them back. The
 bar at the bottom lists the keys that matter where you are, and `Space ?`
@@ -268,8 +268,8 @@ The panels on the left:
 | `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` `{n}G` | half a page or a page down or up, or row n |
 | `h` `l` | the panel above or below, as Lazygit moves between its panels; `h` in Review goes round to Diagram, and `l` in Diagram to Review |
 | `Enter` | gives the main panel the keys; in Files, on a component or a folder, folds it |
-| `v` | in Review, on a stack, highlights the pull request selected; `j` `k` grow or shrink the highlight |
-| `Esc` | in Review, goes to All, to show the whole stack |
+| `v` | in Review, on a stack, highlights the pull request selected; in Files, selects the row selected, and the diff shows every file the selection holds; `j` `k` grow or shrink either, and in Files `v` stops it |
+| `Esc` | in Review, goes to All, to show the whole stack; in Files, stops the selection |
 | `P` | in Review and Notes, posts for the pull request selected |
 | `e` `dd` | in Notes, edits or drops the queued comment |
 | `za` | in Files, folds a component or a folder |
@@ -303,15 +303,19 @@ one, then the types of one package, as rows of boxes:
 | `Space d` | opens the box's diff |
 | `Space a` | draws every link faintly, or stops |
 
-The diff, in the main panel, shows one component's files. Its lines are
-numbered as `gui.lineNumbers` in the config says: each its own number, or
-how far each is from the cursor, as Vim's `relativenumber` does, or none.
+The diff, in the main panel, shows the files selected in Files, in the
+tree's order: a file alone, every file under a folder or a component, or
+every file a `v` selection holds. A jump to a file, from the finder, Notes or
+the Review view, shows that file alone, and a box of the diagram its
+component. Its lines are numbered as `gui.lineNumbers` in the config says:
+each its own number, or how far each is from the cursor, as Vim's
+`relativenumber` does, or none.
 
 | Key | Does |
 | --- | --- |
 | `j` `k` `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` | move by a line, half a page or a page |
 | `gg` `G` `{n}G` `:{n}` | the first or last line of this file, or line n of it |
-| `]c` `[c` `]f` `[f` | the next or previous hunk or file |
+| `]c` `[c` `]f` `[f` | the next or previous hunk, or file shown; `]f` and `[f` stay at the last and first |
 | `]n` `[n` | the next or previous note: a queued comment, a conversation or a colleague's thread |
 | `/` `?` `n` `N` | search the text |
 | `za` `zo` `zc` `zR` `zM` | fold a file, a run of unchanged lines or a note |

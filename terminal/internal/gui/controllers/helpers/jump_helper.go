@@ -46,7 +46,8 @@ func (self *JumpHelper) JumpBy(s context.ContextTree, by int) (context.ContextTr
 		if s.Driving() != context.NotesPanel {
 			s = s.Focused(s.Focus(), context.FilesPanel)
 		}
-		return h.Diff.OpenPlace(s, j.Component, j.Place)
+		s.FilesPanel.Chosen, s.FilesPanel.GrowFrom = j.Chosen, ""
+		return h.Diff.OpenPlace(s, j.Place)
 	case context.ScreenReview:
 		s = s.Showing(context.ScreenReview).Focused(s.Focus(), context.ReviewPanel)
 		s.ReviewView.View = s.ReviewView.View.To(j.Item, h.Window.MainHeight(s))
@@ -60,7 +61,7 @@ func (self *JumpHelper) JumpBy(s context.ContextTree, by int) (context.ContextTr
 }
 
 func here(s context.ContextTree) context.Jump {
-	j := context.Jump{Screen: s.Screen(), Item: s.ReviewView.View.Cursor, Component: s.Diff.Component}
+	j := context.Jump{Screen: s.Screen(), Item: s.ReviewView.View.Cursor, Chosen: s.FilesPanel.Chosen}
 	switch s.Screen() {
 	case context.ScreenDiff:
 		j.Place = s.Diff.Place()

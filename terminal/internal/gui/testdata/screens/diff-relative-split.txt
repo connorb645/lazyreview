@@ -1,30 +1,30 @@
 ╭─[1]─Review────────────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift────────────────╮
-│┃All                           ││  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1             ▐
-│ #21 Add search to the catalog ││   @@ -1,11 +1,13 @@                                             ▐
-│ #22 Add a basket that uses se…││     3   final class Basket {    │   3   final class Basket {    ▐
-╰────────────────────────1 of 3─╯│     2       let catalog: Catalog│   2       let catalog: Catalog▐
-╭─[2]─Files─────────────────────╮│                                 ▎   1 +     let search: Search  ▐
-│ ▾ ■ widgets            +15 −1 ││▌    3                           │   4                           ▐
-│   ▾ Sources/Basket            ││     1       init(catalog: Catal…│   1       init(catalog: Catal…▐
-│     M Basket.swift          ● ││     2           self.catalog = …│   2           self.catalog = …▐
-│   ▾ Sources/Catalog           ││                                 ▎   3 +         self.search = S…▐
-│     M MemoryCatalog.swift   ● ││              ▸ Claude · 2 messages · line 7           a ask  za ▐
-│     A Search.swift          ● ││              ▸ sam · 1 comment · resolved         gx GitHub  za ▐
-│   ▾ web/src                   ││     6       }                   │   6       }                   ▐
-│     M cart.ts               ● ││     7                           │   7                           ▐
-│ ▾ ■ Unchanged code  unchanged ││     8       func total() -> Int…│   8       func total() -> Int…▐
-╰───────────────────────3 of 10─╯│ ▎   9 -         0               ▎   9 +         1               ▐
+│┃All                           ││  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1             │
+│ #21 Add search to the catalog ││   @@ -1,11 +1,13 @@                                             │
+│ #22 Add a basket that uses se…││     3   final class Basket {    │   3   final class Basket {    │
+╰────────────────────────1 of 3─╯│     2       let catalog: Catalog│   2       let catalog: Catalog│
+╭─[2]─Files─────────────────────╮│                                 ▎   1 +     let search: Search  │
+│ ▾ ■ widgets            +15 −1 ││▌    3                           │   4                           │
+│   ▾ Sources/Basket            ││     1       init(catalog: Catal…│   1       init(catalog: Catal…│
+│┃    M Basket.swift          ● ││     2           self.catalog = …│   2           self.catalog = …│
+│   ▾ Sources/Catalog           ││                                 ▎   3 +         self.search = S…│
+│     M MemoryCatalog.swift   ● ││              ▸ Claude · 2 messages · line 7           a ask  za │
+│     A Search.swift          ● ││              ▸ sam · 1 comment · resolved         gx GitHub  za │
+│   ▾ web/src                   ││     6       }                   │   6       }                   │
+│     M cart.ts               ● ││     7                           │   7                           │
+│ ▾ ■ Unchanged code  unchanged ││     8       func total() -> Int…│   8       func total() -> Int…│
+╰───────────────────────3 of 10─╯│ ▎   9 -         0               ▎   9 +         1               │
 ╭─[3]─Notes─────────────────────╮│              ▾ Queued 2 → #22 · removed line 9 to line 11       │
 │ Queued                      2 ││                Why one?                                         │
 │ 1 MemoryCatalog.swift:8-… #21 ││    12       }                   │  12       }                   │
 │ 2 Basket.swift:9-11       #22 ││    13   }                       │  13   }                       │
-│ Claude                      1 ││  ▾ Sources/Catalog/MemoryCatalog.swift  changed  #21  +4 −0     │
-│ Basket.swift:7 Could this be …││   ··· 3 unchanged lines ···  zo                                 │
-│ On GitHub                   2 ││   @@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {          │
-╰────────────────────────1 of 5─╯│    17       func items() -> [It…│  17       func items() -> [It…│
-╭─[4]─Diagram───────────────────╮│    18           stored          │  18           stored          │
-│ Components                    ││    19       }                   │  19       }                   │
-│ ■ widgets                     ││                                 ▎  20 +                         │
-│ ■ Unchanged code              ││                                 ▎  21 +     func add(_ item: It…│
+│ Claude                      1 ││                                                                 │
+│ Basket.swift:7 Could this be …││                                                                 │
+│ On GitHub                   2 ││                                                                 │
+╰────────────────────────1 of 5─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││                                                                 │
 ╰────────────────────────1 of 2─╯╰─────────line 4 · Unchanged. A comment here goes on #22, line 4.─╯
  Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Search: / | Keys: Space ?

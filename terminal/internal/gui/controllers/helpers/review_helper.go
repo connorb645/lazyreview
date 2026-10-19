@@ -114,6 +114,7 @@ func (self *ReviewHelper) AfterLoaded(s context.ContextTree, msg types.ReviewLoa
 		s = s.Showing(context.ScreenReview)
 	}
 	s.Files, s.Diff, s.Filter, s.GrowFrom = map[string]server.File{}, context.DiffContext{}, nil, 0
+	s.FilesPanel.Chosen, s.FilesPanel.GrowFrom = nil, ""
 	s.Diagram = context.NewDiagramContext(self.c.Tr, context.LevelAt(self.c.Tr, msg.Data.Page, types.DiagramPlace{Level: "components"}), "")
 	s = s.Closed(context.LabelsKey)
 	var listening tea.Cmd
@@ -140,7 +141,7 @@ func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewRel
 	s = h.Refresh.SidesBuilt(h.Filter.KeptFilter(s))
 	switch s.Screen() {
 	case context.ScreenDiff:
-		next, cmd := h.Diff.OpenPlace(s, s.Diff.Component, s.Diff.Place())
+		next, cmd := h.Diff.OpenPlace(s, s.Diff.Place())
 		return next.Said(words, false), cmd
 	case context.ScreenDiagram:
 		at, item := s.Diagram.Place(), s.Diagram.Item

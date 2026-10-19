@@ -189,6 +189,7 @@ keybinding:
     highlight: 'v'
   filesPanel:
     toggleFold: 'za'
+    select: 'v'
   notesPanel:
     edit: 'e'
     drop: 'dd'

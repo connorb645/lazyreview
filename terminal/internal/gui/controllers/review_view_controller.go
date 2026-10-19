@@ -96,14 +96,14 @@ func (self *ReviewViewController) open(s context.ContextTree) (context.ContextTr
 	case it.Kind == "component":
 		s = h.Jump.Leave(s)
 		s = s.Focused(s.Focus(), context.FilesPanel)
-		return h.Diff.OpenPlace(s, it.Component, nil)
+		return h.Diff.OpenComponent(s, it.Component, nil)
 	case it.Place != nil:
 		s = h.Jump.Leave(s)
 		s = s.Focused(s.Focus(), context.FilesPanel)
 		if it.Kind == "comment" || it.Kind == "thread" || it.Kind == "conversation" {
 			s = s.Focused(s.Focus(), context.NotesPanel)
 		}
-		return h.Diff.OpenPlace(s, h.Diff.ComponentOf(s, it.Place.Path), it.Place)
+		return h.Diff.OpenFile(s, it.Place.Path, it.Place)
 	}
 	return s, nil
 }

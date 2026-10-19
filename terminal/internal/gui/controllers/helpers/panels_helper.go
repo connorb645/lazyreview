@@ -46,14 +46,9 @@ func (self *PanelsHelper) Followed(s context.ContextTree) (context.ContextTree, 
 	case context.ReviewPanel:
 		return h.Refresh.Relaid(s.Showing(context.ScreenReview)), nil
 	case context.FilesPanel:
-		place := row.Item.Place
-		if row.Item.Kind == "component" {
-			place = nil
-		}
-		next, cmd := h.Diff.OpenPlace(s, row.Item.Component, place)
-		if place != nil && cmd == nil {
-			next.Diff = next.Diff.Find(*place).AtTop(h.Window.MainHeight(next))
-			return h.Refresh.Mirrored(next), nil
+		next, cmd := h.Diff.OpenPlace(s, row.Item.Place)
+		if cmd == nil {
+			next.Diff = next.Diff.Find(*row.Item.Place).AtTop(h.Window.MainHeight(next))
 		}
 		return h.Refresh.Mirrored(next), cmd
 	case context.NotesPanel:
@@ -88,17 +83,16 @@ func (self *PanelsHelper) Name(s context.ContextTree) string {
 func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 	h := self.c.Helpers
 	place := row.Item.Place
-	component := h.Diff.ComponentOf(s, place.Path)
-	if component == "" {
+	if h.Diff.ComponentOf(s, place.Path) == "" {
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NotInDiff, map[string]string{"path": place.Path}), true), nil
 	}
-	s, cmd := h.Diff.OpenPlace(s, component, place)
+	s, cmd := h.Diff.OpenFile(s, place.Path, place)
 	if cmd != nil {
 		return s, cmd
 	}
 	s.Diff = s.Diff.Copied()
 	s.Diff.Notes[row.Key] = true
-	s.Diff = s.Diff.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.ShownPulls(), h.Window.MainHeight(s))
+	s.Diff = h.Diff.Rebuilt(s, s.Diff)
 	if i := s.Diff.First(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
 		s.Diff = s.Diff.To(i, h.Window.MainHeight(s)).Placed(h.Window.MainHeight(s))
 	}

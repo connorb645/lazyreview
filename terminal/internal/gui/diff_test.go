@@ -30,6 +30,19 @@ func openedOnComment(t *testing.T) App {
 	return a
 }
 
+// openedOnComponent is the stack's diff of its whole component, chosen on
+// the Files panel's first row, with the keys and the cursor on line 10 of
+// MemoryCatalog.swift, the line of the first queued comment.
+func openedOnComponent(t *testing.T) App {
+	t.Helper()
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	a = press(t, a, "2", "0", "]", "f", "1", "0", "G")
+	if got := cursorAt(a); a.Focus() != context.MainPanel || got != "Sources/Catalog/MemoryCatalog.swift RIGHT 10" {
+		t.Fatalf("the component's diff has the keys at %s", got)
+	}
+	return a
+}
+
 func TestEnterOnAQueuedCommentOpensItsLineInTheDiff(t *testing.T) {
 	a := openedOnComment(t)
 	if got := cursorAt(a); got != "Sources/Catalog/MemoryCatalog.swift RIGHT 10" {
@@ -55,7 +68,7 @@ func TestEnterOnAQueuedCommentOpensItsLineInTheDiff(t *testing.T) {
 }
 
 func TestMovingThroughTheDiffByLineHunkFileAndSearch(t *testing.T) {
-	a := openedOnComment(t)
+	a := openedOnComponent(t)
 	a = press(t, a, "g", "g")
 	if got := cursorAt(a); got != "Sources/Catalog/MemoryCatalog.swift RIGHT 4" {
 		t.Fatalf("gg went to %s, not the first line of the file", got)
@@ -130,7 +143,7 @@ func TestGgAndGMoveOnlyWhatHasTheKeys(t *testing.T) {
 }
 
 func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
-	a := openedOnComment(t)
+	a := openedOnComponent(t)
 	a = press(t, a, "[", "f", "j")
 	if a.Diff.Rows[a.Diff.Cursor].Kind != "gap" {
 		t.Fatalf("below MemoryCatalog's header is its run of unchanged lines, not %s", a.Diff.Rows[a.Diff.Cursor].Kind)
@@ -167,7 +180,7 @@ func TestFoldsSplitWrapAndTheWholeFile(t *testing.T) {
 // split view shows on the left of a row. Back in the unified view, the
 // cursor goes to the line a comment on that row goes on, its right side.
 func TestSplittingKeepsTheCursorOnARemovedLine(t *testing.T) {
-	a := press(t, openedOnComment(t), "[", "f", "[", "f", "]", "c", "1", "0", "j")
+	a := press(t, openedOnComponent(t), "[", "f", "[", "f", "]", "c", "1", "0", "j")
 	if got := cursorAt(a); got != "Sources/Basket/Basket.swift LEFT 9" {
 		t.Fatalf("the cursor is on %s, not the removed line", got)
 	}
@@ -181,7 +194,7 @@ func TestSplittingKeepsTheCursorOnARemovedLine(t *testing.T) {
 }
 
 func TestThePullRequestFilterDimsWhatItLeavesOut(t *testing.T) {
-	a := openedOnComment(t)
+	a := openedOnComponent(t)
 	a = press(t, a, "]", "p")
 	if got := fmt.Sprint(a.Filter); got != "[21]" {
 		t.Fatalf("]p chose %s", got)

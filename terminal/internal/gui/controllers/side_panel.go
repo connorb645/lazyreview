@@ -59,7 +59,7 @@ func sideMoved(h *helpers.Helpers, move func(side context.SideContext, count Cou
 	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
 		n := s.Focus()
 		s = s.WithSide(n, move(s.Side(n), count, h.Window.SideHeight(s, n)))
-		return h.Panels.Followed(h.Filter.FromCursor(s))
+		return h.Panels.Followed(h.Files.FromCursor(h.Filter.FromCursor(s)))
 	}
 }
 

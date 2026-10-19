@@ -10,8 +10,12 @@ import (
 
 func (a App) sideBox(n int, r views.Rect, focused bool) []string {
 	s, tr := a.Side(n), a.c.Tr
-	content, place := presentation.SideContent(tr, a.c.Theme, s.Rows, s.Cursor, s.Top, r.Inner(), focused)
-	if n == context.ReviewPanel && a.GrowFrom != 0 {
+	rows := s.Rows
+	if n == context.FilesPanel && a.Screen() == context.ScreenDiff {
+		rows = presentation.LitRows(rows, a.FilesPanel.Chosen)
+	}
+	content, place := presentation.SideContent(tr, a.c.Theme, rows, s.Cursor, s.Top, r.Inner(), focused)
+	if n == context.ReviewPanel && a.GrowFrom != 0 || n == context.FilesPanel && a.FilesPanel.GrowFrom != "" {
 		place = tr.Visual + " · " + place
 	}
 	return views.Framed(content, views.Extent{}, r.W, r.H, views.PanelTitle(n, presentation.PanelNames(tr)[n]), "", place, focused, a.c.Theme)

@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"slices"
+
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
@@ -30,7 +32,7 @@ func (self *RefreshHelper) Relaid(s context.ContextTree) context.ContextTree {
 		s = self.c.Helpers.Diagram.Shown(s)
 	case s.Screen() == context.ScreenDiff && s.Diff.Files != nil:
 		s.Diff.Width = window.MainWidth(s)
-		s.Diff = s.Diff.Rebuilt(self.c.Tr, self.c.Markdown, self.c.Location, *s.Review, s.ShownPulls(), h)
+		s.Diff = self.c.Helpers.Diff.Rebuilt(s, s.Diff)
 	}
 	labels := self.c.KeyLabels(context.ReviewPanelKey)
 	s.ReviewView = s.ReviewView.Rebuilt(self.c.Tr, self.c.Theme, self.c.Markdown, labels, self.c.Location, *s.Review, s.ShownPulls(), window.MainWidth(s), h)
@@ -39,7 +41,8 @@ func (self *RefreshHelper) Relaid(s context.ContextTree) context.ContextTree {
 
 // SidesBuilt is the state with the rows of the four panels on the left
 // built again, each keeping its selection, the Review panel's on the
-// filter, shown in its height.
+// filter and the Files panel's choice on rows it still holds, shown in its
+// height.
 func (self *RefreshHelper) SidesBuilt(s context.ContextTree) context.ContextTree {
 	d, tr, th, shown := *s.Review, self.c.Tr, self.c.Theme, s.ShownPulls()
 	built := [context.SideCount + 1][]presentation.SideRow{
@@ -51,7 +54,7 @@ func (self *RefreshHelper) SidesBuilt(s context.ContextTree) context.ContextTree
 	for n := context.ReviewPanel; n <= context.SideCount; n++ {
 		s = s.WithSide(n, s.Side(n).Reset(built[n]))
 	}
-	s = self.c.Helpers.Filter.OnFilter(s)
+	s = self.c.Helpers.Files.Kept(self.c.Helpers.Filter.OnFilter(s))
 	for n := context.ReviewPanel; n <= context.SideCount; n++ {
 		s = s.WithSide(n, s.Side(n).Shown(self.c.Helpers.Window.SideHeight(s, n)))
 	}
@@ -59,9 +62,10 @@ func (self *RefreshHelper) SidesBuilt(s context.ContextTree) context.ContextTree
 }
 
 // Mirrored is the state with the panels on the left selecting what the
-// main panel's cursor is on: its file or its note, or the diagram's box.
-// The panel with the keys keeps its own selection, and the Review panel's
-// stays on the filter.
+// main panel's cursor is on: the Files panel's chosen row that holds its
+// file, or else the file's own row; its note; or the diagram's box. The
+// panel with the keys keeps its own selection, and the Review panel's stays
+// on the filter.
 func (self *RefreshHelper) Mirrored(s context.ContextTree) context.ContextTree {
 	if s.Review == nil || s.Width == 0 {
 		return s
@@ -120,12 +124,18 @@ func (self *RefreshHelper) WithState(s context.ContextTree, st server.State) con
 }
 
 func (self *RefreshHelper) shownFile(s context.ContextTree, path string) string {
-	if s.Side(context.FilesPanel).Index(presentation.FileKey(path)) >= 0 {
-		return presentation.FileKey(path)
-	}
 	component := self.c.Helpers.Diff.ComponentOf(s, path)
-	if dir := presentation.DirKey(component, path); s.Side(context.FilesPanel).Index(dir) >= 0 {
-		return dir
+	holders := []string{presentation.FileKey(path), presentation.DirKey(component, path), presentation.ComponentKey(component)}
+	shows := func(key string) bool { return s.Side(context.FilesPanel).Index(key) >= 0 }
+	for _, key := range holders {
+		if shows(key) && slices.Contains(s.FilesPanel.Chosen, key) {
+			return key
+		}
 	}
-	return presentation.ComponentKey(component)
+	for _, key := range holders {
+		if shows(key) {
+			return key
+		}
+	}
+	return ""
 }
