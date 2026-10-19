@@ -1,6 +1,7 @@
 package context
 
 import (
+	"slices"
 	"strings"
 	"time"
 
@@ -26,10 +27,14 @@ func NewDiffContext(files map[string]server.File, numbers presentation.LineNumbe
 }
 
 // Rebuilt is the diff of files made again from the review, its cursor kept
-// on its place, shown in a height.
+// on its place, shown in a height. Its code goes back to the first column
+// when the files are not the ones it showed.
 func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown, loc *time.Location, d types.ReviewData, files []server.FileEntry, filter types.PullFilter, height int) DiffContext {
-	was := v.Place()
+	was, before := v.Place(), v.paths()
 	v.Rows = presentation.BuildDiff(tr, md, loc, d, v.DiffView, files, filter)
+	if !slices.Equal(before, v.paths()) {
+		v.Left = 0
+	}
 	v.Cursor = 0
 	if was != nil {
 		v = v.Find(*was)
@@ -106,6 +111,20 @@ func (v DiffContext) Move(by, height int) DiffContext {
 // To is the diff with the cursor on a row, shown in a height.
 func (v DiffContext) To(i, height int) DiffContext {
 	return v.Move(i-v.Cursor, height)
+}
+
+// Sideways is the diff with its code scrolled by columns, to the right when
+// by is more than nought, from the first column to where the widest line of
+// code shown in a height ends at the right edge.
+func (v DiffContext) Sideways(by, height int) DiffContext {
+	end := presentation.ScrollEnd(v.DiffView, height)
+	switch {
+	case by < 0:
+		v.Left = max(0, v.Left+by)
+	case v.Left < end:
+		v.Left = min(end, v.Left+by)
+	}
+	return v
 }
 
 // Scroll is the diff scrolled by lines in a height.
@@ -249,6 +268,16 @@ func (v DiffContext) AtFileEnd(last bool, height int) DiffContext {
 		return v.To(end, height)
 	}
 	return v.To(header, height).AtTop(height).To(first, height)
+}
+
+func (v DiffContext) paths() []string {
+	var out []string
+	for _, r := range v.Rows {
+		if r.Kind == "file" {
+			out = append(out, r.Path)
+		}
+	}
+	return out
 }
 
 // Copied is the diff with its own copies of its folds, so changing them

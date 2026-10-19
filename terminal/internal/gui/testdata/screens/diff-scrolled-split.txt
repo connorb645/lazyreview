@@ -1,0 +1,24 @@
+╭─[1]─Review───────────╮╭─[0]─Diff · widgets › …/Search.swift──╮
+│┃All                  ││▌ ▾ …/Search.swift  new  #21  +7 −0   │
+│ #21 Add search to th…││   @@ -0,0 +1,7 @@                    │
+│ #22 Add a basket tha…││                   ▎   1 + …ch {      │
+╰───────────────1 of 3─╯│                   ▎   2 + …alog: Ca… │
+╭─[2]─Files────────────╮│                   ▎   3 +            │
+│   ▾ Sources/Basket   ││                   ▎   4 + …nd(_ tex… │
+│     M Basket.swift ● ││                   ▎   5 + …alog.ite… │
+│   ▾ Sources/Catalog  ││                   ▎   6 + …          │
+│     M MemoryCatal… ● ││                   ▎   7 + …          │
+│┃    A Search.swift ● ││                                      │
+╰──────────────6 of 10─╯│                                      │
+╭─[3]─Notes────────────╮│                                      │
+│ Queued             2 ││                                      │
+│ 1 MemoryCatalog… #21 ││                                      │
+│ 2 Basket.swift:… #22 ││                                      │
+│ Claude             1 ││                                      │
+╰───────────────1 of 5─╯│                                      │
+╭─[4]─Diagram──────────╮│                                      │
+│ Components           ││                                      │
+│ ■ widgets            ││                                      │
+│ ■ Unchanged code     ││                                      │
+╰───────────────1 of 2─╯╰──────────────────────────file header─╯
+ Move: j k | Hunks: ]c [c | Select: V | Keys: Space ?

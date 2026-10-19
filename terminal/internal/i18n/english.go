@@ -114,6 +114,7 @@ type TranslationSet struct {
 	HelpLinesMove      string
 	HelpHalfPages      string
 	HelpPages          string
+	HelpScrollCode     string
 	HelpLineEnds       string
 	HelpHunks          string
 	HelpFiles          string
@@ -166,6 +167,8 @@ type TranslationSet struct {
 	Home               string
 	Split              string
 	Wrap               string
+	ScrollLeft         string
+	ScrollRight        string
 	WholeFile          string
 	Rendered           string
 	Diagram            string
@@ -658,6 +661,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpLinesMove:      "the next or previous line",
 		HelpHalfPages:      "half a page down or up",
 		HelpPages:          "a page down or up",
+		HelpScrollCode:     "scrolls the code left or right, half its width at a time; the gutter and the headers stay put",
 		HelpLineEnds:       "the first or last line of this file, or line n of it",
 		HelpHunks:          "the next or previous hunk",
 		HelpFiles:          "the next or previous file",
@@ -710,6 +714,8 @@ func EnglishTranslationSet() *TranslationSet {
 		Home:               "Home",
 		Split:              "Split",
 		Wrap:               "Wrap",
+		ScrollLeft:         "Scroll left",
+		ScrollRight:        "Scroll right",
 		WholeFile:          "Whole file",
 		Rendered:           "Rendered",
 		Diagram:            "Diagram",

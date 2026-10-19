@@ -170,6 +170,16 @@ func (self *DiffHelper) ToLine(s context.ContextTree, n int) (context.ContextTre
 	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoSuchLine, map[string]string{"path": path, "line": utils.Itoa(n)}), true), nil
 }
 
+// Sideways is the state with the diff's code scrolled by columns, to the
+// right when by is more than nought. With its lines wrapped, or the file at
+// the cursor rendered, nothing moves.
+func (self *DiffHelper) Sideways(s context.ContextTree, by int) context.ContextTree {
+	if v := s.Diff; !v.Wrap && !v.Rendered[v.File()] {
+		s.Diff = v.Sideways(by, self.c.Helpers.Window.MainHeight(s))
+	}
+	return s
+}
+
 // MatchNext is the state with the diff's cursor on the nth next row, or
 // the nth previous, that holds what was searched for, or as far on as
 // there are such rows.
