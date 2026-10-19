@@ -300,13 +300,14 @@ func TestTheReviewViewDimsTheCountsOfAPullRequestLeftOut(t *testing.T) {
 }
 
 // A block of a rendered Markdown file changed only by pull requests the
-// filter leaves out has a dot in place of its bar, in the dimmer green or
-// red, and with no colour the dot alone marks it.
-func TestABlockTheFilterLeavesOutHasADimmerDotForItsBar(t *testing.T) {
+// filter leaves out keeps its bar in the dimmer green or red, and its text
+// fades, its own styles and all. With no colour, a dot in place of its bar
+// marks it.
+func TestABlockTheFilterLeavesOutFadesWithADimmerBar(t *testing.T) {
 	d := filterStandIn()
 	v := presentation.DiffView{Width: 60, Rows: []presentation.DiffRow{
 		{Kind: "block", Path: "docs/guide.md", Text: "Every item.", Block: &server.Block{State: "add", Side: "RIGHT", StartLine: 3, Line: 3, Pulls: []int{21}}},
-		{Kind: "block", Path: "docs/guide.md", Text: "Some items.", Block: &server.Block{State: "del", Side: "LEFT", StartLine: 3, Line: 3, Pulls: []int{22}}},
+		{Kind: "block", Path: "docs/guide.md", Text: "\x1b[1mSome\x1b[0m items.", Block: &server.Block{State: "del", Side: "LEFT", StartLine: 3, Line: 3, Pulls: []int{22}}},
 		{Kind: "block", Path: "docs/guide.md", Text: "A basket.", Block: &server.Block{State: "add", Side: "RIGHT", StartLine: 5, Line: 5, Pulls: []int{21, 22}}},
 	}}
 	plain := testCommon()
@@ -316,10 +317,20 @@ func TestABlockTheFilterLeavesOutHasADimmerDotForItsBar(t *testing.T) {
 	lipgloss.SetColorProfile(termenv.TrueColor)
 	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
 	ink := func(colour string) string { return termenv.CSI + termenv.TrueColor.Color(colour).Sequence(false) + "m" }
-	cmn := testCommon()
-	lines := presentation.DiffLines(cmn.Tr, cmn.Theme, presentation.KeyLabels{}, d, v, 3, types.PullFilter{21}, false)
-	if !strings.Contains(lines[0], ink("#7ce2a7")+"▌") || !strings.Contains(lines[1], ink("#b0647a")+"·") || !strings.Contains(lines[2], ink("#7ce2a7")+"▌") {
-		t.Fatalf("in colour, the bars read %q", lines)
+	for _, c := range []struct{ theme, added, dimRemoved, faint string }{
+		{"dark", "#7ce2a7", "#b0647a", "#6d6a8a"},
+		{"light", "#146b3a", "#c8768a", "#9b98b5"},
+	} {
+		cmn := commonFor(c.theme == "dark")
+		lines := presentation.DiffLines(cmn.Tr, cmn.Theme, presentation.KeyLabels{}, d, v, 3, types.PullFilter{21}, false)
+		if !strings.Contains(lines[1], ink(c.dimRemoved)+"▌") || !strings.Contains(lines[1], ink(c.faint)+"Some items.") {
+			t.Errorf("on a %s terminal, the block the filter leaves out reads %q", c.theme, lines[1])
+		}
+		for _, held := range []string{lines[0], lines[2]} {
+			if !strings.Contains(held, ink(c.added)+"▌") || strings.Contains(held, ink(c.faint)) {
+				t.Errorf("on a %s terminal, a block the filter holds reads %q", c.theme, held)
+			}
+		}
 	}
 }
 

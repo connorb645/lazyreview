@@ -87,22 +87,29 @@ func blockLine(v DiffView, i int, filter types.PullFilter, th theme.Theme) strin
 		label = blockLabel(b)
 	}
 	out := len(b.Pulls) > 0 && !filter.ShowsAny(b.Pulls)
+	glyph, text := "▌", r.Text
+	if out {
+		text = th.Faint.Render(ansi.Strip(text))
+	}
+	if out && th.Plain {
+		glyph = "·"
+	}
 	bar := " "
 	switch {
 	case b.State == "add" && out:
-		bar = th.DimAdded.Render("·")
+		bar = th.DimAdded.Render(glyph)
 	case b.State == "add":
-		bar = th.Added.Render("▌")
+		bar = th.Added.Render(glyph)
 	case b.State == "del" && out:
-		bar = th.DimRemoved.Render("·")
+		bar = th.DimRemoved.Render(glyph)
 	case b.State == "del":
-		bar = th.Removed.Render("▌")
+		bar = th.Removed.Render(glyph)
 	}
 	numbers := th.Muted.Render(fmt.Sprintf("%8s ", label))
 	if v.Numbers == NoNumbers {
 		numbers = ""
 	}
-	return numbers + bar + th.Muted.Render("│") + " " + r.Text
+	return numbers + bar + th.Muted.Render("│") + " " + text
 }
 
 func blockLabel(b *server.Block) string {
