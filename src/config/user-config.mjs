@@ -34,6 +34,7 @@ const words = english.config;
 const LOGIN = new RegExp(PATTERNS.login);
 const TEAM = new RegExp(PATTERNS.team);
 const DATE = new RegExp(PATTERNS.date);
+const REPOSITORY = new RegExp(PATTERNS.repository);
 const COLOUR = new RegExp(PATTERNS.colour);
 const PULL_COLOURS = 8;
 
@@ -102,6 +103,12 @@ const CHECKS = {
   text: (value, key) => (typeof value === 'string' ? ok(value) : wrong(words.notText(key, value))),
   choice: (value, key, setting) => (setting.choices.includes(value) ? ok(value) : wrong(words.notAChoice(key, value, setting.choices))),
   accounts: (value, key) => checkAccounts(value, key),
+  repositories: (value, key) => {
+    if (value === null) return ok([]);
+    if (!Array.isArray(value)) return wrong(words.notRepositories(key, value));
+    const problems = value.filter(name => typeof name !== 'string' || !REPOSITORY.test(name)).map(name => words.notARepository(key, name));
+    return problems.length ? wrong(...problems) : ok(value);
+  },
   colour: (value, key) => (isColour(value) ? ok(String(value)) : wrong(words.notAColour(key, value))),
   colours: (value, key) => (Array.isArray(value) && value.length === PULL_COLOURS && value.every(isColour)
     ? ok(value.map(String)) : wrong(words.notColours(key, value, PULL_COLOURS))),

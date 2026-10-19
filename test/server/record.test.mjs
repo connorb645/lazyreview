@@ -12,6 +12,7 @@ import { Claude } from '../../src/commands/claude/claude.mjs';
 import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 import { PullRef } from '../../src/models/pull-ref.mjs';
 import { OpenPulls } from '../../src/home/open-pulls.mjs';
+import { HiddenRepositories } from '../../src/home/hidden-repositories.mjs';
 import { SETTINGS, homeRoutes, accountsConfig } from '../support/home-routes.mjs';
 import { configFrom, terminalPart } from '../../src/config/user-config.mjs';
 
@@ -82,13 +83,14 @@ async function recordAnswers() {
     const session = () => `00000000-0000-4000-8000-${String(++sessions).padStart(12, '0')}`;
     const threads = new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }), session, now });
     const server = new AppServer({
-      store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, pulls: new OpenPulls({ store: w.store, config: w.config }), token: TOKEN, port: 0,
+      store: w.store, loader: w.loader, branches: new BranchLoader({ store: w.store }), queue: w.queue, threads, pulls: new OpenPulls({ store: w.store, config: w.config }),
+      hidden: new HiddenRepositories({ config: w.config }), token: TOKEN, port: 0,
     });
     const address = await server.listen();
     try {
       const answers = {};
       const home = async (variant, settings, extra) => {
-        if (settings) writeFileSync(w.configFile, accountsConfig(settings.accounts));
+        if (settings) writeFileSync(w.configFile, accountsConfig(settings.accounts, settings.hidden));
         else rmSync(w.configFile, { force: true });
         w.routes({ reviews, extra });
         const answer = await send(address, 'GET', '/api/pulls');
@@ -101,6 +103,23 @@ async function recordAnswers() {
       await home('#one unreachable', SETTINGS, { ...homeRoutes(), 'token-reviewer-home *': UNREACHABLE });
       await home('#unreachable', SETTINGS, { 'token-reviewer *': UNREACHABLE, 'token-reviewer-home *': UNREACHABLE });
       await home('#no settings', null, {});
+      await home('#hidden', { ...SETTINGS, hidden: ['octo/gadgets', 'reviewer-home/*'] }, homeRoutes());
+      await home('#all hidden', { ...SETTINGS, hidden: ['octo/*', 'reviewer-home/notes'] }, homeRoutes());
+      // The changes to the hidden repositories the home screen makes, each from the config the one before left, and one the
+      // file's own style refuses.
+      const names = ['octo/gadgets', 'octo/widgets', 'reviewer-home/notes'];
+      const hiding = async (config, changes) => {
+        writeFileSync(w.configFile, config);
+        for (const body of changes) {
+          const answer = await send(address, 'POST', '/api/hidden', body);
+          answers[key('POST', '/api/hidden', body)] = JSON.parse(JSON.stringify(answer).replaceAll(w.configFile, STAND_IN_CONFIG));
+        }
+      };
+      await hiding(accountsConfig(SETTINGS.accounts), [
+        { hide: 'octo/widgets', repos: names }, { show: ['octo/widgets'], repos: names }, { hide: 'octo/*', repos: names }, { show: ['octo/*'], repos: names },
+      ]);
+      await hiding(accountsConfig(SETTINGS.accounts, ['octo/gadgets', 'reviewer-home/*']), [{ show: ['reviewer-home/*'], repos: names }]);
+      await hiding(`github: {accounts: ${JSON.stringify(SETTINGS.accounts)}}\n`, [{ hide: 'reviewer-home/notes', repos: names }]);
       w.routes({ reviews });
       await w.loader.load({ links: [w.link(30)] });
       const stack = new PullRef('github.com', 'octo/widgets', 21);

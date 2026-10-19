@@ -56,6 +56,8 @@ function lines(section, values, indent, show, prefix = '') {
       continue;
     }
     const value = values ? values[name] : node.default;
+    const before = section.settings[settingBefore(section, name)];
+    if (before?.kind === 'setting' && show.after(before).length) out.push('');
     out.push(...show.about(node).map(line => `${indent}# ${line}`));
     const block = isBlock(value);
     const written = node.check === 'keys' || node.check === 'numberedKeys' ? labels(value) : scalar(value);
@@ -64,6 +66,11 @@ function lines(section, values, indent, show, prefix = '') {
     out.push(...show.after(node).map(line => `${indent}${line}`));
   }
   return out;
+}
+
+function settingBefore(section, name) {
+  const names = Object.keys(section.settings);
+  return names[names.indexOf(name) - 1] ?? null;
 }
 
 function besides(text, comment) {

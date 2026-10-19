@@ -91,6 +91,18 @@
           },
           "description": "The GitHub accounts whose open pull requests the home screen lists. Each is read by its own gh token. A review asked of a team counts as asked of the account, for pull requests opened on or after `since`.",
           "default": []
+        },
+        "hiddenRepositories": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/(?:[A-Za-z0-9_.-]+|\\*)$"
+          },
+          "description": "Repositories the home screen leaves out, for every account: owner/name, or owner/* for every repository of the owner. A review of one still opens.",
+          "default": []
         }
       },
       "additionalProperties": false
@@ -1243,6 +1255,40 @@
                 "8",
                 "9"
               ]
+            },
+            "hideRepository": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              ],
+              "default": "i"
+            },
+            "showHidden": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              ],
+              "default": "I"
             }
           },
           "additionalProperties": false

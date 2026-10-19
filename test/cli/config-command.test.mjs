@@ -62,6 +62,7 @@ test('config check prints every setting as read, and where it came from', async 
       '  accounts:                            # the file',
       '    - login: lee',
       '      teams: []',
+      '  hiddenRepositories: []               # default',
       '',
     ].join('\n'));
     assert.match(theme, /^ {4}dark:\n {6}defaultFgColor: '#f1f0fb' +# default\n/m);

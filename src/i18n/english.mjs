@@ -115,6 +115,10 @@ export const english = frozen({
         'Each is read by its own gh token. A review asked of a team counts as',
         'asked of the account, for pull requests opened on or after `since`.',
       ],
+      hiddenRepositories: [
+        'Repositories the home screen leaves out, for every account: owner/name,',
+        'or owner/* for every repository of the owner. A review of one still opens.',
+      ],
       lineNumbers: [
         'How the terminal app\'s diff numbers its lines: absolute, each line its',
         'own number; relative, the cursor\'s line its own number and every other',
@@ -137,6 +141,7 @@ export const english = frozen({
         menu: 'every list that pops up',
       },
       accountsExample: ['accounts:', '  - login: lee', '  - login: lee-at-work', '    teams:', '      - name: example-org/mobile', '        since: 2026-10-01'],
+      hiddenRepositoriesExample: ['hiddenRepositories:', '  - example-org/old-app', '  - example-bots/*'],
     },
     fileMissing: path => `LAZYREVIEW_CONFIG_FILE names ${path}, which does not exist`,
     unreadable: (path, why) => `${path} could not be read: ${why}`,
@@ -156,6 +161,9 @@ export const english = frozen({
     notText: (key, value) => `gives ${key} ${shown(value)}, which is not text`,
     notAChoice: (key, value, choices) => `gives ${key} ${shown(value)}, which is not ${choices.slice(0, -1).join(', ')} or ${choices.at(-1)}`,
     notAccounts: (key, value) => `gives ${key} ${shown(value)}, which is not a list of accounts`,
+    notRepositories: (key, value) => `gives ${key} ${shown(value)}, which is not a list of repositories`,
+    notARepository: (key, value) => `gives ${key} ${shown(value)}, which is not a repository as owner/name, or owner/* for every repository of the owner`,
+    notAnEntry: value => `${shown(value)} is not a repository as owner/name, or owner/* for every repository of the owner`,
     notAColour: (key, value) => `gives ${key} ${shown(value)}, which is not a colour: #rrggbb or a terminal colour number from 0 to 255`,
     notColours: (key, value, count) => `gives ${key} ${shown(value)}, which is not a list of ${count} colours`,
     notKeys: (key, value, why) => `gives ${key} ${shown(value)}, which is not a key or a list of keys: ${why}`,
@@ -189,6 +197,10 @@ export const english = frozen({
       noMarkers: name => `docs/Config.md has no START ${name} and END ${name} markers to write between`,
       variable: 'Variable',
       overrides: 'Overrides',
+    },
+    edit: {
+      cannotChange: key => `${key} is written in a way lazyreview cannot change line by line`,
+      failed: (path, why) => `${path} was not changed: ${why}; change it by hand, as docs/Config.md shows`,
     },
     move: {
       wouldWrite: path => `would write ${path}:`,
@@ -275,6 +287,8 @@ export const english = frozen({
     giveLinks: 'give the pull requests to load as links, bottom first',
     notANumber: value => `"${value}" is not a line or pull request number`,
     sides: 'the side is RIGHT or LEFT',
+    giveRepositories: 'give the repositories shown as a list of their names',
+    giveHidden: 'give a repository to hide, or the entries to take out of the hidden list',
     tooLarge: 'the request is too large',
     notJSON: 'the request is not JSON',
     stoppedWatching: (id, why) => `lazyreview: stopped watching ${id}: ${why}`,
@@ -593,6 +607,7 @@ export const english = frozen({
       loaded: at => `loaded ${at}`,
       queued: count => `${count} queued`,
       none: 'No reviews yet.',
+      hiddenLeftOut: (count, repos) => `Not listed: ${counted(count, 'review')} of ${repos.length > 1 ? `${repos.slice(0, -1).join(', ')} and ${repos.at(-1)}` : repos[0]}, which <code>github.hiddenRepositories</code> in the config hides.`,
     },
 
     bar: {

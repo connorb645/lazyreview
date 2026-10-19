@@ -149,11 +149,16 @@ type TranslationSet struct {
 	HelpReviewOpen     string
 	HelpListMode       string
 	HelpCommandQuit    string
+	HelpHide           string
+	HelpShowHidden     string
 	MarkWaiting        string
 	MarkLoaded         string
 	MarkStack          string
 	Dim                string
 	MarkDraft          string
+	HiddenTag          string
+	MarkHidden         string
+	MarkHiddenShownBy  string
 	Keys               string
 	ReviewView         string
 	Home               string
@@ -276,6 +281,8 @@ type TranslationSet struct {
 	NextNote         string
 	PreviousNote     string
 	RepositoryNumber string
+	HideRepository   string
+	ShowHidden       string
 	Clear            string
 	ChooseNumber     string
 	QuitCommandKeys  string
@@ -477,6 +484,25 @@ type TranslationSet struct {
 	ReadAgain               string
 	LoadingFromGitHub       string
 	ReadingGitHub           string
+	HideTitle               string
+	HideThis                string
+	HideOwner               string
+	HiddenByTitle           string
+	ShowOwnerAgain          string
+	HidRepo                 string
+	HidOwner                string
+	ShowsAgain              string
+	OwnerShowsAgain         string
+	NoneHidden              string
+	CouldNotChangeHidden    string
+	OneHidden               string
+	ManyHidden              string
+	ShowingOneHidden        string
+	ShowingManyHidden       string
+	ShowsIt                 string
+	ShowsThem               string
+	HidesIt                 string
+	HidesThem               string
 
 	PullRequestsTitle    string
 	CouldNotReadList     string
@@ -493,6 +519,11 @@ type TranslationSet struct {
 	CouldNotReadAs       string
 	LeftOutUntil         string
 	NothingInvolves      string
+	EveryOneHidden       string
+	AllHidden            string
+	ShowKeyShowsThem     string
+	HiddenFromHome       string
+	HideKeyShowsIt       string
 	ReadsGitHubAgain     string
 	PullBy               string
 	WaitingOnYou         string
@@ -660,11 +691,16 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpReviewOpen:     "the Review view of the review open",
 		HelpListMode:       "more of the screen for the list, then all of it; {{.smaller}} goes back",
 		HelpCommandQuit:    "the command line: {{.command}}q quits",
+		HelpHide:           "hides the repository from the home screen, or every repository of its owner; on a hidden one, shows it again",
+		HelpShowHidden:     "shows the hidden repositories, dim, after the others, or hides them again",
 		MarkWaiting:        "your review is waiting: asked of you, or of your team",
 		MarkLoaded:         "loaded in lazyreview",
 		MarkStack:          "a stack, bottom first, reviewed as one",
 		Dim:                "dim",
 		MarkDraft:          "a draft",
+		HiddenTag:          "hidden",
+		MarkHidden:         "a repository the config hides",
+		MarkHiddenShownBy:  "a repository the config hides, shown by {{.show}}",
 		Keys:               "Keys",
 		ReviewView:         "Review view",
 		Home:               "Home",
@@ -760,6 +796,8 @@ func EnglishTranslationSet() *TranslationSet {
 		Bottom:           "Bottom",
 		PreviousPanel:    "Previous panel",
 		NextPanel:        "Next panel",
+		HideRepository:   "Hide repository",
+		ShowHidden:       "Show hidden",
 		Left:             "Left",
 		Right:            "Right",
 		NextBox:          "Next box",
@@ -988,6 +1026,25 @@ func EnglishTranslationSet() *TranslationSet {
 		ReadAgain:               "Read again",
 		LoadingFromGitHub:       "Loading {{.name}} from GitHub…",
 		ReadingGitHub:           "Reading GitHub…",
+		HideTitle:               "Hide from the home screen",
+		HideThis:                "Hide this repository",
+		HideOwner:               "Hide every repository of {{.owner}}",
+		HiddenByTitle:           "Hidden by {{.entry}}",
+		ShowOwnerAgain:          "Take it off the list: every repository of {{.owner}} shows again",
+		HidRepo:                 "{{.repo}} is hidden",
+		HidOwner:                "Every repository of {{.owner}} is hidden",
+		ShowsAgain:              "{{.repo}} shows again",
+		OwnerShowsAgain:         "Every repository of {{.owner}} shows again",
+		NoneHidden:              "No repository here is hidden",
+		CouldNotChangeHidden:    "Could not change the hidden repositories",
+		OneHidden:               "1 repository hidden",
+		ManyHidden:              "{{.count}} repositories hidden",
+		ShowingOneHidden:        "Showing 1 hidden",
+		ShowingManyHidden:       "Showing {{.count}} hidden",
+		ShowsIt:                 "{{.key}} shows it",
+		ShowsThem:               "{{.key}} shows them",
+		HidesIt:                 "{{.key}} hides it",
+		HidesThem:               "{{.key}} hides them",
 
 		PullRequestsTitle:    "Pull requests",
 		CouldNotReadList:     "Could not read the list",
@@ -1004,6 +1061,11 @@ func EnglishTranslationSet() *TranslationSet {
 		CouldNotReadAs:       "GitHub could not be read as {{.login}}:",
 		LeftOutUntil:         "Its pull requests are left out until GitHub answers. {{.refresh}} tries again.",
 		NothingInvolves:      "No open pull request involves {{.logins}}: none asks for a review from them or their teams, none is theirs, and none has their comments.",
+		EveryOneHidden:       "Every repository is hidden",
+		AllHidden:            "The config hides every repository with open pull requests that involve {{.logins}}.",
+		ShowKeyShowsThem:     "{{.show}} shows them.",
+		HiddenFromHome:       "Hidden from the home screen by {{.entries}} in the config.",
+		HideKeyShowsIt:       "{{.hide}} shows it again.",
 		ReadsGitHubAgain:     "{{.refresh}} reads GitHub again.",
 		PullBy:               "#{{.pull}} by {{.author}}",
 		WaitingOnYou:         "Waiting on your review, asked of {{.who}}.",

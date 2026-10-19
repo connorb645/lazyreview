@@ -9,15 +9,17 @@ import (
 )
 
 // HomeContext is the home screen: the open pull requests read from GitHub,
-// or why they could not be, what is being read or loaded, a panel for each
-// repository, the one with the keys, and the place of the review the home
-// screen was opened from.
+// or why they could not be, what is being read or loaded, whether the
+// repositories the config hides show, a panel for each repository, the one
+// with the keys, and the place of the review the home screen was opened
+// from.
 type HomeContext struct {
 	List        *server.Pulls
 	Failed      string
 	Reading     bool
 	Loading     string
 	LoadingName string
+	ShowHidden  bool
 	Panels      []HomePanel
 	Focus       int
 	From        Screen
@@ -26,16 +28,20 @@ type HomeContext struct {
 }
 
 // Rebuilt is the home screen with its panels made again from its list,
-// each keeping its selection, the keys staying with the row selected.
+// each keeping its selection, the keys staying with the panel that had
+// them, or at its place when it is gone.
 func (h HomeContext) Rebuilt(tr *i18n.TranslationSet, th theme.Theme) HomeContext {
-	was, _ := h.Selected()
+	wasTitle := ""
+	if h.Focus >= 0 && h.Focus < len(h.Panels) {
+		wasTitle = h.Panels[h.Focus].Title
+	}
 	kept := map[string]SideContext{}
 	for _, panel := range h.Panels {
 		kept[panel.Title] = panel.Rows
 	}
 	var panels []HomePanel
-	for _, p := range presentation.HomePanels(tr, th, h.List, h.Failed) {
-		panel := HomePanel{Title: p.Title, Number: p.Number, Repo: p.Repo, Waiting: p.Waiting, Rows: SideContext{}.Reset(p.Rows)}
+	for _, p := range presentation.HomePanels(tr, th, h.List, h.Failed, h.ShowHidden) {
+		panel := HomePanel{Title: p.Title, Number: p.Number, Repo: p.Repo, Waiting: p.Waiting, Hidden: p.Hidden, Rows: SideContext{}.Reset(p.Rows)}
 		if rows, ok := kept[panel.Title]; ok {
 			panel.Rows = rows.Reset(p.Rows)
 		}
@@ -43,10 +49,39 @@ func (h HomeContext) Rebuilt(tr *i18n.TranslationSet, th theme.Theme) HomeContex
 	}
 	h.Panels, h.Focus = panels, utils.Clamp(h.Focus, 0, len(panels)-1)
 	for i, panel := range panels {
-		if was.Key != "" && panel.Rows.Index(was.Key) >= 0 {
+		if panel.Title == wasTitle {
 			h.Focus = i
 		}
 	}
+	return h
+}
+
+// Repo is the repository of the panel with the keys, if it is one.
+func (h HomeContext) Repo() (server.PullRepo, bool) {
+	if h.List == nil || h.Focus < 0 || h.Focus >= len(h.Panels) || h.Panels[h.Focus].Repo < 0 {
+		return server.PullRepo{}, false
+	}
+	return h.List.Repos[h.Panels[h.Focus].Repo], true
+}
+
+// WithHidden is the home screen with each repository hidden by what the
+// config's hidden repositories now say.
+func (h HomeContext) WithHidden(hidden server.Hidden) HomeContext {
+	if h.List == nil {
+		return h
+	}
+	by := map[string][]string{}
+	for _, r := range hidden.Repos {
+		by[r.Name] = r.HiddenBy
+	}
+	list := *h.List
+	list.Repos = append([]server.PullRepo{}, list.Repos...)
+	for i, repo := range list.Repos {
+		if entries, ok := by[repo.Name]; ok {
+			list.Repos[i].HiddenBy = entries
+		}
+	}
+	h.List = &list
 	return h
 }
 

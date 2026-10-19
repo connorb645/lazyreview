@@ -6,6 +6,7 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -27,7 +28,8 @@ func (self *HomeController) Context() context.ContextKey {
 }
 
 // Bindings are the home screen's keys: moving through the pull requests
-// and the repositories, and opening one's review.
+// and the repositories, opening one's review, and hiding a repository or
+// showing the hidden ones.
 func (self *HomeController) Bindings() []Binding {
 	tr, kb := self.c.Tr, self.c.Config.Keybinding
 	bindings := []Binding{
@@ -42,6 +44,8 @@ func (self *HomeController) Bindings() []Binding {
 		{Action: "open", Keys: kb.Home.Open, Handler: uncounted(self.c.Helpers.Home.OpenSelected), Description: tr.Open},
 		{Action: "previous panel", Keys: kb.Home.PreviousPanel, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(-1) }), Description: tr.PreviousPanel},
 		{Action: "next panel", Keys: kb.Home.NextPanel, Handler: self.moved(func(h context.HomeContext, _ Count) context.HomeContext { return h.PanelBy(1) }), Description: tr.NextPanel},
+		{Action: "hide", Keys: kb.Home.HideRepository, Handler: uncounted(self.c.Helpers.Home.HideOrShow), Description: tr.HideRepository},
+		{Action: "show hidden", Keys: kb.Home.ShowHidden, Handler: stateOnly(self.c.Helpers.Home.ToggleHidden), Description: tr.ShowHidden},
 	}
 	for n := 1; n <= 9; n++ {
 		bindings = append(bindings, Binding{
@@ -93,6 +97,8 @@ func (self *HomeController) Help(labels presentation.KeyLabels) []HelpSection {
 		{Keys: labels.Of("previous panel", "next panel"), Words: tr.HelpRepositories},
 		{Keys: utils.ResolvePlaceholderString(tr.HelpFirstNineKeys, map[string]string{"first": labels.Of("repository 1"), "last": labels.Of("repository 9")}), Words: tr.HelpFirstNine},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenPull},
+		{Keys: labels.Of("hide"), Words: tr.HelpHide},
+		{Keys: labels.Of("show hidden"), Words: tr.HelpShowHidden},
 		{Keys: refreshKeys(self.c, labels), Words: tr.HelpReadAgain},
 		{Keys: labels.Of("github"), Words: tr.HelpGitHubPull},
 		{Keys: labels.Of("web"), Words: tr.HelpWebList},
@@ -106,8 +112,16 @@ func (self *HomeController) Help(labels presentation.KeyLabels) []HelpSection {
 		{Keys: "◆", Words: tr.MarkLoaded},
 		{Keys: "┌ └", Words: tr.MarkStack},
 		{Keys: tr.Dim, Words: tr.MarkDraft},
+		{Keys: tr.HiddenTag, Words: hiddenMark(tr, labels.Of("show hidden"))},
 	}
 	return []HelpSection{{Heading: tr.HomeTitle, Rows: rows}, {Heading: tr.Marks, Rows: marks}}
+}
+
+func hiddenMark(tr *i18n.TranslationSet, show string) string {
+	if show == "" {
+		return tr.MarkHidden
+	}
+	return utils.ResolvePlaceholderString(tr.MarkHiddenShownBy, map[string]string{"show": show})
 }
 
 // Hints are what the bar shows of the home screen's keys: opening the pull

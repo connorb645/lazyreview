@@ -1,0 +1,30 @@
+╭─[1]─octo/widgets ● 1───────────────────────────╮╭─[0]─reviewer-home/notes #3─────────────────────╮
+│  ◆ ┌ #21 Add search to the catalog         sam ││ Keep the notes in plain text                   │
+│ ●◆ └ #22 Add a basket that uses search     sam ││ #3 by reviewer-home · plain-text → main        │
+│      #30 Fix the guide wording            alex ││                                                │
+│                                                ││   Not loaded in lazyreview yet.                │
+│                                                ││   You opened it.                               │
+│                                                ││   Hidden from the home screen by               │
+│                                                ││   reviewer-home/* in the config. i shows it    │
+│                                                ││   again.                                       │
+╰─────────────────────────────────────────1 of 3─╯│                                                │
+╭─[2]─octo/gadgets ● 1 hidden────────────────────╮│ Enter loads the stack, #3 → #4, as             │
+│ ●    #7 Count the gadgets in stock         kim ││ reviewer-home, then opens it.                  │
+│      #9 Sort the gadgets by price          kim ││                                                │
+│                                                ││ The stack, bottom first:                       │
+│                                                ││ ▸ #3 Keep the notes in plain text              │
+│                                                ││   #4 Tag the notes                             │
+│                                                ││                                                │
+│                                                ││ No description.                                │
+╰─────────────────────────────────────────1 of 2─╯│                                                │
+╭─[3]─reviewer-home/notes hidden─────────────────╮│                                                │
+│▌   ┌ #3 Keep the notes in plain… reviewer-home ││                                                │
+│    └ #4 Tag the notes            reviewer-home ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+│                                                ││                                                │
+╰─────────────────────────────────────────1 of 2─╯╰────────────────────────────────────────────────╯
+ Load and open: Enter | Repositories: h l | Keys: Space ?           Showing 2 hidden · I hides them

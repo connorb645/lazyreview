@@ -12,16 +12,16 @@
 │ │ 1 to 9         the first nine repositories                                                   │ │
 │ │ Enter          opens the pull request's review; one no review holds yet is loaded from       │ │
 │ │                GitHub first                                                                  │ │
+│ │ i              hides the repository from the home screen, or every repository of its owner;  │ │
+│ │                on a hidden one, shows it again                                               │ │
+│ │ I              shows the hidden repositories, dim, after the others, or hides them again     │ │
 │ │ R :refresh     reads the open pull requests from GitHub again                                │ │
-│ │ gx             opens the pull request on GitHub                                              │ │
-│ │ gX             opens the web app's list of reviews                                           │ │
+╰─│ gx             opens the pull request on GitHub                                              │ │
+╭─│ gX             opens the web app's list of reviews                                           │ │
 │ │ Space v        the Review view of the review open                                            │ │
-╰─│ + _            more of the screen for the list, then all of it; _ goes back                  │ │
-╭─│ :              the command line: :q quits                                                    │ │
-│ │ ZZ             quits, as :q does                                                             │ │
-│ │ Marks                                                                                        │ │
-│ │ ●              your review is waiting: asked of you, or of your team                         │ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 18─╯ │
+│ │ + _            more of the screen for the list, then all of it; _ goes back                  │ │
+│ │ :              the command line: :q quits                                                    │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 21─╯ │
 │                                                ││                                                │
 │                                                ││                                                │
 │                                                ││                                                │

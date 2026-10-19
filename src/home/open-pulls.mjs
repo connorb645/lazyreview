@@ -12,7 +12,10 @@
  * could not be read as it, or is null, and `repos` each repository with
  * pull requests that involve an account, by name:
  *
- *   {host, name, account, units: [{review, members: [pull]}]}
+ *   {host, name, account, hidden_by, units: [{review, members: [pull]}]}
+ *
+ * `hidden_by` holds the entries of the config's github.hiddenRepositories
+ * that hide the repository from the home screen, or none.
  *
  * A pull request involves an account when its review is asked of the
  * account, or of one of its teams, while it is ready for review; when the
@@ -32,6 +35,7 @@ import { GitHub } from '../commands/github/github.mjs';
 import { readUserConfig } from '../config/user-config.mjs';
 import { english } from '../i18n/english.mjs';
 import { stacks } from './stacks.mjs';
+import { hiddenBy } from './hidden-by.mjs';
 
 const OPEN = 'is:pr is:open archived:false';
 const HOST = 'github.com';
@@ -53,7 +57,7 @@ export class OpenPulls {
     const config = this.#config();
     const settings = this.#store.home.settingsFile;
     if (this.#exists(settings)) throw new Error(english.config.notMoved(settings, config.path));
-    const accounts = config.values.github.accounts;
+    const { accounts, hiddenRepositories } = config.values.github;
     const read = await Promise.all(accounts.map(account => this.#read(account).then(
       repos => ({ login: account.login, error: null, repos }),
       error => ({ login: account.login, error: error.message, repos: [] }),
@@ -70,7 +74,7 @@ export class OpenPulls {
       config: config.path,
       accounts: read.map(({ login, error }) => ({ login, error })),
       repos: [...repos.values()].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
-        .map(repo => ({ host: HOST, name: repo.name, account: repo.account, units: this.#units(repo) })),
+        .map(repo => ({ host: HOST, name: repo.name, account: repo.account, hidden_by: hiddenBy(hiddenRepositories, repo.name), units: this.#units(repo) })),
     };
   }
 

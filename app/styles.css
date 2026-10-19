@@ -830,6 +830,9 @@ tr.pr-other > td, td.pr-other, .mdx-block.pr-other { opacity: .4; }
 .home-meta b { font-family: var(--mono); font-weight: 500; color: var(--ink); font-size: 12px; }
 .home-meta .st-ended { color: var(--del-ink); font-weight: 600; }
 .home-empty { color: var(--muted); }
+.home-hidden { font-size: 13px; color: var(--muted); padding: 0 22px; }
+.home-hidden b { font-family: var(--mono); font-weight: 500; color: var(--ink); font-size: 12px; }
+.home-hidden code { font-family: var(--mono); font-size: 12px; }
 .home-how { padding: 24px 26px; border: 1px solid var(--border); border-radius: var(--r-lg); background: color-mix(in srgb, var(--surface) 55%, transparent); font-size: 14px; }
 .home-how .rail-h { margin-bottom: 14px; }
 .home-how p { margin: 0 0 10px; color: var(--muted); }

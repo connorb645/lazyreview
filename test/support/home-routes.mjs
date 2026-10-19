@@ -4,7 +4,8 @@
  *
  * SETTINGS are the accounts as settings.json held them: `reviewer`, with the
  * team octo/reviewers counted from 1 Oct 2026, and `reviewer-home`, and
- * accountsConfig(accounts) the config file that names accounts. homeRoutes()
+ * accountsConfig(accounts, hidden) the config file that names accounts, and
+ * the repositories it hides, when given. homeRoutes()
  * returns the routes each account's searches and the lists of open pull
  * requests take, beside the workbench's own octo/widgets:
  *
@@ -22,8 +23,8 @@ export const SETTINGS = {
   ],
 };
 
-export function accountsConfig(accounts) {
-  return `github:\n  accounts: ${JSON.stringify(accounts)}\n`;
+export function accountsConfig(accounts, hidden = null) {
+  return `github:\n  accounts: ${JSON.stringify(accounts)}\n${hidden ? `  hiddenRepositories: ${JSON.stringify(hidden)}\n` : ''}`;
 }
 
 const OPEN = 'is:pr is:open archived:false';

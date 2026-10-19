@@ -1,12 +1,14 @@
 /**
  * The app's web server, for this machine only.
  *
- * new AppServer({store, loader, branches, queue, threads, pulls, events, token, port}) serves the
+ * new AppServer({store, loader, branches, queue, threads, pulls, hidden, events, token, port}) serves the
  * app at http://127.0.0.1:<port>/, each review at /review/<review id>, and
  * the JSON the app reads and changes reviews through under /api. `loader`
  * loads pull requests, new or again, and `branches` branches again; `pulls`
  * lists the open pull requests that involve the user's accounts, for the
- * terminal app's home screen. A branch review takes
+ * terminal app's home screen, and `hidden` changes which repositories the
+ * home screens leave out. Each review the list of reviews gives names the
+ * entries that hide its repository, as `hidden_by`. A branch review takes
  * no comments: only a pull request's review has a queue to change or post.
  * A review's page comes with its build id, without its per-file parts, which
  * the file route gives one file at a time, for the build a window names.
@@ -30,6 +32,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { BranchRef } from '../models/branch-ref.mjs';
 import { reviewRef } from '../models/review-ref.mjs';
 import { reviewState, reviewSummary } from './review-state.mjs';
+import { hiddenBy } from '../home/hidden-by.mjs';
 import { pageView } from '../review/page-view.mjs';
 import { fileView } from '../review/file-view.mjs';
 import { checkBuild } from '../store/page-build.mjs';
@@ -50,6 +53,7 @@ export class AppServer {
   #queue;
   #threads;
   #pulls;
+  #hidden;
   #port;
   #events;
   #server = null;
@@ -58,7 +62,7 @@ export class AppServer {
   #streams = new Set();
   #token;
 
-  constructor({ store, loader, branches, queue, threads, pulls, events = new ReviewEvents({ store }), token = null, port }) {
+  constructor({ store, loader, branches, queue, threads, pulls, hidden, events = new ReviewEvents({ store }), token = null, port }) {
     this.#store = store;
     this.#token = token;
     this.#events = events;
@@ -67,11 +71,16 @@ export class AppServer {
     this.#queue = queue;
     this.#threads = threads;
     this.#pulls = pulls;
+    this.#hidden = hidden;
     this.#port = port;
     this.#routes = [
       ['GET', /^\/api\/health$/, () => ({ ok: true })],
-      ['GET', /^\/api\/reviews$/, () => this.#store.list().map(reviewSummary)],
+      ['GET', /^\/api\/reviews$/, () => {
+        const entries = this.#hidden.entries();
+        return this.#store.list().map(item => ({ ...reviewSummary(item), hidden_by: item.review.kind === 'branch' ? [] : hiddenBy(entries, item.review.repo) }));
+      }],
       ['GET', /^\/api\/pulls$/, () => this.#pulls.list()],
+      ['POST', /^\/api\/hidden$/, body => this.#hidden.change(hiding(body))],
       ['POST', /^\/api\/load$/, async body => {
         const loaded = await this.#loader.load({ links: links(body.links), account: typeof body.account === 'string' ? body.account : undefined });
         return { id: loaded.ref.id, notes: loaded.notes };
@@ -236,6 +245,15 @@ function text(value) {
 function links(value) {
   if (!Array.isArray(value) || !value.length || value.some(link => typeof link !== 'string')) throw new Error(english.server.giveLinks);
   return value;
+}
+
+function hiding(body) {
+  const names = value => Array.isArray(value) && value.every(name => typeof name === 'string');
+  const hide = body.hide ?? null;
+  const show = body.show ?? [];
+  if (!names(body.repos)) throw new Error(english.server.giveRepositories);
+  if ((hide !== null && typeof hide !== 'string') || !names(show) || (hide === null && !show.length)) throw new Error(english.server.giveHidden);
+  return { hide, show, repos: body.repos };
 }
 
 function whole(value) {

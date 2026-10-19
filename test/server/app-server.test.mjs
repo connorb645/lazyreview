@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { request } from 'node:http';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync } from 'node:fs';
 import { workbench } from '../support/workbench.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { AppServer } from '../../src/server/app-server.mjs';
@@ -11,6 +11,7 @@ import { BranchLoader } from '../../src/loader/branch-loader.mjs';
 import { notices } from '../support/notices.mjs';
 import { SETTINGS, homeRoutes, accountsConfig } from '../support/home-routes.mjs';
 import { OpenPulls } from '../../src/home/open-pulls.mjs';
+import { HiddenRepositories } from '../../src/home/hidden-repositories.mjs';
 import { PullRef } from '../../src/models/pull-ref.mjs';
 
 function call(address, method, path, { body, headers = {} } = {}) {
@@ -36,7 +37,8 @@ async function started({ token } = {}) {
   const branches = new BranchLoader({ store: w.store });
   const server = new AppServer({
     store: w.store, loader: w.loader, branches, queue: w.queue,
-    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), pulls: new OpenPulls({ store: w.store, config: w.config }), token, port: 0,
+    threads: new ThreadService({ store: w.store, claude: new Claude({ command: fake.command }) }), pulls: new OpenPulls({ store: w.store, config: w.config }),
+    hidden: new HiddenRepositories({ config: w.config }), token, port: 0,
   });
   const address = await server.listen();
   const own = { Origin: address, 'Content-Type': 'application/json' };
@@ -132,6 +134,44 @@ test('the API lists the open pull requests involving the accounts, and loads the
     writeFileSync(s.w.configFile, 'github:\n  accounts: 3\n');
     const wrong = await call(s.address, 'GET', '/api/pulls');
     assert.deepEqual([wrong.status, wrong.json], [409, { error: `${s.w.configFile} gives github.accounts 3, which is not a list of accounts` }]);
+  } finally {
+    await s.done();
+  }
+});
+
+test('a client with the token hides repositories in the config file; both lists then mark what hides each, and a review still opens', async () => {
+  const s = await started({ token: 'secret-token-1234' });
+  const json = { 'Content-Type': 'application/json' };
+  const token = { ...json, Authorization: 'Bearer secret-token-1234' };
+  const names = ['octo/gadgets', 'octo/widgets', 'reviewer-home/notes'];
+  try {
+    writeFileSync(s.w.configFile, `# Mine.\n${accountsConfig(SETTINGS.accounts)}`);
+    s.w.routes({ extra: homeRoutes() });
+    assert.equal((await call(s.address, 'POST', '/api/hidden', { body: { hide: 'octo/*', repos: names }, headers: json })).status, 403);
+    const hid = await call(s.address, 'POST', '/api/hidden', { body: { hide: 'octo/*', repos: names }, headers: token });
+    assert.equal(hid.status, 200, hid.text);
+    assert.deepEqual(hid.json, { config: s.w.configFile, repos: [{ name: 'octo/gadgets', hidden_by: ['octo/*'] }, { name: 'octo/widgets', hidden_by: ['octo/*'] }, { name: 'reviewer-home/notes', hidden_by: [] }] });
+    assert.equal(readFileSync(s.w.configFile, 'utf8'), `# Mine.\n${accountsConfig(SETTINGS.accounts)}  hiddenRepositories:\n    - octo/*\n`);
+
+    const pulls = (await call(s.address, 'GET', '/api/pulls')).json;
+    assert.deepEqual(pulls.repos.map(r => [r.name, r.hidden_by]), [['octo/gadgets', ['octo/*']], ['octo/widgets', ['octo/*']], ['reviewer-home/notes', []]]);
+    const reviews = (await call(s.address, 'GET', '/api/reviews')).json;
+    assert.deepEqual(reviews.map(r => [r.id, r.hidden_by]), [['github.com/octo/widgets/30', ['octo/*']]]);
+    assert.equal((await call(s.address, 'GET', '/api/reviews/github.com/octo/widgets/30')).status, 200, 'a review of a hidden repository still opens');
+
+    const shown = await call(s.address, 'POST', '/api/hidden', { body: { show: ['octo/*'], repos: names }, headers: token });
+    assert.deepEqual(shown.json.repos.map(r => r.hidden_by), [[], [], []]);
+    assert.equal(readFileSync(s.w.configFile, 'utf8'), `# Mine.\n${accountsConfig(SETTINGS.accounts)}  hiddenRepositories:\n`);
+    for (const [body, error] of [
+      [{ hide: 'octo/*' }, 'give the repositories shown as a list of their names'],
+      [{ repos: names }, 'give a repository to hide, or the entries to take out of the hidden list'],
+      [{ hide: 3, repos: names }, 'give a repository to hide, or the entries to take out of the hidden list'],
+      [{ show: 'octo/*', repos: names }, 'give a repository to hide, or the entries to take out of the hidden list'],
+      [{ hide: 'octo', repos: names }, '"octo" is not a repository as owner/name, or owner/* for every repository of the owner'],
+    ]) {
+      const refused = await call(s.address, 'POST', '/api/hidden', { body, headers: token });
+      assert.deepEqual([refused.status, refused.json], [409, { error }], JSON.stringify(body));
+    }
   } finally {
     await s.done();
   }

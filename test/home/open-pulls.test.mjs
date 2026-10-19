@@ -97,3 +97,15 @@ test('with no config there are no accounts to list, a config that is wrong says 
     w.done();
   }
 });
+
+test('each repository names the entries of the config that hide it, and is still listed, for the home screen to leave out', async () => {
+  const w = bench();
+  try {
+    writeFileSync(w.configFile, accountsConfig(SETTINGS.accounts, ['octo/gadgets', 'Reviewer-Home/*']));
+    const list = await new OpenPulls({ store: w.store, config: w.config }).list();
+    assert.deepEqual(list.repos.map(r => [r.name, r.hidden_by]), [['octo/gadgets', ['octo/gadgets']], ['octo/widgets', []], ['reviewer-home/notes', ['Reviewer-Home/*']]]);
+    assert.deepEqual(units(list.repos[0]).map(u => u.members), [['7 asked of octo/reviewers'], ['9 commented']], 'a hidden repository keeps its pull requests');
+  } finally {
+    w.done();
+  }
+});

@@ -54,8 +54,8 @@ test('each variable overrides its setting, over the file, and says so', () => {
   try {
     const env = { ...f.env, LAZYREVIEW_HOME: '/srv/lr', LAZYREVIEW_PORT: '4749', LAZYREVIEW_CLAUDE: '/opt/claude', LAZYREVIEW_MODEL: 'claude-opus', LAZYREVIEW_EDITOR: 'nvim' };
     const config = readUserConfig({ env, home: '/home/lee' });
-    assert.deepEqual(config.values, { ...defaults(), dataHome: '/srv/lr', server: { port: 4749 }, claude: { command: '/opt/claude', model: 'claude-opus' }, os: { editor: 'nvim' }, github: { accounts: [] } });
-    assert.deepEqual(Object.entries(config.sources).filter(([key]) => !key.startsWith('gui.') && !key.startsWith('keybinding.')), [['dataHome', 'LAZYREVIEW_HOME'], ['server.port', 'LAZYREVIEW_PORT'], ['claude.command', 'LAZYREVIEW_CLAUDE'], ['claude.model', 'LAZYREVIEW_MODEL'], ['os.editor', 'LAZYREVIEW_EDITOR'], ['github.accounts', 'default']]);
+    assert.deepEqual(config.values, { ...defaults(), dataHome: '/srv/lr', server: { port: 4749 }, claude: { command: '/opt/claude', model: 'claude-opus' }, os: { editor: 'nvim' }, github: { accounts: [], hiddenRepositories: [] } });
+    assert.deepEqual(Object.entries(config.sources).filter(([key]) => !key.startsWith('gui.') && !key.startsWith('keybinding.')), [['dataHome', 'LAZYREVIEW_HOME'], ['server.port', 'LAZYREVIEW_PORT'], ['claude.command', 'LAZYREVIEW_CLAUDE'], ['claude.model', 'LAZYREVIEW_MODEL'], ['os.editor', 'LAZYREVIEW_EDITOR'], ['github.accounts', 'default'], ['github.hiddenRepositories', 'default']]);
     assert.equal(readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: '' }, home: '/home/lee' }).values.server.port, 4748, 'an empty variable is not set');
     assert.throws(() => readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: 'x' }, home: '/home/lee' }), /^Error: LAZYREVIEW_PORT must be a port number, not "x"$/);
   } finally {
@@ -110,9 +110,18 @@ test('every mistake in the file is named at once, each with what it must be', ()
   one('gui:\n  theme:\n    dark:\n      accentColor: violet\n', 'gives gui.theme.dark.accentColor "violet", which is not a colour: #rrggbb or a terminal colour number from 0 to 255');
   one('gui:\n  theme:\n    light:\n      addedColor: 256\n', 'gives gui.theme.light.addedColor 256, which is not a colour: #rrggbb or a terminal colour number from 0 to 255');
   one('gui:\n  lineNumbers: hybrid\n', 'gives gui.lineNumbers "hybrid", which is not absolute, relative or none');
+  one('github:\n  hiddenRepositories: octo/*\n', 'gives github.hiddenRepositories "octo/\\*", which is not a list of repositories');
+  one('github:\n  hiddenRepositories: [octo]\n', 'gives github.hiddenRepositories "octo", which is not a repository as owner/name, or owner/\\* for every repository of the owner');
   one("gui:\n  theme:\n    dark:\n      pullRequestColors: ['#ffffff']\n", 'gives gui.theme.dark.pullRequestColors \\["#ffffff"\\], which is not a list of 8 colours');
   one('gui:\n  theme:\n    dark:\n      componentColors: {cyan: "#00ffff"}\n', 'sets gui.theme.dark.componentColors.cyan, which is not a setting');
   assert.throws(() => read('server:\n  port: abc\nkeybindings: {}\n'), new RegExp(`^Error: ${PATH.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} has 2 problems:\n  - gives server.port "abc", which is not a port number from 1 to 65535\n  - sets keybindings, which is not a setting$`));
+});
+
+test('the hidden repositories are a list of owner/name and owner/*, any case, and an empty setting hides none', () => {
+  assert.deepEqual(read('github:\n  hiddenRepositories:\n    - octo/widgets\n    - Reviewer-Home/*\n    - octo/web.site_2\n').values.github.hiddenRepositories, ['octo/widgets', 'Reviewer-Home/*', 'octo/web.site_2']);
+  assert.deepEqual(read('github:\n  hiddenRepositories:\n  # - octo/widgets\n').values.github.hiddenRepositories, []);
+  assert.deepEqual(read('').values.github.hiddenRepositories, []);
+  assert.throws(() => read('github:\n  hiddenRepositories: [octo/widgets, "*/x", 3]\n'), /has 2 problems:\n {2}- gives github\.hiddenRepositories "\*\/x", which is not a repository[^\n]*\n {2}- gives github\.hiddenRepositories 3, which is not a repository/);
 });
 
 test('the Diagram panel\'s old left and right keys are refused, saying what does their work now', () => {

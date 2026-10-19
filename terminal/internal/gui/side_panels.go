@@ -27,9 +27,18 @@ func (a App) homePanelBox(i int, r views.Rect, focused bool) []string {
 	if panel.Number > 0 {
 		title = views.PanelTitle(panel.Number, title)
 	}
-	waiting := ""
-	if panel.Waiting > 0 {
-		waiting = " " + th.Warning.Render(fmt.Sprintf("● %d", panel.Waiting))
+	waiting, tags := th.Warning, ""
+	if panel.Hidden && !focused {
+		title = th.Faint.Render(title)
 	}
-	return views.Framed(content, views.Extent{}, r.W, r.H, title, waiting, place, focused, th)
+	if panel.Hidden {
+		waiting = th.Faint
+	}
+	if panel.Waiting > 0 {
+		tags = " " + waiting.Render(fmt.Sprintf("● %d", panel.Waiting))
+	}
+	if panel.Hidden {
+		tags += " " + th.Faint.Render(a.c.Tr.HiddenTag)
+	}
+	return views.Framed(content, views.Extent{}, r.W, r.H, title, tags, place, focused, th)
 }
