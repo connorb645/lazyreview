@@ -27,8 +27,8 @@ It prints what it loaded and where to open it:
     loaded #12, #13, #14: 24 files +966 -13, 8 components, 31 types
     open http://127.0.0.1:4747/review/github.com/owner/repo/12
 
-Loading again refreshes the review in place, as does **Refresh** in the
-app's bar, in every view. A stack's review lives with its lowest pull request that
+Loading again refreshes the review in place, as does `R` in the terminal
+app. A stack's review lives with its lowest pull request that
 already has one, and the comments queued on its members' own reviews move into
 it. Options:
 
@@ -62,7 +62,9 @@ app then opens on it:
 The written review is Markdown: a header naming what it read, then its
 sections as `##` headings. A `file:line` in backticks, such as
 `` `Basket.swift:12` ``, opens the diff at that line; `[Certain]`, `[Likely]`
-and `[Guessing]` show as tags, and `#13` as that pull request's colour.
+and `[Guessing]` show as tags, and `#13` as that pull request's colour. A
+drawing written as inline SVG, which a terminal cannot show, opens in the
+browser with `gX` from the Review view.
 
     ---
     pull: 12            # or, for a stack: stack: 12, 13, 14
@@ -86,62 +88,17 @@ It prints what it loaded and where to open it:
     open http://127.0.0.1:4747/review/local/widgets-1a2b3c4d/feature~search
 
 The review is kept by repository and branch, so loading the same branch again,
-from any worktree of the repository, refreshes it in place, as does
-**Refresh** in the app. `--head` names a branch, or `HEAD` on one. It gets
+from any worktree of the repository, refreshes it in place, as does `R` in
+the terminal app. `--head` names a branch, or `HEAD` on one. It gets
 the same diagram and diffs, and Ask Claude, but it is read only: it has no
 queue and no buttons, since there is no pull request to post to. `--title
 <text>` names it, where the branch's name is the default; `--config`,
 `--context` and `--no-context` work as for a pull request. The review keeps
 each of them.
 
-## Using the app
+## Review in the terminal app
 
-- **Diagram.** The types the change adds and edits, in components and
-  packages. Point at a type to see everything it links to and its stored
-  properties, each with its type and line; a link that holds a type names the
-  properties that hold it. Select a type, or a component, to open its diff. On a stack, each pull request has a colour, and
-  the strip under the bar narrows the diagram, its counts of files, lines and links, and the diffs to one of them;
-  unchanged code always shows.
-- **Diffs.** Unified or split, wrapped lines, whole files, the unchanged lines
-  between hunks, and a Rendered view of each Markdown file.
-- **A line.** Select a line number to open a box on it. For a range, drag
-  across line numbers, or shift-select another; on a touch screen, tap a
-  second one. In the unified view a range may run from a removed line to an
-  added one. **Ask Claude** asks about those lines in one short call that
-  carries only the file's hunk and the code around it, and the answer stays
-  under the line. **Queue comment** queues the text for the pull request. On a
-  stack the comment goes to the pull request that last changed the line, at
-  its own line number. As GitHub requires, a comment goes only on lines of the
-  diff, and a range only inside one hunk; the box says when a choice breaks
-  that, and still asks Claude.
-- **A passage.** In the Rendered view of a Markdown file, select a passage and
-  press the button beside it: the same box opens on the source lines the
-  passage came from, quoting it.
-- **Threads on GitHub.** The review threads already on the pull request,
-  colleagues', bots' and your own, sit under their lines, marked resolved or
-  outdated. A thread on no line shown sits at the top of its file. Each
-  thread, and each conversation with Claude, folds to one line; resolved and
-  outdated threads start folded. **Refresh** reads them again.
-- **Review.** The pull request or the stack, any written review, the queued
-  comments with Edit and Drop, every thread on GitHub, and the buttons:
-  **Add Comments**, **Approve With Comments** and **Approve**. A press asks once more, then posts only if
-  the queue still gives exactly the set of comments the button offered, the
-  pull request is open, its head has not moved, every comment sits on a line
-  of its diff, and GitHub answers as the account the review was loaded as. A
-  press whose review GitHub already holds posts nothing twice. No button asks
-  for changes, and no approval shows on your own pull request.
-- **More than one window.** Every open page of a review shows a change made
-  elsewhere within a second: in another window, or by `load` or `attach`.
-  What you are writing stays as it is. When the review is loaded again, a page
-  opens again at the same place, or, while you are writing, offers to. A
-  window opened before a load cannot queue, edit or post until it does, and
-  an edit or a drop made on a comment another window changed since is
-  refused, showing how the comment now reads.
-
-## Review in a terminal
-
-The same reviews open in a terminal app with Vim keys, a second client of the
-same server. Both apps can be open on one review at once.
+Every review opens in the terminal app, with Vim keys.
 
     bin/lazyreview terminal
     bin/lazyreview terminal http://127.0.0.1:4747/review/github.com/owner/repo/12
@@ -215,8 +172,7 @@ repository has no panel, and the bar counts the ones hidden, so no pull
 request leaves without a word. `I` shows them, dim, after the others, each
 title starting with `hidden`; `i` on one shows it again, and when an
 `owner/*` entry hides it, the menu says so before taking that entry off. A
-review of a hidden repository still opens, `load` still loads one, and the
-web app's front page leaves those reviews out as well, saying how many.
+review of a hidden repository still opens, and `load` still loads one.
 
 ### In a review
 
@@ -239,9 +195,9 @@ other key closes it and goes on to the panel under it.
 On a stack, the Review panel lists All, then each pull request, and its cursor
 chooses what the other panels show. On All they show the whole stack. On a
 pull request, Files, Notes, Diagram and the main panel show only what it
-changed, at once. Each count of files, lines and links counts only that, as
-the web app's do: an arrow between components or packages counts the links
-whose two ends the filter shows. Unchanged code is context for every pull
+changed, at once. Each count of files, lines and links counts only that: an
+arrow between components or packages counts the links whose two ends the
+filter shows. Unchanged code is context for every pull
 request, so the filter never leaves it out. To read a run of pull requests
 together, `v` starts a highlight on the pull request selected, and `j` and `k`
 grow or shrink it, as Vim's visual mode highlights lines. What the cursor or
@@ -269,7 +225,7 @@ Every panel:
 | `R` `:refresh` | loads the review again: from GitHub, or a branch from its repository |
 | `]p` `[p` | moves the Review panel's cursor to the next or previous pull request of a stack, or All |
 | `Ctrl-o` `Ctrl-i` | back and forward through jumps |
-| `gx` `gX` | opens the pull request on GitHub, or this place in the web app |
+| `gx` | opens the pull request, or the thread at the cursor, on GitHub |
 | `q` | closes a popup |
 | `:q` `ZZ` | quit |
 
@@ -299,6 +255,16 @@ The Review view, in the main panel:
 | `za` | folds or unfolds a section |
 | `e` `dd` | edits or drops the queued comment at the cursor |
 | `P` | posts: the actions offered for the pull request at the cursor, then exactly what one sends, then `y` |
+| `gX` | opens the written review's drawings in the browser, from a page lazyreview writes that runs no script |
+
+Posting offers **Add Comments**, **Approve With Comments** and **Approve**.
+A press asks once more, then posts only if the queue still gives exactly the
+set of comments the action offered, the pull request is open, its head has
+not moved, every comment sits on a line of its diff, and GitHub answers as
+the account the review was loaded as. A press whose review GitHub already
+holds posts nothing twice. No action asks for changes, and no approval shows
+on your own pull request. As GitHub requires, a comment goes only on lines of
+the diff, and a range only inside one hunk.
 
 The diagram, in the main panel, shows the components, then the packages of
 one, then the types of one package, as rows of boxes:
@@ -342,8 +308,8 @@ each its own number, or how far each is from the cursor, as Vim's
 | `Space r` | a Markdown file rendered, block by block, or back to its diff; `V`, `c` and `a` work on whole blocks |
 | `-` | back to where it was opened from |
 
-Changes made elsewhere, in the web app, another terminal or from the command
-line, show within a second. When the review is loaded again, the app loads it
+Changes made elsewhere, in another terminal or from the command line, show
+within a second. When the review is loaded again, the app loads it
 in place and keeps your view, folds and filter. With a draft open it says so
 instead, and `R` loads it when you are ready.
 
@@ -353,6 +319,22 @@ is set, or `vi`, as git chooses. `LAZYREVIEW_EDITOR` overrides the config. Write
 comment goes and is never sent. Saving with no text sends nothing. When the
 server refuses a comment, the bar at the bottom says why and `c` or `e` opens
 your text again.
+
+Ask Claude works as your own Claude Code: your settings, `CLAUDE.md`,
+skills, MCP servers and model. Each conversation has a throwaway copy of the
+code at the commit its lines belong to, in the data home, with no remote,
+and keeps one Claude Code session, so a follow-up goes on from what Claude
+found. A guard refuses anything that would change something outside the
+copy, or leave the machine as a change, such as a push, a comment on GitHub
+or a request that writes; reading stays allowed. While Claude works, the bar
+says so and the conversation shows its latest steps; `x` stops it. Each
+answer keeps the steps Claude took, and a refused step says why.
+
+The review threads already on GitHub, colleagues', bots' and your own, sit
+under their lines, marked resolved or outdated. A thread on no line shown
+sits at the top of its file. Each thread and each conversation folds to one
+line with `za`, and resolved and outdated threads start folded. `R` reads
+them again.
 
 The server writes a token into `server.json` at each start, which only its
 owner can read, and the terminal app sends it with each change.
@@ -387,9 +369,9 @@ mistake named.
 
 Everything lives under `~/.lazyreview`: a bare clone of each repository, and
 one folder per review holding its record (`review.json`: the pull requests,
-the queue and the reviews sent), the drawn page (`page.json`, with the review
-threads GitHub had when it was loaded), any config and written review, and one
-file per conversation. A branch's review lives under
+the queue and the reviews sent), the drawn page (`page.json`), the review
+threads GitHub had when it was loaded (`github.json`), any config and written
+review, and one file per conversation. A branch's review lives under
 `reviews/local/`, its record holding the branch, its base and the folder it
 was read from; it is read from the repository itself, with no clone.
 
@@ -402,7 +384,8 @@ as `LAZYREVIEW_HOME` for the data home and `LAZYREVIEW_PORT` for the port.
 `settings.json` is no longer read; `lazyreview config move` moves it in.
 
 The server answers only requests addressed to 127.0.0.1 or localhost, and
-takes changes only as JSON from its own pages.
+takes changes only as JSON from a client carrying its token, as the terminal
+app does.
 
 ## Code
 
@@ -422,18 +405,14 @@ maps each part to lazygit's own.
   is posted; `src/review` reads a written review and places GitHub's review
   threads; `src/ask` asks Claude; `src/home` lists the open pull requests.
 - `src/store` keeps the files on disk, and `src/config` reads the config.
-- `src/server` serves the app and its JSON. `src/i18n/english.mjs` holds
-  every sentence of the command, the server and the web app, which the
-  server serves to the browser.
+- `src/server` serves the JSON the terminal app reads and changes reviews
+  through. `src/i18n/english.mjs` holds every sentence of the command and
+  the server.
 - `terminal/` is the terminal app, in Go with Bubble Tea, Lip Gloss, Bubbles
   and Glamour, laid out as lazygit's own: `internal/gui` with its views,
   contexts, controllers and presentation, `internal/i18n/english.go` for its
   words and `internal/theme` for its colours. `lazyreview terminal` builds it
   and runs it.
-- `app/` is the web app, plain JavaScript modules with no build step, in the
-  same layers: `api/`, `context/`, `controllers/`, `presentation/` and
-  `views.mjs`. Its look is one stylesheet, `app/styles.css`, with a dark and
-  a light theme that follow the system setting.
 
 Run the tests with `npm test`, and the terminal app's with `npm run
 test:terminal`. They make their own throwaway repositories and answer for

@@ -46,18 +46,6 @@ export function reviewState(store, ref) {
   });
 }
 
-/** One line per review, for the list of every review kept. */
-export function reviewSummary({ ref, review }) {
-  if (review.kind === 'branch') {
-    return { id: ref.id, kind: review.kind, repo: review.repo, title: review.title, loaded_at: review.loaded_at, moved: null, branch: review.head.ref, base: review.base.ref, queued: 0 };
-  }
-  return {
-    id: ref.id, repo: review.repo, title: review.title, loaded_at: review.loaded_at, moved: review.moved,
-    members: review.members.map(summary),
-    queued: review.members.reduce((n, m) => n + m.comments.length, 0),
-  };
-}
-
 function versioned(state) {
   return { ...state, version: createHash('sha256').update(JSON.stringify(state)).digest('hex').slice(0, 12) };
 }

@@ -1,50 +1,42 @@
 /**
- * The app's web server, for this machine only.
+ * The app's server, for this machine only.
  *
- * new AppServer({store, loader, branches, queue, threads, pulls, hidden, events, token, port}) serves the
- * app at http://127.0.0.1:<port>/, each review at /review/<review id>, and
- * the JSON the app reads and changes reviews through under /api. `loader`
- * loads pull requests, new or again, and `branches` branches again; `pulls`
- * lists the open pull requests that involve the user's accounts, for the
- * terminal app's home screen, and `hidden` changes which repositories the
- * home screens leave out. Each review the list of reviews gives names the
- * entries that hide its repository, as `hidden_by`. A branch review takes
- * no comments: only a pull request's review has a queue to change or post.
- * A review's page comes with its build id, without its per-file parts, which
- * the file route gives one file at a time, for the build a window names.
- * Every change but a refresh names the build its window was drawn from. A
- * GET or a DELETE takes its fields from its query. What the page and file
- * routes answer is kept in memory for each build. A review's events route is
- * a stream of its change notices, as `events` gives them, one JSON object
- * to each server-sent event.
+ * new AppServer({store, loader, branches, queue, threads, pulls, hidden, events, token, port}) serves
+ * the JSON the terminal app reads and changes reviews through, under /api.
+ * `loader` loads pull requests, new or again, and `branches` branches again;
+ * `pulls` lists the open pull requests that involve the user's accounts, for
+ * the terminal app's home screen, and `hidden` changes which repositories
+ * the home screen leaves out. A branch review takes no comments: only a pull
+ * request's review has a queue to change or post. A review's page comes with
+ * its build id, without its per-file parts, which the file route gives one
+ * file at a time, for the build a window names. Every change but a refresh
+ * names the build its window was drawn from. A GET or a DELETE takes its
+ * fields from its query. What the page and file routes answer is kept in
+ * memory for each build. A review's events route is a stream of its change
+ * notices, as `events` gives them, one JSON object to each server-sent
+ * event.
  * listen() resolves once it is listening, with its address; close() stops it.
- * The page is sent with its words filled in from the strings, each where
- * index.html names it as {{area.name}} of english.web.
  *
  * It answers only requests addressed to this machine by name, so a page from
  * elsewhere cannot reach it through a name it controls, and it takes a change
- * only as JSON, from the app's own pages, by their origin, or from a client
- * carrying `token` as its bearer token, such as the terminal app.
+ * only as JSON from a client carrying `token` as its bearer token, such as
+ * the terminal app.
  */
 import { createServer } from 'node:http';
-import { createReadStream, readFileSync } from 'node:fs';
 import { timingSafeEqual } from 'node:crypto';
 import { BranchRef } from '../models/branch-ref.mjs';
 import { reviewRef } from '../models/review-ref.mjs';
-import { reviewState, reviewSummary } from './review-state.mjs';
-import { hiddenBy } from '../home/hidden-by.mjs';
+import { reviewState } from './review-state.mjs';
 import { pageView } from '../review/page-view.mjs';
 import { fileView } from '../review/file-view.mjs';
 import { checkBuild } from '../store/page-build.mjs';
 import { ReviewEvents } from './review-events.mjs';
-import { staticFile, PAGE } from './static-files.mjs';
 import { english } from '../i18n/english.mjs';
 
 const PULL = '([^/]+/[^/]+/[^/]+/\\d+)';
 const REVIEW = '(local/[^/]+/[^/]+|[^/]+/[^/]+/[^/]+/\\d+)';
 const EVENTS = new RegExp(`^/api/reviews/${REVIEW}/events$`);
 const BODY_LIMIT = 1 << 20;
-const PAGE_SECURITY = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
 export class AppServer {
   #store;
@@ -75,10 +67,6 @@ export class AppServer {
     this.#port = port;
     this.#routes = [
       ['GET', /^\/api\/health$/, () => ({ ok: true })],
-      ['GET', /^\/api\/reviews$/, () => {
-        const entries = this.#hidden.entries();
-        return this.#store.list().map(item => ({ ...reviewSummary(item), hidden_by: item.review.kind === 'branch' ? [] : hiddenBy(entries, item.review.repo) }));
-      }],
       ['GET', /^\/api\/pulls$/, () => this.#pulls.list()],
       ['POST', /^\/api\/hidden$/, body => this.#hidden.change(hiding(body))],
       ['POST', /^\/api\/load$/, async body => {
@@ -153,18 +141,8 @@ export class AppServer {
     const url = new URL(request.url, `http://${request.headers.host}`);
     const path = url.pathname;
 
-    if (!path.startsWith('/api/')) {
-      if (request.method !== 'GET' && request.method !== 'HEAD') return send(response, 405, { error: english.server.notAllowed });
-      if (path === '/' || /^\/review\//.test(path)) return sendPage(response);
-      let file = null;
-      try { file = staticFile(path); } catch { file = null; }
-      return file ? sendFile(response, file.path, file.type) : send(response, 404, { error: english.server.noSuchPage });
-    }
-
     if (request.method !== 'GET') {
-      const origin = request.headers.origin;
-      const own = !!origin && hosts.some(h => origin === `http://${h}`);
-      if (!own && !this.#carriesToken(request)) return send(response, 403, { error: english.server.changesFrom });
+      if (!this.#carriesToken(request)) return send(response, 403, { error: english.server.changesFrom });
       if (request.method !== 'DELETE' && !String(request.headers['content-type'] || '').startsWith('application/json')) {
         return send(response, 415, { error: english.server.sendJSON });
       }
@@ -301,8 +279,8 @@ function readBody(request) {
   });
 }
 
-function headers(type, extra = {}) {
-  return { 'Content-Type': type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', ...extra };
+function headers(type) {
+  return { 'Content-Type': type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' };
 }
 
 function send(response, status, value) {
@@ -312,19 +290,4 @@ function send(response, status, value) {
 function sendRaw(response, status, json) {
   response.writeHead(status, headers('application/json; charset=utf-8'));
   response.end(json);
-}
-
-function sendPage(response) {
-  const page = readFileSync(PAGE, 'utf8').replace(/\{\{([\w.]+)\}\}/g, (marker, name) => {
-    const words = name.split('.').reduce((area, key) => (area ? area[key] : undefined), english.web);
-    if (typeof words !== 'string') throw new Error(english.server.noWords(marker));
-    return words;
-  });
-  response.writeHead(200, headers('text/html; charset=utf-8', { 'Content-Security-Policy': PAGE_SECURITY }));
-  response.end(page);
-}
-
-function sendFile(response, path, type) {
-  response.writeHead(200, headers(type));
-  createReadStream(path).pipe(response);
 }

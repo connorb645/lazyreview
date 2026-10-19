@@ -38,10 +38,10 @@ test('config path says where the file is, or would be, and config defaults print
 test('config check prints every setting as read, and where it came from', async () => {
   const s = standIn();
   try {
-    writeFileSync(s.file, 'server:\n  port: 4748\ngithub:\n  accounts:\n    - login: lee\n');
+    writeFileSync(s.file, 'server:\n  port: 4748\ngithub:\n  accounts:\n    - login: lee\nkeybinding:\n  universal:\n    web: gW\n');
     const checked = await run(['config', 'check'], { ...s.env, LAZYREVIEW_MODEL: 'claude-sonnet' });
     assert.equal(checked.code, 0, checked.stderr);
-    const [head, theme] = checked.stdout.split('\ngui:\n');
+    const [head, theme] = checked.stdout.replace(/\n\n# keybinding\.universal\.web .*\n$/, '\n').split('\ngui:\n');
     assert.ok(theme.trimEnd().split('\n').every(line => !line || /^ *\w+:( +# [A-Za-z ]+)?$|# default$/.test(line)), 'every colour and key is its default');
     assert.equal(head, [
       `the config at ${s.file}, on top of the defaults:`,
@@ -66,6 +66,7 @@ test('config check prints every setting as read, and where it came from', async 
       '',
     ].join('\n'));
     assert.match(theme, /^ {4}dark:\n {6}defaultFgColor: '#f1f0fb' +# default\n/m);
+    assert.match(checked.stdout, /\n\n# keybinding\.universal\.web does nothing now, so it can go: lazyreview has no web app; keybinding\.reviewView\.drawings opens a written review's drawings in the browser\n$/);
   } finally {
     s.done();
   }

@@ -1,5 +1,6 @@
 // Package oscommands runs the programs of the machine the terminal app runs
-// on, other than the lazyreview server.
+// on, other than the lazyreview server, and writes the pages it opens in
+// the browser.
 package oscommands
 
 import (

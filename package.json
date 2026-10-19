@@ -2,7 +2,7 @@
   "name": "lazyreview",
   "version": "0.1.0",
   "private": true,
-  "description": "Review GitHub pull requests and stacks on your own machine, in a terminal or a browser, with a class diagram of each change.",
+  "description": "Review GitHub pull requests and stacks on your own machine, in a terminal, with a class diagram of each change.",
   "license": "MIT",
   "type": "module",
   "bin": {

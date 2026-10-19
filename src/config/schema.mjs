@@ -14,7 +14,8 @@
  * "server.port", in the tree's order. PATTERNS are what a login, a team's
  * name, a hidden repository and a date must match, as regular expressions' sources. RETIRED
  * names, by dotted key, each setting lazyreview no longer has, with what
- * does its work now.
+ * does its work now. UNUSED names each setting a config may still hold that
+ * does nothing now, with why, so a config that set it still reads.
  */
 import { english } from '../i18n/english.mjs';
 
@@ -31,6 +32,10 @@ export const PATTERNS = Object.freeze({
 export const RETIRED = Object.freeze({
   'keybinding.diagramPanel.left': english.config.retiredWhy.diagramPanelMove('left'),
   'keybinding.diagramPanel.right': english.config.retiredWhy.diagramPanelMove('right'),
+});
+
+export const UNUSED = Object.freeze({
+  'keybinding.universal.web': english.config.unusedWhy.web,
 });
 
 const setting = fields => Object.freeze({ kind: 'setting', env: null, example: [], ...fields });
@@ -58,7 +63,7 @@ const BOXES = {
 const notes = english.config.about.keySections;
 
 const KEYBINDING = section({
-  universal: keys({ command: ':', keys: '<space>?', review: '<space>v', github: 'gx', web: 'gX', close: ['q', '<esc>'], quit: ['ZZ', '<c-c>'], refresh: 'R', bigger: '+', smaller: '_' }, notes.universal),
+  universal: keys({ command: ':', keys: '<space>?', review: '<space>v', github: 'gx', close: ['q', '<esc>'], quit: ['ZZ', '<c-c>'], refresh: 'R', bigger: '+', smaller: '_' }, notes.universal),
   home: keys({
     ...MOVE, ...PAGES, open: '<enter>', previousPanel: 'h', nextPanel: 'l', jumpToRepository: ['1', '2', '3', '4', '5', '6', '7', '8', '9'], hideRepository: 'i', showHidden: 'I',
   }, notes.home),
@@ -68,7 +73,7 @@ const KEYBINDING = section({
   filesPanel: keys({ toggleFold: 'za', select: 'v' }),
   notesPanel: keys({ edit: 'e', drop: 'dd', post: 'P', stop: 'x' }),
   diagramPanel: keys(Object.fromEntries(Object.entries(BOXES).filter(([action]) => !['top', 'bottom', 'open'].includes(action)))),
-  reviewView: keys({ ...MOVE, ...PAGES, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P' }, notes.reviewView),
+  reviewView: keys({ ...MOVE, ...PAGES, nextSection: ']]', previousSection: '[[', fold: 'za', open: '<enter>', edit: 'e', drop: 'dd', post: 'P', drawings: 'gX' }, notes.reviewView),
   diff: keys({
     down: ['j', '<down>'], up: ['k', '<up>'], halfDown: '<c-d>', halfUp: '<c-u>', pageDown: '<c-f>', pageUp: '<c-b>', top: 'gg', bottom: 'G',
     scrollLeft: ['h', '<left>'], scrollRight: ['l', '<right>'],

@@ -1,5 +1,5 @@
 // Package server reads and changes reviews through the lazyreview server on
-// this machine, the one back half the web app and the terminal app share.
+// this machine.
 package server
 
 import (
@@ -51,15 +51,6 @@ func NewClient(cmn *common.Common, file string) *Client {
 // same process.
 func NewClientThrough(cmn *common.Common, file string, transport http.RoundTripper) *Client {
 	return &Client{tr: cmn.Tr, file: file, http: &http.Client{Transport: transport}}
-}
-
-// Address is where the server answers, such as http://127.0.0.1:4747.
-func (c *Client) Address() (string, error) {
-	record, err := c.record()
-	if err != nil {
-		return "", err
-	}
-	return record.Address, nil
 }
 
 // State reads a review's state: its pull requests, its queue, its

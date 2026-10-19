@@ -60,6 +60,7 @@ func (self *ReviewViewController) Bindings() []Binding {
 		{Action: "edit", Keys: kb.ReviewView.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
 		{Action: "drop", Keys: kb.ReviewView.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
 		{Action: "post", Keys: kb.ReviewView.Post, Handler: stateOnly(self.post), Description: tr.Post},
+		{Action: "drawings", Keys: kb.ReviewView.Drawings, Handler: uncounted(h.Browser.OpenDrawings), Description: tr.Drawings},
 	}
 	return join(reviewScreenBindings(self.c), withReviewAll(own))
 }
@@ -145,6 +146,7 @@ func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSect
 		{Keys: labels.Of("fold"), Words: tr.HelpFoldSection},
 		{Keys: labels.Of("edit", "drop"), Words: tr.HelpEditDrop},
 		{Keys: labels.Of("post"), Words: tr.HelpPostAtCursor},
+		{Keys: labels.Of("drawings"), Words: tr.HelpDrawings},
 	}
 	return reviewScreenHelp(self.c, tr.ReviewTitle, rows, labels)
 }

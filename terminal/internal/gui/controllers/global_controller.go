@@ -35,7 +35,6 @@ func (self *GlobalController) Bindings() []Binding {
 		{Action: "keys", Keys: kb.Universal.Keys, Handler: stateOnly(self.keys), Description: tr.Keys},
 		{Action: "review", Keys: kb.Universal.Review, Handler: stateOnly(h.Review.Show), Description: tr.ReviewView},
 		{Action: "github", Keys: kb.Universal.GitHub, Handler: uncounted(h.Browser.OpenGitHub), Description: tr.GitHub},
-		{Action: "web", Keys: kb.Universal.Web, Handler: uncounted(h.Browser.OpenWeb), Description: tr.WebApp},
 		{Action: "close", Keys: kb.Universal.Close, Handler: uncounted(self.close), Description: tr.Close},
 		{Action: "quit", Keys: kb.Universal.Quit, Handler: self.quit, Description: tr.Quit},
 		{Action: "refresh", Keys: kb.Universal.Refresh, Handler: uncounted(h.Review.Refresh), Description: tr.Refresh},

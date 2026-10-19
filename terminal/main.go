@@ -1,6 +1,6 @@
-// Command lazyreview-terminal is lazyreview in a terminal: the same reviews
-// as the web app, with Vim keys, as a second client of the same server.
-// lazyreview terminal builds it and runs it.
+// Command lazyreview-terminal is lazyreview in a terminal: its reviews, with
+// Vim keys, as a client of the lazyreview server. lazyreview terminal builds
+// it and runs it.
 package main
 
 import (

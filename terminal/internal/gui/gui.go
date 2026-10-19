@@ -1,5 +1,5 @@
 // Package gui is the terminal app: the panels and the keys, drawn from what
-// the lazyreview server answers. It decides nothing the web app also needs.
+// the lazyreview server answers.
 package gui
 
 import (

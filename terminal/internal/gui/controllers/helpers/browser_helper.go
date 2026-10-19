@@ -1,16 +1,18 @@
 package helpers
 
 import (
-	"net/url"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/connorb645/lazyreview/terminal/internal/commands/oscommands"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-// BrowserHelper opens the pull request or the review in the browser.
+// BrowserHelper opens a pull request on GitHub, or a written review's
+// drawings, in the browser.
 type BrowserHelper struct {
 	c *HelperCommon
 }
@@ -47,21 +49,30 @@ func (self *BrowserHelper) OpenGitHub(s context.ContextTree) (context.ContextTre
 	return self.opened(s, address), nil
 }
 
-// OpenWeb is the state once the browser opens the web app on the review
-// open, or on its home page.
-func (self *BrowserHelper) OpenWeb(s context.ContextTree) (context.ContextTree, tea.Cmd) {
-	base, err := self.c.Server.Address()
+// OpenDrawings is the state once the browser opens the drawings of the
+// review's written review, which a terminal cannot show, from a page written
+// for them.
+func (self *BrowserHelper) OpenDrawings(s context.ContextTree) (context.ContextTree, tea.Cmd) {
+	if s.Review == nil || s.Review.State.Written == nil {
+		return s.Said(self.c.Tr.NoDrawings, true), nil
+	}
+	written := *s.Review.State.Written
+	title := written.Title
+	if title == "" {
+		title = s.Review.State.Title
+	}
+	page, ok := presentation.DrawingsPage(self.c.Tr, title, written)
+	if !ok {
+		return s.Said(self.c.Tr.NoDrawings, true), nil
+	}
+	path, err := oscommands.WritePage(strings.ReplaceAll(s.Review.ID, "/", "_")+"-drawings", page)
 	if err != nil {
-		return s.Said(err.Error(), true), nil
+		return s.Said(self.c.Tr.CouldNotWriteDrawings+": "+err.Error(), true), nil
 	}
-	if s.Screen() != context.ScreenReview || s.Review == nil {
-		return self.opened(s, base+"/"), nil
+	if err := self.c.Open(path); err != nil {
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.CouldNotOpen, map[string]string{"name": path})+": "+err.Error(), true), nil
 	}
-	parts := strings.Split(s.Review.ID, "/")
-	for i, p := range parts {
-		parts[i] = url.PathEscape(p)
-	}
-	return self.opened(s, base+"/review/"+strings.Join(parts, "/")+"#review"), nil
+	return s.Said(self.c.Tr.DrawingsOpened, false), nil
 }
 
 func (self *BrowserHelper) opened(s context.ContextTree, address string) context.ContextTree {

@@ -27,6 +27,7 @@ import { readWrittenReview, checkWrittenReview } from '../review/written-review.
 import { english } from '../i18n/english.mjs';
 import { findConfigFile } from '../config/config-file.mjs';
 import { readUserConfig, terminalPart } from '../config/user-config.mjs';
+import { UNUSED } from '../config/schema.mjs';
 import { defaultConfigText, checkedConfigText } from '../config/config-text.mjs';
 import { planMove, checkLines, move } from '../config/config-move.mjs';
 
@@ -112,7 +113,8 @@ function config(options, where) {
       return [defaultConfigText().trimEnd()];
     case 'check': {
       const read = readUserConfig(where);
-      return [read.exists ? english.config.checked(read.path) : english.config.unset(read.path), '', checkedConfigText(read).trimEnd()];
+      const unused = read.unused.map(key => english.config.unused(key, UNUSED[key]));
+      return [read.exists ? english.config.checked(read.path) : english.config.unset(read.path), '', checkedConfigText(read).trimEnd(), ...(unused.length ? ['', ...unused] : [])];
     }
     default: {
       const plan = planMove(where);

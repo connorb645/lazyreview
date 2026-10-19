@@ -151,7 +151,6 @@ keybinding:
     keys: '<space>?'
     review: '<space>v'
     github: 'gx'
-    web: 'gX'
     close: ['q', '<esc>']
     quit: ['ZZ', '<c-c>']
     refresh: 'R'
@@ -236,6 +235,7 @@ keybinding:
     edit: 'e'
     drop: 'dd'
     post: 'P'
+    drawings: 'gX'
   diff:
     down: ['j', '<down>']
     up: ['k', '<up>']
@@ -368,9 +368,8 @@ github:
 ```
 
 Case does not count, as it does not in GitHub's names. A hidden repository
-has no panel on the home screen, and the bar counts the ones hidden. The web
-app's front page leaves out the reviews of hidden repositories, and says how
-many. Nothing else changes: a review of one still opens, and `lazyreview
+has no panel on the home screen, and the bar counts the ones hidden. Nothing
+else changes: a review of one still opens, and `lazyreview
 load` still loads one.
 
 The home screen's keys write the list for you: `hideRepository`, `i`, hides
@@ -479,8 +478,6 @@ the colours a components config can name, one by one. The names follow
 lazygit's where the colour does the same thing, such as `activeBorderColor`
 and `selectedLineBgColor`. Bold and plain text stay as they are.
 
-The web app keeps its own colours, dark and light by the system setting.
-
 ## A bad file
 
 A command that reads the config stops before it does anything when the
@@ -491,6 +488,9 @@ file has a mistake, and says what is wrong, with the file's path:
   one never does nothing silently.
 - A setting lazyreview no longer has is refused the same way, and the
   message says what does its work now.
+- A setting that does nothing now, such as `keybinding.universal.web`,
+  which opened the web app, still reads, so the file keeps working.
+  `config check` names it, and why it can go.
 - A value of the wrong kind names the setting, the value, and what it
   must be.
 - Every mistake in the file is named at once.

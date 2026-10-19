@@ -1,6 +1,6 @@
 # lazyreview
 
-Review GitHub pull requests on your own machine, in a terminal or a browser.
+Review GitHub pull requests on your own machine, in a terminal.
 
 One command loads a pull request, a stack of pull requests, or a branch with
 no pull request yet. lazyreview then shows a class diagram of the change,
@@ -52,9 +52,9 @@ says where it is.
 
 ## More
 
-[The guide](docs/guide.md) covers stacks, written reviews, the web app,
-every key of the terminal app, components and packages, and where the data is
-kept. [Config](docs/Config.md) lists every setting of the config.
+[The guide](docs/guide.md) covers stacks, written reviews, every key of the
+terminal app, components and packages, and where the data is kept.
+[Config](docs/Config.md) lists every setting of the config.
 
 Run the tests with `npm test`, and the terminal app's tests with
 `npm run test:terminal`. The tests reach no network.

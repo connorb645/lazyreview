@@ -130,3 +130,11 @@ test('the Diagram panel\'s old left and right keys are refused, saying what does
   assert.throws(() => read("keybinding:\n  diagramPanel:\n    left: 'h'\n    right: 'l'\n"), { message: `${PATH} has 2 problems:\n  - ${why('left')}\n  - ${why('right')}` });
   assert.deepEqual(read("keybinding:\n  diagram:\n    left: 'H'\n").values.keybinding.diagram.left, 'H');
 });
+
+test('the web app\'s old key still reads, does nothing and is named as unused; the drawings take gX', () => {
+  const read2 = read("keybinding:\n  universal:\n    web: 'gW'\n");
+  assert.deepEqual(read2.unused, ['keybinding.universal.web']);
+  assert.equal(read2.values.keybinding.universal.web, undefined);
+  assert.equal(read2.values.keybinding.reviewView.drawings, 'gX');
+  assert.deepEqual(read('').unused, []);
+});

@@ -7,7 +7,6 @@ type KeybindingUniversalConfig struct {
 	Keys    []string `json:"keys"`
 	Review  []string `json:"review"`
 	GitHub  []string `json:"github"`
-	Web     []string `json:"web"`
 	Close   []string `json:"close"`
 	Quit    []string `json:"quit"`
 	Refresh []string `json:"refresh"`

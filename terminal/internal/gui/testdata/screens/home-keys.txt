@@ -17,11 +17,11 @@
 │ │ I              shows the hidden repositories, dim, after the others, or hides them again     │ │
 │ │ R :refresh     reads the open pull requests from GitHub again                                │ │
 ╰─│ gx             opens the pull request on GitHub                                              │ │
-╭─│ gX             opens the web app's list of reviews                                           │ │
-│ │ Space v        the Review view of the review open                                            │ │
+╭─│ Space v        the Review view of the review open                                            │ │
 │ │ + _            more of the screen for the list, then all of it; _ goes back                  │ │
 │ │ :              the command line: :q quits                                                    │ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 21─╯ │
+│ │ ZZ             quits, as :q does                                                             │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────1 of 20─╯ │
 │                                                ││                                                │
 │                                                ││                                                │
 │                                                ││                                                │

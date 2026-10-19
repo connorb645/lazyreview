@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,10 +26,6 @@ func TestTheReviewViewOfAStack(t *testing.T) {
 	a = press(t, a, "g", "x")
 	if (*visited)[0] != "https://github.com/octo/widgets/pull/21" {
 		t.Fatalf("gx on a comment opens its pull request, not %v", *visited)
-	}
-	a = press(t, a, "g", "X")
-	if !strings.HasSuffix((*visited)[1], "/review/github.com/octo/widgets/21#review") {
-		t.Fatalf("gX opens the review in the web app, not %s", (*visited)[1])
 	}
 	a = press(t, a, "G")
 	if it := a.ReviewView.View.Items[a.ReviewView.View.Cursor]; it.Kind != "component" {

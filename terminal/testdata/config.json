@@ -92,9 +92,6 @@
    "github": [
     "g x"
    ],
-   "web": [
-    "g X"
-   ],
    "close": [
     "q",
     "esc"
@@ -357,6 +354,9 @@
    ],
    "post": [
     "P"
+   ],
+   "drawings": [
+    "g X"
    ]
   },
   "diff": {

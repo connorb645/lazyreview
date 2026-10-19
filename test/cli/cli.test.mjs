@@ -40,8 +40,8 @@ test('one command loads a pull request, starts the app, and prints where to open
     const loaded = await run(['load', w.link(30)], env);
     assert.equal(loaded.code, 0, loaded.stderr);
     assert.equal(loaded.stdout, `loaded #30: 1 file +1 -1, 1 component, 0 types\nopen http://127.0.0.1:${port}/review/github.com/octo/widgets/30\n`);
-    const page = await fetch(`http://127.0.0.1:${port}/review/github.com/octo/widgets/30`);
-    assert.equal(page.status, 200);
+    const answered = await fetch(`http://127.0.0.1:${port}/api/reviews/github.com/octo/widgets/30`);
+    assert.equal(answered.status, 200, 'the app the load started answers for the review');
     const record = JSON.parse(readFileSync(w.home.serverFile, 'utf8'));
     assert.equal(record.address, `http://127.0.0.1:${port}`);
     assert.match(record.token, /^[0-9a-f]{64}$/, 'the server records a token a client sends with each change');
@@ -125,8 +125,6 @@ test('one command loads a branch with no pull request, and prints the address th
     assert.match(open, new RegExp(`^open http://127\\.0\\.0\\.1:${port}/review/local/work-[0-9a-f]{8}/fix~wording$`));
     assert.deepEqual(rest, ['']);
     const address = open.slice('open '.length);
-    const page = await fetch(address);
-    assert.equal(page.status, 200);
     const state = await fetch(address.replace('/review/', '/api/reviews/'));
     assert.equal((await state.json()).title, 'Wording');
 

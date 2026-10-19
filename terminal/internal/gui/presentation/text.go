@@ -38,7 +38,7 @@ func LinesWords(tr *i18n.TranslationSet, side string, line, startLine int, start
 }
 
 func withoutDiagrams(tr *i18n.TranslationSet, labels KeyLabels, markdown string) string {
-	notDrawn := utils.ResolvePlaceholderString(tr.DiagramNotDrawn, map[string]string{"web": labels.Of("web")})
+	notDrawn := utils.ResolvePlaceholderString(tr.DrawingNotShown, map[string]string{"drawings": labels.Of("drawings")})
 	return inlineSVG.ReplaceAllLiteralString(markdown, "\n\n*"+notDrawn+"*\n\n")
 }
 

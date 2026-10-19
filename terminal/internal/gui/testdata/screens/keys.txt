@@ -21,7 +21,7 @@
 │ │                panel starts none                                                             │ │
 │ │ Esc            closes the top popup; with none, back to the panel on the left that the main  │…│
 │ │                panel shows                                                                   │ │
-╰─╰──────────────────────────────────────────────────────────────────────────────────────1 of 26─╯ │
+╰─╰──────────────────────────────────────────────────────────────────────────────────────1 of 25─╯ │
 ╭─[4]─Diagram───────────────────╮│ A comment goes on the pull request that last changed its line,  │
 │ Components                    ││ shown as → #number.                                             │
 │ ■ widgets                     ││                                                                 │

@@ -30,7 +30,7 @@ function call(address, method, path, { body, headers = {} } = {}) {
   });
 }
 
-async function started({ token } = {}) {
+async function started({ token = 'secret-token-1234' } = {}) {
   const w = workbench();
   const fake = fakeClaude();
   await w.loader.load({ links: [w.link(30)] });
@@ -41,49 +41,23 @@ async function started({ token } = {}) {
     hidden: new HiddenRepositories({ config: w.config }), token, port: 0,
   });
   const address = await server.listen();
-  const own = { Origin: address, 'Content-Type': 'application/json' };
+  const own = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   return { w, fake, server, branches, address, own, done: async () => { await server.close(); fake.done(); w.done(); } };
 }
 
-test('the app\'s pages and files are served with a policy that loads nothing from elsewhere', async () => {
-  const s = await started();
-  try {
-    for (const path of ['/', '/review/github.com/octo/widgets/30']) {
-      const page = await call(s.address, 'GET', path);
-      assert.equal(page.status, 200);
-      assert.match(page.text, /<script type="module" src="\/app\/main\.mjs"><\/script>/);
-      assert.match(page.text, /<button class="back" id="back" hidden>&larr; Diagram<\/button>/, 'the page comes with its words filled in');
-      assert.ok(!page.text.includes('{{'), 'no word of the page is left unfilled');
-      assert.match(page.headers['content-security-policy'], /default-src 'self'; script-src 'self'/);
-    }
-    assert.match((await call(s.address, 'GET', '/app/main.mjs')).headers['content-type'], /text\/javascript/);
-    const strings = await call(s.address, 'GET', '/i18n/english.mjs');
-    assert.match(strings.headers['content-type'], /text\/javascript/);
-    assert.match(strings.text, /^\/\*\*/, 'the strings module is served to the web app');
-    assert.equal((await call(s.address, 'GET', '/vendor/marked-12.0.2.min.js')).status, 200);
-    for (const path of ['/vendor/plus-jakarta-sans-5.3.0-latin.woff2', '/vendor/plus-jakarta-sans-5.3.0-latin-ext.woff2']) {
-      const font = await call(s.address, 'GET', path);
-      assert.equal(font.status, 200, path);
-      assert.equal(font.headers['content-type'], 'font/woff2', path);
-    }
-    for (const path of ['/app/../src/cli/main.mjs', '/app/%2e%2e/package.json', '/vendor/elk-0.9.3.bundled.js', '/app/nothing.mjs', '/app/%E0%A4%A', '/i18n/../src/cli/main.mjs', '/i18n/other.mjs']) {
-      assert.equal((await call(s.address, 'GET', path)).status, 404, path);
-    }
-  } finally {
-    await s.done();
-  }
-});
-
-test('the server answers only to its own name, and takes changes only from its own pages', async () => {
+test('the server answers only to its own name, and takes changes only from a client with its token', async () => {
   const s = await started();
   try {
     const port = new URL(s.address).port;
-    assert.equal((await call(s.address, 'GET', '/api/reviews', { headers: { Host: `attacker.example:${port}` } })).status, 421);
-    assert.equal((await call(s.address, 'GET', '/api/reviews', { headers: { Host: `localhost:${port}` } })).status, 200);
+    assert.equal((await call(s.address, 'GET', '/api/health', { headers: { Host: `attacker.example:${port}` } })).status, 421);
+    assert.equal((await call(s.address, 'GET', '/api/health', { headers: { Host: `localhost:${port}` } })).status, 200);
+    for (const path of ['/', '/review/github.com/octo/widgets/30', '/app/main.mjs', '/i18n/english.mjs']) {
+      assert.equal((await call(s.address, 'GET', path)).status, 404, path);
+    }
     const comment = { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?' };
     assert.equal((await call(s.address, 'POST', '/api/reviews/github.com/octo/widgets/30/comments', { body: comment, headers: { 'Content-Type': 'application/json' } })).status, 403);
-    assert.equal((await call(s.address, 'POST', '/api/reviews/github.com/octo/widgets/30/comments', { body: comment, headers: { Origin: 'https://attacker.example', 'Content-Type': 'application/json' } })).status, 403);
-    assert.equal((await call(s.address, 'POST', '/api/reviews/github.com/octo/widgets/30/comments', { body: comment, headers: { Origin: s.address, 'Content-Type': 'text/plain' } })).status, 415);
+    assert.equal((await call(s.address, 'POST', '/api/reviews/github.com/octo/widgets/30/comments', { body: comment, headers: { Origin: s.address, 'Content-Type': 'application/json' } })).status, 403);
+    assert.equal((await call(s.address, 'POST', '/api/reviews/github.com/octo/widgets/30/comments', { body: comment, headers: { ...s.own, 'Content-Type': 'text/plain' } })).status, 415);
     assert.equal(s.w.store.read(s.w.store.list()[0].ref).members[0].comments.length, 0, 'no refused request changed anything');
   } finally {
     await s.done();
@@ -155,8 +129,6 @@ test('a client with the token hides repositories in the config file; both lists 
 
     const pulls = (await call(s.address, 'GET', '/api/pulls')).json;
     assert.deepEqual(pulls.repos.map(r => [r.name, r.hidden_by]), [['octo/gadgets', ['octo/*']], ['octo/widgets', ['octo/*']], ['reviewer-home/notes', []]]);
-    const reviews = (await call(s.address, 'GET', '/api/reviews')).json;
-    assert.deepEqual(reviews.map(r => [r.id, r.hidden_by]), [['github.com/octo/widgets/30', ['octo/*']]]);
     assert.equal((await call(s.address, 'GET', '/api/reviews/github.com/octo/widgets/30')).status, 200, 'a review of a hidden repository still opens');
 
     const shown = await call(s.address, 'POST', '/api/hidden', { body: { show: ['octo/*'], repos: names }, headers: token });
@@ -177,12 +149,10 @@ test('a client with the token hides repositories in the config file; both lists 
   }
 });
 
-test('the API lists reviews, gives one\'s state and page, and queues, edits, drops and posts', async () => {
+test('the API gives a review\'s state and page, and queues, edits, drops and posts', async () => {
   const s = await started();
   const base = '/api/reviews/github.com/octo/widgets/30';
   try {
-    const list = (await call(s.address, 'GET', '/api/reviews')).json;
-    assert.deepEqual(list.map(r => [r.id, r.title, r.queued]), [['github.com/octo/widgets/30', 'Fix the guide wording', 0]]);
     const page = (await call(s.address, 'GET', `${base}/page`)).json;
     assert.deepEqual(page.model.files.map(f => f.path), ['docs/guide.md']);
     assert.deepEqual(Object.keys(page).sort(), ['build', 'layout', 'model', 'stack'], 'the page leaves out the diff and the whole texts');
@@ -227,8 +197,8 @@ test('the API lists reviews, gives one\'s state and page, and queues, edits, dro
 
     const more = await call(s.address, 'POST', `${base}/comments`, { body: { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'One more.', build }, headers: s.own });
     const { version } = more.json.state.queue.members[0].comments[0];
-    assert.equal((await call(s.address, 'DELETE', `${base}/comments/2?version=${version}`, { headers: { Origin: s.address } })).status, 409);
-    const dropped = await call(s.address, 'DELETE', `${base}/comments/2?version=${version}&build=${build}`, { headers: { Origin: s.address } });
+    assert.equal((await call(s.address, 'DELETE', `${base}/comments/2?version=${version}`, { headers: { Authorization: s.own.Authorization } })).status, 409);
+    const dropped = await call(s.address, 'DELETE', `${base}/comments/2?version=${version}&build=${build}`, { headers: { Authorization: s.own.Authorization } });
     assert.deepEqual(dropped.json.state.queue.members[0].comments, []);
   } finally {
     await s.done();
@@ -264,13 +234,10 @@ test('a branch review is served read only: its state, its page and its conversat
   try {
     const loaded = await s.branches.load({ repo: s.w.repo.work, base: 'main', head: 'fix/wording', title: 'Wording' });
     const base = '/api/reviews/' + loaded.ref.id.split('/').map(encodeURIComponent).join('/');
-    assert.equal((await call(s.address, 'GET', '/review/' + loaded.ref.id)).status, 200);
     const state = (await call(s.address, 'GET', base)).json;
     assert.deepEqual([state.kind, state.title, state.head.ref, state.base.ref, state.queue], ['branch', 'Wording', 'fix/wording', 'main', null]);
     const page = (await call(s.address, 'GET', `${base}/page`)).json;
     assert.deepEqual(page.model.files.map(f => f.path), ['docs/guide.md']);
-    const listed = (await call(s.address, 'GET', '/api/reviews')).json.find(r => r.id === loaded.ref.id);
-    assert.deepEqual([listed.kind, listed.branch, listed.base, listed.queued], ['branch', 'fix/wording', 'main', 0]);
 
     const comment = { path: 'docs/guide.md', line: 3, side: 'RIGHT', body: 'Every item?' };
     const where = await call(s.address, 'GET', `${base}/where?${new URLSearchParams({ path: 'docs/guide.md', side: 'RIGHT', line: 3, build: page.build })}`);

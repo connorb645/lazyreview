@@ -3,13 +3,15 @@
  * LAZYREVIEW_ variables over both.
  *
  * readUserConfig({env, platform, home}) finds config.yml as findConfigFile
- * says, reads it, and returns {path, exists, values, sources}: `values` is
+ * says, reads it, and returns {path, exists, values, sources, unused}: `values` is
  * the whole config, every setting filled in, and `sources` names where each
  * setting's value came from, by its dotted key: "default", "file", or the
  * variable that set it. A missing file means every default. A file that is
  * not YAML, or that holds a setting lazyreview does not have or a value it
  * cannot take, fails with one error naming the file and every mistake in
- * it; a setting it no longer has is named with what does its work now. A variable with a value it cannot take fails as it always did.
+ * it; a setting it no longer has is named with what does its work now. A
+ * setting that does nothing now still reads, and `unused` names each one
+ * the file sets. A variable with a value it cannot take fails as it always did.
  *
  * Objects merge key by key, at every depth; a list or a single value in
  * the file replaces the default whole, as lazygit's YAML reader merges.
@@ -25,7 +27,7 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve, isAbsolute } from 'node:path';
 import { english } from '../i18n/english.mjs';
-import { SCHEMA, PATTERNS, RETIRED, defaults, leaves } from './schema.mjs';
+import { SCHEMA, PATTERNS, RETIRED, UNUSED, defaults, leaves } from './schema.mjs';
 import { findConfigFile } from './config-file.mjs';
 import { parseYAML } from './yaml.mjs';
 import { readerName, labelProblem, DISABLED } from './key-labels.mjs';
@@ -49,7 +51,7 @@ export function readUserConfig({ env = process.env, platform = process.platform,
     }
   }
   const read = configFrom(text, file.path, home);
-  return Object.freeze({ path: file.path, exists: file.exists, ...overridden(read, env) });
+  return Object.freeze({ path: file.path, exists: file.exists, ...overridden(read, env), unused: read.unused });
 }
 
 export function terminalPart(config, env) {
@@ -69,23 +71,25 @@ export function configFrom(text, path, home = homedir()) {
   }
   const values = defaults();
   const sources = Object.fromEntries(leaves().map(({ key }) => [key, 'default']));
-  if (given === undefined || given === null) return { values: expanded(values, home), sources };
+  if (given === undefined || given === null) return { values: expanded(values, home), sources, unused: [] };
   if (!isMap(given)) throw new Error(words.problem(path, words.notAMap));
   const problems = [];
-  merge(SCHEMA, given, values, sources, '', problems);
+  const unused = [];
+  merge(SCHEMA, given, values, sources, '', problems, unused);
   if (problems.length === 1) throw new Error(words.problem(path, problems[0]));
   if (problems.length) throw new Error(words.problems(path, problems));
-  return { values: expanded(values, home), sources };
+  return { values: expanded(values, home), sources, unused };
 }
 
-function merge(section, given, values, sources, prefix, problems) {
+function merge(section, given, values, sources, prefix, problems, unused) {
   for (const [name, value] of Object.entries(given)) {
     const key = prefix ? `${prefix}.${name}` : name;
     const node = Object.hasOwn(section.settings, name) ? section.settings[name] : null;
+    if (!node && Object.hasOwn(UNUSED, key)) { unused.push(key); continue; }
     if (!node) { problems.push(Object.hasOwn(RETIRED, key) ? words.retired(key, RETIRED[key]) : words.unknown(key)); continue; }
     if (node.kind === 'section') {
       if (!isMap(value)) { problems.push(words.notASection(key, value)); continue; }
-      merge(node, value, values[name], sources, key, problems);
+      merge(node, value, values[name], sources, key, problems, unused);
       continue;
     }
     const found = CHECKS[node.check](value, key, node);

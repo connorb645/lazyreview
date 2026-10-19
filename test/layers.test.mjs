@@ -6,9 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(ROOT, 'src');
-const APP = join(ROOT, 'app');
 const LOGIC = ['ask', 'build', 'config', 'home', 'loader', 'queue', 'review'];
-const SERVED = { '/i18n/english.mjs': 'strings' };
 
 function modules(folder) {
   return readdirSync(folder, { withFileTypes: true }).flatMap(entry => {
@@ -23,7 +21,6 @@ function layered(root) {
     const text = readFileSync(path, 'utf8');
     const imports = [...text.matchAll(/^(?:import|export)\b[^;]*?\bfrom '([^']+)';$/gm)].map(([, spec]) => {
       if (spec.startsWith('node:')) return { spec, layer: 'node:' };
-      if (SERVED[spec]) return { spec, layer: SERVED[spec] };
       const target = relative(root, resolve(dirname(path), spec));
       return { spec, layer: target.startsWith('..') ? target : target.split(sep)[0] };
     });
@@ -57,7 +54,7 @@ test('the server never imports the command line', () => {
   assert.deepEqual(importsBreaking(SRC, ['server'], to => to !== 'cli'), []);
 });
 
-test('the strings import nothing, as the browser loads them alone', () => {
+test('the strings import nothing', () => {
   assert.deepEqual(importsBreaking(SRC, ['i18n'], () => false), []);
 });
 
@@ -68,30 +65,4 @@ test('only the commands run other programs', () => {
 test('every folder of src/ has a layer', () => {
   const folders = readdirSync(SRC, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name);
   assert.deepEqual(folders.filter(f => ![...LOGIC, 'commands', 'models', 'i18n', 'store', 'server', 'cli', 'app'].includes(f)), []);
-});
-
-test('in the web app, context uses only lib', () => {
-  assert.deepEqual(importsBreaking(APP, ['context'], (to, from) => ['lib', from].includes(to)), []);
-});
-
-test('in the web app, presentation uses only lib and the strings', () => {
-  assert.deepEqual(importsBreaking(APP, ['presentation'], (to, from) => ['lib', 'strings', from].includes(to)), []);
-});
-
-test('in the web app, views.mjs and api use nothing of the app, and lib only itself', () => {
-  assert.deepEqual(importsBreaking(APP, ['views.mjs', 'api', 'lib'], (to, from) => ['strings', from].includes(to)), []);
-});
-
-test('in the web app, only controllers listen, only views.mjs finds regions by id, and only api reaches the server', () => {
-  assert.deepEqual(naming(APP, ['controllers'], /addEventListener|ResizeObserver/), []);
-  assert.deepEqual(naming(APP, ['views.mjs'], /getElementById/), []);
-  assert.deepEqual(naming(APP, ['api'], /\bfetch\(|EventSource/), []);
-});
-
-test('in the web app, presentation is markup only: it reaches no page, window or address', () => {
-  assert.deepEqual(layered(APP).filter(m => m.layer === 'presentation' && /\b(document|window|location)\./.test(m.text)).map(m => m.name), []);
-});
-
-test('every module of the web app has a layer', () => {
-  assert.deepEqual(layered(APP).map(m => m.layer).filter(l => !['main.mjs', 'views.mjs', 'api', 'context', 'controllers', 'presentation', 'lib'].includes(l)), []);
 });

@@ -18,4 +18,5 @@ type KeybindingReviewViewConfig struct {
 	Edit            []string `json:"edit"`
 	Drop            []string `json:"drop"`
 	Post            []string `json:"post"`
+	Drawings        []string `json:"drawings"`
 }

@@ -2,8 +2,8 @@
 
 lazyreview takes lazygit's way of laying out a program: its folders, its
 layers, its strings, its theme and its config. Each part takes it in its
-own language. The terminal app is Go, as lazygit is; the command, the
-server and the web app stay JavaScript.
+own language. The terminal app is Go, as lazygit is; the command and the
+server stay JavaScript.
 
 A citation starting `lazygit:` names a file and line of lazygit at
 `v0.63.0`. Every other path is in this repository.
@@ -50,7 +50,8 @@ A citation starting `lazygit:` names a file and line of lazygit at
   `internal/theme` turns the colours for the terminal's background into
   styles.
 - `internal/commands/server` is the server's client and the types of its
-  answers; `internal/commands/oscommands` opens an address in the browser.
+  answers; `internal/commands/oscommands` opens an address in the browser,
+  and writes the page of a written review's drawings that it opens.
 - `internal/gui` is the app: `views` draw framed rectangles and the canvas;
   `context` holds one context per view, of lazygit's kinds, in a
   `ContextTree` with a focus stack whose top takes keys first;
@@ -115,35 +116,6 @@ A citation starting `lazygit:` names a file and line of lazygit at
   presents is the server's answers and the command's lines, which keep
   their place and take their words from the strings.
 
-## The web app
-
-### What lazygit does
-
-- The same split as its gui: views, contexts, controllers and presentation,
-  with the rule above (lazygit:`docs/dev/Codebase_Guide.md:72`).
-
-### What lazyreview adopts, and where
-
-- `app/api` is the one way to the server; `app/context` holds the state;
-  `app/controllers` hold every listener; `app/presentation` holds pure
-  functions from state to HTML text; `app/views.mjs` is the one place that
-  finds the page's regions; `app/lib` holds text helpers.
-- The web's words are `english.web` in `src/i18n/english.mjs`, which the
-  server serves at `/i18n/english.mjs`. The server fills `index.html`'s
-  words from it as it sends the page, so the first paint has them. The
-  layout's "Open diff →" and the line-range words are one copy for the
-  server and the browser.
-- `test/layers.test.mjs` checks the web's rule too: context uses only lib;
-  presentation only lib and the strings; views and api nothing of the app;
-  only controllers listen, only views find regions and only api reaches
-  the server.
-
-### What it leaves out, and why
-
-- The config's theme. The web keeps its own look in `app/styles.css`, dark
-  and light by the system setting; a terminal's colours do not map onto
-  it, as lazygit's theme colours only its own screen.
-
 ## The config
 
 ### What lazygit does
@@ -186,7 +158,7 @@ A citation starting `lazygit:` names a file and line of lazygit at
   (lazygit:`pkg/app/entry_point.go:204-208`), and the one-time move.
 - Node reads the config; the terminal app receives its part as one JSON
   argument, `--user-config`, and decodes it strictly. One reader, one set
-  of defaults, one checker and one set of messages serve all three parts.
+  of defaults, one checker and one set of messages serve both parts.
 
 ### What it leaves out, and why
 
@@ -210,11 +182,6 @@ A citation starting `lazygit:` names a file and line of lazygit at
 - Two modules that run programs had touched files on disk. The clones'
   lock moved into the loader, and the background server's record into
   `src/app`, so the commands run programs and nothing else.
-- Web strings are HTML text, links and emphasis inside their sentence.
-  `index.html`'s words are named by dotted paths into `english.web`, and
-  an unknown one fails the page.
-- The web app's pan, zoom and diff modes stay in its controllers, which
-  are their only readers.
 - The menu and the finder share one popup, so opening one closes the
   other, as before. Popups sit on the focus stack in a fixed order.
 - A place's keys are the universal ones, then its own, its own winning a

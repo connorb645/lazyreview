@@ -101,7 +101,6 @@ func (self *HomeController) Help(labels presentation.KeyLabels) []HelpSection {
 		{Keys: labels.Of("show hidden"), Words: tr.HelpShowHidden},
 		{Keys: refreshKeys(self.c, labels), Words: tr.HelpReadAgain},
 		{Keys: labels.Of("github"), Words: tr.HelpGitHubPull},
-		{Keys: labels.Of("web"), Words: tr.HelpWebList},
 		{Keys: labels.Of("review"), Words: tr.HelpReviewOpen},
 		{Keys: labels.Of("bigger", "smaller"), Words: utils.ResolvePlaceholderString(tr.HelpListMode, map[string]string{"smaller": labels.Of("smaller")})},
 		{Keys: labels.Of("command"), Words: utils.ResolvePlaceholderString(tr.HelpCommandQuit, command)},

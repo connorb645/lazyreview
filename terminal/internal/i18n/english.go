@@ -47,6 +47,10 @@ type TranslationSet struct {
 	ReviewNotOpenYet        string
 	HowToQuit               string
 	NoPullRequestOnGitHub   string
+	NoDrawings              string
+	CouldNotWriteDrawings   string
+	DrawingsOf              string
+	DrawingsOpened          string
 	CouldNotOpen            string
 	Opened                  string
 	EveryPanel              string
@@ -69,7 +73,7 @@ type TranslationSet struct {
 	HelpDiagram        string
 	HelpFinder         string
 	HelpGitHub         string
-	HelpWeb            string
+	HelpDrawings       string
 	HelpPullFilter     string
 	HelpJumps          string
 	HelpCount          string
@@ -148,7 +152,6 @@ type TranslationSet struct {
 	HelpOpenPull       string
 	HelpReadAgain      string
 	HelpGitHubPull     string
-	HelpWebList        string
 	HelpReviewOpen     string
 	HelpListMode       string
 	HelpCommandQuit    string
@@ -245,7 +248,7 @@ type TranslationSet struct {
 	NotInDiff          string
 
 	CommandLine      string
-	WebApp           string
+	Drawings         string
 	Bigger           string
 	Smaller          string
 	NextPull         string
@@ -312,7 +315,7 @@ type TranslationSet struct {
 	LinesAt         string
 	RemovedLinesAt  string
 	LineToLine      string
-	DiagramNotDrawn string
+	DrawingNotShown string
 
 	WrittenStale        string
 	NoWrittenReview     string
@@ -594,6 +597,10 @@ func EnglishTranslationSet() *TranslationSet {
 		ReviewNotOpenYet:        "the review is not open yet; {{.refresh}} tries again",
 		HowToQuit:               "{{.quit}} or {{.command}}q quits",
 		NoPullRequestOnGitHub:   "this has no pull request on GitHub",
+		NoDrawings:              "this review has no drawings: only a written review holds them",
+		CouldNotWriteDrawings:   "could not write the page of drawings",
+		DrawingsOf:              "Drawings of {{.title}}",
+		DrawingsOpened:          "opened the written review's drawings in the browser",
 		CouldNotOpen:            "could not open {{.name}}",
 		Opened:                  "opened {{.address}}",
 		EveryPanel:              "Every panel",
@@ -616,7 +623,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpDiagram:        "the diagram",
 		HelpFinder:         "finds a file, type or component by name",
 		HelpGitHub:         "opens the pull request, or the thread at the cursor, on GitHub",
-		HelpWeb:            "opens this place in the web app",
+		HelpDrawings:       "opens the written review's drawings in the browser",
 		HelpPullFilter:     "on a stack, moves the Review panel's cursor to the next or previous pull request: All, then each one",
 		HelpJumps:          "back and forward through jumps",
 		HelpCount:          "a count before a move, as 5j or 12G; on the left, a digit that jumps to a panel starts none",
@@ -695,7 +702,6 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpOpenPull:       "opens the pull request's review; one no review holds yet is loaded from GitHub first",
 		HelpReadAgain:      "reads the open pull requests from GitHub again",
 		HelpGitHubPull:     "opens the pull request on GitHub",
-		HelpWebList:        "opens the web app's list of reviews",
 		HelpReviewOpen:     "the Review view of the review open",
 		HelpListMode:       "more of the screen for the list, then all of it; {{.smaller}} goes back",
 		HelpCommandQuit:    "the command line: {{.command}}q quits",
@@ -792,7 +798,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NotInDiff:          "{{.path}} is not in this change's diff",
 
 		CommandLine:      "Command line",
-		WebApp:           "Web app",
+		Drawings:         "Drawings",
 		Bigger:           "Bigger",
 		Smaller:          "Smaller",
 		NextPull:         "Next pull request",
@@ -859,7 +865,7 @@ func EnglishTranslationSet() *TranslationSet {
 		LinesAt:         "lines {{.from}}-{{.to}}",
 		RemovedLinesAt:  "removed lines {{.from}}-{{.to}}",
 		LineToLine:      "{{.from}} to {{.to}}",
-		DiagramNotDrawn: "A diagram is here that a terminal cannot draw. {{.web}} opens this review in the web app.",
+		DrawingNotShown: "A drawing is here that a terminal cannot show. {{.drawings}} opens the written review's drawings in the browser.",
 
 		WrittenStale:        "This written review read head {{.head}}; the pull request has moved on since, so it may not match the diff.",
 		NoWrittenReview:     "No written review is attached. The diagram and the diffs hold the change.",

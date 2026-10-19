@@ -64,7 +64,6 @@ func reviewScreenHelp(c *helpers.HelperCommon, heading string, rows []presentati
 		{Keys: labels.Of("diagram"), Words: tr.HelpDiagram},
 		{Keys: labels.Of("finder"), Words: tr.HelpFinder},
 		{Keys: labels.Of("github"), Words: tr.HelpGitHub},
-		{Keys: labels.Of("web"), Words: tr.HelpWeb},
 		{Keys: labels.Of("next pull", "previous pull"), Words: tr.HelpPullFilter},
 		{Keys: labels.Of("jump back", "jump forward"), Words: tr.HelpJumps},
 		{Keys: labels.Of("close"), Words: tr.HelpClose},

@@ -1,6 +1,6 @@
 package server
 
-// Layout is where the web app's diagram places each part, in the layout's
+// Layout is where the diagram places each part, in the layout's
 // own units: each component, each package frame, type and group by id, and
 // the arrows between packages and between components.
 type Layout struct {
