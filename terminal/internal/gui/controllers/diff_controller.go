@@ -5,10 +5,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -267,7 +267,7 @@ func (self *DiffController) otherEnd(s context.ContextTree) context.ContextTree 
 }
 
 func changedRow(r presentation.DiffRow) bool {
-	for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
+	for _, l := range []*models.Row{r.Line, r.Left, r.Right} {
 		if l != nil && (l.Kind == "add" || l.Kind == "del") {
 			return true
 		}

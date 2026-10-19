@@ -3,10 +3,10 @@ package presentation
 import (
 	"strings"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -74,7 +74,7 @@ func Shows(d types.ReviewData, id string, filter types.PullFilter) bool {
 	return true
 }
 
-func wayWords(tr *i18n.TranslationSet, w server.ArrowWay, n int) string {
+func wayWords(tr *i18n.TranslationSet, w models.ArrowWay, n int) string {
 	words := utils.Plural(n, tr.LinkNoun)
 	if w.Label != "" {
 		words = w.Label + " · " + words

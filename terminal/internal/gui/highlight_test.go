@@ -9,11 +9,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 func filterIs(t *testing.T, a App, want string) {
@@ -38,9 +38,9 @@ func onThreeStack(t *testing.T) App {
 	a, _ := opened(t, stack, 100, 30)
 	d := *a.Review
 	stacked := *d.Page.Stack
-	stacked.Members = append(append([]server.StackMember{}, stacked.Members...), server.StackMember{Pull: 23, Head: "f00d"})
+	stacked.Members = append(append([]models.StackMember{}, stacked.Members...), models.StackMember{Pull: 23, Head: "f00d"})
 	d.Page.Stack = &stacked
-	d.State.Members = append(append([]server.Member{}, d.State.Members...), server.Member{Pull: 23, Title: "Price the basket", Color: 3})
+	d.State.Members = append(append([]models.Member{}, d.State.Members...), models.Member{Pull: 23, Title: "Price the basket", Color: 3})
 	a.Review = &d
 	return relaid(a)
 }

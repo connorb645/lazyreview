@@ -7,10 +7,10 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/muesli/termenv"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/config"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 )
 
@@ -37,7 +37,7 @@ func TestALineCutAtAnOffsetMarksWhatIsHiddenOnEitherSide(t *testing.T) {
 // three lines: 60, 10 and 46 columns long.
 func longLines() DiffView {
 	line := func(n int, text string) DiffRow {
-		return DiffRow{Kind: "line", Path: "a.ts", Line: &server.Row{Kind: "same", Old: n, New: n, Text: text}}
+		return DiffRow{Kind: "line", Path: "a.ts", Line: &models.Row{Kind: "same", Old: n, New: n, Text: text}}
 	}
 	rows := []DiffRow{
 		{Kind: "file", Path: "a.ts"},
@@ -85,7 +85,7 @@ func TestAScrolledLineKeepsItsGutterAndHeaderAndMarksItsLeft(t *testing.T) {
 func TestBothSidesOfASplitRowScrollTogether(t *testing.T) {
 	old, now := strings.Repeat("o", 40), strings.Repeat("n", 40)
 	v := DiffView{Width: 40, Split: true, Left: 10, Rows: []DiffRow{{Kind: "line", Path: "a.ts",
-		Left: &server.Row{Kind: "del", Old: 1, Text: old}, Right: &server.Row{Kind: "add", New: 1, Text: now}}}}
+		Left: &models.Row{Kind: "del", Old: 1, Text: old}, Right: &models.Row{Kind: "add", New: 1, Text: now}}}}
 	th := theme.New(config.Colours{}, true, termenv.Ascii)
 	line := ansi.Strip(DiffLines(i18n.EnglishTranslationSet(), th, KeyLabels{}, types.ReviewData{}, v, 10, nil, true)[0])
 	if want := "   1 - …" + strings.Repeat("o", 9) + "…" + "│   1 + …" + strings.Repeat("n", 9) + "…"; !strings.Contains(line, want) {

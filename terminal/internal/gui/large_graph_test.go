@@ -8,9 +8,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 const (
@@ -30,22 +30,22 @@ func largeStandIn() types.ReviewData {
 		{"top", 5}, {"schema", 1}, {"bin", 2}, {"testdata", 2}, {"images", 2}, {"docs", 4},
 		{"terminal", 3}, {"app", 38}, {"test", 56}, {"scripts", 2}, {"src", 95}, {"internal", 378},
 	}
-	var packages []server.Package
-	var nodes []server.Node
+	var packages []models.Package
+	var nodes []models.Node
 	byPackage := map[string][]string{}
-	boxes := map[string]server.Box{}
+	boxes := map[string]models.Box{}
 	for p, size := range sizes {
-		packages = append(packages, server.Package{ID: size.id, Title: size.id})
-		boxes["pkg:whole:"+size.id] = server.Box{X: float64(p%4) * 1500, Y: float64(p/4) * 700, H: 600}
+		packages = append(packages, models.Package{ID: size.id, Title: size.id})
+		boxes["pkg:whole:"+size.id] = models.Box{X: float64(p%4) * 1500, Y: float64(p/4) * 700, H: 600}
 		for k := 0; k < size.count; k++ {
 			id := fmt.Sprintf("%s/file%03d", size.id, k)
-			nodes = append(nodes, server.Node{ID: id, Name: fmt.Sprintf("file%03d.go", k), Kind: "artifact", File: id + ".go", Line: 1,
+			nodes = append(nodes, models.Node{ID: id, Name: fmt.Sprintf("file%03d.go", k), Kind: "artifact", File: id + ".go", Line: 1,
 				Component: "whole", Package: size.id, State: "new"})
-			boxes[id] = server.Box{X: float64(k%26) * 230, Y: float64(k/26) * 130, H: 60}
+			boxes[id] = models.Box{X: float64(k%26) * 230, Y: float64(k/26) * 130, H: 60}
 			byPackage[size.id] = append(byPackage[size.id], id)
 		}
 	}
-	var edges []server.Edge
+	var edges []models.Edge
 	seed := uint32(7)
 	pick := func(list []string) string {
 		seed = seed*1664525 + 1013904223
@@ -60,16 +60,16 @@ func largeStandIn() types.ReviewData {
 			if links.from == "test" {
 				kind = "test"
 			}
-			edges = append(edges, server.Edge{Source: pick(byPackage[links.from]), Target: pick(byPackage[links.to]), Kind: kind})
+			edges = append(edges, models.Edge{Source: pick(byPackage[links.from]), Target: pick(byPackage[links.to]), Kind: kind})
 		}
 	}
-	return types.ReviewData{ID: "large", Page: server.Page{
-		Model: server.Model{
-			Components: []server.Component{{ID: "whole", Title: "whole", Color: "blue", Packages: packages}},
+	return types.ReviewData{ID: "large", Page: models.Page{
+		Model: models.Model{
+			Components: []models.Component{{ID: "whole", Title: "whole", Color: "blue", Packages: packages}},
 			Nodes:      nodes,
 			Edges:      edges,
 		},
-		Layout: server.Layout{Components: map[string]server.Box{"whole": {}}, Boxes: boxes},
+		Layout: models.Layout{Components: map[string]models.Box{"whole": {}}, Boxes: boxes},
 	}}
 }
 

@@ -3,7 +3,7 @@ package types
 import (
 	"slices"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // PullFilter is the pull requests of a stack the screen shows, a run of
@@ -39,7 +39,7 @@ func (f PullFilter) Within(stack []int) PullFilter {
 
 // Lines are the lines of a file the filter shows: all it adds and removes,
 // or those its pull requests added and removed.
-func (f PullFilter) Lines(e server.FileEntry) (adds, dels int) {
+func (f PullFilter) Lines(e models.FileEntry) (adds, dels int) {
 	if len(f) == 0 {
 		return e.Adds, e.Dels
 	}

@@ -8,10 +8,10 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -91,7 +91,7 @@ func FileRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, folde
 			}
 			right = th.Added.Render(fmt.Sprintf("+%d", adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", dels))
 		}
-		first := server.Lines{Path: files[0].Path, Side: "file:"}
+		first := models.Lines{Path: files[0].Path, Side: "file:"}
 		rows = append(rows, SideRow{Key: key, Text: foldMark(folded[key], th) + " " + th.Component(c.Color).Render("■") + " " + th.Bold.Render(c.Title), Right: right,
 			Item: Item{Kind: "component", Component: c.ID, Title: c.Title, Place: &first}})
 		if folded[key] {
@@ -102,7 +102,7 @@ func FileRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, folde
 			indent := "  "
 			if dir := path.Dir(folder[0].Path); dir != "." && len(folders) > 1 {
 				dk := DirKey(c.ID, folder[0].Path)
-				first := server.Lines{Path: folder[0].Path, Side: "file:"}
+				first := models.Lines{Path: folder[0].Path, Side: "file:"}
 				rows = append(rows, SideRow{Key: dk, Text: "  " + foldMark(folded[dk], th) + " ", Title: dir, TitleStyle: th.Muted, Item: Item{Kind: "dir", Component: c.ID, Place: &first}})
 				if folded[dk] {
 					continue
@@ -117,7 +117,7 @@ func FileRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, folde
 	return rows
 }
 
-func fileRow(d types.ReviewData, f server.FileEntry, indent string, th theme.Theme) SideRow {
+func fileRow(d types.ReviewData, f models.FileEntry, indent string, th theme.Theme) SideRow {
 	letter := map[string]lipgloss.Style{"A": th.Added, "M": th.Warning, "D": th.Removed, "R": th.Accent}[f.Status]
 	mark := letter.Render(f.Status)
 	if f.Status == "" {
@@ -129,7 +129,7 @@ func fileRow(d types.ReviewData, f server.FileEntry, indent string, th theme.The
 			dots = append(dots, th.PullRequest(MemberColor(d.State, pull)).Render("●"))
 		}
 	}
-	at := server.Lines{Path: f.Path, Side: "file:"}
+	at := models.Lines{Path: f.Path, Side: "file:"}
 	url := ""
 	for i, m := range d.State.Members {
 		if i == 0 || len(f.Pulls) > 0 && m.Pull == f.Pulls[0] {
@@ -159,7 +159,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 				continue
 			}
 			for _, c := range m.Comments {
-				at := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
+				at := models.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
 				if c.Shown != nil {
 					at = *c.Shown
 				}
@@ -178,7 +178,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 			rows = append(append(rows, heading(tr.QueuedHeading, utils.Itoa(len(queued)), th)), queued...)
 		}
 	}
-	var asked []server.Conversation
+	var asked []models.Conversation
 	for _, t := range d.State.Threads {
 		if ShowsFile(filter, d, t.Path) {
 			asked = append(asked, t)
@@ -187,7 +187,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 	if len(asked) > 0 {
 		rows = append(rows, heading(tr.Claude, utils.Itoa(len(asked)), th))
 		for _, t := range asked {
-			at := server.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
+			at := models.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
 			right := ""
 			if Waiting(t) {
 				right = th.Muted.Render(tr.Waiting)
@@ -200,7 +200,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 				Item: Item{Kind: "conversation", Place: &at, Thread: t.ID}})
 		}
 	}
-	var threads []server.GitHubThread
+	var threads []models.GitHubThread
 	for _, t := range d.State.GitHub {
 		if filter.Shows(t.Pull) {
 			threads = append(threads, t)
@@ -209,7 +209,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 	if len(threads) > 0 {
 		rows = append(rows, heading(tr.OnGitHubHeading, utils.Itoa(len(threads)), th))
 		for _, t := range threads {
-			at := server.Lines{Path: t.Path, Side: "file:"}
+			at := models.Lines{Path: t.Path, Side: "file:"}
 			if t.At != nil && !t.File {
 				at = *t.At
 			}
@@ -239,7 +239,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 	return rows
 }
 
-func lineName(at server.Lines) string {
+func lineName(at models.Lines) string {
 	name := path.Base(at.Path)
 	switch {
 	case at.Side == "file:":

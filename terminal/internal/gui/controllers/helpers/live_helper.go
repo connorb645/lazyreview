@@ -9,6 +9,7 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -35,7 +36,7 @@ func Listen(ctx stdcontext.Context, c *server.Client, id string) <-chan tea.Msg 
 	}
 	go func() {
 		defer close(out)
-		notices := make(chan server.Notice)
+		notices := make(chan models.Notice)
 		failures := 0
 		for {
 			stopped := make(chan error, 1)

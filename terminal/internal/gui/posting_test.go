@@ -3,8 +3,8 @@ package gui
 import (
 	"testing"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 func TestPostingShowsWhatItSendsThenSendsIt(t *testing.T) {
@@ -35,12 +35,12 @@ func TestAPostTheServerRefusesSaysWhy(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
 	state := a.Review.State
 	queue := *state.Queue
-	queue.Members = append([]server.QueueMember{}, queue.Members...)
-	sets := map[string]server.Set{}
+	queue.Members = append([]models.QueueMember{}, queue.Members...)
+	sets := map[string]models.Set{}
 	for k, v := range queue.Members[0].Sets {
 		sets[k] = v
 	}
-	sets["comment"] = server.Set{Set: "stale0000000", Words: sets["comment"].Words}
+	sets["comment"] = models.Set{Set: "stale0000000", Words: sets["comment"].Words}
 	queue.Members[0].Sets = sets
 	state.Queue = &queue
 	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))

@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
-func recordedPage(t *testing.T) server.Page {
+func recordedPage(t *testing.T) models.Page {
 	t.Helper()
 	text, err := os.ReadFile(filepath.Join("..", "..", "testdata", "record.json"))
 	if err != nil {
@@ -21,7 +21,7 @@ func recordedPage(t *testing.T) server.Page {
 	if err := json.Unmarshal(text, &answers); err != nil {
 		t.Fatal(err)
 	}
-	var page server.Page
+	var page models.Page
 	if err := json.Unmarshal(answers["GET /api/reviews/github.com/octo/widgets/21/page"].Body, &page); err != nil {
 		t.Fatal(err)
 	}
@@ -70,11 +70,11 @@ func TestTheThreeLevelsComeFromTheLayout(t *testing.T) {
 
 func TestRowsAndColumnsInReadingOrder(t *testing.T) {
 	cards := []Card{
-		{ID: "a", Title: "Alpha", Box: server.Box{X: 0, Y: 0, H: 60}},
-		{ID: "b", Title: "Beta", Box: server.Box{X: 200, Y: 10, H: 60}},
-		{ID: "c", Title: "Gamma", Box: server.Box{X: 0, Y: 200, H: 60}},
-		{ID: "d", Title: "Delta", Box: server.Box{X: 400, Y: 200, H: 60}},
-		{ID: "e", Title: "Epsilon", Box: server.Box{X: 900, Y: 0, H: 60}},
+		{ID: "a", Title: "Alpha", Box: models.Box{X: 0, Y: 0, H: 60}},
+		{ID: "b", Title: "Beta", Box: models.Box{X: 200, Y: 10, H: 60}},
+		{ID: "c", Title: "Gamma", Box: models.Box{X: 0, Y: 200, H: 60}},
+		{ID: "d", Title: "Delta", Box: models.Box{X: 400, Y: 200, H: 60}},
+		{ID: "e", Title: "Epsilon", Box: models.Box{X: 900, Y: 0, H: 60}},
 	}
 	g := Arrange(i18n.EnglishTranslationSet(), cards, 10)
 	if len(g.Rows) != 2 || len(g.Rows[0]) != 3 || g.Rows[1][0] != 2 || g.Rows[1][1] != 3 {
@@ -94,7 +94,7 @@ func table(lengths ...int) Grid {
 	for r, n := range lengths {
 		for k := range n {
 			title := fmt.Sprintf("Card %d.%d", r, k)
-			cards = append(cards, Card{ID: title, Title: title, Box: server.Box{X: float64(k * 200), Y: float64(r * 200), H: 60}})
+			cards = append(cards, Card{ID: title, Title: title, Box: models.Box{X: float64(k * 200), Y: float64(r * 200), H: 60}})
 		}
 	}
 	return Arrange(i18n.EnglishTranslationSet(), cards, 16)

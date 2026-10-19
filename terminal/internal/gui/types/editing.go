@@ -1,6 +1,6 @@
 package types
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import "github.com/connorb645/lazyreview/terminal/internal/models"
 
 // Editing is a comment, a question, a follow-up, an edit or a drop being
 // made: what for, on which lines, of which pull request, the queued comment
@@ -8,7 +8,7 @@ import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
 // is about, and the key its draft is kept under.
 type Editing struct {
 	Purpose      string
-	At           server.Lines
+	At           models.Lines
 	Pull         int
 	Comment      int
 	Version      string

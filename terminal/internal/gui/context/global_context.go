@@ -6,10 +6,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/keys"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // GlobalContext is the state no single view holds: the screen's size and
@@ -27,7 +27,7 @@ type GlobalContext struct {
 	Review     *types.ReviewData
 	Failed     string
 	Loading    bool
-	Files      map[string]server.File
+	Files      map[string]models.File
 	Filter     types.PullFilter
 	GrowFrom   int
 	CameFrom   Screen

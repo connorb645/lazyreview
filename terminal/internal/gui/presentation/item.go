@@ -1,8 +1,8 @@
 package presentation
 
 import (
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // Item is what a row stands for, so a key on it knows what to open: a
@@ -18,6 +18,6 @@ type Item struct {
 	Comment   int
 	Thread    int
 	URL       string
-	Place     *server.Lines
+	Place     *models.Lines
 	Box       *types.DiagramPlace
 }

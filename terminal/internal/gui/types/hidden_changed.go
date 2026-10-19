@@ -1,6 +1,6 @@
 package types
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import "github.com/connorb645/lazyreview/terminal/internal/models"
 
 // HiddenChanged is the config's hidden repositories after a change asked
 // on the home screen: the entry hidden, or the entries taken off, and what
@@ -8,6 +8,6 @@ import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
 type HiddenChanged struct {
 	Hide   string
 	Show   []string
-	Hidden server.Hidden
+	Hidden models.Hidden
 	Err    error
 }

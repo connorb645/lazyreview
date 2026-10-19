@@ -1,6 +1,6 @@
 package presentation
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import "github.com/connorb645/lazyreview/terminal/internal/models"
 
 // DiffView is a diff as it is drawn: the files loaded, which of them and of
 // their runs and notes are folded, open, whole or rendered, split or wrapped
@@ -8,7 +8,7 @@ import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
 // row shown, a selection from Anchor to the cursor, and the columns of code
 // scrolled out of sight on the left.
 type DiffView struct {
-	Files     map[string]server.File
+	Files     map[string]models.File
 	Folded    map[string]bool
 	Opened    map[string]bool
 	Whole     map[string]bool

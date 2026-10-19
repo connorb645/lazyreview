@@ -10,13 +10,13 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/muesli/termenv"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	draw "github.com/connorb645/lazyreview/terminal/internal/gui/presentation/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // filterStandIn is a made-up stack of #21 and #22: Order.swift changed by
@@ -24,23 +24,23 @@ import (
 // unchanged Clock.swift for context. Core links to Clock three times, and
 // Ledger to Core once.
 func filterStandIn() types.ReviewData {
-	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
-	file := func(path, component, pkg string, adds, dels int, byPull map[int][2]int) server.FileEntry {
+	box := func(x, y float64) models.Box { return models.Box{X: x, Y: y, H: 60} }
+	file := func(path, component, pkg string, adds, dels int, byPull map[int][2]int) models.FileEntry {
 		var pulls []int
 		for pull := range byPull {
 			pulls = append(pulls, pull)
 		}
 		slices.Sort(pulls)
-		return server.FileEntry{Path: path, Status: "M", Adds: adds, Dels: dels, Pulls: pulls, ByPull: byPull, Component: component, Package: pkg}
+		return models.FileEntry{Path: path, Status: "M", Adds: adds, Dels: dels, Pulls: pulls, ByPull: byPull, Component: component, Package: pkg}
 	}
-	node := func(id, path, component, pkg string, pulls ...int) server.Node {
+	node := func(id, path, component, pkg string, pulls ...int) models.Node {
 		state := "changed"
 		if len(pulls) == 0 {
 			state = "same"
 		}
-		return server.Node{ID: id, Name: id, Kind: "class", File: path, Line: 1, Component: component, Package: pkg, State: state, Pulls: pulls}
+		return models.Node{ID: id, Name: id, Kind: "class", File: path, Line: 1, Component: component, Package: pkg, State: state, Pulls: pulls}
 	}
-	nodes := []server.Node{
+	nodes := []models.Node{
 		node("Order", "Sources/Core/Order.swift", "core", "model", 21, 22),
 		node("Pricer", "Sources/Core/Order.swift", "core", "model"),
 		node("Refund", "Sources/Core/Order.swift", "core", "model", 22),
@@ -51,37 +51,37 @@ func filterStandIn() types.ReviewData {
 	}
 	nodes[2].Group, nodes[3].Group = "kinds", "kinds"
 	return types.ReviewData{ID: "filter-stand-in",
-		State: server.State{Kind: "stack", Members: []server.Member{{Pull: 21, Title: "Add orders", Color: 1}, {Pull: 22, Title: "Price the orders", Color: 2}}},
-		Page: server.Page{
-			Stack: &server.PageStack{Members: []server.StackMember{{Pull: 21}, {Pull: 22}}},
-			Model: server.Model{
-				Components: []server.Component{
-					{ID: "core", Title: "Core", Color: "teal", Packages: []server.Package{{ID: "model", Title: "Model"}, {ID: "rules", Title: "Rules"}}},
-					{ID: "ledger", Title: "Ledger", Color: "blue", Packages: []server.Package{{ID: "books", Title: "Books", Bare: true}}},
-					{ID: "context", Title: "Unchanged code", Color: "grey", Context: true, Packages: []server.Package{{ID: "clocks", Title: "Clocks", Bare: true}}},
+		State: models.State{Kind: "stack", Members: []models.Member{{Pull: 21, Title: "Add orders", Color: 1}, {Pull: 22, Title: "Price the orders", Color: 2}}},
+		Page: models.Page{
+			Stack: &models.PageStack{Members: []models.StackMember{{Pull: 21}, {Pull: 22}}},
+			Model: models.Model{
+				Components: []models.Component{
+					{ID: "core", Title: "Core", Color: "teal", Packages: []models.Package{{ID: "model", Title: "Model"}, {ID: "rules", Title: "Rules"}}},
+					{ID: "ledger", Title: "Ledger", Color: "blue", Packages: []models.Package{{ID: "books", Title: "Books", Bare: true}}},
+					{ID: "context", Title: "Unchanged code", Color: "grey", Context: true, Packages: []models.Package{{ID: "clocks", Title: "Clocks", Bare: true}}},
 				},
-				Files: []server.FileEntry{
+				Files: []models.FileEntry{
 					file("Sources/Core/Order.swift", "core", "model", 3, 1, map[int][2]int{21: {2, 0}, 22: {1, 1}}),
 					file("Sources/Core/Rules/Rules.swift", "core", "rules", 4, 0, map[int][2]int{22: {4, 0}}),
 					file("Sources/Ledger/Book.swift", "ledger", "books", 5, 2, map[int][2]int{21: {5, 2}}),
 				},
-				ContextFiles: []server.FileEntry{{Path: "Sources/Clock.swift", Component: "context", Lines: 12}},
+				ContextFiles: []models.FileEntry{{Path: "Sources/Clock.swift", Component: "context", Lines: 12}},
 				Nodes:        nodes,
-				Groups:       []server.Group{{ID: "kinds", Title: "Refunds", Members: []string{"Refund", "Return"}}},
-				Edges: []server.Edge{
+				Groups:       []models.Group{{ID: "kinds", Title: "Refunds", Members: []string{"Refund", "Return"}}},
+				Edges: []models.Edge{
 					{Source: "Order", Target: "group:kinds", Kind: "has", Properties: []string{"refunds"}},
 					{Source: "Order", Target: "Pricer", Kind: "has", Properties: []string{"pricer"}},
 				},
 			},
-			Layout: server.Layout{
-				Components: map[string]server.Box{"core": box(0, 0), "ledger": box(300, 0), "context": box(600, 0)},
-				Boxes: map[string]server.Box{"pkg:core:model": box(0, 0), "pkg:core:rules": box(300, 0), "pkg:context:clocks": box(600, 0),
+			Layout: models.Layout{
+				Components: map[string]models.Box{"core": box(0, 0), "ledger": box(300, 0), "context": box(600, 0)},
+				Boxes: map[string]models.Box{"pkg:core:model": box(0, 0), "pkg:core:rules": box(300, 0), "pkg:context:clocks": box(600, 0),
 					"Order": box(0, 0), "Pricer": box(200, 0), "group:kinds": box(400, 0), "Clock": box(0, 0)},
-				Summaries: []server.ComponentArrow{
-					{Source: "core", Target: "context", Lines: []string{"→ 3 links"}, Ways: []server.ArrowWay{{Arrow: "→", Links: [][2]string{{"Order", "Clock"}, {"group:kinds", "Clock"}, {"Pricer", "Clock"}}}}},
-					{Source: "ledger", Target: "core", Lines: []string{"→ books · 1 link"}, Ways: []server.ArrowWay{{Arrow: "→", Label: "books", Links: [][2]string{{"Book", "Order"}}}}},
+				Summaries: []models.ComponentArrow{
+					{Source: "core", Target: "context", Lines: []string{"→ 3 links"}, Ways: []models.ArrowWay{{Arrow: "→", Links: [][2]string{{"Order", "Clock"}, {"group:kinds", "Clock"}, {"Pricer", "Clock"}}}}},
+					{Source: "ledger", Target: "core", Lines: []string{"→ books · 1 link"}, Ways: []models.ArrowWay{{Arrow: "→", Label: "books", Links: [][2]string{{"Book", "Order"}}}}},
 				},
-				PkgArrows: []server.PackageArrow{{Component: "core", From: "model", To: "rules", Words: "prices", CountText: "1 link", Links: [][2]string{{"Order", "Rule"}}}},
+				PkgArrows: []models.PackageArrow{{Component: "core", From: "model", To: "rules", Words: "prices", CountText: "1 link", Links: [][2]string{{"Order", "Rule"}}}},
 			},
 		}}
 }
@@ -208,8 +208,8 @@ func TestWithNoColourWhatTheFilterLeavesOutIsMarked(t *testing.T) {
 	d := filterStandIn()
 	tr, th := testCommon().Tr, testCommon().Theme
 	v := presentation.DiffView{Width: 60, Rows: []presentation.DiffRow{
-		{Kind: "line", Path: "Sources/Core/Order.swift", Line: &server.Row{Kind: "add", New: 3, Text: "let total = 0", Owner: 21}},
-		{Kind: "line", Path: "Sources/Core/Order.swift", Line: &server.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: 22}},
+		{Kind: "line", Path: "Sources/Core/Order.swift", Line: &models.Row{Kind: "add", New: 3, Text: "let total = 0", Owner: 21}},
+		{Kind: "line", Path: "Sources/Core/Order.swift", Line: &models.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: 22}},
 	}}
 	lines := presentation.DiffLines(tr, th, presentation.KeyLabels{}, d, v, 2, types.PullFilter{21}, false)
 	if !strings.HasPrefix(lines[0], " ▎") || !strings.HasPrefix(lines[1], " ·") {
@@ -241,9 +241,9 @@ func TestALineTheFilterLeavesOutKeepsADimmerGreenOrRed(t *testing.T) {
 	t.Cleanup(func() { lipgloss.SetColorProfile(termenv.Ascii) })
 	ink := func(colour string) string { return termenv.CSI + termenv.TrueColor.Color(colour).Sequence(false) + "m" }
 	d := filterStandIn()
-	held := &server.Row{Kind: "add", New: 3, Text: "let total = 0", Owner: 21}
-	added := &server.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: 22}
-	removed := &server.Row{Kind: "del", Old: 4, Text: "let fee = 1", Owner: 22}
+	held := &models.Row{Kind: "add", New: 3, Text: "let total = 0", Owner: 21}
+	added := &models.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: 22}
+	removed := &models.Row{Kind: "del", Old: 4, Text: "let fee = 1", Owner: 22}
 	unified := presentation.DiffView{Width: 60, Rows: []presentation.DiffRow{
 		{Kind: "line", Path: "Sources/Core/Order.swift", Line: held},
 		{Kind: "line", Path: "Sources/Core/Order.swift", Line: removed},
@@ -306,9 +306,9 @@ func TestTheReviewViewDimsTheCountsOfAPullRequestLeftOut(t *testing.T) {
 func TestABlockTheFilterLeavesOutFadesWithADimmerBar(t *testing.T) {
 	d := filterStandIn()
 	v := presentation.DiffView{Width: 60, Rows: []presentation.DiffRow{
-		{Kind: "block", Path: "docs/guide.md", Text: "Every item.", Block: &server.Block{State: "add", Side: "RIGHT", StartLine: 3, Line: 3, Pulls: []int{21}}},
-		{Kind: "block", Path: "docs/guide.md", Text: "\x1b[1mSome\x1b[0m items.", Block: &server.Block{State: "del", Side: "LEFT", StartLine: 3, Line: 3, Pulls: []int{22}}},
-		{Kind: "block", Path: "docs/guide.md", Text: "A basket.", Block: &server.Block{State: "add", Side: "RIGHT", StartLine: 5, Line: 5, Pulls: []int{21, 22}}},
+		{Kind: "block", Path: "docs/guide.md", Text: "Every item.", Block: &models.Block{State: "add", Side: "RIGHT", StartLine: 3, Line: 3, Pulls: []int{21}}},
+		{Kind: "block", Path: "docs/guide.md", Text: "\x1b[1mSome\x1b[0m items.", Block: &models.Block{State: "del", Side: "LEFT", StartLine: 3, Line: 3, Pulls: []int{22}}},
+		{Kind: "block", Path: "docs/guide.md", Text: "A basket.", Block: &models.Block{State: "add", Side: "RIGHT", StartLine: 5, Line: 5, Pulls: []int{21, 22}}},
 	}}
 	plain := testCommon()
 	if lines := presentation.DiffLines(plain.Tr, plain.Theme, presentation.KeyLabels{}, d, v, 3, types.PullFilter{21}, false); !strings.Contains(lines[0], "▌│") || !strings.Contains(lines[1], "·│") || !strings.Contains(lines[2], "▌│") {
@@ -341,13 +341,13 @@ func TestABlockTheFilterLeavesOutFadesWithADimmerBar(t *testing.T) {
 func TestEachSideOfASplitRowIsMarkedForItsPullRequest(t *testing.T) {
 	d := filterStandIn()
 	cmn := testCommon()
-	removed := func(owner int) *server.Row {
-		return &server.Row{Kind: "del", Old: 4, Text: "let fee = 1", Owner: owner}
+	removed := func(owner int) *models.Row {
+		return &models.Row{Kind: "del", Old: 4, Text: "let fee = 1", Owner: owner}
 	}
-	added := func(owner int) *server.Row {
-		return &server.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: owner}
+	added := func(owner int) *models.Row {
+		return &models.Row{Kind: "add", New: 4, Text: "let tax = 0", Owner: owner}
 	}
-	same := &server.Row{Kind: "same", Old: 5, New: 5, Text: "}"}
+	same := &models.Row{Kind: "same", Old: 5, New: 5, Text: "}"}
 	v := presentation.DiffView{Width: 60, Split: true, Cursor: -1, Rows: []presentation.DiffRow{
 		{Kind: "line", Path: "Sources/Core/Order.swift", Left: removed(22), Right: added(21)},
 		{Kind: "line", Path: "Sources/Core/Order.swift", Left: removed(21), Right: added(22)},

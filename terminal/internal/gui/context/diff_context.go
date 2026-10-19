@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -22,14 +22,14 @@ type DiffContext struct {
 
 // NewDiffContext is a diff of the files loaded, its lines numbered as the
 // config says, with nothing folded or opened.
-func NewDiffContext(files map[string]server.File, numbers presentation.LineNumbers) DiffContext {
+func NewDiffContext(files map[string]models.File, numbers presentation.LineNumbers) DiffContext {
 	return DiffContext{DiffView: presentation.DiffView{Files: files, Numbers: numbers, Rendered: map[string]bool{}, Notes: map[string]bool{}, Folded: map[string]bool{}, Opened: map[string]bool{}, Whole: map[string]bool{}}}
 }
 
 // Rebuilt is the diff of files made again from the review, its cursor kept
 // on its place, shown in a height. Its code goes back to the first column
 // when the files are not the ones it showed.
-func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown, loc *time.Location, d types.ReviewData, files []server.FileEntry, filter types.PullFilter, height int) DiffContext {
+func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown, loc *time.Location, d types.ReviewData, files []models.FileEntry, filter types.PullFilter, height int) DiffContext {
 	was, before := v.Place(), v.paths()
 	v.Rows = presentation.BuildDiff(tr, md, loc, d, v.DiffView, files, filter)
 	if !slices.Equal(before, v.paths()) {
@@ -43,23 +43,23 @@ func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown,
 }
 
 // Place is where the cursor is, as lines of a file or one of its parts.
-func (v DiffContext) Place() *server.Lines {
+func (v DiffContext) Place() *models.Lines {
 	if v.Cursor >= len(v.Rows) {
 		return nil
 	}
 	r := v.Rows[v.Cursor]
 	if r.Kind == "block" {
-		return &server.Lines{Path: r.Path, Side: r.Block.Side, Line: r.Block.StartLine}
+		return &models.Lines{Path: r.Path, Side: r.Block.Side, Line: r.Block.StartLine}
 	}
 	side, line, ok := r.At()
 	if !ok {
-		return &server.Lines{Path: r.Path, Side: r.Kind + ":" + r.Key}
+		return &models.Lines{Path: r.Path, Side: r.Kind + ":" + r.Key}
 	}
-	return &server.Lines{Path: r.Path, Side: side, Line: line}
+	return &models.Lines{Path: r.Path, Side: side, Line: line}
 }
 
 // Find is the diff with the cursor on a place, or on its file's header.
-func (v DiffContext) Find(at server.Lines) DiffContext {
+func (v DiffContext) Find(at models.Lines) DiffContext {
 	header := -1
 	for i, r := range v.Rows {
 		if r.Path != at.Path {
@@ -90,8 +90,8 @@ func (v DiffContext) Find(at server.Lines) DiffContext {
 
 // SameLine says whether a row shows an unchanged line, on either side, at
 // a place.
-func SameLine(r presentation.DiffRow, at server.Lines) bool {
-	for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
+func SameLine(r presentation.DiffRow, at models.Lines) bool {
+	for _, l := range []*models.Row{r.Line, r.Left, r.Right} {
 		if l != nil && l.Kind == "same" && ((at.Side == "LEFT" && l.Old == at.Line) || (at.Side == "RIGHT" && l.New == at.Line)) {
 			return true
 		}
@@ -294,7 +294,7 @@ func Matches(r presentation.DiffRow, query string) bool {
 		return false
 	}
 	texts := []string{utils.Stripped(r.Text)}
-	for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
+	for _, l := range []*models.Row{r.Line, r.Left, r.Right} {
 		if l != nil {
 			texts = append(texts, l.Text)
 		}

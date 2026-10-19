@@ -1,6 +1,6 @@
 package diagram
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import "github.com/connorb645/lazyreview/terminal/internal/models"
 
 // Link is a link from one card of a level to another, or to a part outside
 // the level, which Outside names with its place, OutsideName and
@@ -17,6 +17,6 @@ type Link struct {
 	Outside      string
 	OutsideName  string
 	OutsidePlace string
-	Ways         []server.ArrowWay
+	Ways         []models.ArrowWay
 	Out          bool
 }

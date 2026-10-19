@@ -8,10 +8,10 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -53,7 +53,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels K
 					b.text(" " + l)
 				}
 				for _, link := range s.Links {
-					place := server.Lines{Path: link.Path, Side: "RIGHT", Line: link.Line}
+					place := models.Lines{Path: link.Path, Side: "RIGHT", Line: link.Line}
 					where := "  " + link.Path + " " + utils.ResolvePlaceholderString(tr.LineAt, map[string]string{"line": utils.Itoa(link.Line)})
 					b.add(Item{Kind: "link", Section: "written:" + s.ID, Place: &place}, "   "+th.Accent.Render("→ "+link.Text)+th.Muted.Render(where))
 				}
@@ -75,7 +75,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels K
 		}
 		section("queue", tr.QueuedComments, utils.Plural(count, tr.CommentNoun), func() { queueLines(b, d, filter, loc) })
 	}
-	var threads []server.GitHubThread
+	var threads []models.GitHubThread
 	open := 0
 	for _, t := range d.State.GitHub {
 		if filter.Shows(t.Pull) {
@@ -93,7 +93,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels K
 			}
 		})
 	}
-	var asked []server.Conversation
+	var asked []models.Conversation
 	for _, t := range d.State.Threads {
 		if ShowsFile(filter, d, t.Path) {
 			asked = append(asked, t)
@@ -106,7 +106,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels K
 			}
 		})
 	}
-	var components []server.Component
+	var components []models.Component
 	for _, c := range d.Page.Model.Components {
 		if len(DiffFiles(d, c.ID, filter)) > 0 {
 			components = append(components, c)
@@ -197,7 +197,7 @@ func queueLines(b *builder, d types.ReviewData, filter types.PullFilter, loc *ti
 	if stacked {
 		b.prose(" ", th.Muted, tr.CommentGoesOn)
 	}
-	groups := append(append([]server.QueueMember{}, q.Members...), q.Earlier...)
+	groups := append(append([]models.QueueMember{}, q.Members...), q.Earlier...)
 	for i, m := range groups {
 		if !filter.Shows(m.Pull) {
 			continue
@@ -232,14 +232,14 @@ func queueLines(b *builder, d types.ReviewData, filter types.PullFilter, loc *ti
 	}
 }
 
-func commentLines(b *builder, d types.ReviewData, m server.QueueMember, c server.Comment, color int, stacked bool) {
+func commentLines(b *builder, d types.ReviewData, m models.QueueMember, c models.Comment, color int, stacked bool) {
 	th, tr := b.th, b.tr
 	head := "   " + th.Accent.Render(fmt.Sprintf("%d", c.ID)) + " "
 	if stacked {
 		head += th.PullRequest(color).Render(fmt.Sprintf("→ #%d", m.Pull)) + " "
 	}
 	head += th.Text.Render(c.Path + ", " + LinesWords(tr, c.Side, c.Line, c.StartLine, c.StartSide))
-	place := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
+	place := models.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
 	if c.Shown != nil {
 		place = *c.Shown
 		if c.Shown.Path != c.Path || c.Shown.Line != c.Line {
@@ -263,7 +263,7 @@ func commentLines(b *builder, d types.ReviewData, m server.QueueMember, c server
 	b.add(Item{Kind: "comment", Section: "queue", Pull: m.Pull, Comment: c.ID, URL: m.URL, Place: &place}, texts...)
 }
 
-func githubLines(b *builder, d types.ReviewData, t server.GitHubThread) {
+func githubLines(b *builder, d types.ReviewData, t models.GitHubThread) {
 	th, tr := b.th, b.tr
 	where := t.Path
 	switch {
@@ -305,7 +305,7 @@ func githubLines(b *builder, d types.ReviewData, t server.GitHubThread) {
 	b.add(it, texts...)
 }
 
-func conversationLines(b *builder, t server.Conversation, loc *time.Location) {
+func conversationLines(b *builder, t models.Conversation, loc *time.Location) {
 	th, tr := b.th, b.tr
 	lines := fmt.Sprint(t.Line)
 	if t.StartLine > 0 {
@@ -328,11 +328,11 @@ func conversationLines(b *builder, t server.Conversation, loc *time.Location) {
 			texts = append(texts, "     "+th.Muted.Render(l))
 		}
 	}
-	place := server.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
+	place := models.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
 	b.add(Item{Kind: "conversation", Section: "conversations", Place: &place}, texts...)
 }
 
-func changeTotals(tr *i18n.TranslationSet, th theme.Theme, files []server.FileEntry) string {
+func changeTotals(tr *i18n.TranslationSet, th theme.Theme, files []models.FileEntry) string {
 	adds, dels := 0, 0
 	for _, f := range files {
 		adds += f.Adds

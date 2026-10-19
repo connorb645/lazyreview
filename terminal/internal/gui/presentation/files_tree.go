@@ -4,14 +4,14 @@ import (
 	"path"
 	"slices"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // TreeFiles are the files the Files panel lists, in its order: by
 // component, then by folder, those the filter shows.
-func TreeFiles(d types.ReviewData, filter types.PullFilter) []server.FileEntry {
-	var out []server.FileEntry
+func TreeFiles(d types.ReviewData, filter types.PullFilter) []models.FileEntry {
+	var out []models.FileEntry
 	for _, c := range d.Page.Model.Components {
 		for _, folder := range byFolder(DiffFiles(d, c.ID, filter)) {
 			out = append(out, folder...)
@@ -23,8 +23,8 @@ func TreeFiles(d types.ReviewData, filter types.PullFilter) []server.FileEntry {
 // ChosenFiles are the files that rows of the Files panel hold, by the rows'
 // keys, in the tree's order: a file's row holds its file, and a folder's or
 // a component's every file under it that the filter shows.
-func ChosenFiles(d types.ReviewData, keys []string, filter types.PullFilter) []server.FileEntry {
-	var out []server.FileEntry
+func ChosenFiles(d types.ReviewData, keys []string, filter types.PullFilter) []models.FileEntry {
+	var out []models.FileEntry
 	for _, f := range TreeFiles(d, filter) {
 		if slices.ContainsFunc(keys, func(key string) bool { return Holds(key, f) }) {
 			out = append(out, f)
@@ -35,7 +35,7 @@ func ChosenFiles(d types.ReviewData, keys []string, filter types.PullFilter) []s
 
 // Holds says whether the row of the Files panel with a key holds a file:
 // the file's own row, its folder's or its component's.
-func Holds(key string, f server.FileEntry) bool {
+func Holds(key string, f models.FileEntry) bool {
 	return key == FileKey(f.Path) || key == DirKey(f.Component, f.Path) || key == ComponentKey(f.Component)
 }
 
@@ -52,15 +52,15 @@ func LitRows(rows []SideRow, keys []string) []SideRow {
 	out := make([]SideRow, len(rows))
 	for i, r := range rows {
 		r.Lit = slices.Contains(keys, r.Key) || r.Item.Kind == "file" && slices.ContainsFunc(unshown, func(key string) bool {
-			return Holds(key, server.FileEntry{Path: r.Item.Place.Path, Component: r.Item.Component})
+			return Holds(key, models.FileEntry{Path: r.Item.Place.Path, Component: r.Item.Component})
 		})
 		out[i] = r
 	}
 	return out
 }
 
-func byFolder(files []server.FileEntry) [][]server.FileEntry {
-	var folders [][]server.FileEntry
+func byFolder(files []models.FileEntry) [][]models.FileEntry {
+	var folders [][]models.FileEntry
 	at := map[string]int{}
 	for _, f := range files {
 		dir := path.Dir(f.Path)

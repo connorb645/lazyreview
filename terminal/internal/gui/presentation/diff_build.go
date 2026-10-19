@@ -5,15 +5,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 // BuildDiff makes the diff rows of files: each file's hunks, runs, whole
 // text or rendered blocks as the view has them, and the notes on its lines.
-func BuildDiff(tr *i18n.TranslationSet, md *Markdown, loc *time.Location, d types.ReviewData, v DiffView, files []server.FileEntry, filter types.PullFilter) []DiffRow {
+func BuildDiff(tr *i18n.TranslationSet, md *Markdown, loc *time.Location, d types.ReviewData, v DiffView, files []models.FileEntry, filter types.PullFilter) []DiffRow {
 	var rows []DiffRow
 	for _, f := range files {
 		rows = append(rows, DiffRow{Kind: "file", Path: f.Path, Text: f.Path})
@@ -35,7 +35,7 @@ func BuildDiff(tr *i18n.TranslationSet, md *Markdown, loc *time.Location, d type
 		case v.Rendered[f.Path] && file.Rendered != nil:
 			rows = append(rows, blockRows(tr, md, f.Path, *file.Rendered, v)...)
 		case v.Whole[f.Path] && file.Whole != nil:
-			added := map[int]*server.Row{}
+			added := map[int]*models.Row{}
 			for h := range file.Hunks {
 				for i := range file.Hunks[h].Rows {
 					if r := &file.Hunks[h].Rows[i]; r.Kind == "add" && f.Status != "A" {
@@ -51,7 +51,7 @@ func BuildDiff(tr *i18n.TranslationSet, md *Markdown, loc *time.Location, d type
 	return withNotes(tr, loc, d, v, rows)
 }
 
-func blockRows(tr *i18n.TranslationSet, md *Markdown, path string, rendered server.Rendered, v DiffView) []DiffRow {
+func blockRows(tr *i18n.TranslationSet, md *Markdown, path string, rendered models.Rendered, v DiffView) []DiffRow {
 	var rows []DiffRow
 	if rendered.Partial {
 		rows = append(rows, DiffRow{Kind: "note", Path: path, Text: tr.PartialRendered})
@@ -85,7 +85,7 @@ func withoutMargin(lines []string) []string {
 	return out
 }
 
-func wholeRows(path string, whole []string, added map[int]*server.Row) []DiffRow {
+func wholeRows(path string, whole []string, added map[int]*models.Row) []DiffRow {
 	var rows []DiffRow
 	for i, text := range whole {
 		n := i + 1
@@ -93,12 +93,12 @@ func wholeRows(path string, whole []string, added map[int]*server.Row) []DiffRow
 			rows = append(rows, DiffRow{Kind: "line", Path: path, Line: r, Added: true})
 			continue
 		}
-		rows = append(rows, DiffRow{Kind: "line", Path: path, Line: &server.Row{Kind: "same", New: n, Text: text}})
+		rows = append(rows, DiffRow{Kind: "line", Path: path, Line: &models.Row{Kind: "same", New: n, Text: text}})
 	}
 	return rows
 }
 
-func hunkRows(path string, file server.File, v DiffView) []DiffRow {
+func hunkRows(path string, file models.File, v DiffView) []DiffRow {
 	var rows []DiffRow
 	run := func(before int) {
 		for _, g := range file.Gaps {
@@ -115,7 +115,7 @@ func hunkRows(path string, file server.File, v DiffView) []DiffRow {
 				if n-1 < len(file.Whole) {
 					text = file.Whole[n-1]
 				}
-				same := &server.Row{Kind: "same", Old: n + g.Delta, New: n, Text: text}
+				same := &models.Row{Kind: "same", Old: n + g.Delta, New: n, Text: text}
 				if v.Split {
 					rows = append(rows, DiffRow{Kind: "line", Path: path, Key: key, Left: same, Right: same})
 				} else {
@@ -140,9 +140,9 @@ func hunkRows(path string, file server.File, v DiffView) []DiffRow {
 	return rows
 }
 
-func pairs(path string, hunkRows []server.Row) []DiffRow {
+func pairs(path string, hunkRows []models.Row) []DiffRow {
 	var rows []DiffRow
-	var dels, adds []*server.Row
+	var dels, adds []*models.Row
 	flush := func() {
 		for i := 0; i < max(len(dels), len(adds)); i++ {
 			r := DiffRow{Kind: "line", Path: path}

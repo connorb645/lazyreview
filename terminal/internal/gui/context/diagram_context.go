@@ -3,12 +3,12 @@ package context
 import (
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	model "github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -38,7 +38,7 @@ func NewDiagramContext(tr *i18n.TranslationSet, level model.Level, focusID strin
 }
 
 // LevelAt is the level of the diagram a place is on.
-func LevelAt(tr *i18n.TranslationSet, page server.Page, at types.DiagramPlace) model.Level {
+func LevelAt(tr *i18n.TranslationSet, page models.Page, at types.DiagramPlace) model.Level {
 	switch at.Level {
 	case "types":
 		return model.Types(tr, page, at.Component, at.Package)

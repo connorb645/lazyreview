@@ -3,13 +3,13 @@ package gui
 import (
 	"testing"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 func TestAPathAmongWordsLosesItsFirstFoldersAndTheWordsStay(t *testing.T) {
-	at := &server.Lines{Path: "Sources/Store/Web/BasketFlow/Pricing/PricingRule.swift", Side: "RIGHT", Line: 3}
+	at := &models.Lines{Path: "Sources/Store/Web/BasketFlow/Pricing/PricingRule.swift", Side: "RIGHT", Line: 3}
 	if got := presentation.ItemWords(testCommon().Tr, presentation.Item{Kind: "link", Place: at}, 40); got != "…/Pricing/PricingRule.swift line 3" {
 		t.Errorf("a link's place in 40 columns is %q", got)
 	}

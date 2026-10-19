@@ -11,6 +11,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/common"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 func streaming(t *testing.T, streams ...[]string) *Client {
@@ -40,14 +41,14 @@ func streaming(t *testing.T, streams ...[]string) *Client {
 
 func TestEventsSendsEachNoticeAndSaysWhyItStopped(t *testing.T) {
 	c := streaming(t, []string{`{"state":"aa","build":"bb"}`, `{"state":"cc"}`})
-	notices := make(chan Notice, 4)
+	notices := make(chan models.Notice, 4)
 	err := c.Events(context.Background(), "github.com/octo/widgets/21", notices)
 	close(notices)
-	var got []Notice
+	var got []models.Notice
 	for n := range notices {
 		got = append(got, n)
 	}
-	if len(got) != 2 || got[0] != (Notice{State: "aa", Build: "bb"}) || got[1] != (Notice{State: "cc"}) {
+	if len(got) != 2 || got[0] != (models.Notice{State: "aa", Build: "bb"}) || got[1] != (models.Notice{State: "cc"}) {
 		t.Fatalf("the notices: %+v", got)
 	}
 	if err == nil || err.Error() != "the server ended the stream of changes" {
@@ -59,7 +60,7 @@ func TestEventsStopsWhenAskedTo(t *testing.T) {
 	c := streaming(t, []string{`{"state":"aa","build":"bb"}`})
 	ctx, stop := context.WithCancel(context.Background())
 	stop()
-	if err := c.Events(ctx, "github.com/octo/widgets/21", make(chan Notice)); err == nil {
+	if err := c.Events(ctx, "github.com/octo/widgets/21", make(chan models.Notice)); err == nil {
 		t.Fatal("a stopped stream says nothing of why")
 	}
 }

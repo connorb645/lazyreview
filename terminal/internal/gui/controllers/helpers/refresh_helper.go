@@ -3,9 +3,9 @@ package helpers
 import (
 	"slices"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // RefreshHelper builds the rows of what the screen shows again, after a
@@ -116,7 +116,7 @@ func (self *RefreshHelper) HomeRelaid(s context.ContextTree) context.ContextTree
 
 // WithState is the state with the review's state as the server now gives
 // it, everything built again from it.
-func (self *RefreshHelper) WithState(s context.ContextTree, st server.State) context.ContextTree {
+func (self *RefreshHelper) WithState(s context.ContextTree, st models.State) context.ContextTree {
 	d := *s.Review
 	d.State = st
 	s.Review = &d

@@ -6,8 +6,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -61,7 +61,7 @@ func TestASelectionOfBlocksIsCommentedOnByItsSourceLines(t *testing.T) {
 func TestAWrittenReviewsDiagramIsSaidNotDrawn(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
 	state := a.Review.State
-	state.Written = &server.Written{Title: "Fix the guide wording", Sections: []server.Section{{ID: "shape", Title: "Shape", Markdown: "Before.\n\n<svg viewBox=\"0 0 10 10\"><rect width=\"4\"/></svg>\n\nAfter."}}}
+	state.Written = &models.Written{Title: "Fix the guide wording", Sections: []models.Section{{ID: "shape", Title: "Shape", Markdown: "Before.\n\n<svg viewBox=\"0 0 10 10\"><rect width=\"4\"/></svg>\n\nAfter."}}}
 	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
 	var text []string
 	for _, l := range a.ReviewView.View.Lines {
@@ -81,7 +81,7 @@ func TestAWrittenReviewsDrawingsOpenInTheBrowser(t *testing.T) {
 		t.Fatalf("with no drawings gX opens %v and says %q", *visited, a.Notice)
 	}
 	state := a.Review.State
-	state.Written = &server.Written{Title: "Fix <the> guide", Sections: []server.Section{
+	state.Written = &models.Written{Title: "Fix <the> guide", Sections: []models.Section{
 		{ID: "flow", Title: "The flow", Markdown: "Before.\n\n<svg viewBox=\"0 0 10 10\"><script>alert(1)</script><rect width=\"4\"/></svg>\n\nAfter."},
 		{ID: "risks", Title: "Risks", Markdown: "None."},
 	}}

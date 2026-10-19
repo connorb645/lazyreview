@@ -4,8 +4,8 @@ import (
 	"html"
 	"strings"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -20,7 +20,7 @@ svg { display: block; max-width: 100%; height: auto; }
 // drawings, each inline SVG of its sections under the section's title, as
 // a terminal cannot. Its policy lets the page load nothing and run no
 // script. ok is false when no section holds a drawing.
-func DrawingsPage(tr *i18n.TranslationSet, title string, written server.Written) (page string, ok bool) {
+func DrawingsPage(tr *i18n.TranslationSet, title string, written models.Written) (page string, ok bool) {
 	heading := html.EscapeString(utils.ResolvePlaceholderString(tr.DrawingsOf, map[string]string{"title": title}))
 	var b strings.Builder
 	b.WriteString("<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n")

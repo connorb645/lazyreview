@@ -9,11 +9,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -184,7 +184,7 @@ func (self *DiagramHelper) BoxDiff(s context.ContextTree) (context.ContextTree, 
 		for _, f := range presentation.DiffFiles(*s.Review, s.Diagram.Level.Component, nil) {
 			if f.Package == card.ID {
 				s = h.Jump.Leave(s)
-				return h.Diff.OpenComponent(s, f.Component, &server.Lines{Path: f.Path, Side: "file:"})
+				return h.Diff.OpenComponent(s, f.Component, &models.Lines{Path: f.Path, Side: "file:"})
 			}
 		}
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoFilesInChange, map[string]string{"title": card.Title}), true), nil
@@ -264,7 +264,7 @@ func (self *DiagramHelper) Properties(s context.ContextTree) context.ContextTree
 			inferred = tr.Inferred
 		}
 		right := fmt.Sprintf("%-*s  %-8s  %-*s  %s", typeWidth, p.Type, inferred, lineWidth, lineAt(p.Line), holds[p.Name])
-		pn.Rows = append(pn.Rows, presentation.MenuRow{Left: p.Name, Right: strings.TrimRight(right, " "), Open: &presentation.Item{Kind: "line", Place: &server.Lines{Path: n.File, Side: "RIGHT", Line: p.Line}}})
+		pn.Rows = append(pn.Rows, presentation.MenuRow{Left: p.Name, Right: strings.TrimRight(right, " "), Open: &presentation.Item{Kind: "line", Place: &models.Lines{Path: n.File, Side: "RIGHT", Line: p.Line}}})
 	}
 	return s.WithMenu(pn)
 }
@@ -329,7 +329,7 @@ func (self *DiagramHelper) ShowType(s context.ContextTree) (context.ContextTree,
 		return s, nil
 	}
 	r := v.Rows[v.Cursor]
-	var nodes []server.Node
+	var nodes []models.Node
 	for _, n := range s.Review.Page.Model.Nodes {
 		if n.File == r.Path {
 			nodes = append(nodes, n)
@@ -364,7 +364,7 @@ func (self *DiagramHelper) ShowType(s context.ContextTree) (context.ContextTree,
 
 // BoxOf is the box of the diagram a type is drawn in: its own, or its
 // group's.
-func BoxOf(n server.Node) types.DiagramPlace {
+func BoxOf(n models.Node) types.DiagramPlace {
 	box := n.ID
 	if n.Group != "" {
 		box = "group:" + n.Group
@@ -388,14 +388,14 @@ func (self *DiagramHelper) openNode(s context.ContextTree, id string) (context.C
 	return self.c.Helpers.Diff.OpenComponent(s, presentation.FileEntry(*s.Review, n.File).Component, nodePlace(n))
 }
 
-func nodePlace(n server.Node) *server.Lines {
+func nodePlace(n models.Node) *models.Lines {
 	switch {
 	case n.Kind == "artifact":
-		return &server.Lines{Path: n.File, Side: "file:"}
+		return &models.Lines{Path: n.File, Side: "file:"}
 	case n.State == "removed":
-		return &server.Lines{Path: n.File, Side: "LEFT", Line: n.Line}
+		return &models.Lines{Path: n.File, Side: "LEFT", Line: n.Line}
 	}
-	return &server.Lines{Path: n.File, Side: "RIGHT", Line: n.Line}
+	return &models.Lines{Path: n.File, Side: "RIGHT", Line: n.Line}
 }
 
 func (self *DiagramHelper) linkRows(s context.ContextTree, out, in bool) []presentation.MenuRow {

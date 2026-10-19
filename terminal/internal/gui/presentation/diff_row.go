@@ -1,6 +1,6 @@
 package presentation
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import "github.com/connorb645/lazyreview/terminal/internal/models"
 
 // DiffRow is one row of a diff: a file's header, a hunk's, a run of
 // unchanged lines, a line, a pair of lines side by side, a block of a
@@ -11,13 +11,13 @@ type DiffRow struct {
 	Text    string
 	Key     string
 	Count   int
-	Line    *server.Row
-	Left    *server.Row
-	Right   *server.Row
+	Line    *models.Row
+	Left    *models.Row
+	Right   *models.Row
 	Added   bool
 	Part    string
 	Message int
-	Block   *server.Block
+	Block   *models.Block
 	Last    bool
 }
 
@@ -38,7 +38,7 @@ func (r DiffRow) At() (string, int, bool) {
 
 // Words are what the server says of the row's line, if anything.
 func (r DiffRow) Words() string {
-	for _, l := range []*server.Row{r.Line, r.Right, r.Left} {
+	for _, l := range []*models.Row{r.Line, r.Right, r.Left} {
 		if l != nil && l.Words != "" {
 			return l.Words
 		}

@@ -8,10 +8,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -26,7 +26,7 @@ type DiffHelper struct {
 // chosen in the main panel, its cursor on a place, or on its first row with
 // none; or, while their components' files load, the command that loads
 // them.
-func (self *DiffHelper) OpenPlace(s context.ContextTree, place *server.Lines) (context.ContextTree, tea.Cmd) {
+func (self *DiffHelper) OpenPlace(s context.ContextTree, place *models.Lines) (context.ContextTree, tea.Cmd) {
 	if s.Review == nil {
 		return s, nil
 	}
@@ -67,13 +67,13 @@ func (self *DiffHelper) OpenPlace(s context.ContextTree, place *server.Lines) (c
 
 // OpenFile is the state with the Files panel choosing a file, as a jump
 // into it does, and its diff open at a place.
-func (self *DiffHelper) OpenFile(s context.ContextTree, path string, place *server.Lines) (context.ContextTree, tea.Cmd) {
+func (self *DiffHelper) OpenFile(s context.ContextTree, path string, place *models.Lines) (context.ContextTree, tea.Cmd) {
 	return self.OpenPlace(self.c.Helpers.Files.ChoseFile(s, path), place)
 }
 
 // OpenComponent is the state with the Files panel choosing a component, as
 // the diagram's boxes open it, and its diff open at a place.
-func (self *DiffHelper) OpenComponent(s context.ContextTree, component string, place *server.Lines) (context.ContextTree, tea.Cmd) {
+func (self *DiffHelper) OpenComponent(s context.ContextTree, component string, place *models.Lines) (context.ContextTree, tea.Cmd) {
 	return self.OpenPlace(self.c.Helpers.Files.ChoseComponent(s, component), place)
 }
 
@@ -86,7 +86,7 @@ func (self *DiffHelper) AfterFiles(s context.ContextTree, msg types.FilesLoaded)
 		s = s.Showing(s.CameFrom)
 		return h.Refresh.Relaid(s.Said(msg.Err.Error(), true)), nil
 	}
-	files := map[string]server.File{}
+	files := map[string]models.File{}
 	for k, v := range s.Files {
 		files[k] = v
 	}
@@ -138,7 +138,7 @@ func (self *DiffHelper) Fold(s context.ContextTree, action string) context.Conte
 	s.Diff = self.Rebuilt(s, v)
 	switch {
 	case r.Kind != "file" && v.Folded[r.Path]:
-		s.Diff = s.Diff.Find(server.Lines{Path: r.Path, Side: "file:"}).Shown(h.MainHeight(s))
+		s.Diff = s.Diff.Find(models.Lines{Path: r.Path, Side: "file:"}).Shown(h.MainHeight(s))
 	case run:
 		if i := s.Diff.First(func(row presentation.DiffRow) bool { return row.Key == r.Key && row.Kind != "hunk" }); i >= 0 {
 			s.Diff = s.Diff.To(i, h.MainHeight(s))
@@ -161,7 +161,7 @@ func (self *DiffHelper) ToLine(s context.ContextTree, n int) (context.ContextTre
 	s.Diff = withRunOpen(s.Diff, path, "RIGHT", n)
 	s.Diff = self.Rebuilt(s, s.Diff)
 	for i, r := range s.Diff.Rows {
-		if side, line, ok := r.At(); ok && r.Path == path && (line == n && side == "RIGHT" || context.SameLine(r, server.Lines{Side: "RIGHT", Line: n})) {
+		if side, line, ok := r.At(); ok && r.Path == path && (line == n && side == "RIGHT" || context.SameLine(r, models.Lines{Side: "RIGHT", Line: n})) {
 			s.Diff.Cursor = i
 			s.Diff = s.Diff.Placed(h.MainHeight(s))
 			return s, nil
@@ -214,13 +214,13 @@ func (self *DiffHelper) Rebuilt(s context.ContextTree, v context.DiffContext) co
 // loading are the files to load for the diff the Files panel has chosen:
 // every file of each component it shows a file of, so moving within a
 // component loads nothing more.
-func (self *DiffHelper) loading(s context.ContextTree) []server.FileEntry {
+func (self *DiffHelper) loading(s context.ContextTree) []models.FileEntry {
 	d := *s.Review
 	components := map[string]bool{}
 	for _, f := range presentation.ChosenFiles(d, s.FilesPanel.Chosen, nil) {
 		components[f.Component] = true
 	}
-	return slices.DeleteFunc(presentation.TreeFiles(d, nil), func(f server.FileEntry) bool { return !components[f.Component] })
+	return slices.DeleteFunc(presentation.TreeFiles(d, nil), func(f models.FileEntry) bool { return !components[f.Component] })
 }
 
 func withRunOpen(v context.DiffContext, path, side string, line int) context.DiffContext {
@@ -236,10 +236,10 @@ func withRunOpen(v context.DiffContext, path, side string, line int) context.Dif
 	return v
 }
 
-func (self *DiffHelper) loadFiles(id, build string, paths []string, place *server.Lines) tea.Cmd {
+func (self *DiffHelper) loadFiles(id, build string, paths []string, place *models.Lines) tea.Cmd {
 	tr, c := self.c.Tr, self.c.Server
 	return func() tea.Msg {
-		files := map[string]server.File{}
+		files := map[string]models.File{}
 		var mu sync.Mutex
 		var wg sync.WaitGroup
 		var failed error

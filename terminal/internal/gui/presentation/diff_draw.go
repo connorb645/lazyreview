@@ -7,9 +7,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -112,7 +112,7 @@ func blockLine(v DiffView, i int, filter types.PullFilter, th theme.Theme) strin
 	return numbers + bar + th.Muted.Render("│") + " " + text
 }
 
-func blockLabel(b *server.Block) string {
+func blockLabel(b *models.Block) string {
 	label := fmt.Sprint(b.StartLine)
 	if b.Line != b.StartLine {
 		label += fmt.Sprintf("-%d", b.Line)
@@ -197,7 +197,7 @@ func unifiedRow(d types.ReviewData, v DiffView, i int, mark string, filter types
 func splitRow(d types.ReviewData, v DiffView, i int, mark string, filter types.PullFilter, th theme.Theme) []string {
 	r := v.Rows[i]
 	half := (v.Width - 3) / 2
-	side := func(l *server.Row, old bool) []string {
+	side := func(l *models.Row, old bool) []string {
 		if l == nil {
 			return []string{strings.Repeat(" ", half)}
 		}
@@ -250,7 +250,7 @@ func splitRow(d types.ReviewData, v DiffView, i int, mark string, filter types.P
 	return out
 }
 
-func stripe(d types.ReviewData, l *server.Row, filter types.PullFilter, th theme.Theme) string {
+func stripe(d types.ReviewData, l *models.Row, filter types.PullFilter, th theme.Theme) string {
 	if l == nil || l.Owner == 0 || l.Kind == "same" {
 		return " "
 	}
@@ -261,7 +261,7 @@ func stripe(d types.ReviewData, l *server.Row, filter types.PullFilter, th theme
 	return th.PullRequest(MemberColor(d.State, l.Owner)).Render(bar)
 }
 
-func rowStyle(l *server.Row, added bool, filter types.PullFilter, th theme.Theme) lipgloss.Style {
+func rowStyle(l *models.Row, added bool, filter types.PullFilter, th theme.Theme) lipgloss.Style {
 	out := l.Kind != "same" && !filter.Shows(l.Owner)
 	switch {
 	case (l.Kind == "add" || added) && out:
@@ -289,7 +289,7 @@ func RowHeight(r DiffRow, v DiffView) int {
 	}
 	half := (v.Width - 3) / 2
 	h := 1
-	for _, l := range []*server.Row{r.Left, r.Right} {
+	for _, l := range []*models.Row{r.Left, r.Right} {
 		if l != nil {
 			h = max(h, len(cut(ExpandTabs(l.Text), half-sideGutter(v), true)))
 		}
@@ -339,7 +339,7 @@ func ScrollEnd(v DiffView, height int) int {
 		if r.Kind != "line" {
 			continue
 		}
-		for _, l := range []*server.Row{r.Line, r.Left, r.Right} {
+		for _, l := range []*models.Row{r.Line, r.Left, r.Right} {
 			if l != nil {
 				widest = max(widest, ansi.StringWidth(ExpandTabs(l.Text)))
 			}

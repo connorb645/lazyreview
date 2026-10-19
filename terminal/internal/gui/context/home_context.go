@@ -1,9 +1,9 @@
 package context
 
 import (
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -14,7 +14,7 @@ import (
 // with the keys, and the place of the review the home screen was opened
 // from.
 type HomeContext struct {
-	List        *server.Pulls
+	List        *models.Pulls
 	Failed      string
 	Reading     bool
 	Loading     string
@@ -57,16 +57,16 @@ func (h HomeContext) Rebuilt(tr *i18n.TranslationSet, th theme.Theme) HomeContex
 }
 
 // Repo is the repository of the panel with the keys, if it is one.
-func (h HomeContext) Repo() (server.PullRepo, bool) {
+func (h HomeContext) Repo() (models.PullRepo, bool) {
 	if h.List == nil || h.Focus < 0 || h.Focus >= len(h.Panels) || h.Panels[h.Focus].Repo < 0 {
-		return server.PullRepo{}, false
+		return models.PullRepo{}, false
 	}
 	return h.List.Repos[h.Panels[h.Focus].Repo], true
 }
 
 // WithHidden is the home screen with each repository hidden by what the
 // config's hidden repositories now say.
-func (h HomeContext) WithHidden(hidden server.Hidden) HomeContext {
+func (h HomeContext) WithHidden(hidden models.Hidden) HomeContext {
 	if h.List == nil {
 		return h
 	}
@@ -75,7 +75,7 @@ func (h HomeContext) WithHidden(hidden server.Hidden) HomeContext {
 		by[r.Name] = r.HiddenBy
 	}
 	list := *h.List
-	list.Repos = append([]server.PullRepo{}, list.Repos...)
+	list.Repos = append([]models.PullRepo{}, list.Repos...)
 	for i, repo := range list.Repos {
 		if entries, ok := by[repo.Name]; ok {
 			list.Repos[i].HiddenBy = entries
@@ -99,10 +99,10 @@ func (h HomeContext) Selected() (presentation.SideRow, bool) {
 
 // Pull is the pull request selected, its repository and the stack it is
 // in, if a pull request is selected.
-func (h HomeContext) Pull() (server.PullRepo, server.Unit, server.OpenPull, bool) {
+func (h HomeContext) Pull() (models.PullRepo, models.Unit, models.OpenPull, bool) {
 	row, ok := h.Selected()
 	if !ok || row.Item.Kind != "pull" || h.List == nil {
-		return server.PullRepo{}, server.Unit{}, server.OpenPull{}, false
+		return models.PullRepo{}, models.Unit{}, models.OpenPull{}, false
 	}
 	repo := h.List.Repos[h.Panels[h.Focus].Repo]
 	for _, u := range repo.Units {
@@ -112,7 +112,7 @@ func (h HomeContext) Pull() (server.PullRepo, server.Unit, server.OpenPull, bool
 			}
 		}
 	}
-	return server.PullRepo{}, server.Unit{}, server.OpenPull{}, false
+	return models.PullRepo{}, models.Unit{}, models.OpenPull{}, false
 }
 
 // Moved is the home screen with the selection moved by rows in the panel
@@ -208,15 +208,15 @@ func (h HomeContext) WithReview(unit, id string) HomeContext {
 		return h
 	}
 	list := *h.List
-	list.Repos = append([]server.PullRepo{}, list.Repos...)
+	list.Repos = append([]models.PullRepo{}, list.Repos...)
 	for r, repo := range list.Repos {
-		repo.Units = append([]server.Unit{}, repo.Units...)
+		repo.Units = append([]models.Unit{}, repo.Units...)
 		for u, un := range repo.Units {
 			if presentation.UnitKey(repo, un) != unit {
 				continue
 			}
 			un.Review = id
-			un.Members = append([]server.OpenPull{}, un.Members...)
+			un.Members = append([]models.OpenPull{}, un.Members...)
 			for m := range un.Members {
 				un.Members[m].Review = id
 			}

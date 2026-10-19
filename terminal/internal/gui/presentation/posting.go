@@ -7,9 +7,9 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/views"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -22,7 +22,7 @@ func PostLabels(tr *i18n.TranslationSet) map[string]string {
 // PostingBox draws posting's popup for a pull request of a repository: the
 // actions offered, the one chosen selected, and, once it is chosen to be
 // confirmed, what it sends and the comments it sends.
-func PostingBox(tr *i18n.TranslationSet, th theme.Theme, repo string, pull int, m server.QueueMember, actions []string, choice int, confirming bool, width int) []string {
+func PostingBox(tr *i18n.TranslationSet, th theme.Theme, repo string, pull int, m models.QueueMember, actions []string, choice int, confirming bool, width int) []string {
 	inner := width - 2
 	var out []string
 	for i, action := range actions {
@@ -60,6 +60,6 @@ func PostingBox(tr *i18n.TranslationSet, th theme.Theme, repo string, pull int, 
 	return views.Framed(out, views.Extent{}, width, len(out)+2, title, "", footer, true, th)
 }
 
-func commentPlace(tr *i18n.TranslationSet, c server.Comment) string {
+func commentPlace(tr *i18n.TranslationSet, c models.Comment) string {
 	return path.Base(c.Path) + ", " + LinesWords(tr, c.Side, c.Line, c.StartLine, c.StartSide)
 }

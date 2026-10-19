@@ -4,15 +4,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // wideDiff is a unified diff 40 columns wide, 26 of them code, of lines 60,
 // 10 and 46 columns long.
 func wideDiff() DiffContext {
 	line := func(n int, text string) presentation.DiffRow {
-		return presentation.DiffRow{Kind: "line", Path: "a.ts", Line: &server.Row{Kind: "same", Old: n, New: n, Text: text}}
+		return presentation.DiffRow{Kind: "line", Path: "a.ts", Line: &models.Row{Kind: "same", Old: n, New: n, Text: text}}
 	}
 	return DiffContext{DiffView: presentation.DiffView{Width: 40, Rows: []presentation.DiffRow{
 		{Kind: "file", Path: "a.ts"}, line(1, strings.Repeat("a", 60)), line(2, strings.Repeat("b", 10)), line(3, strings.Repeat("c", 46)),

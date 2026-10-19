@@ -5,10 +5,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -21,16 +21,16 @@ type PostingHelper struct {
 }
 
 // QueueMember is the queue's part for a pull request of the review.
-func (self *PostingHelper) QueueMember(s context.ContextTree, pull int) (server.QueueMember, bool) {
+func (self *PostingHelper) QueueMember(s context.ContextTree, pull int) (models.QueueMember, bool) {
 	if s.Review == nil || s.Review.State.Queue == nil {
-		return server.QueueMember{}, false
+		return models.QueueMember{}, false
 	}
 	for _, m := range s.Review.State.Queue.Members {
 		if m.Pull == pull {
 			return m, true
 		}
 	}
-	return server.QueueMember{}, false
+	return models.QueueMember{}, false
 }
 
 // Open is the state with posting's choice open for a pull request, or the

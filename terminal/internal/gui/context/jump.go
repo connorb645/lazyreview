@@ -1,8 +1,8 @@
 package context
 
 import (
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // Jump is a place jumped from: what the screen showed, the Review view's
@@ -12,6 +12,6 @@ type Jump struct {
 	Screen Screen
 	Item   int
 	Chosen []string
-	Place  *server.Lines
+	Place  *models.Lines
 	Box    *types.DiagramPlace
 }

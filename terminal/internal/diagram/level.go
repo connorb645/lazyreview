@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -32,7 +32,7 @@ func (l Level) Index(id string) int {
 }
 
 // Components is the first level: every component, with the arrows between them.
-func Components(tr *i18n.TranslationSet, page server.Page) Level {
+func Components(tr *i18n.TranslationSet, page models.Page) Level {
 	l := Level{Kind: "components"}
 	for _, c := range page.Model.Components {
 		var pulls [][]int
@@ -56,7 +56,7 @@ func Components(tr *i18n.TranslationSet, page server.Page) Level {
 // Packages is the second level: the packages of a component that hold
 // types, with the arrows between them. A component of one package has no
 // such level, and ok is false.
-func Packages(tr *i18n.TranslationSet, page server.Page, component string) (Level, bool) {
+func Packages(tr *i18n.TranslationSet, page models.Page, component string) (Level, bool) {
 	l := Level{Kind: "packages", Component: component}
 	for _, c := range page.Model.Components {
 		if c.ID != component {
@@ -88,7 +88,7 @@ func Packages(tr *i18n.TranslationSet, page server.Page, component string) (Leve
 			}
 			link := Link{From: a.From, To: a.To, Kind: "package", Words: words, AtRest: true}
 			if a.Links != nil {
-				link.Ways = []server.ArrowWay{{Label: a.Words, Links: a.Links}}
+				link.Ways = []models.ArrowWay{{Label: a.Words, Links: a.Links}}
 			}
 			l.Links = append(l.Links, link)
 		}
@@ -99,10 +99,10 @@ func Packages(tr *i18n.TranslationSet, page server.Page, component string) (Leve
 // Types is the third level: the types of one package, a group of look-alike
 // types as one card, and every link of each, those to a type elsewhere
 // ending outside the level.
-func Types(tr *i18n.TranslationSet, page server.Page, component, pkg string) Level {
+func Types(tr *i18n.TranslationSet, page models.Page, component, pkg string) Level {
 	l := Level{Kind: "types", Component: component, Package: pkg}
 	cardOf := map[string]string{}
-	groups := map[string]server.Group{}
+	groups := map[string]models.Group{}
 	for _, g := range page.Model.Groups {
 		groups[g.ID] = g
 	}
@@ -129,7 +129,7 @@ func Types(tr *i18n.TranslationSet, page server.Page, component, pkg string) Lev
 		}
 		l.Cards = append(l.Cards, card)
 	}
-	nodes := map[string]server.Node{}
+	nodes := map[string]models.Node{}
 	for _, n := range page.Model.Nodes {
 		nodes[n.ID] = n
 	}
@@ -160,7 +160,7 @@ func Types(tr *i18n.TranslationSet, page server.Page, component, pkg string) Lev
 
 // Words are a link's words: its config's label, or its kind's, a has link
 // naming the properties that hold its target.
-func Words(tr *i18n.TranslationSet, e server.Edge) string {
+func Words(tr *i18n.TranslationSet, e models.Edge) string {
 	words := e.Label
 	if words == "" {
 		words = kindWords(tr)[e.Kind]
@@ -175,7 +175,7 @@ func kindWords(tr *i18n.TranslationSet) map[string]string {
 	return map[string]string{"has": tr.LinkHolds, "realize": tr.LinkConformsTo, "inherit": tr.LinkInheritsFrom, "extend": tr.LinkExtends, "use": tr.LinkUses, "test": tr.LinkTests}
 }
 
-func atRest(e server.Edge) bool {
+func atRest(e models.Edge) bool {
 	switch e.Kind {
 	case "realize", "inherit", "has", "extend":
 		return true
@@ -185,7 +185,7 @@ func atRest(e server.Edge) bool {
 	return false
 }
 
-func nodeCard(n server.Node, box server.Box) Card {
+func nodeCard(n models.Node, box models.Box) Card {
 	title := strings.TrimSpace(n.Stereotype + " " + n.Name)
 	kind := "type"
 	if n.Kind == "artifact" {
@@ -194,7 +194,7 @@ func nodeCard(n server.Node, box server.Box) Card {
 	return Card{ID: n.ID, Kind: kind, Title: title, Detail: path.Base(n.File), State: n.State, Pulls: n.Pulls, Box: box}
 }
 
-func outside(tr *i18n.TranslationSet, page server.Page, n server.Node) (string, string, string) {
+func outside(tr *i18n.TranslationSet, page models.Page, n models.Node) (string, string, string) {
 	place := n.Component
 	for _, c := range page.Model.Components {
 		if c.ID != n.Component {
@@ -218,7 +218,7 @@ func outside(tr *i18n.TranslationSet, page server.Page, n server.Node) (string, 
 // ComponentDetail is a component card's second line: an unchanged
 // component's count of files, or a changed one's count of the files shows
 // takes and the lines that lines counts of them.
-func ComponentDetail(tr *i18n.TranslationSet, page server.Page, c server.Component, shows func(pulls []int) bool, lines func(f server.FileEntry) (int, int)) string {
+func ComponentDetail(tr *i18n.TranslationSet, page models.Page, c models.Component, shows func(pulls []int) bool, lines func(f models.FileEntry) (int, int)) string {
 	if c.Context {
 		n := 0
 		for _, f := range page.Model.ContextFiles {
@@ -244,7 +244,7 @@ func ComponentDetail(tr *i18n.TranslationSet, page server.Page, c server.Compone
 // PackageDetail is a package card's second line: the count of its types
 // that shows takes, or of its files when it holds no types; every one in an
 // unchanged component.
-func PackageDetail(tr *i18n.TranslationSet, page server.Page, c server.Component, p server.Package, shows func(pulls []int) bool) string {
+func PackageDetail(tr *i18n.TranslationSet, page models.Page, c models.Component, p models.Package, shows func(pulls []int) bool) string {
 	types, files, holdsTypes := 0, 0, false
 	for _, n := range page.Model.Nodes {
 		if n.Component != c.ID || n.Package != p.ID {
@@ -269,7 +269,7 @@ func PackageDetail(tr *i18n.TranslationSet, page server.Page, c server.Component
 // FileDetail is a file card's second line: the lines that lines counts of
 // the changed file the card stands for, or nothing for a file of unchanged
 // code, whose state says so.
-func FileDetail(page server.Page, file string, lines func(f server.FileEntry) (int, int)) string {
+func FileDetail(page models.Page, file string, lines func(f models.FileEntry) (int, int)) string {
 	for _, f := range page.Model.Files {
 		if f.Path == file {
 			adds, dels := lines(f)
@@ -281,7 +281,7 @@ func FileDetail(page server.Page, file string, lines func(f server.FileEntry) (i
 
 func everything([]int) bool { return true }
 
-func wholeLines(f server.FileEntry) (int, int) { return f.Adds, f.Dels }
+func wholeLines(f models.FileEntry) (int, int) { return f.Adds, f.Dels }
 
 func union(lists ...[]int) []int {
 	var out []int

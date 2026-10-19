@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 const stack = "github.com/octo/widgets/21"
@@ -27,7 +27,7 @@ func changedElsewhere(t *testing.T) (answer, string) {
 			if err := json.Unmarshal(a.Body, &queued); err != nil {
 				t.Fatal(err)
 			}
-			var state server.State
+			var state models.State
 			if err := json.Unmarshal(queued.State, &state); err != nil {
 				t.Fatal(err)
 			}
@@ -46,11 +46,11 @@ func TestAChangeElsewhereShowsAtOnce(t *testing.T) {
 	a = typed(t, a, "3")
 	folded := map[string]bool{"Sources/Catalog/MemoryCatalog.swift": true}
 	a.Diff.Folded = folded
-	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{State: a.Review.State.Version}})
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: models.Notice{State: a.Review.State.Version}})
 	if _, ok := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "queued:3"); ok {
 		t.Fatal("a notice of the state the app holds read it again")
 	}
-	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{State: version}})
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: models.Notice{State: version}})
 	if _, ok := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "queued:3"); !ok {
 		t.Fatal("the comment queued elsewhere does not show")
 	}
@@ -77,12 +77,12 @@ func TestANewBuildLoadsInPlaceUnlessADraftIsOpen(t *testing.T) {
 	changed.set("GET /api/reviews/"+stack+"/page", answer{Status: 200, Body: body})
 	a = press(t, a, "space", "m", "enter", "enter", "j")
 	a.Drafts = map[string]string{"comment x": "Half written."}
-	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{Build: "0123456789ab"}})
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: models.Notice{Build: "0123456789ab"}})
 	if a.Review.Page.Build == "0123456789ab" || a.Notice != "This review was loaded again. R loads it here; your drafts stay." {
 		t.Fatalf("with a draft open: %s %q", a.Review.Page.Build, a.Notice)
 	}
 	a.Drafts = nil
-	a = send(t, a, types.LiveNotice{ID: stack, Notice: server.Notice{Build: "0123456789ab"}})
+	a = send(t, a, types.LiveNotice{ID: stack, Notice: models.Notice{Build: "0123456789ab"}})
 	if a.Review.Page.Build != "0123456789ab" || a.Notice != "Loaded again." {
 		t.Fatalf("with no draft open: %s %q", a.Review.Page.Build, a.Notice)
 	}
@@ -166,8 +166,8 @@ func TestListeningComesBackAfterTheStreamEnds(t *testing.T) {
 func TestAQuestionAskedElsewhereShowsAsWaiting(t *testing.T) {
 	a := onBasket(t)
 	state := a.Review.State
-	state.Threads = append([]server.Conversation{}, state.Threads...)
-	state.Threads = append(state.Threads, server.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Why here?"}}})
+	state.Threads = append([]models.Conversation{}, state.Threads...)
+	state.Threads = append(state.Threads, models.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []models.Message{{From: "you", Text: "Why here?"}}})
 	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
 	n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "conversation:9")
 	if head, _ := presentation.NoteHead(a.c.Tr, a.controllers.Labels(context.DiffKey), *a.Review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {

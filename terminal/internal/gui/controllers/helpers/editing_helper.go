@@ -9,11 +9,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -41,26 +41,26 @@ func (self *EditingHelper) NoteAt(s context.ContextTree) (presentation.Note, pre
 
 // Selected is the lines of one file the diff's cursor or selection is on,
 // with their code, or false when they are in more than one file or none.
-func (self *EditingHelper) Selected(s context.ContextTree) (server.Lines, []string, bool) {
+func (self *EditingHelper) Selected(s context.ContextTree) (models.Lines, []string, bool) {
 	v := s.Diff
 	if v.Cursor >= len(v.Rows) {
-		return server.Lines{}, nil, false
+		return models.Lines{}, nil, false
 	}
 	from, to := v.Cursor, v.Cursor
 	if v.Selecting {
 		from, to = min(v.Anchor, v.Cursor), max(v.Anchor, v.Cursor)
 	}
-	var first, last server.Lines
-	var firstBlock, seen *server.Block
+	var first, last models.Lines
+	var firstBlock, seen *models.Block
 	var code []string
 	for i := from; i <= to; i++ {
 		r := v.Rows[i]
-		var start, end server.Lines
+		var start, end models.Lines
 		switch side, line, ok := r.At(); {
 		case r.Kind == "block":
 			b := r.Block
-			start = server.Lines{Path: r.Path, Side: b.Side, Line: b.StartLine}
-			end = server.Lines{Path: r.Path, Side: b.Side, Line: b.Line}
+			start = models.Lines{Path: r.Path, Side: b.Side, Line: b.StartLine}
+			end = models.Lines{Path: r.Path, Side: b.Side, Line: b.Line}
 			if b != seen {
 				code = append(code, blockCode(b)...)
 				seen = b
@@ -69,14 +69,14 @@ func (self *EditingHelper) Selected(s context.ContextTree) (server.Lines, []stri
 				firstBlock = b
 			}
 		case ok:
-			start = server.Lines{Path: r.Path, Side: side, Line: line}
+			start = models.Lines{Path: r.Path, Side: side, Line: line}
 			end = start
 			code = append(code, codeLine(r))
 		default:
 			continue
 		}
 		if first.Path != "" && r.Path != first.Path {
-			return server.Lines{}, nil, false
+			return models.Lines{}, nil, false
 		}
 		if first.Path == "" {
 			first = start
@@ -84,7 +84,7 @@ func (self *EditingHelper) Selected(s context.ContextTree) (server.Lines, []stri
 		last = end
 	}
 	if first.Path == "" {
-		return server.Lines{}, nil, false
+		return models.Lines{}, nil, false
 	}
 	if first.Side != last.Side && last.Side == "LEFT" && firstBlock != nil && firstBlock.Left != nil {
 		first.Side, first.Line = "LEFT", firstBlock.Left.StartLine
@@ -97,7 +97,7 @@ func (self *EditingHelper) Selected(s context.ContextTree) (server.Lines, []stri
 
 // LinesKey names lines of a file, as where the server says they are
 // commented is kept under.
-func LinesKey(at server.Lines) string {
+func LinesKey(at models.Lines) string {
 	return fmt.Sprintf("%s %s %d %s %d", at.Path, at.StartSide, at.StartLine, at.Side, at.Line)
 }
 
@@ -178,7 +178,7 @@ func (self *EditingHelper) Stop(s context.ContextTree) (context.ContextTree, tea
 	}
 }
 
-func (self *EditingHelper) conversationAt(s context.ContextTree) (server.Conversation, bool) {
+func (self *EditingHelper) conversationAt(s context.ContextTree) (models.Conversation, bool) {
 	id := 0
 	if n, _, ok := self.NoteAt(s); ok && n.Kind == "conversation" {
 		id = n.Conversation.ID
@@ -193,7 +193,7 @@ func (self *EditingHelper) conversationAt(s context.ContextTree) (server.Convers
 			return c, true
 		}
 	}
-	return server.Conversation{}, false
+	return models.Conversation{}, false
 }
 
 // EditQueued is the state with the editor open on the queued comment at
@@ -204,7 +204,7 @@ func (self *EditingHelper) EditQueued(s context.ContextTree) (context.ContextTre
 	if !ok {
 		return s.Said(self.keyed(s, tr.EditsQueuedAtCursor, "edit"), true), nil
 	}
-	at := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
+	at := models.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
 	queued := utils.ResolvePlaceholderString(tr.QueuedCommentOn, map[string]string{"comment": utils.Itoa(c.ID), "on": onWords(tr, at), "pull": utils.Itoa(pull)})
 	about := []string{queued, tr.SavingReplaces}
 	return self.edit(s, types.Editing{Purpose: "edit", Comment: c.ID, Version: c.Version, At: at, Pull: pull, Text: c.Body, Key: fmt.Sprintf("edit %d", c.ID), About: about})
@@ -301,7 +301,7 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 		s.Asking = max(0, s.Asking-1)
 	}
 	if msg.Err != nil {
-		var refusal server.Refusal
+		var refusal models.Refusal
 		if (e.Purpose == "edit" || e.Purpose == "drop") && errors.As(msg.Err, &refusal) {
 			return s.Said(msg.Err.Error(), true), h.Review.LoadState(s.Review.ID)
 		}
@@ -395,7 +395,7 @@ func (self *EditingHelper) keyed(s context.ContextTree, words, action string) st
 	return utils.ResolvePlaceholderString(words, map[string]string{action: self.c.KeyLabels(s.Place()).Of(action)})
 }
 
-func (self *EditingHelper) queuedAt(s context.ContextTree) (server.Comment, int, bool) {
+func (self *EditingHelper) queuedAt(s context.ContextTree) (models.Comment, int, bool) {
 	id := 0
 	if n, _, ok := self.NoteAt(s); ok && n.Kind == "queued" {
 		id = n.Comment.ID
@@ -411,7 +411,7 @@ func (self *EditingHelper) queuedAt(s context.ContextTree) (server.Comment, int,
 		}
 	}
 	if id == 0 || s.Review.State.Queue == nil {
-		return server.Comment{}, 0, false
+		return models.Comment{}, 0, false
 	}
 	for _, m := range s.Review.State.Queue.Members {
 		for _, c := range m.Comments {
@@ -420,7 +420,7 @@ func (self *EditingHelper) queuedAt(s context.ContextTree) (server.Comment, int,
 			}
 		}
 	}
-	return server.Comment{}, 0, false
+	return models.Comment{}, 0, false
 }
 
 func (self *EditingHelper) edit(s context.ContextTree, e types.Editing) (context.ContextTree, tea.Cmd) {
@@ -451,7 +451,7 @@ func (self *EditingHelper) edit(s context.ContextTree, e types.Editing) (context
 	return s, self.c.Exec(cmd, func(err error) tea.Msg { return types.Edited{E: e, File: file.Name(), Err: err} })
 }
 
-func blockCode(b *server.Block) []string {
+func blockCode(b *models.Block) []string {
 	sign := map[string]string{"add": "+", "del": "-"}[b.State]
 	if sign == "" {
 		sign = " "
@@ -482,7 +482,7 @@ func codeLine(r presentation.DiffRow) string {
 	return fmt.Sprintf("%4d %s %s", n, sign, presentation.ExpandTabs(l.Text))
 }
 
-func onWords(tr *i18n.TranslationSet, at server.Lines) string {
+func onWords(tr *i18n.TranslationSet, at models.Lines) string {
 	return at.Path + ", " + presentation.LinesWords(tr, at.Side, at.Line, at.StartLine, at.StartSide)
 }
 
@@ -524,8 +524,8 @@ func withDraft(drafts map[string]string, key, text string) map[string]string {
 	return out
 }
 
-func withConversation(st server.State, c server.Conversation) server.State {
-	threads := append([]server.Conversation{}, st.Threads...)
+func withConversation(st models.State, c models.Conversation) models.State {
+	threads := append([]models.Conversation{}, st.Threads...)
 	for i := range threads {
 		if threads[i].ID == c.ID {
 			threads[i] = c

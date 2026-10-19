@@ -6,8 +6,8 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/theme"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
@@ -19,13 +19,13 @@ const (
 
 // UnitKey names a stack, or a lone pull request, in a repository by its
 // bottom pull request.
-func UnitKey(repo server.PullRepo, u server.Unit) string {
+func UnitKey(repo models.PullRepo, u models.Unit) string {
 	return fmt.Sprintf("%s#%d", repo.Name, u.Members[0].Number)
 }
 
 // UnitName is a stack's, or a lone pull request's, repository and numbers,
 // bottom first.
-func UnitName(repo server.PullRepo, u server.Unit) string {
+func UnitName(repo models.PullRepo, u models.Unit) string {
 	numbers := make([]string, len(u.Members))
 	for i, m := range u.Members {
 		numbers[i] = fmt.Sprintf("#%d", m.Number)
@@ -38,7 +38,7 @@ func UnitName(repo server.PullRepo, u server.Unit) string {
 // first nine numbered; or one that says why there are none. A repository the
 // config hides has no panel, unless showHidden, when its panel comes after
 // the others, dim.
-func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *server.Pulls, failed string, showHidden bool) []HomePanel {
+func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *models.Pulls, failed string, showHidden bool) []HomePanel {
 	note := func(key, text string) []HomePanel {
 		return []HomePanel{{Title: tr.PullRequestsTitle, Repo: -1, Rows: []SideRow{{Key: key, Text: text, Heading: true}}}}
 	}
@@ -100,7 +100,7 @@ func HomePanels(tr *i18n.TranslationSet, th theme.Theme, list *server.Pulls, fai
 }
 
 // HiddenCount is how many repositories of the list the config hides.
-func HiddenCount(list *server.Pulls) int {
+func HiddenCount(list *models.Pulls) int {
 	n := 0
 	if list != nil {
 		for _, repo := range list.Repos {
@@ -112,7 +112,7 @@ func HiddenCount(list *server.Pulls) int {
 	return n
 }
 
-func pullRow(u server.Unit, i, widest int, hidden bool, th theme.Theme) SideRow {
+func pullRow(u models.Unit, i, widest int, hidden bool, th theme.Theme) SideRow {
 	m := u.Members[i]
 	waiting, loaded, bracket := " ", " ", " "
 	warning, accent := th.Warning, th.Accent

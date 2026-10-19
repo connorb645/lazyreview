@@ -6,9 +6,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -113,7 +113,7 @@ func (self *ReviewHelper) AfterLoaded(s context.ContextTree, msg types.ReviewLoa
 	if s.Screen() != context.ScreenHome {
 		s = s.Showing(context.ScreenReview)
 	}
-	s.Files, s.Diff, s.Filter, s.GrowFrom = map[string]server.File{}, context.DiffContext{}, nil, 0
+	s.Files, s.Diff, s.Filter, s.GrowFrom = map[string]models.File{}, context.DiffContext{}, nil, 0
 	s.FilesPanel.Chosen, s.FilesPanel.GrowFrom = nil, ""
 	s.Diagram = context.NewDiagramContext(self.c.Tr, context.LevelAt(self.c.Tr, msg.Data.Page, types.DiagramPlace{Level: "components"}), "")
 	s = s.Closed(context.LabelsKey)
@@ -137,7 +137,7 @@ func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewRel
 	}
 	h := self.c.Helpers
 	s.Review = &msg.Data
-	s.Files = map[string]server.File{}
+	s.Files = map[string]models.File{}
 	s = h.Refresh.SidesBuilt(h.Filter.KeptFilter(s))
 	switch s.Screen() {
 	case context.ScreenDiff:

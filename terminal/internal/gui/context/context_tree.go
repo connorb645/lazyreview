@@ -3,7 +3,7 @@ package context
 import (
 	"slices"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // ContextTree is the gui's whole state: the global context, a context for
@@ -41,7 +41,7 @@ var (
 // driving the main panel.
 func NewContextTree(review string) ContextTree {
 	t := ContextTree{screen: ScreenReview}
-	t.Opening, t.Loading, t.Files = review, review != "", map[string]server.File{}
+	t.Opening, t.Loading, t.Files = review, review != "", map[string]models.File{}
 	t.ReviewView.Folded, t.FilesPanel.Folded = map[string]bool{}, map[string]bool{}
 	if review == "" {
 		t.screen, t.Home.Reading = ScreenHome, true

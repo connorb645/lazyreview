@@ -6,10 +6,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -38,8 +38,8 @@ func (self *MenuHelper) OpenFinder(s context.ContextTree) context.ContextTree {
 		at := BoxOf(n)
 		pn.All = append(pn.All, presentation.MenuRow{Left: tr.TypeNoun, Right: fmt.Sprintf("%s · %s", n.Name, path.Base(n.File)), Open: &presentation.Item{Kind: "box", Box: &at}})
 	}
-	for _, f := range append(append([]server.FileEntry{}, page.Model.Files...), page.Model.ContextFiles...) {
-		pn.All = append(pn.All, presentation.MenuRow{Left: tr.FileNoun, Right: f.Path, Open: &presentation.Item{Kind: "file", Place: &server.Lines{Path: f.Path, Side: "file:"}}})
+	for _, f := range append(append([]models.FileEntry{}, page.Model.Files...), page.Model.ContextFiles...) {
+		pn.All = append(pn.All, presentation.MenuRow{Left: tr.FileNoun, Right: f.Path, Open: &presentation.Item{Kind: "file", Place: &models.Lines{Path: f.Path, Side: "file:"}}})
 	}
 	return s.WithMenu(pn.Narrowed(""))
 }

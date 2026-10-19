@@ -4,31 +4,31 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 // bakery is a made-up review of two components and their context. The
 // oven folder's own files sort on either side of its timer folder, so the
 // tree's order is not the order of the paths.
 func bakery() types.ReviewData {
-	file := func(path, component string, pulls ...int) server.FileEntry {
-		return server.FileEntry{Path: path, Component: component, Status: "M", Pulls: pulls}
+	file := func(path, component string, pulls ...int) models.FileEntry {
+		return models.FileEntry{Path: path, Component: component, Status: "M", Pulls: pulls}
 	}
-	return types.ReviewData{Page: server.Page{Model: server.Model{
-		Components: []server.Component{{ID: "ovens"}, {ID: "orders"}, {ID: "context", Context: true}},
-		Files: []server.FileEntry{
+	return types.ReviewData{Page: models.Page{Model: models.Model{
+		Components: []models.Component{{ID: "ovens"}, {ID: "orders"}, {ID: "context", Context: true}},
+		Files: []models.FileEntry{
 			file("src/ovens/heat/burner.ts", "ovens", 41),
 			file("src/ovens/oven.ts", "ovens", 42),
 			file("src/ovens/timer/timer.ts", "ovens", 41, 42),
 			file("src/ovens/vent.ts", "ovens", 41),
 			file("src/orders/queue.ts", "orders", 43),
 		},
-		ContextFiles: []server.FileEntry{{Path: "src/shared/clock.ts", Component: "context"}},
+		ContextFiles: []models.FileEntry{{Path: "src/shared/clock.ts", Component: "context"}},
 	}}}
 }
 
-func paths(files []server.FileEntry) []string {
+func paths(files []models.FileEntry) []string {
 	var out []string
 	for _, f := range files {
 		out = append(out, f.Path)
@@ -68,7 +68,7 @@ func TestARowHoldsItsFileOrEveryFileUnderIt(t *testing.T) {
 
 func TestTheChosenRowsAreLitAndTheFilesOfAFolderWithNoRow(t *testing.T) {
 	row := func(key, kind, path, component string) SideRow {
-		return SideRow{Key: key, Item: Item{Kind: kind, Component: component, Place: &server.Lines{Path: path, Side: "file:"}}}
+		return SideRow{Key: key, Item: Item{Kind: kind, Component: component, Place: &models.Lines{Path: path, Side: "file:"}}}
 	}
 	rows := []SideRow{
 		row(ComponentKey("ovens"), "component", "src/ovens/oven.ts", "ovens"),

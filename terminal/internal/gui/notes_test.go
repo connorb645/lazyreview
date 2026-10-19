@@ -10,10 +10,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 func onBasket(t *testing.T, set ...func(*Options)) App {
@@ -113,8 +113,8 @@ func TestARefusedEditKeepsItsTextAndSavesOverTheNewVersion(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30, editor)
 	state := a.Review.State
 	queue := *state.Queue
-	queue.Members = append([]server.QueueMember{}, queue.Members...)
-	queue.Members[0].Comments = append([]server.Comment{}, queue.Members[0].Comments...)
+	queue.Members = append([]models.QueueMember{}, queue.Members...)
+	queue.Members[0].Comments = append([]models.Comment{}, queue.Members[0].Comments...)
 	queue.Members[0].Comments[0].Version = "stale1"
 	queue.Members[0].Comments[0].Body = ""
 	state.Queue = &queue
@@ -203,8 +203,8 @@ func TestClaudesAnswerBecomesTheComment(t *testing.T) {
 
 func TestALineSeveralPullRequestsShowAsksWhichFirst(t *testing.T) {
 	a := onBasket(t)
-	e := types.Editing{Purpose: "comment", At: server.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 2}, Key: "comment", About: []string{"A comment on Sources/Basket/Basket.swift, line 2."}}
-	a = send(t, a, types.Checked{E: e, Where: server.Where{Words: "Choose the pull request it goes on.", Choose: []server.Choice{{Pull: 21, Path: "Sources/Basket/Basket.swift", Line: 2}, {Pull: 22, Path: "Sources/Basket/Basket.swift", Line: 2}}}})
+	e := types.Editing{Purpose: "comment", At: models.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 2}, Key: "comment", About: []string{"A comment on Sources/Basket/Basket.swift, line 2."}}
+	a = send(t, a, types.Checked{E: e, Where: models.Where{Words: "Choose the pull request it goes on.", Choose: []models.Choice{{Pull: 21, Path: "Sources/Basket/Basket.swift", Line: 2}, {Pull: 22, Path: "Sources/Basket/Basket.swift", Line: 2}}}})
 	if !a.MenuOpen() || len(a.Menu.Rows) != 2 || a.Menu.Title != "Choose the pull request it goes on." {
 		t.Fatalf("the choice: %+v", a.Menu)
 	}
@@ -227,7 +227,7 @@ func TestTheBarSaysClaudeIsWorkingWithASpinnerUntilItAnswers(t *testing.T) {
 	if err := os.WriteFile(question, []byte("Why keep a search here?\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	at := server.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3}
+	at := models.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3}
 	next, ask := a.Update(types.Edited{E: types.Editing{Purpose: "ask", At: at, Key: "ask " + at.Path}, File: question})
 	a = next.(App)
 	if got := barSays(a); !strings.HasSuffix(got, "Claude is working |") || ticks != 1 {
@@ -253,8 +253,8 @@ func TestAQuestionWaitingFromTheOtherAppTurnsTheSpinnerToo(t *testing.T) {
 		o.Tick = func(time.Duration, func(time.Time) tea.Msg) tea.Cmd { ticks++; return nil }
 	})
 	st := a.Review.State
-	st.Threads = append(append([]server.Conversation{}, st.Threads...), server.Conversation{
-		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Who calls this?"}},
+	st.Threads = append(append([]models.Conversation{}, st.Threads...), models.Conversation{
+		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []models.Message{{From: "you", Text: "Who calls this?"}},
 	})
 	a = send(t, a, types.StateLoaded{State: st})
 	if got := barSays(a); !strings.HasSuffix(got, "Claude is working |") || ticks != 1 {
@@ -266,9 +266,9 @@ func TestAQuestionWaitingFromTheOtherAppTurnsTheSpinnerToo(t *testing.T) {
 func TestStoppingClaudeShowsWhatItDidAndSaysItStopped(t *testing.T) {
 	a := onBasket(t)
 	st := a.Review.State
-	st.Threads = append(append([]server.Conversation{}, st.Threads...), server.Conversation{
-		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Does anything test this?"}},
-		Working: &server.Working{Steps: []server.Step{{Words: "Read Sources/Basket/Basket.swift"}, {Words: "Ran swift test"}}},
+	st.Threads = append(append([]models.Conversation{}, st.Threads...), models.Conversation{
+		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []models.Message{{From: "you", Text: "Does anything test this?"}},
+		Working: &models.Working{Steps: []models.Step{{Words: "Read Sources/Basket/Basket.swift"}, {Words: "Ran swift test"}}},
 	})
 	a = send(t, a, types.StateLoaded{State: st})
 	if got := barSays(a); !strings.HasSuffix(got, "Claude is working: Ran swift test |") {
@@ -304,9 +304,9 @@ func TestTheSpinnerStaysWhenTheBarCutsClaudesStep(t *testing.T) {
 		o.Tick = func(time.Duration, func(time.Time) tea.Msg) tea.Cmd { return nil }
 	})
 	st := a.Review.State
-	st.Threads = append(append([]server.Conversation{}, st.Threads...), server.Conversation{
-		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []server.Message{{From: "you", Text: "Does anything test this?"}},
-		Working: &server.Working{Steps: []server.Step{{Words: "Ran swift test --filter BasketTests --parallel --enable-code-coverage"}}},
+	st.Threads = append(append([]models.Conversation{}, st.Threads...), models.Conversation{
+		ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []models.Message{{From: "you", Text: "Does anything test this?"}},
+		Working: &models.Working{Steps: []models.Step{{Words: "Ran swift test --filter BasketTests --parallel --enable-code-coverage"}}},
 	})
 	a = send(t, a, types.StateLoaded{State: st})
 	if got := barSays(a); !strings.HasSuffix(got, "… |") || !strings.Contains(got, "Claude is working: Ran swift") {

@@ -8,11 +8,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 func onDiagram(t *testing.T) App {
@@ -210,27 +210,27 @@ func TestThePullRequestFilterDimsTheTypesItLeavesOut(t *testing.T) {
 }
 
 func standIn() types.ReviewData {
-	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
-	node := func(id, file string, line int) server.Node {
-		return server.Node{ID: id, Name: id, Kind: "class", File: "Sources/Core/" + file, Line: line, Component: "core", Package: "model", State: "changed"}
+	box := func(x, y float64) models.Box { return models.Box{X: x, Y: y, H: 60} }
+	node := func(id, file string, line int) models.Node {
+		return models.Node{ID: id, Name: id, Kind: "class", File: "Sources/Core/" + file, Line: line, Component: "core", Package: "model", State: "changed"}
 	}
-	nodes := []server.Node{node("Order", "Order.swift", 1), node("Ledger", "Ledger.swift", 1), node("Clock", "Clock.swift", 1),
+	nodes := []models.Node{node("Order", "Order.swift", 1), node("Ledger", "Ledger.swift", 1), node("Clock", "Clock.swift", 1),
 		node("Pricer", "Pricer.swift", 1), node("Invoice", "Invoice.swift", 1), node("Receipt", "Receipt.swift", 1),
 		node("Refund", "Refund.swift", 1), node("Return", "Refund.swift", 9)}
 	nodes[6].Group, nodes[7].Group = "kinds", "kinds"
-	nodes = append(nodes, server.Node{ID: "Store", Name: "Store", Kind: "protocol", File: "Sources/Shop/Store.swift", Line: 1, Component: "shop", Package: "top", State: "same"})
-	return types.ReviewData{ID: "stand-in", Page: server.Page{
-		Model: server.Model{
-			Components: []server.Component{
-				{ID: "core", Title: "Core", Color: "teal", Area: "money", Packages: []server.Package{{ID: "model", Title: "Model"}}},
+	nodes = append(nodes, models.Node{ID: "Store", Name: "Store", Kind: "protocol", File: "Sources/Shop/Store.swift", Line: 1, Component: "shop", Package: "top", State: "same"})
+	return types.ReviewData{ID: "stand-in", Page: models.Page{
+		Model: models.Model{
+			Components: []models.Component{
+				{ID: "core", Title: "Core", Color: "teal", Area: "money", Packages: []models.Package{{ID: "model", Title: "Model"}}},
 				{ID: "ledger", Title: "Ledger", Color: "blue", Area: "money"},
-				{ID: "shop", Title: "Shop", Color: "purple", Packages: []server.Package{{ID: "top", Title: "Shop", Bare: true}}},
+				{ID: "shop", Title: "Shop", Color: "purple", Packages: []models.Package{{ID: "top", Title: "Shop", Bare: true}}},
 				{ID: "context", Title: "Unchanged code", Color: "grey", Context: true},
 			},
-			Areas:  []server.Area{{ID: "money", Title: "Money"}},
+			Areas:  []models.Area{{ID: "money", Title: "Money"}},
 			Nodes:  nodes,
-			Groups: []server.Group{{ID: "kinds", Title: "Refunds", Members: []string{"Refund", "Return"}}},
-			Edges: []server.Edge{
+			Groups: []models.Group{{ID: "kinds", Title: "Refunds", Members: []string{"Refund", "Return"}}},
+			Edges: []models.Edge{
 				{Source: "Order", Target: "Ledger", Kind: "has", Properties: []string{"ledger"}},
 				{Source: "Ledger", Target: "Order", Kind: "use"},
 				{Source: "Order", Target: "Invoice", Kind: "realize"},
@@ -240,12 +240,12 @@ func standIn() types.ReviewData {
 				{Source: "Order", Target: "Store", Kind: "use"},
 			},
 		},
-		Layout: server.Layout{
-			Components: map[string]server.Box{"core": box(0, 0), "ledger": box(300, 0), "shop": box(0, 300), "context": box(300, 300)},
-			Boxes: map[string]server.Box{"pkg:core:model": box(0, 0), "pkg:shop:top": box(0, 0),
+		Layout: models.Layout{
+			Components: map[string]models.Box{"core": box(0, 0), "ledger": box(300, 0), "shop": box(0, 300), "context": box(300, 300)},
+			Boxes: map[string]models.Box{"pkg:core:model": box(0, 0), "pkg:shop:top": box(0, 0),
 				"Order": box(0, 0), "Ledger": box(200, 0), "Clock": box(400, 0), "Pricer": box(200, 200),
 				"group:kinds": box(400, 200), "Invoice": box(0, 400), "Receipt": box(400, 400), "Store": box(0, 0)},
-			Summaries: []server.ComponentArrow{
+			Summaries: []models.ComponentArrow{
 				{Source: "core", Target: "ledger", Lines: []string{"→ 2 links"}},
 				{Source: "shop", Target: "core", Lines: []string{"→ 1 link"}},
 				{Source: "core", Target: "context", Lines: []string{"→ 4 links"}, Both: true},
@@ -278,24 +278,24 @@ func TestLinksRunAroundTheCards(t *testing.T) {
 }
 
 func pathsStandIn() types.ReviewData {
-	box := func(x, y float64) server.Box { return server.Box{X: x, Y: y, H: 60} }
-	pkg := func(id, title string) server.Package { return server.Package{ID: id, Title: title} }
-	file := func(path, pkg string) server.FileEntry {
-		return server.FileEntry{Path: path, Status: "A", Adds: 3, Component: "shop", Package: pkg}
+	box := func(x, y float64) models.Box { return models.Box{X: x, Y: y, H: 60} }
+	pkg := func(id, title string) models.Package { return models.Package{ID: id, Title: title} }
+	file := func(path, pkg string) models.FileEntry {
+		return models.FileEntry{Path: path, Status: "A", Adds: 3, Component: "shop", Package: pkg}
 	}
 	flag := "Sources/Store/Web/BasketFlow/Pricing/RemoteOverrides/Experiments/ExperimentFlag.swift"
-	return types.ReviewData{ID: "paths", State: server.State{Kind: "branch", Base: server.Ref{Ref: "main"}, Head: server.Ref{Ref: "feature/pricing"}}, Page: server.Page{
-		Model: server.Model{
-			Components: []server.Component{{ID: "shop", Title: "Shop", Color: "blue", Packages: []server.Package{
+	return types.ReviewData{ID: "paths", State: models.State{Kind: "branch", Base: models.Ref{Ref: "main"}, Head: models.Ref{Ref: "feature/pricing"}}, Page: models.Page{
+		Model: models.Model{
+			Components: []models.Component{{ID: "shop", Title: "Shop", Color: "blue", Packages: []models.Package{
 				pkg("checkout", "Checkout"), pkg("experiments", "Pricing/RemoteOverrides/Experiments"),
 				pkg("local", "docs/store/help/local"), pkg("pricing", "Pricing rules for every basket kind"),
 			}}},
-			Files: []server.FileEntry{file("Sources/Store/Web/BasketFlow/Checkout/CheckoutFlow.swift", "checkout"), file(flag, "experiments")},
-			Nodes: []server.Node{{ID: "ExperimentFlag", Name: "ExperimentFlag", Kind: "struct", File: flag, Line: 1, Component: "shop", Package: "experiments", State: "new"}},
+			Files: []models.FileEntry{file("Sources/Store/Web/BasketFlow/Checkout/CheckoutFlow.swift", "checkout"), file(flag, "experiments")},
+			Nodes: []models.Node{{ID: "ExperimentFlag", Name: "ExperimentFlag", Kind: "struct", File: flag, Line: 1, Component: "shop", Package: "experiments", State: "new"}},
 		},
-		Layout: server.Layout{
-			Components: map[string]server.Box{"shop": box(0, 0)},
-			Boxes: map[string]server.Box{"pkg:shop:checkout": box(0, 0), "pkg:shop:experiments": box(400, 0),
+		Layout: models.Layout{
+			Components: map[string]models.Box{"shop": box(0, 0)},
+			Boxes: map[string]models.Box{"pkg:shop:checkout": box(0, 0), "pkg:shop:experiments": box(400, 0),
 				"pkg:shop:local": box(0, 200), "pkg:shop:pricing": box(400, 200), "ExperimentFlag": box(0, 0)},
 		},
 	}}
@@ -365,17 +365,17 @@ func tableStandIn() types.ReviewData {
 		{"Bed", "Border", "Planter"},
 		{"Tomato", "Bean", "Pea", "Leek", "Kale", "Chard", "Onion", "Garlic", "Carrot", "Radish"},
 	}
-	var nodes []server.Node
-	boxes := map[string]server.Box{"pkg:garden:beds": {}}
+	var nodes []models.Node
+	boxes := map[string]models.Box{"pkg:garden:beds": {}}
 	for r, row := range rows {
 		for k, id := range row {
-			nodes = append(nodes, server.Node{ID: id, Name: id, Kind: "class", File: "src/beds/" + id + ".ts", Line: 1, Component: "garden", Package: "beds", State: "new"})
-			boxes[id] = server.Box{X: float64(k * 200), Y: float64(r * 200), H: 60}
+			nodes = append(nodes, models.Node{ID: id, Name: id, Kind: "class", File: "src/beds/" + id + ".ts", Line: 1, Component: "garden", Package: "beds", State: "new"})
+			boxes[id] = models.Box{X: float64(k * 200), Y: float64(r * 200), H: 60}
 		}
 	}
-	return types.ReviewData{ID: "table", Page: server.Page{
-		Model:  server.Model{Components: []server.Component{{ID: "garden", Title: "Garden", Color: "teal", Packages: []server.Package{{ID: "beds", Title: "Beds"}}}}, Nodes: nodes},
-		Layout: server.Layout{Components: map[string]server.Box{"garden": {}}, Boxes: boxes},
+	return types.ReviewData{ID: "table", Page: models.Page{
+		Model:  models.Model{Components: []models.Component{{ID: "garden", Title: "Garden", Color: "teal", Packages: []models.Package{{ID: "beds", Title: "Beds"}}}}, Nodes: nodes},
+		Layout: models.Layout{Components: map[string]models.Box{"garden": {}}, Boxes: boxes},
 	}}
 }
 

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
 // FileEntry is a file of the review's change or of its unchanged context,
 // or a bare entry of the path when it is neither.
-func FileEntry(d types.ReviewData, path string) server.FileEntry {
+func FileEntry(d types.ReviewData, path string) models.FileEntry {
 	for _, f := range d.Page.Model.Files {
 		if f.Path == path {
 			return f
@@ -23,13 +23,13 @@ func FileEntry(d types.ReviewData, path string) server.FileEntry {
 			return f
 		}
 	}
-	return server.FileEntry{Path: path}
+	return models.FileEntry{Path: path}
 }
 
 // DiffFiles are a component's files in its diff: the changed ones the
 // filter shows, then its unchanged context.
-func DiffFiles(d types.ReviewData, component string, filter types.PullFilter) []server.FileEntry {
-	var out []server.FileEntry
+func DiffFiles(d types.ReviewData, component string, filter types.PullFilter) []models.FileEntry {
+	var out []models.FileEntry
 	for _, f := range d.Page.Model.Files {
 		if f.Component == component && filter.ShowsAny(f.Pulls) {
 			out = append(out, f)
@@ -80,18 +80,18 @@ func StackPulls(d types.ReviewData) []int {
 }
 
 // StackMember is a pull request's own part of a stack.
-func StackMember(stack *server.PageStack, pull int) server.StackMember {
+func StackMember(stack *models.PageStack, pull int) models.StackMember {
 	for _, m := range stack.Members {
 		if m.Pull == pull {
 			return m
 		}
 	}
-	return server.StackMember{Pull: pull}
+	return models.StackMember{Pull: pull}
 }
 
 // MemberColor is a pull request's colour number in its stack, or 0.
-func MemberColor(s server.State, pull int) int {
-	for _, m := range append(append([]server.Member{}, s.Members...), s.Earlier...) {
+func MemberColor(s models.State, pull int) int {
+	for _, m := range append(append([]models.Member{}, s.Members...), s.Earlier...) {
 		if m.Pull == pull {
 			return m.Color
 		}
@@ -121,7 +121,7 @@ func ComponentColour(d types.ReviewData, id string) string {
 
 // PackageTitle is a component's package's title, its path when it has no
 // title, or its id when there is no such package.
-func PackageTitle(page server.Page, component, id string) string {
+func PackageTitle(page models.Page, component, id string) string {
 	for _, c := range page.Model.Components {
 		for _, pkg := range c.Packages {
 			if c.ID == component && pkg.ID == id {
@@ -136,11 +136,11 @@ func PackageTitle(page server.Page, component, id string) string {
 }
 
 // NodeOf is the type or file of the model with an id.
-func NodeOf(page server.Page, id string) (server.Node, bool) {
+func NodeOf(page models.Page, id string) (models.Node, bool) {
 	for _, n := range page.Model.Nodes {
 		if n.ID == id {
 			return n, true
 		}
 	}
-	return server.Node{}, false
+	return models.Node{}, false
 }

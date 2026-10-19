@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
@@ -20,7 +20,7 @@ func NotesOf(d types.ReviewData, path string) []Note {
 		for _, m := range q.Members {
 			for i := range m.Comments {
 				c := &m.Comments[i]
-				at := server.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
+				at := models.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
 				if c.Shown != nil {
 					at = *c.Shown
 				}
@@ -33,7 +33,7 @@ func NotesOf(d types.ReviewData, path string) []Note {
 	for i := range d.State.Threads {
 		t := &d.State.Threads[i]
 		if t.Path == path {
-			at := server.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
+			at := models.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
 			out = append(out, Note{Kind: "conversation", Key: fmt.Sprintf("conversation:%d", t.ID), At: &at, Conversation: t})
 		}
 	}
@@ -101,7 +101,7 @@ func withNotes(tr *i18n.TranslationSet, loc *time.Location, d types.ReviewData, 
 	return out
 }
 
-func rowHolds(r DiffRow, at server.Lines, v DiffView) bool {
+func rowHolds(r DiffRow, at models.Lines, v DiffView) bool {
 	if r.Kind == "gap" {
 		file := v.Files[r.Path]
 		for _, g := range file.Gaps {
@@ -264,7 +264,7 @@ func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n N
 
 const shownSteps = 3
 
-func tookWords(tr *i18n.TranslationSet, steps []server.Step) string {
+func tookWords(tr *i18n.TranslationSet, steps []models.Step) string {
 	refused := 0
 	for _, st := range steps {
 		if st.Refused != "" {
@@ -278,6 +278,6 @@ func tookWords(tr *i18n.TranslationSet, steps []server.Step) string {
 	return utils.ResolvePlaceholderString(tr.TookStepsRefused, words)
 }
 
-func refusedWords(tr *i18n.TranslationSet, st server.Step) string {
+func refusedWords(tr *i18n.TranslationSet, st models.Step) string {
 	return utils.ResolvePlaceholderString(tr.RefusedStep, map[string]string{"step": st.Words, "why": strings.TrimSuffix(st.Refused, ".")})
 }

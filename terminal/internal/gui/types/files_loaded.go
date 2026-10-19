@@ -1,11 +1,11 @@
 package types
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import "github.com/connorb645/lazyreview/terminal/internal/models"
 
 // FilesLoaded is files loaded to show their diff at a place, or why they
 // could not be.
 type FilesLoaded struct {
-	Files map[string]server.File
-	Place *server.Lines
+	Files map[string]models.File
+	Place *models.Lines
 	Err   error
 }

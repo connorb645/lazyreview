@@ -1,15 +1,15 @@
 package presentation
 
-import "github.com/connorb645/lazyreview/terminal/internal/commands/server"
+import "github.com/connorb645/lazyreview/terminal/internal/models"
 
 // Note is something said on a file's lines: a queued comment, a
 // conversation with Claude, or a thread on GitHub.
 type Note struct {
 	Kind         string
 	Key          string
-	At           *server.Lines
+	At           *models.Lines
 	Pull         int
-	Comment      *server.Comment
-	Conversation *server.Conversation
-	Thread       *server.GitHubThread
+	Comment      *models.Comment
+	Conversation *models.Conversation
+	Thread       *models.GitHubThread
 }
