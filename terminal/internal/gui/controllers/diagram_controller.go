@@ -30,10 +30,10 @@ func (self *DiagramController) Context() context.ContextKey {
 func (self *DiagramController) Bindings() []Binding {
 	tr, kb := self.c.Tr, self.c.Config.Keybinding
 	moves := []Binding{
-		{Action: "left", Keys: kb.Diagram.Left, Handler: self.nearest("h"), Description: tr.Left},
-		{Action: "down", Keys: kb.Diagram.Down, Handler: self.nearest("j"), Description: tr.Down},
-		{Action: "up", Keys: kb.Diagram.Up, Handler: self.nearest("k"), Description: tr.Up},
-		{Action: "right", Keys: kb.Diagram.Right, Handler: self.nearest("l"), Description: tr.Right},
+		{Action: "left", Keys: kb.Diagram.Left, Handler: self.along(-1), Description: tr.Left},
+		{Action: "down", Keys: kb.Diagram.Down, Handler: self.down(1), Description: tr.Down},
+		{Action: "up", Keys: kb.Diagram.Up, Handler: self.down(-1), Description: tr.Up},
+		{Action: "right", Keys: kb.Diagram.Right, Handler: self.along(1), Description: tr.Right},
 		{Action: "next box", Keys: kb.Diagram.NextBox, Handler: self.movedBy(1), Description: tr.NextBox},
 		{Action: "previous box", Keys: kb.Diagram.PreviousBox, Handler: self.movedBy(-1), Description: tr.PreviousBox},
 		{Action: "top", Keys: kb.Diagram.Top, Handler: self.end(false), Description: tr.Top},
@@ -66,9 +66,15 @@ func (self *DiagramController) boxBindings(k boxKeys) []Binding {
 	}
 }
 
-func (self *DiagramController) nearest(dir string) Handler {
+func (self *DiagramController) along(by int) Handler {
 	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
-		return self.c.Helpers.Diagram.Nearest(s, dir, count.N), nil
+		return self.c.Helpers.Diagram.Along(s, by*count.N), nil
+	}
+}
+
+func (self *DiagramController) down(by int) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		return self.c.Helpers.Diagram.Down(s, by*count.N), nil
 	}
 }
 
@@ -114,7 +120,8 @@ func (self *DiagramController) match(back bool) Handler {
 func (self *DiagramController) Help(labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
-		{Keys: labels.Of("left", "down", "up", "right"), Words: tr.HelpBoxesNearest},
+		{Keys: labels.Of("left", "right"), Words: tr.HelpBoxesAlong},
+		{Keys: labels.Of("down", "up"), Words: tr.HelpBoxesDown},
 		{Keys: labels.Of("next box", "previous box"), Words: tr.HelpBoxesOrder},
 		{Keys: labels.Of("top", "bottom"), Words: tr.HelpBoxesEnds},
 		{Keys: labels.Of("open"), Words: tr.HelpStepIn},

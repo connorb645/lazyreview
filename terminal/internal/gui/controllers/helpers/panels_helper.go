@@ -60,7 +60,7 @@ func (self *PanelsHelper) Followed(s context.ContextTree) (context.ContextTree, 
 		return self.toNote(s, row)
 	case context.DiagramPanel:
 		if i := s.Diagram.Level.Index(row.Item.Box.Box); i >= 0 {
-			s.Diagram.Focus = i
+			s.Diagram = s.Diagram.FocusedOn(i)
 		}
 		s = s.Showing(context.ScreenDiagram)
 		return h.Refresh.Mirrored(h.Diagram.Shown(s)), nil

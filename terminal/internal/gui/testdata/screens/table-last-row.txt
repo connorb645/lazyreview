@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Diagram · Garden › Beds────────────────────────╮
+│                        ││                                                    │
+╰─────────────────0 of 0─╯│            ╭───────────────╮                ╭──────│
+╭─[2]─Files──────────────╮│            │ Weeded        │                │ Logge│
+│                        ││            │ Weeded.ts new │                │ Logge│
+╰─────────────────0 of 0─╯│            ╰───────────────╯                ╰──────│
+╭─[3]─Notes──────────────╮│                                                    │
+│ Nothing queued or aske…││                                                    │
+╰─────────────────0 of 0─╯│                                                    │
+╭─[4]─Diagram────────────╮│                                                    │
+│ Border             new ││                                                    │
+│ Planter            new ││                                                    │
+│ Tomato             new ││                                                    │
+│ Bean               new ││                                                    │
+│ Pea                new ││╭───────────────╮                ┏━━━━━━━━━━━━━━━┓  │
+│ Leek               new │││ Carrot        │                ┃ Radish        ┃  │
+│ Kale               new │││ Carrot.ts new │                ┃ Radish.ts new ┃  │
+│ Chard              new ││╰───────────────╯                ┗━━━━━━━━━━━━━━━┛  │
+│ Onion              new ││                                                    │
+│ Garlic             new ││                                                    │
+│ Carrot             new ││                                                    │
+│ Radish             new ││                                                    │
+╰───────────────23 of 23─╯╰──────────Radish · class · src/beds/Radish.ts · new─╯
+ Diff: Enter | Follow: gd | Links: Space l | Keys: Space ?

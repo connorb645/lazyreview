@@ -2,6 +2,7 @@ package diagram
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -67,7 +68,7 @@ func TestTheThreeLevelsComeFromTheLayout(t *testing.T) {
 	}
 }
 
-func TestRowsAndColumnsAndTheNearestCard(t *testing.T) {
+func TestRowsAndColumnsInReadingOrder(t *testing.T) {
 	cards := []Card{
 		{ID: "a", Title: "Alpha", Box: server.Box{X: 0, Y: 0, H: 60}},
 		{ID: "b", Title: "Beta", Box: server.Box{X: 200, Y: 10, H: 60}},
@@ -82,17 +83,46 @@ func TestRowsAndColumnsAndTheNearestCard(t *testing.T) {
 	if g.Spots[1].Col != 2+14+10 {
 		t.Fatalf("Beta sits after Alpha and a gap, at %d", g.Spots[1].Col)
 	}
-	cases := []struct {
-		from int
-		dir  string
-		want int
-	}{{0, "l", 1}, {1, "l", 4}, {0, "j", 2}, {1, "j", 3}, {3, "k", 1}, {2, "l", 3}, {0, "h", -1}, {0, "k", -1}}
-	for _, c := range cases {
-		if got := g.Nearest(c.from, c.dir, 7); got != c.want {
-			t.Errorf("from %s going %s: got %d, want %d", cards[c.from].ID, c.dir, got, c.want)
-		}
-	}
 	if order := g.Order(); len(order) != 5 || order[3] != 2 {
 		t.Fatalf("reading order: %v", order)
+	}
+}
+
+// table is a grid of rows as long as `lengths`.
+func table(lengths ...int) Grid {
+	var cards []Card
+	for r, n := range lengths {
+		for k := range n {
+			title := fmt.Sprintf("Card %d.%d", r, k)
+			cards = append(cards, Card{ID: title, Title: title, Box: server.Box{X: float64(k * 200), Y: float64(r * 200), H: 60}})
+		}
+	}
+	return Arrange(i18n.EnglishTranslationSet(), cards, 16)
+}
+
+func TestACardMovesAlongItsRowAndToTheSameItemOfTheNext(t *testing.T) {
+	g := table(10, 3, 10)
+	at := func(row, item int) int { return g.Rows[row][item] }
+	if g.Item(at(0, 9)) != 9 || g.Item(at(1, 0)) != 0 || g.Item(at(2, 4)) != 4 {
+		t.Fatalf("each card's item in its row: %d %d %d", g.Item(at(0, 9)), g.Item(at(1, 0)), g.Item(at(2, 4)))
+	}
+	along := []struct{ from, by, want int }{
+		{at(0, 4), 1, at(0, 5)}, {at(0, 4), -1, at(0, 3)}, {at(0, 4), 3, at(0, 7)},
+		{at(0, 9), 1, at(0, 9)}, {at(0, 0), -1, at(0, 0)}, {at(1, 1), 5, at(1, 2)}, {at(2, 8), -20, at(2, 0)},
+	}
+	for _, c := range along {
+		if got := g.Along(c.from, c.by); got != c.want {
+			t.Errorf("%d along from row %d item %d: got item %d of row %d", c.by, g.Spots[c.from].Row, g.Item(c.from), g.Item(got), g.Spots[got].Row)
+		}
+	}
+	down := []struct{ from, by, item, want int }{
+		{at(0, 9), 1, 9, at(1, 2)}, {at(1, 2), 1, 9, at(2, 9)}, {at(2, 9), -1, 9, at(1, 2)}, {at(1, 2), -1, 9, at(0, 9)},
+		{at(0, 1), 1, 1, at(1, 1)}, {at(0, 9), 2, 9, at(2, 9)}, {at(0, 9), 5, 9, at(2, 9)}, {at(2, 3), -9, 3, at(0, 3)},
+		{at(0, 9), -1, 9, at(0, 9)}, {at(2, 9), 1, 9, at(2, 9)}, {at(1, 2), 1, 2, at(2, 2)},
+	}
+	for _, c := range down {
+		if got := g.Down(c.from, c.by, c.item); got != c.want {
+			t.Errorf("%d down from row %d item %d keeping item %d: got item %d of row %d", c.by, g.Spots[c.from].Row, g.Item(c.from), c.item, g.Item(got), g.Spots[got].Row)
+		}
 	}
 }

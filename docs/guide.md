@@ -292,7 +292,8 @@ one, then the types of one package, as rows of boxes:
 
 | Key | Does |
 | --- | --- |
-| `h` `j` `k` `l` | the nearest box left, down, up or right |
+| `h` `l` | the box left or right in the row, stopping at its ends |
+| `j` `k` | the row below or above, at the same place from the left, or a shorter row's last box; the next row with that place goes back to it |
 | `w` `b` `gg` `G` `{n}G` | the next, previous, first or last box, or box n in reading order |
 | `Enter` `-` | steps in or out; on a type, `Enter` opens its diff |
 | `gd` `gr` | follows a link of the box, or lists what links to it |

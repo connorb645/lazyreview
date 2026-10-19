@@ -12,10 +12,12 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-// DiagramContext is the diagram in the main panel: the level drawn, how
-// far it is scrolled, and what was last searched for in it.
+// DiagramContext is the diagram in the main panel: the level drawn, the
+// place in its row that moving down and up keeps, how far it is scrolled,
+// and what was last searched for in it.
 type DiagramContext struct {
 	diagram.Scene
+	Item  int
 	Left  int
 	Top   int
 	Query string
@@ -23,18 +25,14 @@ type DiagramContext struct {
 
 const cardGap = 16
 
-// RowLines is how many lines a row of the diagram's cards takes, with the
-// gap below it.
-const RowLines = model.CardHeight + 2
-
 // NewDiagramContext is a level of the diagram arranged, focused on a box,
 // or on the first in reading order.
 func NewDiagramContext(tr *i18n.TranslationSet, level model.Level, focusID string) DiagramContext {
 	v := DiagramContext{Scene: diagram.Scene{Level: level, Grid: model.Arrange(tr, level.Cards, cardGap)}}
 	if i := level.Index(focusID); i >= 0 {
-		v.Focus = i
+		v = v.FocusedOn(i)
 	} else if order := v.Grid.Order(); len(order) > 0 {
-		v.Focus = order[0]
+		v = v.FocusedOn(order[0])
 	}
 	return v
 }
@@ -60,15 +58,42 @@ func (v DiagramContext) Place() types.DiagramPlace {
 	return at
 }
 
+// FocusedOn is the diagram with the focus on box i. Its place in its row is
+// the one moving down and up then keeps.
+func (v DiagramContext) FocusedOn(i int) DiagramContext {
+	v.Focus, v.Item = i, v.Grid.Item(i)
+	return v
+}
+
 // Moved is the diagram with the focus moved by boxes in reading order.
 func (v DiagramContext) Moved(by int) DiagramContext {
 	order := v.Grid.Order()
 	for i, at := range order {
 		if at == v.Focus {
-			v.Focus = order[utils.Clamp(i+by, 0, len(order)-1)]
-			return v
+			return v.FocusedOn(order[utils.Clamp(i+by, 0, len(order)-1)])
 		}
 	}
+	return v
+}
+
+// Along is the diagram with the focus moved by boxes along its row: to the
+// right, or to the left when by is negative, stopping at the row's ends.
+func (v DiagramContext) Along(by int) DiagramContext {
+	if _, ok := v.Card(); !ok {
+		return v
+	}
+	return v.FocusedOn(v.Grid.Along(v.Focus, by))
+}
+
+// Down is the diagram with the focus moved by rows down, or up when by is
+// negative, stopping at the top and bottom rows. It lands on the box at the
+// place in the row it keeps, or on the last box of a shorter row, and keeps
+// that place for the next row.
+func (v DiagramContext) Down(by int) DiagramContext {
+	if _, ok := v.Card(); !ok {
+		return v
+	}
+	v.Focus = v.Grid.Down(v.Focus, by, v.Item)
 	return v
 }
 
