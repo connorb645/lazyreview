@@ -35,6 +35,9 @@ test('the Rendered view draws the server\'s blocks, each marked and naming its s
   assert.match(drawRendered({ partial: false, blocks: [block('add', 'Second.', 3)] }, 'A'), /New file\.<\/p><div class="mdx-block" data-side="RIGHT" data-from="3"/, 'an added file is drawn plain');
   assert.match(drawRendered({ partial: true, blocks: [block('add', 'a', 1, { part: 0 }), block('add', 'b', 9, { part: 1 })] }, 'M'), /Only the changed parts[\s\S]*a<\/p>\n<\/div><p class="mdx-gap">/);
   assert.match(drawRendered({ partial: false, blocks: [block('same', 'a', 1)] }, 'M'), /does not alter how the file reads/);
+  const leftOut = drawRendered({ partial: false, blocks: [block('del', 'Theirs.', 3), block('add', 'Ours.', 3)] }, 'M', b => b.state === 'del');
+  assert.match(leftOut, /<div class="mdx-block mdx-del pr-other" title="Removed"[^>]*><p>Theirs\.<\/p>/, 'a block the filter leaves out fades, as its lines do in the diff');
+  assert.match(leftOut, /<div class="mdx-block mdx-add" title="Added"[^>]*><p>Ours\.<\/p>/);
 });
 
 test('Markdown from outside the app shows raw HTML as text and keeps only safe links', () => {

@@ -158,7 +158,7 @@ export function createDiffMarkup(ctx, view) {
       return '<div class="diffwrap">' + wholeHTML(f.whole || [], added) + '</div>';
     }
     if (mode === 'rendered') {
-      return '<div class="mdview"><p class="md-hint">' + (ctx.state.queue ? words.passageHint : words.passageHintAsk) + '</p>' + drawRendered(f.rendered, meta.status) + '</div>';
+      return '<div class="mdview"><p class="md-hint">' + (ctx.state.queue ? words.passageHint : words.passageHintAsk) + '</p>' + drawRendered(f.rendered, meta.status, b => b.pulls.length > 0 && !pulls.onFilter(b.pulls)) + '</div>';
     }
     const split = view.mode === 'split';
     return '<div class="diffwrap"><table class="difftable' + (split ? ' splittable' : '') + '">' +

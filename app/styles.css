@@ -774,7 +774,7 @@ a.pp:hover { background: color-mix(in srgb, var(--pc) 30%, var(--surface)); }
 #diagram.pr-filter .pkg-frame.pr-off, #diagram.pr-filter .pkg-head.pr-off { opacity: .35; }
 .comp-item.pr-off { opacity: .45; }
 td.lineno.own { box-shadow: inset 3px 0 0 var(--pc); }
-tr.pr-other > td, td.pr-other { opacity: .4; }
+tr.pr-other > td, td.pr-other, .mdx-block.pr-other { opacity: .4; }
 .wholetable tr.mark.pr-other > td { opacity: .55; }
 .nav-file .pdots { display: inline-flex; gap: 2px; margin-right: 6px; vertical-align: 1px; }
 .nav-file .pdots i { width: 7px; height: 7px; border-radius: 50%; background: var(--pc); }
