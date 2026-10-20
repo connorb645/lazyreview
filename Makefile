@@ -19,7 +19,7 @@ run:
 	@"$(root)bin/lazyreview" terminal $(if $(URL),"$(URL)")
 
 land:
-	@node "$(root)scripts/land.mjs" "$(BRANCH)"
+	@go -C "$(root)terminal" run -mod=vendor ./cmd/land "$(BRANCH)"
 
 restart:
 	@"$(root)bin/lazyreview" stop
