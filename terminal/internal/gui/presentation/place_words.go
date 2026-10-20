@@ -30,7 +30,7 @@ func ItemWords(tr *i18n.TranslationSet, it Item, width int) string {
 }
 
 // DiffRowWords say where a row of a diff is, for the main panel's foot: the
-// note it belongs to, or its lines and what the server says of them.
+// note it belongs to, or its lines and what the queue says of them.
 func DiffRowWords(tr *i18n.TranslationSet, d types.ReviewData, r DiffRow) string {
 	if n, ok := NoteOf(d, r.Path, r.Key); ok && (r.Kind == "notehead" || r.Kind == "notetext") {
 		return NoteWords(tr, n)

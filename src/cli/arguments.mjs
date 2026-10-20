@@ -14,7 +14,6 @@ const COMMANDS = {
   list: { max: 0 },
   terminal: { max: 1 },
   config: { max: 1, flags: ['--check'], check: checkConfig },
-  serve: { max: 0 },
   start: { max: 0 },
   stop: { max: 0 },
   help: { max: 0 },

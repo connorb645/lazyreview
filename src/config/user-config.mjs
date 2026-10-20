@@ -104,7 +104,6 @@ function merge(section, given, values, sources, prefix, problems, unused) {
 const CHECKS = {
   folder: (value, key) => (typeof value === 'string' && (value === '~' || value.startsWith('~/') || isAbsolute(value))
     ? ok(value) : wrong(words.notAFolder(key, value))),
-  port: (value, key) => (Number.isInteger(value) && value >= 1 && value <= 65535 ? ok(value) : wrong(words.notAPort(key, value))),
   command: (value, key) => (typeof value === 'string' && value.trim() ? ok(value) : wrong(words.notACommand(key, value))),
   text: (value, key) => (typeof value === 'string' ? ok(value) : wrong(words.notText(key, value))),
   choice: (value, key, setting) => (setting.choices.includes(value) ? ok(value) : wrong(words.notAChoice(key, value, setting.choices))),
@@ -167,11 +166,6 @@ export function checkAccounts(value, key) {
 function overridden({ values, sources }, env) {
   const set = (key, name, value) => { if (env[name]) { value(env[name]); sources[key] = name; } };
   set('dataHome', 'LAZYREVIEW_HOME', given => { values.dataHome = resolve(given); });
-  set('server.port', 'LAZYREVIEW_PORT', given => {
-    const port = Number(given);
-    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(words.badPort(given));
-    values.server.port = port;
-  });
   set('claude.command', 'LAZYREVIEW_CLAUDE', given => { values.claude.command = given; });
   set('claude.model', 'LAZYREVIEW_MODEL', given => { values.claude.model = given; });
   set('os.editor', 'LAZYREVIEW_EDITOR', given => { values.os.editor = given; });

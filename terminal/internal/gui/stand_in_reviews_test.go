@@ -137,7 +137,7 @@ func (s standInReviews) Events(ctx context.Context, id string, notices chan<- mo
 	answer := httptest.NewRecorder()
 	s.handler.ServeHTTP(answer, request)
 	if answer.Code != http.StatusOK {
-		return models.Refusal{Status: answer.Code, Message: fmt.Sprintf("the stand-in answered %d to listening for changes", answer.Code)}
+		return models.Refused(fmt.Sprintf("the stand-in answered %d to listening for changes", answer.Code))
 	}
 	lines := bufio.NewScanner(answer.Body)
 	for lines.Scan() {
@@ -181,9 +181,9 @@ func (s standInReviews) call(method, path string, query url.Values, fields map[s
 			Error string `json:"error"`
 		}
 		if json.Unmarshal(answer.Body.Bytes(), &refused) == nil && refused.Error != "" {
-			return models.Refusal{Status: answer.Code, Message: refused.Error}
+			return models.Refused(refused.Error)
 		}
-		return models.Refusal{Status: answer.Code, Message: fmt.Sprintf("the stand-in answered %d", answer.Code)}
+		return models.Refused(fmt.Sprintf("the stand-in answered %d", answer.Code))
 	}
 	return json.Unmarshal(answer.Body.Bytes(), into)
 }

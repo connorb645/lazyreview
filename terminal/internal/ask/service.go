@@ -57,10 +57,14 @@ type Service struct {
 
 // NewService keeps the conversations of the reviews in reviews, asking asker,
 // copying the code through copies and clones, and having answerer answer
-// each question; with no answerer this process answers it. A question and
-// an answer are stamped with now.
-func NewService(tr *i18n.TranslationSet, reviews *store.ReviewStore, locks *store.Locks, asker *claude.Claude, copies CodeCopies, clones *git.Clones, answerer Answerer, now func() string) *Service {
-	s := &Service{tr: tr, store: reviews, locks: locks, claude: asker, copies: copies, clones: clones, answerer: answerer, hook: guardCommand, session: newSession, now: now}
+// each question; with no answerer this process answers it. Each new
+// conversation's Claude Code session is named by session, a new random one
+// when it is nil. A question and an answer are stamped with now.
+func NewService(tr *i18n.TranslationSet, reviews *store.ReviewStore, locks *store.Locks, asker *claude.Claude, copies CodeCopies, clones *git.Clones, answerer Answerer, session func() string, now func() string) *Service {
+	s := &Service{tr: tr, store: reviews, locks: locks, claude: asker, copies: copies, clones: clones, answerer: answerer, hook: guardCommand, session: session, now: now}
+	if s.session == nil {
+		s.session = newSession
+	}
 	if s.copies == nil {
 		s.copies = git.NewCopies(tr, nil, nil)
 	}

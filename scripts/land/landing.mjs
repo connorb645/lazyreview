@@ -35,7 +35,6 @@ const words = {
   steps: 'It will:',
   push: (commit, remote) => `  push ${commit} to main on ${remote}, without force`,
   move: commit => `  move main here to ${commit}, fast-forward only`,
-  restart: '  restart the app',
   refused: (remote, why) => `${remote} refused the push, so nothing has changed: ${why}`,
   refusedPartway: (remote, why) => `${remote} refused the push: ${why}`,
   remotesApart: (commit, took, left) => `the remotes are apart: main is at ${commit} on ${took}, but still at ${left}`,
@@ -124,13 +123,14 @@ export class Landing {
 }
 
 export function describe(plan) {
+  const steps = [
+    ...plan.remotes.filter(r => r.main !== plan.commit).map(r => words.push(plan.short, r.name)),
+    ...(plan.here === plan.commit ? [] : [words.move(plan.short)]),
+  ];
   return [
     words.landing(plan.branch, plan.short, plan.adds),
     ...plan.adds.map(line => `  ${line}`),
-    words.steps,
-    ...plan.remotes.filter(r => r.main !== plan.commit).map(r => words.push(plan.short, r.name)),
-    ...(plan.here === plan.commit ? [] : [words.move(plan.short)]),
-    words.restart,
+    ...(steps.length ? [words.steps, ...steps] : []),
   ];
 }
 

@@ -59,7 +59,6 @@ test('a branch lands on main on every remote and here, after saying what it brin
       `  push ${short} to main on mirror, without force`,
       `  push ${short} to main on origin, without force`,
       `  move main here to ${short}, fast-forward only`,
-      '  restart the app',
     ]);
     assert.equal(landing.land(plan), `main is at ${short} on mirror, origin and here.`);
     assert.deepEqual(repo.mains(), [feature, feature, feature]);
@@ -211,7 +210,6 @@ test('a push the second remote refuses leaves the remotes apart and says how to 
       'It will:',
       `  push ${short} to main on origin, without force`,
       `  move main here to ${short}, fast-forward only`,
-      '  restart the app',
     ]);
     assert.equal(landing.land(again), `main is at ${short} on mirror, origin and here.`);
     assert.deepEqual(repo.mains(), [feature, feature, feature]);
@@ -242,7 +240,7 @@ test('with main at the branch everywhere already, nothing is pushed or moved', (
     const landing = new Landing(repo.work);
     landing.land(landing.plan('feature'));
     const plan = landing.plan('feature');
-    assert.deepEqual(describe(plan), [`Landing feature at ${short}, which main here is at already.`, 'It will:', '  restart the app']);
+    assert.deepEqual(describe(plan), [`Landing feature at ${short}, which main here is at already.`]);
     assert.equal(landing.land(plan), `main is at ${short} on mirror, origin and here.`);
   } finally {
     repo.done();

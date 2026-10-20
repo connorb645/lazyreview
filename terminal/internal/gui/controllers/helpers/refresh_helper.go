@@ -114,8 +114,8 @@ func (self *RefreshHelper) HomeRelaid(s context.ContextTree) context.ContextTree
 	return s
 }
 
-// WithState is the state with the review's state as the server now gives
-// it, everything built again from it.
+// WithState is the state with the review's state as it now reads,
+// everything built again from it.
 func (self *RefreshHelper) WithState(s context.ContextTree, st models.State) context.ContextTree {
 	d := *s.Review
 	d.State = st

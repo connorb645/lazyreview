@@ -27,17 +27,19 @@ Code. It is tested on macOS.
     cd lazyreview
     bin/lazyreview load https://github.com/owner/repo/pull/12
 
-`load` starts the app on http://127.0.0.1:4747 and prints the address to
-open. The app listens on this machine only.
+`load` prints the review's address, such as
+`lazyreview://github.com/owner/repo/12`. lazyreview runs no server: the
+terminal app reads and writes the data home itself.
 
 To load a stack, name each pull request, bottom first. To load a branch with
 no pull request, name the folder, the base and the branch:
 
     bin/lazyreview load --repo ~/code/widgets --base main --head feature/search
 
-To open a review in the terminal app, give it the same link:
+To open a review in the terminal app, give it the address, or the same
+link:
 
-    bin/lazyreview terminal https://github.com/owner/repo/pull/12
+    bin/lazyreview terminal lazyreview://github.com/owner/repo/12
 
 The terminal app is laid out as in Lazygit, with Vim keys. `Space ?` lists
 every key.
@@ -61,12 +63,12 @@ Run the tests with `npm test`, and the terminal app's tests with
 
 In a clone, `make run` opens the terminal app on the home screen, and
 `make run URL=<address>` opens the review at an address `load` or `list`
-printed. Each starts the app first when it is not running, and says which.
+printed.
 
 To land a finished branch, run `make land BRANCH=<branch>` in a clone on
 `main`. It checks first, then moves `main` to the branch on every remote and
-in the clone, fast-forward only, and restarts the app. `make restart` only
-restarts the app.
+in the clone, fast-forward only. `lazyreview stop` stops every answer Claude
+is still giving.
 
 ## Licence
 

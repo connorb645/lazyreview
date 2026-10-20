@@ -16,7 +16,7 @@ import (
 )
 
 // DiffHelper opens the diff of the files the Files panel has chosen at a
-// place, loading their components' files from the server first when they
+// place, reading their components' files first when they
 // are not loaded yet, and moves and folds in it.
 type DiffHelper struct {
 	c *HelperCommon

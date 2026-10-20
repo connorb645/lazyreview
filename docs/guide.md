@@ -3,14 +3,15 @@
 Everything lazyreview does, and how to use it. The [README](../README.md)
 says what it needs and how to start.
 
-## Start the app
+## Nothing runs in the background
 
-    bin/lazyreview start      # in the background
-    bin/lazyreview serve      # or in this terminal
+lazyreview runs no server. The terminal app reads and writes the data home
+itself, and `load` loads a review and ends.
+
     bin/lazyreview stop
 
-It listens on http://127.0.0.1:4747, on this machine only. `load` starts it
-when it is not running, so starting it by hand is rarely needed.
+`stop` stops every answer Claude is still giving, and a server an older
+lazyreview left running. `start` only says that there is no server now.
 
 ## Load a pull request or a stack
 
@@ -25,7 +26,7 @@ branch of the one below:
 It prints what it loaded and where to open it:
 
     loaded #12, #13, #14: 24 files +966 -13, 8 components, 31 types
-    open http://127.0.0.1:4747/review/github.com/owner/repo/12
+    open lazyreview://github.com/owner/repo/12
 
 Loading again refreshes the review in place, as does `R` in the terminal
 app. A stack's review lives with its lowest pull request that
@@ -85,7 +86,7 @@ leaves the base to its head.
 It prints what it loaded and where to open it:
 
     loaded feature/search against main: 6 files +210 -14, 2 components, 5 types
-    open http://127.0.0.1:4747/review/local/widgets-1a2b3c4d/feature~search
+    open lazyreview://local/widgets-1a2b3c4d/feature~search
 
 The review is kept by repository and branch, so loading the same branch again,
 from any worktree of the repository, refreshes it in place, as does `R` in
@@ -101,15 +102,15 @@ each of them.
 Every review opens in the terminal app, with Vim keys.
 
     bin/lazyreview terminal
-    bin/lazyreview terminal http://127.0.0.1:4747/review/github.com/owner/repo/12
+    bin/lazyreview terminal lazyreview://github.com/owner/repo/12
     bin/lazyreview terminal https://github.com/owner/repo/pull/12
 
 With no link, it opens on the home screen of your open pull requests, below.
 With one, it opens that review straight away: the address `load` printed, or
 a pull request link. A pull request that no review holds yet is loaded first,
 as `load` loads it, so one command opens it. A review id, such as
-`github.com/owner/repo/12`, works too. It starts the server when it is not
-running, as `load` does, and says whether it started it or found it running.
+`github.com/owner/repo/12`, works too, and so does an address an older
+lazyreview printed, such as `http://127.0.0.1:4747/review/github.com/owner/repo/12`.
 The app is a Go program in `terminal/`, built on this machine the first time
 it runs and again whenever its code changes; building it needs Go 1.24 or
 later, and its libraries are vendored, so the build reaches no network.
@@ -338,9 +339,6 @@ folded to one line that says who wrote, how many comments there are, and
 whether it is resolved, outdated or waiting for Claude; `za` opens it. `R`
 reads them again.
 
-The server writes a token into `server.json` at each start, which only its
-owner can read, and the terminal app sends it with each change.
-
 ## Components and packages
 
 Without a config, files are grouped by folder, each group named by its
@@ -363,9 +361,23 @@ folder as it is on disk. A config names the parts:
 The most specific path wins. `links` name the relationships that explain the
 change, `summaries` put words on the arrow between two components, `groups`
 draw many look-alike types as one box, and `contextTypes` include or exclude
-unchanged types by name. The whole shape is at the top of
-`src/build/config/config.mjs`; a config with mistakes is refused with every
-mistake named.
+unchanged types by name. A config with mistakes is refused with every mistake
+named. Every key is optional:
+
+- `title`: the review's name; `summary`: one line saying what the change is,
+  in place of the line under the title.
+- `areas`: each `{id, title, description, components}`, a frame around some
+  components, by their ids.
+- `components`: each `{id, title, description, tag, color, group, context,
+  paths, packages}`, with `packages` each `{id, title, description, paths}`.
+  A component marked `context` holds only unchanged code.
+- `links`: each `{from, to, label, kind}`, `kind` being `use`, the default,
+  or `has`.
+- `summaries`: each `{from, to, label}`.
+- `groups`: each `{id, of, title, description}`, the types conforming to
+  `of`.
+- `contextTypes`: `{include, exclude, max}`, names always and never drawn,
+  and at most how many, 40 by default.
 
 ## Where things are kept
 
@@ -378,15 +390,12 @@ review, and one file per conversation. A branch's review lives under
 was read from; it is read from the repository itself, with no clone.
 
 Every setting is in the config, `config.yml`: the data home itself, the
-app's port, the Claude Code command and model, the editor and the accounts
-the home screen lists. [Config](Config.md)
-lists every setting, its default and the variable that overrides it, such
-as `LAZYREVIEW_HOME` for the data home and `LAZYREVIEW_PORT` for the port.
+Claude Code command and model, the editor and the accounts the home screen
+lists. [Config](Config.md) lists every setting, its default and the
+variable that overrides it, such as `LAZYREVIEW_HOME` for the data home and
+`LAZYREVIEW_EDITOR` for the editor.
 `lazyreview config check` prints them as read. An earlier version's
 `settings.json` is no longer read; `lazyreview config move` moves it in.
-
-The server answers only requests addressed to 127.0.0.1 or localhost, and
-takes changes only as JSON from a client carrying its token.
 
 ## Code
 
@@ -395,25 +404,17 @@ commands that run other programs sit apart from the logic that uses them,
 and the logic apart from what the user sees. [lazyreview and lazygit](lazygit.md)
 maps each part to lazygit's own.
 
-- `bin/lazyreview` is the command. `src/cli` reads its arguments and runs
-  one command; `src/app` reads the config and builds every service once.
-- `src/commands` runs every other program: git and the clones, `gh`, Claude
-  Code, the background server and the terminal app. `src/models` names a
+- `bin/lazyreview` is the command, in Node until it moves into Go.
+  `src/cli` reads its arguments and runs one command; `src/app` reads the
+  config and builds what a command uses.
+- `src/commands` runs the terminal app's program, which loads and opens
+  reviews, and stops an older lazyreview's server. `src/models` names a
   pull request, a branch or a review.
-- `src/loader` loads a review, of pull requests or of a branch; `src/build`
-  reads the diff, the types and the stack, and lays out the diagram with ELK
-  (`vendor/`). `src/queue` holds the queue's rules and the one way a review
-  is posted; `src/review` reads a written review and places GitHub's review
-  threads; `src/ask` asks Claude; `src/home` lists the open pull requests.
-  The terminal app now loads, queues, posts, asks Claude and lists the home
-  screen itself, and `lazyreview load` has it load; the server's loaders,
-  queue, conversations and lists stay as the reference its answers are
-  checked against until the server goes.
-- `src/store` keeps the files on disk, and `src/config` reads the config
-  for the command and the server.
-- `src/server` serves the JSON the terminal app reads and changes reviews
-  through. `src/i18n/english.mjs` holds every sentence of the command and
-  the server.
+- `src/review` checks a written review before `attach` keeps it; `src/ask`
+  asks every answer still running to end, for `stop`.
+- `src/store` keeps the files the command reads and writes, and
+  `src/config` reads the config for the command and `config`.
+  `src/i18n/english.mjs` holds every sentence of the command.
 - `terminal/` is the terminal app, in Go with Bubble Tea, Lip Gloss, Bubbles
   and Glamour, laid out as lazygit's own: `internal/gui` with its views,
   contexts, controllers and presentation, `internal/i18n/english.go` for its
@@ -429,12 +430,12 @@ maps each part to lazygit's own.
 Run the tests with `npm test`, and the terminal app's with `npm run
 test:terminal`. They make their own throwaway repositories and answer for
 GitHub and Claude Code with stand-ins, so they reach no network. The terminal
-app's tests read the server's answers from `terminal/testdata/record.json`,
-which a Node test checks against the server; when the server changes what it
-answers, `LAZYREVIEW_RECORD=1 npm test` writes it again, with the data home
-and GitHub's answers it was made from. A Go test checks that the Go code
-gives each answer it owns, from the same stand-in data home. In the same
-way, Node tests record how Node reads made-up code, stacks, configs, pages
-and whole loads, each as the commits that make its repository, in
-`terminal/testdata`, and Go tests build the same repositories and fail on
+app's screen tests read its answers from `terminal/testdata/record.json`. A
+Go test makes them from its own loads into a stand-in data home, and fails
+when they differ from the record; when what the app answers changes,
+`LAZYREVIEW_RECORD=1 go test ./internal/reviews` in `terminal/` writes it
+again, with the data home, GitHub's answers and Claude's questions it was
+made from. The other records in `terminal/testdata` hold how the code read
+made-up code, stacks, configs, pages and whole loads, each with the commits
+that make its repository; Go tests build the same repositories and fail on
 any answer that differs.

@@ -8,7 +8,7 @@ type HeadingPart struct {
 	Bold bool
 }
 
-// UnmarshalJSON reads a part as the server writes it, [text, bold].
+// UnmarshalJSON reads a part as page.json keeps it, [text, bold].
 func (p *HeadingPart) UnmarshalJSON(data []byte) error {
 	var pair [2]json.RawMessage
 	if err := json.Unmarshal(data, &pair); err != nil {

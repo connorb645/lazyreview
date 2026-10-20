@@ -1,16 +1,15 @@
 /**
- * Everything a test of loading and reviewing needs, wired together: a
- * throwaway repository holding a stack of two pull requests and a single one,
- * a fake gh answering for them, and a data home in a temporary folder.
+ * Everything a test of the command needs, wired together: a throwaway
+ * repository holding a stack of two pull requests and a single one, a fake
+ * gh answering for them, and a data home in a temporary folder.
  *
- * workbench() returns {repo, gh, home, store, loader, queue, routes, pulls,
- * env, configFile, config, done}. `routes(changes)` answers GitHub as the
- * repository now stands, with `changes` to the pull requests or extra
- * routes; `env` is the environment a child process needs to use the same
- * fake gh, data home and config folder, which is the data home, and holds no
- * LAZYREVIEW_ or XDG config variable this process inherited. `configFile` is
- * where the config goes, and `config()` reads it.
- * This process's own PATH points at the fake gh until done() is called.
+ * workbench() returns {repo, gh, home, routes, env, link, done}.
+ * `routes(changes)` answers GitHub as the repository now stands, with
+ * `changes` to the pull requests or extra routes; `env` is the environment
+ * a child process needs to use the same fake gh, data home and config
+ * folder, which is the data home, and holds no LAZYREVIEW_ or XDG config
+ * variable this process inherited. This process's own PATH points at the
+ * fake gh until done() is called.
  *
  * The repository's pull requests:
  *   #21  feature/search on main         adds Search, edits MemoryCatalog
@@ -24,10 +23,6 @@ import { throwawayRepo } from './throwaway-repo.mjs';
 import { fakeGh } from './fake-gh.mjs';
 import { githubRoutes } from './github-routes.mjs';
 import { DataHome } from '../../src/store/data-home.mjs';
-import { ReviewStore } from '../../src/store/review-store.mjs';
-import { Loader } from '../../src/loader/loader.mjs';
-import { QueueService } from '../../src/queue/queue-service.mjs';
-import { readUserConfig } from '../../src/config/user-config.mjs';
 
 export const PULLS = [
   { number: 21, base: 'main', head: 'feature/search', title: 'Add search to the catalog', author: 'sam', body: 'Adds a search over the catalog by name.' },
@@ -68,17 +63,10 @@ export function workbench() {
   routes();
 
   const root = mkdtempSync(join(tmpdir(), 'lazyreview-home-'));
-  const home = new DataHome(root);
-  const store = new ReviewStore(home);
-  let tick = 0;
-  const now = () => new Date(Date.UTC(2026, 9, 15, 12, 0, tick++)).toISOString();
   return {
-    repo, gh, home, store, routes,
-    loader: new Loader({ store, now }),
-    queue: new QueueService({ store, now }),
+    repo, gh, routes,
+    home: new DataHome(root),
     env: { ...gh.env, LAZYREVIEW_HOME: root, LAZYREVIEW_CONFIG_DIR: root },
-    configFile: join(root, 'config.yml'),
-    config: () => readUserConfig({ env: { LAZYREVIEW_HOME: root, LAZYREVIEW_CONFIG_DIR: root } }),
     link: n => `https://github.com/octo/widgets/pull/${n}`,
     done() {
       for (const [key, value] of Object.entries(before)) {

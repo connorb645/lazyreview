@@ -7,21 +7,8 @@
     "dataHome": {
       "type": "string",
       "pattern": "^(~|~/.*|/.*)$",
-      "description": "Where lazyreview keeps reviews, clones and the running app's files.",
+      "description": "Where lazyreview keeps reviews, clones and the copies of the code Claude answers in.",
       "default": "~/.lazyreview"
-    },
-    "server": {
-      "type": "object",
-      "properties": {
-        "port": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 65535,
-          "description": "The port the app listens on, on this machine only.",
-          "default": 4747
-        }
-      },
-      "additionalProperties": false
     },
     "claude": {
       "type": "object",

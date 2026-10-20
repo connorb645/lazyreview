@@ -41,15 +41,12 @@ test('config check prints every setting as read, and where it came from', async 
     writeFileSync(s.file, 'server:\n  port: 4748\ngithub:\n  accounts:\n    - login: lee\nkeybinding:\n  universal:\n    web: gW\n');
     const checked = await run(['config', 'check'], { ...s.env, LAZYREVIEW_MODEL: 'claude-sonnet' });
     assert.equal(checked.code, 0, checked.stderr);
-    const [head, theme] = checked.stdout.replace(/\n\n# keybinding\.universal\.web .*\n$/, '\n').split('\ngui:\n');
+    const [head, theme] = checked.stdout.replace(/\n\n# server .*\n# keybinding\.universal\.web .*\n$/, '\n').split('\ngui:\n');
     assert.ok(theme.trimEnd().split('\n').every(line => !line || /^ *\w+:( +# [A-Za-z ]+)?$|# default$/.test(line)), 'every colour and key is its default');
     assert.equal(head, [
       `the config at ${s.file}, on top of the defaults:`,
       '',
       `dataHome: ${join(s.home, '.lazyreview')}`.padEnd(38) + ' # default',
-      '',
-      'server:',
-      '  port: 4748                           # the file',
       '',
       'claude:',
       '  command: claude                      # default',
@@ -66,7 +63,7 @@ test('config check prints every setting as read, and where it came from', async 
       '',
     ].join('\n'));
     assert.match(theme, /^ {4}dark:\n {6}defaultFgColor: '#f1f0fb' +# default\n/m);
-    assert.match(checked.stdout, /\n\n# keybinding\.universal\.web does nothing now, so it can go: lazyreview has no web app; keybinding\.reviewView\.drawings opens a written review's drawings in the browser\n$/);
+    assert.match(checked.stdout, /\n\n# server does nothing now, so it can go: lazyreview runs no server now; lazyreview terminal opens the app\n# keybinding\.universal\.web does nothing now, so it can go: lazyreview has no web app; keybinding\.reviewView\.drawings opens a written review's drawings in the browser\n$/);
   } finally {
     s.done();
   }
@@ -75,8 +72,10 @@ test('config check prints every setting as read, and where it came from', async 
 test('a config with a mistake stops a command, naming the file and what is wrong, and help, config path and config defaults still work', async () => {
   const s = standIn();
   try {
-    writeFileSync(s.file, 'server:\n  port: abc\n');
-    assert.deepEqual(await run(['list'], s.env), { code: 1, stdout: '', stderr: `lazyreview: ${s.file} gives server.port "abc", which is not a port number from 1 to 65535\n` });
+    writeFileSync(s.file, 'gui:\n  lineNumbers: sideways\n');
+    const listed = await run(['list'], s.env);
+    assert.equal(listed.code, 1);
+    assert.match(listed.stderr, new RegExp(`^lazyreview: ${s.file.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} gives gui\\.lineNumbers "sideways", `));
     assert.equal((await run(['config', 'check'], s.env)).code, 1);
     for (const args of [['help'], ['config', 'path'], ['config', 'defaults']]) assert.equal((await run(args, s.env)).code, 0, args.join(' '));
   } finally {
@@ -90,14 +89,14 @@ test('config move moves settings.json and the variables into the config, after a
     const data = join(s.home, '.lazyreview');
     mkdirSync(data);
     writeFileSync(join(data, 'settings.json'), '{"accounts": [{"login": "lee"}]}');
-    const env = { ...s.env, LAZYREVIEW_PORT: '4748' };
+    const env = { ...s.env, LAZYREVIEW_MODEL: 'claude-sonnet' };
     const checked = await run(['config', 'move', '--check'], env);
     assert.equal(checked.code, 0, checked.stderr);
     assert.match(checked.stdout, /^would write .*config\.yml:\n[\s\S]*\nnothing was written; lazyreview config move makes the move\n$/);
     assert.ok(!existsSync(s.file));
     const moved = await run(['config', 'move'], env);
     assert.equal(moved.code, 0, moved.stderr);
-    assert.equal(readFileSync(s.file, 'utf8'), '# yaml-language-server: $schema=https://raw.githubusercontent.com/connorb645/lazyreview/main/schema/config.json\n# lazyreview\'s config. docs/Config.md lists every setting and its default.\nserver:\n  port: 4748\ngithub:\n  accounts:\n    - login: lee\n');
+    assert.equal(readFileSync(s.file, 'utf8'), '# yaml-language-server: $schema=https://raw.githubusercontent.com/connorb645/lazyreview/main/schema/config.json\n# lazyreview\'s config. docs/Config.md lists every setting and its default.\nclaude:\n  model: claude-sonnet\ngithub:\n  accounts:\n    - login: lee\n');
     assert.ok(existsSync(join(data, 'settings.json.moved')));
     assert.match((await run(['config', 'move'], env)).stderr, /exists already, and the move never overwrites a config\n$/);
   } finally {

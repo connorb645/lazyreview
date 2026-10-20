@@ -36,7 +36,7 @@ func (r DiffRow) At() (string, int, bool) {
 	return "", 0, false
 }
 
-// Words are what the server says of the row's line, if anything.
+// Words are what the queue says of the row's line, if anything.
 func (r DiffRow) Words() string {
 	for _, l := range []*models.Row{r.Line, r.Right, r.Left} {
 		if l != nil && l.Words != "" {

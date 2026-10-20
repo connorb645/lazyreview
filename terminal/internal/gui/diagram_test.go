@@ -52,27 +52,26 @@ func TestTheDiagramStepsInAndOutOfItsLevels(t *testing.T) {
 
 func TestTheFocusMovesBetweenTheBoxes(t *testing.T) {
 	a := onDiagram(t)
-	focusedOn(t, a, "MemoryCatalog")
-	a = press(t, a, "j")
 	focusedOn(t, a, "Basket")
 	a = press(t, a, "j")
 	focusedOn(t, a, "Search")
 	a = press(t, a, "j")
-	focusedOn(t, a, "Search")
+	focusedOn(t, a, "MemoryCatalog")
+	a = press(t, a, "j")
+	focusedOn(t, a, "MemoryCatalog")
 	a = press(t, a, "g", "g")
-	focusedOn(t, a, "MemoryCatalog")
-	a = press(t, a, "G")
-	focusedOn(t, a, "Search")
-	a = press(t, a, "b")
 	focusedOn(t, a, "Basket")
-	a = press(t, a, "2", "k")
+	a = press(t, a, "G")
 	focusedOn(t, a, "MemoryCatalog")
+	a = press(t, a, "b")
+	focusedOn(t, a, "Search")
+	a = press(t, a, "2", "k")
+	focusedOn(t, a, "Basket")
 	screenIs(t, a, "diagram-focus")
 }
 
 func TestTheFocusedBoxListsItsLinksAndProperties(t *testing.T) {
-	a := press(t, onDiagram(t), "j")
-	a = press(t, a, "space", "l")
+	a := press(t, onDiagram(t), "space", "l")
 	screenIs(t, a, "diagram-links")
 	a = press(t, a, "j", "enter")
 	focusedOn(t, a, "Search")
@@ -90,6 +89,8 @@ func TestTheFocusedBoxListsItsLinksAndProperties(t *testing.T) {
 func TestGdFollowsALinkAndGrListsWhatLinksIn(t *testing.T) {
 	a := onDiagram(t)
 	a = typed(t, press(t, a, "/"), "Catalog")
+	focusedOn(t, a, "MemoryCatalog")
+	a = press(t, a, "n")
 	focusedOn(t, a, "Catalog")
 	if a.Diagram.Level.Component != "context" {
 		t.Fatalf("a match in another component shows its level: %+v", a.Diagram.Level)
@@ -109,7 +110,7 @@ func TestGdFollowsALinkAndGrListsWhatLinksIn(t *testing.T) {
 }
 
 func TestEnterOpensATypesDiffAndDashComesBack(t *testing.T) {
-	a := press(t, onDiagram(t), "j", "enter")
+	a := press(t, onDiagram(t), "enter")
 	if a.Screen() != context.ScreenDiff || cursorAt(a) != "Sources/Basket/Basket.swift RIGHT 1" {
 		t.Fatalf("Enter on a type opens its line: %v %s", a.Screen(), cursorAt(a))
 	}
@@ -163,12 +164,12 @@ func TestLabelsJumpToABox(t *testing.T) {
 	a := press(t, onDiagram(t), "f")
 	screenIs(t, a, "diagram-labels")
 	a = press(t, a, "d")
-	focusedOn(t, a, "Search")
+	focusedOn(t, a, "MemoryCatalog")
 	if a.Diagram.Labels != nil {
 		t.Fatal("the labels go once one is typed")
 	}
 	a = press(t, a, "f", "x")
-	focusedOn(t, a, "Search")
+	focusedOn(t, a, "MemoryCatalog")
 	if !a.Bad || a.Diagram.Labels != nil {
 		t.Fatalf("a label no box has stops the labels: %q", a.Notice)
 	}

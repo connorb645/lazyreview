@@ -29,14 +29,15 @@ test('with no config every setting has its default, the data home in the home fo
 });
 
 test('the file is read on top of the defaults, group by group, and a list replaces the default whole', () => {
-  const { values, sources } = read('server:\n  port: 4748\nclaude:\n  model: claude-sonnet\ngithub:\n  accounts:\n    - login: lee\n    - login: lee-at-work\n      teams:\n        - name: example-org/mobile\n          since: 2026-10-01\n        - name: example-org/web\n');
-  assert.equal(values.server.port, 4748);
+  const { values, sources, unused } = read('server:\n  port: 4748\nclaude:\n  model: claude-sonnet\ngithub:\n  accounts:\n    - login: lee\n    - login: lee-at-work\n      teams:\n        - name: example-org/mobile\n          since: 2026-10-01\n        - name: example-org/web\n');
+  assert.equal(values.server, undefined, 'the server group does nothing now');
+  assert.deepEqual(unused, ['server']);
   assert.deepEqual(values.claude, { command: 'claude', model: 'claude-sonnet' });
   assert.deepEqual(values.github.accounts, [
     { login: 'lee', teams: [] },
     { login: 'lee-at-work', teams: [{ name: 'example-org/mobile', since: '2026-10-01' }, { name: 'example-org/web', since: null }] },
   ], 'a date stays text');
-  assert.deepEqual([sources['server.port'], sources['claude.command'], sources['claude.model'], sources['github.accounts']], ['file', 'default', 'file', 'file']);
+  assert.deepEqual([sources['claude.command'], sources['claude.model'], sources['github.accounts']], ['default', 'file', 'file']);
   assert.equal(read('dataHome: ~/reviews\n').values.dataHome, '/home/lee/reviews');
   assert.deepEqual(read('').values, read('# only a comment\n').values, 'an empty file means every default');
 });
@@ -52,12 +53,11 @@ test('the theme merges colour by colour, so a file can change one colour or one 
 test('each variable overrides its setting, over the file, and says so', () => {
   const f = folder('server:\n  port: 4748\nos:\n  editor: nano\n');
   try {
-    const env = { ...f.env, LAZYREVIEW_HOME: '/srv/lr', LAZYREVIEW_PORT: '4749', LAZYREVIEW_CLAUDE: '/opt/claude', LAZYREVIEW_MODEL: 'claude-opus', LAZYREVIEW_EDITOR: 'nvim' };
+    const env = { ...f.env, LAZYREVIEW_HOME: '/srv/lr', LAZYREVIEW_PORT: 'x', LAZYREVIEW_CLAUDE: '/opt/claude', LAZYREVIEW_MODEL: 'claude-opus', LAZYREVIEW_EDITOR: 'nvim' };
     const config = readUserConfig({ env, home: '/home/lee' });
-    assert.deepEqual(config.values, { ...defaults(), dataHome: '/srv/lr', server: { port: 4749 }, claude: { command: '/opt/claude', model: 'claude-opus' }, os: { editor: 'nvim' }, github: { accounts: [], hiddenRepositories: [] } });
-    assert.deepEqual(Object.entries(config.sources).filter(([key]) => !key.startsWith('gui.') && !key.startsWith('keybinding.')), [['dataHome', 'LAZYREVIEW_HOME'], ['server.port', 'LAZYREVIEW_PORT'], ['claude.command', 'LAZYREVIEW_CLAUDE'], ['claude.model', 'LAZYREVIEW_MODEL'], ['os.editor', 'LAZYREVIEW_EDITOR'], ['github.accounts', 'default'], ['github.hiddenRepositories', 'default']]);
-    assert.equal(readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: '' }, home: '/home/lee' }).values.server.port, 4748, 'an empty variable is not set');
-    assert.throws(() => readUserConfig({ env: { ...f.env, LAZYREVIEW_PORT: 'x' }, home: '/home/lee' }), /^Error: LAZYREVIEW_PORT must be a port number, not "x"$/);
+    assert.deepEqual(config.values, { ...defaults(), dataHome: '/srv/lr', claude: { command: '/opt/claude', model: 'claude-opus' }, os: { editor: 'nvim' }, github: { accounts: [], hiddenRepositories: [] } });
+    assert.deepEqual(Object.entries(config.sources).filter(([key]) => !key.startsWith('gui.') && !key.startsWith('keybinding.')), [['dataHome', 'LAZYREVIEW_HOME'], ['claude.command', 'LAZYREVIEW_CLAUDE'], ['claude.model', 'LAZYREVIEW_MODEL'], ['os.editor', 'LAZYREVIEW_EDITOR'], ['github.accounts', 'default'], ['github.hiddenRepositories', 'default']]);
+    assert.equal(readUserConfig({ env: { ...f.env, LAZYREVIEW_EDITOR: '' }, home: '/home/lee' }).values.os.editor, 'nano', 'an empty variable is not set');
   } finally {
     f.done();
   }
@@ -92,10 +92,8 @@ test('a file that is not YAML says why, and where', () => {
 test('every mistake in the file is named at once, each with what it must be', () => {
   const one = (text, words) => assert.throws(() => read(text), new RegExp(`^Error: ${PATH.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} ${words}$`), text);
   one('keybindings:\n  quit: q\n', 'sets keybindings, which is not a setting');
-  one('server:\n  host: example\n', 'sets server.host, which is not a setting');
-  one('server: 4747\n', 'gives server 4747, which is not a group of settings');
-  one('server:\n  port: abc\n', 'gives server.port "abc", which is not a port number from 1 to 65535');
-  one('server:\n  port: 70000\n', 'gives server.port 70000, which is not a port number from 1 to 65535');
+  one('claude:\n  host: example\n', 'sets claude.host, which is not a setting');
+  one('claude: 4747\n', 'gives claude 4747, which is not a group of settings');
   one('dataHome: reviews\n', 'gives dataHome "reviews", which is not a full path, or one starting with ~/');
   one('claude:\n  command: \'\'\n', 'gives claude.command "", which is not a command');
   one('os:\n  editor: 3\n', 'gives os.editor 3, which is not text');
@@ -114,7 +112,7 @@ test('every mistake in the file is named at once, each with what it must be', ()
   one('github:\n  hiddenRepositories: [octo]\n', 'gives github.hiddenRepositories "octo", which is not a repository as owner/name, or owner/\\* for every repository of the owner');
   one("gui:\n  theme:\n    dark:\n      pullRequestColors: ['#ffffff']\n", 'gives gui.theme.dark.pullRequestColors \\["#ffffff"\\], which is not a list of 8 colours');
   one('gui:\n  theme:\n    dark:\n      componentColors: {cyan: "#00ffff"}\n', 'sets gui.theme.dark.componentColors.cyan, which is not a setting');
-  assert.throws(() => read('server:\n  port: abc\nkeybindings: {}\n'), new RegExp(`^Error: ${PATH.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} has 2 problems:\n  - gives server.port "abc", which is not a port number from 1 to 65535\n  - sets keybindings, which is not a setting$`));
+  assert.throws(() => read('dataHome: reviews\nkeybindings: {}\n'), new RegExp(`^Error: ${PATH.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} has 2 problems:\n  - gives dataHome "reviews", which is not a full path, or one starting with ~/\n  - sets keybindings, which is not a setting$`));
 });
 
 test('the hidden repositories are a list of owner/name and owner/*, any case, and an empty setting hides none', () => {

@@ -11,7 +11,7 @@
  * config's comments, `note` is the words beside a section's name, and a
  * section with `flow` is written on one line. defaults() returns the default config as plain values,
  * and leaves(section) every setting with its dotted key, such as
- * "server.port", in the tree's order. PATTERNS are what a login, a team's
+ * "claude.command", in the tree's order. PATTERNS are what a login, a team's
  * name, a hidden repository and a date must match, as regular expressions' sources. RETIRED
  * names, by dotted key, each setting lazyreview no longer has, with what
  * does its work now. UNUSED names each setting a config may still hold that
@@ -36,6 +36,7 @@ export const RETIRED = Object.freeze({
 
 export const UNUSED = Object.freeze({
   'keybinding.universal.web': english.config.unusedWhy.web,
+  server: english.config.unusedWhy.server,
 });
 
 const setting = fields => Object.freeze({ kind: 'setting', env: null, example: [], ...fields });
@@ -104,9 +105,6 @@ const LIGHT = {
 
 export const SCHEMA = section({
   dataHome: setting({ check: 'folder', default: '~/.lazyreview', env: 'LAZYREVIEW_HOME', about: words.dataHome }),
-  server: section({
-    port: setting({ check: 'port', default: 4747, env: 'LAZYREVIEW_PORT', about: words.port }),
-  }),
   claude: section({
     command: setting({ check: 'command', default: 'claude', env: 'LAZYREVIEW_CLAUDE', about: words.claudeCommand }),
     model: setting({ check: 'text', default: '', env: 'LAZYREVIEW_MODEL', about: words.claudeModel }),

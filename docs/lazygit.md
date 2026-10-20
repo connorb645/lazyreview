@@ -2,8 +2,8 @@
 
 lazyreview takes lazygit's way of laying out a program: its folders, its
 layers, its strings, its theme and its config. Each part takes it in its
-own language. The terminal app is Go, as lazygit is; the command and the
-server stay JavaScript until they move into Go.
+own language. The terminal app is Go, as lazygit is; the command stays
+JavaScript until it moves into Go.
 
 A citation starting `lazygit:` names a file and line of lazygit at
 `v0.63.0`. Every other path is in this repository.
@@ -116,7 +116,7 @@ A citation starting `lazygit:` names a file and line of lazygit at
   accounts and hidden repositories, which `internal/home` reads at each
   list and each change. A terminal session is short.
 
-## The command and the server
+## The command
 
 ### What lazygit does
 
@@ -130,26 +130,25 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 ### What lazyreview adopts, and where
 
-- `src/commands` runs every other program: `git` and the bare clones,
-  `gh`, Claude Code, the background server and the terminal app. Nothing
-  else does, and `test/layers.test.mjs` checks it.
+- `src/commands` runs every other program: the terminal app's program, and
+  a stop to a server an older lazyreview left running. Nothing else does,
+  and `test/layers.test.mjs` checks it.
 - `src/models` holds the refs that name a pull request, a branch or a
   review, as plain values.
-- `src/app` reads the config and builds every service once, and runs the
-  server; `src/cli` reads the arguments and runs one command.
-- `src/i18n/english.mjs` holds every sentence of the command and the
-  server, as one frozen object by area; a sentence with values is a
-  function. A test fails when an error is made from written words anywhere
+- `src/app` reads the config and builds what a command uses once; `src/cli`
+  reads the arguments and runs one command.
+- `src/i18n/english.mjs` holds every sentence of the command, as one
+  frozen object by area; a sentence with values is a function. A test fails when an error is made from written words anywhere
   else.
 - `test/layers.test.mjs` checks the direction of every import: the commands
   use only Node, the models and the strings; the logic and the store never
-  reach the server, the command line or the start.
+  reach the command line or the start.
 
 ### What it leaves out, and why
 
 - Views, contexts and controllers. The command has no screen: what it
-  presents is the server's answers and the command's lines, which keep
-  their place and take their words from the strings.
+  presents is its lines, which keep their place and take their words from
+  the strings.
 
 ## The config
 
@@ -216,8 +215,8 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 ## Choices made in the building
 
-- Two modules that run programs had touched files on disk. The clones'
-  lock moved into the loader, and the background server's record into
+- A module that runs programs must not touch files on disk: the clones'
+  lock lives in the loader, and an older server's record is read in
   `src/app`, so the commands run programs and nothing else.
 - The menu and the finder share one popup, so opening one closes the
   other, as before. Popups sit on the focus stack in a fixed order.

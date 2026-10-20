@@ -1,5 +1,5 @@
-// Package gui is the terminal app: the panels and the keys, drawn from what
-// the lazyreview server answers.
+// Package gui is the terminal app: the panels and the keys, drawn from the
+// reviews it is given.
 package gui
 
 import (
@@ -66,8 +66,7 @@ func New(cmn *common.Common, opts Options) App {
 	return a
 }
 
-// Init asks the server for the review to open, or for the home screen's
-// open pull requests.
+// Init reads the review to open, or the home screen's open pull requests.
 func (a App) Init() tea.Cmd {
 	if a.Opening == "" {
 		return a.helpers.Home.ReadPulls()
@@ -75,8 +74,8 @@ func (a App) Init() tea.Cmd {
 	return a.helpers.Review.Load(a.Opening)
 }
 
-// Update takes one message, such as a key, a click, or an answer from the
-// server, and returns the app as it then stands.
+// Update takes one message, such as a key, a click, or a review read, and
+// returns the app as it then stands.
 func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	h, s := a.helpers, a.ContextTree
 	var cmd tea.Cmd

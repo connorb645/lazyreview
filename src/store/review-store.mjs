@@ -1,26 +1,22 @@
 /**
  * Reads and writes the reviews kept under the data home.
  *
- * Reading never locks, and a review's page is parsed once per build: the
- * page readPage gives is shared by every caller, and frozen. A change goes
- * through change(refs, work): it locks
+ * Reading never locks. A change goes through change(refs, work): it locks
  * the folders of every review in `refs`, runs `work`, and writes the files
  * `work` returns, as [[path, text]] where null text removes the file. The
  * writes are all-or-nothing: a failure partway puts back every file it had
  * written, and each file is replaced whole, never left half written.
  */
-import { rmSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { rmSync, mkdirSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { withLocks } from './file-lock.mjs';
-import { writeWhole, readText, readJSON, parseJSON } from './whole-file.mjs';
-import { pageBuild } from './page-build.mjs';
+import { writeWhole, readText, readJSON } from './whole-file.mjs';
 import { PullRef } from '../models/pull-ref.mjs';
 import { BranchRef } from '../models/branch-ref.mjs';
 import { english } from '../i18n/english.mjs';
 
 export class ReviewStore {
   #home;
-  #pages = new Map();
 
   constructor(home) {
     this.#home = home;
@@ -33,49 +29,6 @@ export class ReviewStore {
   /** The review whose id `ref` gives, or null when there is none. */
   read(ref) {
     return readJSON(this.#home.review(ref).record);
-  }
-
-  /** The page data of a review with its build id, as {build, page}, or null. */
-  readPage(ref) {
-    const path = this.#home.review(ref).page;
-    const text = readText(path);
-    if (text === null) return null;
-    const build = pageBuild(text);
-    const kept = this.#pages.get(ref.id);
-    if (kept && kept.build === build) return kept;
-    const read = Object.freeze({ build, page: frozen(parseJSON(path, text)) });
-    this.#pages.set(ref.id, read);
-    return read;
-  }
-
-  /** The build id of a review's page, or null when it has none. */
-  pageBuild(ref) {
-    const text = readText(this.#home.review(ref).page);
-    return text === null ? null : pageBuild(text);
-  }
-
-  readWritten(ref) {
-    return readText(this.#home.review(ref).written);
-  }
-
-  readConfig(ref) {
-    return readJSON(this.#home.review(ref).config);
-  }
-
-  /** Every conversation on the review's lines, oldest first. */
-  threads(ref) {
-    const folder = this.#home.review(ref);
-    if (!existsSync(folder.threads)) return [];
-    return readdirSync(folder.threads)
-      .filter(name => /^\d+\.json$/.test(name))
-      .map(name => readJSON(join(folder.threads, name)))
-      .filter(Boolean)
-      .sort((a, b) => a.id - b.id);
-  }
-
-  /** The review threads on GitHub as the last load read them, none for a review that keeps none. */
-  githubThreads(ref) {
-    return readJSON(this.#home.review(ref).github) || [];
   }
 
   /** Every review kept, of pull requests and of branches, each {ref, review}, newest load first. */
@@ -110,22 +63,12 @@ export class ReviewStore {
     return own ? { ref, review: own } : null;
   }
 
-  /** Every review of one repository, each {ref, review}. */
-  inRepository(host, repo) {
-    return this.#reviewsIn(host, repo);
-  }
-
   #reviewsIn(host, repo) {
     return folders(this.#home.repository(host, repo))
       .filter(name => /^\d+$/.test(name))
       .map(name => new PullRef(host, repo, Number(name)))
       .map(ref => ({ ref, review: this.read(ref) }))
       .filter(entry => entry.review);
-  }
-
-  /** A file write that puts `value` in a review's record. */
-  recordWrite(ref, value) {
-    return [this.#home.review(ref).record, JSON.stringify(value, null, 2) + '\n'];
   }
 
   async change(refs, work) {
@@ -137,14 +80,6 @@ export class ReviewStore {
       return result;
     });
   }
-}
-
-function frozen(value) {
-  if (value && typeof value === 'object') {
-    for (const inner of Object.values(value)) frozen(inner);
-    Object.freeze(value);
-  }
-  return value;
 }
 
 function writeAll(files) {

@@ -132,14 +132,6 @@ func overridden(tr *i18n.TranslationSet, read Read, getenv func(string) string) 
 	section := func(name string) map[string]any { return read.Values[name].(map[string]any) }
 	return errors.Join(
 		set("dataHome", "LAZYREVIEW_HOME", func(given string) error { read.Values["dataHome"] = absolutePath(given); return nil }),
-		set("server.port", "LAZYREVIEW_PORT", func(given string) error {
-			port, err := strconv.ParseFloat(strings.TrimSpace(given), 64)
-			if n, ok := whole(port); err != nil || strings.TrimSpace(given) == "" || !ok || n < 1 || n > 65535 {
-				return errors.New(utils.ResolvePlaceholderString(tr.ConfigBadPort, map[string]string{"value": given}))
-			}
-			section("server")["port"] = port
-			return nil
-		}),
 		set("claude.command", "LAZYREVIEW_CLAUDE", func(given string) error { section("claude")["command"] = given; return nil }),
 		set("claude.model", "LAZYREVIEW_MODEL", func(given string) error { section("claude")["model"] = given; return nil }),
 		set("os.editor", "LAZYREVIEW_EDITOR", func(given string) error { section("os")["editor"] = given; return nil }),

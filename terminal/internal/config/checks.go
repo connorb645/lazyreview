@@ -29,11 +29,6 @@ func check(tr *i18n.TranslationSet, s *Setting, key string, value any) (any, []s
 			return text, nil
 		}
 		return nil, say(tr.ConfigNotAFolder)
-	case "port":
-		if n, ok := whole(value); ok && n >= 1 && n <= 65535 {
-			return float64(n), nil
-		}
-		return nil, say(tr.ConfigNotAPort)
 	case "command":
 		if isText && strings.TrimSpace(text) != "" {
 			return text, nil

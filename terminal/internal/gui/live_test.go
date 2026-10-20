@@ -89,7 +89,7 @@ func TestANewBuildLoadsInPlaceUnlessADraftIsOpen(t *testing.T) {
 	if a.Screen() != context.ScreenDiagram {
 		t.Fatalf("the reload left the diagram for %v", a.Screen())
 	}
-	focusedOn(t, a, "Basket")
+	focusedOn(t, a, "Search")
 }
 
 // R in the Diagram panel names its boxes as the review now draws them,

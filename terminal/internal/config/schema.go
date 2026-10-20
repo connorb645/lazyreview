@@ -55,7 +55,6 @@ func Schema(tr *i18n.TranslationSet) *Section {
 	lineNumbers.Setting.Choices = []string{"absolute", "relative", "none"}
 	return &Section{Entries: []Entry{
 		named("dataHome", setting("folder", "~/.lazyreview", "LAZYREVIEW_HOME", tr.ConfigAboutDataHome)),
-		{Name: "server", Section: &Section{Entries: []Entry{named("port", setting("port", float64(4747), "LAZYREVIEW_PORT", tr.ConfigAboutPort))}}},
 		{Name: "claude", Section: &Section{Entries: []Entry{
 			named("command", setting("command", "claude", "LAZYREVIEW_CLAUDE", tr.ConfigAboutClaudeCommand)),
 			named("model", setting("text", "", "LAZYREVIEW_MODEL", tr.ConfigAboutClaudeModel)),
@@ -85,7 +84,7 @@ func Retired(tr *i18n.TranslationSet) map[string]string {
 // Unused is each setting a config may still hold that does nothing now, by
 // its dotted key, with why, so a config that set it still reads.
 func Unused(tr *i18n.TranslationSet) map[string]string {
-	return map[string]string{"keybinding.universal.web": tr.ConfigUnusedWeb}
+	return map[string]string{"keybinding.universal.web": tr.ConfigUnusedWeb, "server": tr.ConfigUnusedServer}
 }
 
 // Defaults is the default config of a section, as values: each section a

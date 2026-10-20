@@ -1,6 +1,6 @@
 // Package helpers holds the steps several controllers share, each a pure
 // function of the state that gives the next state and what to run. Only
-// helpers reach the server and the programs of the machine.
+// helpers reach the reviews and the programs of the machine.
 package helpers
 
 // Helpers are every helper, built once and shared by every controller.

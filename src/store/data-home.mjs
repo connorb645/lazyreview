@@ -8,12 +8,14 @@
  *   reviews/local/<repo key>/<branch>/        one folder per branch review
  *   copies/<review id>/<conversation>/        a throwaway copy of the code,
  *                                             one per conversation with Claude
- *   server.json, server.log                   the running app, while it runs
+ *   server.json                               a server an older lazyreview
+ *                                             left running, until stop stops it
  *   settings.json                             the accounts, before the config held them;
  *                                             no longer read, and moved by
  *                                             lazyreview config move
  *
- * DataHome only names paths. It reads and writes nothing.
+ * The terminal app keeps the clones and copies. DataHome names only the
+ * paths the command uses, and reads and writes nothing.
  */
 import { join } from 'node:path';
 import { ReviewFolder } from './review-folder.mjs';
@@ -22,11 +24,6 @@ export class DataHome {
   constructor(root) {
     this.root = root;
     Object.freeze(this);
-  }
-
-  /** The bare clone of `repo` (owner/name) on `host`. */
-  clone(host, repo) {
-    return join(this.root, 'clones', host, `${repo}.git`);
   }
 
   get reviews() {
@@ -43,21 +40,6 @@ export class DataHome {
     return join(this.reviews, 'local');
   }
 
-  /** The bare clone of a repository on this machine, by its BranchRef key. */
-  localClone(repoKey) {
-    return join(this.root, 'clones', 'local', `${repoKey}.git`);
-  }
-
-  /** The folder holding every throwaway copy of the code. */
-  get copies() {
-    return join(this.root, 'copies');
-  }
-
-  /** The throwaway copy of the code for conversation `id` of the review a ref names. */
-  copy(ref, id) {
-    return join(this.copies, ...ref.id.split('/'), String(id));
-  }
-
   /** The folder holding every review of one repository. */
   repository(host, repo) {
     return join(this.reviews, host, ...repo.split('/'));
@@ -65,13 +47,5 @@ export class DataHome {
 
   get serverFile() {
     return join(this.root, 'server.json');
-  }
-
-  get serverLog() {
-    return join(this.root, 'server.log');
-  }
-
-  get settingsFile() {
-    return join(this.root, 'settings.json');
   }
 }

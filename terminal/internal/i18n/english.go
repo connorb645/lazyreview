@@ -723,7 +723,6 @@ type TranslationSet struct {
 	CommitMissing        string
 
 	ConfigAboutDataHome             string
-	ConfigAboutPort                 string
 	ConfigAboutClaudeCommand        string
 	ConfigAboutClaudeModel          string
 	ConfigAboutEditor               string
@@ -755,7 +754,6 @@ type TranslationSet struct {
 	ConfigUnusedWeb                 string
 	ConfigNotASection               string
 	ConfigNotAFolder                string
-	ConfigNotAPort                  string
 	ConfigNotACommand               string
 	ConfigNotText                   string
 	ConfigNotAChoice                string
@@ -779,7 +777,6 @@ type TranslationSet struct {
 	ConfigTeamNotNamed              string
 	ConfigTeamKey                   string
 	ConfigSinceNotDate              string
-	ConfigBadPort                   string
 	ConfigNotMoved                  string
 	ConfigSchemaTitle               string
 	ConfigSchemaDescription         string
@@ -895,6 +892,8 @@ type TranslationSet struct {
 	NothingLoadedHowToClose string
 	LoadAgainTitle          string
 	LoadTitle               string
+
+	ConfigUnusedServer string
 }
 
 // EnglishTranslationSet is the strings in English.
@@ -1617,8 +1616,7 @@ func EnglishTranslationSet() *TranslationSet {
 		GitFailed:            "git {{.command}} failed: {{.why}}",
 		CommitMissing:        "commit {{.commit}} is no longer in {{.repo}}; load the review again",
 
-		ConfigAboutDataHome:             "Where lazyreview keeps reviews, clones and the running app's files.",
-		ConfigAboutPort:                 "The port the app listens on, on this machine only.",
+		ConfigAboutDataHome:             "Where lazyreview keeps reviews, clones and the copies of the code Claude answers in.",
 		ConfigAboutClaudeCommand:        "The Claude Code command that answers a question about a line.",
 		ConfigAboutClaudeModel:          "The model that answers. Empty: Claude Code's own default.",
 		ConfigAboutEditor:               "The command that opens a comment, a question or an edit.\nEmpty: VISUAL, then EDITOR, then vi, as git chooses.",
@@ -1650,7 +1648,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ConfigUnusedWeb:                 "lazyreview has no web app; keybinding.reviewView.drawings opens a written review's drawings in the browser",
 		ConfigNotASection:               "gives {{.key}} {{.value}}, which is not a group of settings",
 		ConfigNotAFolder:                "gives {{.key}} {{.value}}, which is not a full path, or one starting with ~/",
-		ConfigNotAPort:                  "gives {{.key}} {{.value}}, which is not a port number from 1 to 65535",
 		ConfigNotACommand:               "gives {{.key}} {{.value}}, which is not a command",
 		ConfigNotText:                   "gives {{.key}} {{.value}}, which is not text",
 		ConfigNotAChoice:                "gives {{.key}} {{.value}}, which is not {{.choices}} or {{.last}}",
@@ -1674,7 +1671,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ConfigTeamNotNamed:              "gives {{.login}} a team that is not named as organisation/team",
 		ConfigTeamKey:                   "gives {{.team}} \"{{.key}}\", which a team does not have",
 		ConfigSinceNotDate:              "gives {{.team}} a \"since\" that is not a date such as 2026-10-01",
-		ConfigBadPort:                   "LAZYREVIEW_PORT must be a port number, not \"{{.value}}\"",
 		ConfigNotMoved:                  "{{.settings}} is no longer read; lazyreview config move moves its accounts into {{.config}}",
 		ConfigSchemaTitle:               "lazyreview config",
 		ConfigSchemaDescription:         "lazyreview's config file, config.yml. docs/Config.md lists every setting and its default.",
@@ -1790,5 +1786,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NothingLoadedHowToClose: "Nothing was loaded; {{.close}} closes why.",
 		LoadAgainTitle:          "Load the review again",
 		LoadTitle:               "Load {{.name}}",
+
+		ConfigUnusedServer: "lazyreview runs no server now; lazyreview terminal opens the app",
 	}
 }

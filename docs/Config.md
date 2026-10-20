@@ -46,7 +46,6 @@ default. An empty variable counts as not set.
 | Variable | Overrides |
 | --- | --- |
 | `LAZYREVIEW_HOME` | `dataHome` |
-| `LAZYREVIEW_PORT` | `server.port` |
 | `LAZYREVIEW_CLAUDE` | `claude.command` |
 | `LAZYREVIEW_MODEL` | `claude.model` |
 | `LAZYREVIEW_EDITOR` | `os.editor` |
@@ -61,12 +60,8 @@ default. An empty variable counts as not set.
 
 <!-- START DEFAULT CONFIG: written from the config's schema; do not change it by hand -->
 ```yaml
-# Where lazyreview keeps reviews, clones and the running app's files.
+# Where lazyreview keeps reviews, clones and the copies of the code Claude answers in.
 dataHome: ~/.lazyreview                # LAZYREVIEW_HOME
-
-server:
-  # The port the app listens on, on this machine only.
-  port: 4747                           # LAZYREVIEW_PORT
 
 claude:
   # The Claude Code command that answers a question about a line.
@@ -329,7 +324,7 @@ keybinding:
 <!-- END DEFAULT CONFIG -->
 
 A setting in the file replaces its default. A group of settings, such as
-`server`, keeps the defaults of the settings the file leaves out. A list
+`claude`, keeps the defaults of the settings the file leaves out. A list
 replaces the default list whole.
 
 `lazyreview config check` prints every setting as it is read, and where its
@@ -488,9 +483,10 @@ file has a mistake, and says what is wrong, with the file's path:
   one never does nothing silently.
 - A setting lazyreview no longer has is refused the same way, and the
   message says what does its work now.
-- A setting that does nothing now, such as `keybinding.universal.web`,
-  which opened the web app, still reads, so the file keeps working.
-  `config check` names it, and why it can go.
+- A setting that does nothing now still reads, so the file keeps working:
+  `keybinding.universal.web`, which opened the web app, and `server`,
+  whose port the app listened on. `config check` names it, and why it can
+  go.
 - A value of the wrong kind names the setting, the value, and what it
   must be.
 - Every mistake in the file is named at once.

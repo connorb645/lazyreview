@@ -20,7 +20,7 @@ import (
 const cutLine = "# ------------------------ >8 ------------------------"
 
 // EditingHelper writes comments, questions and answers in the editor, and
-// queues, edits and drops comments on the server.
+// queues, edits and drops comments.
 type EditingHelper struct {
 	c *HelperCommon
 }
@@ -95,7 +95,7 @@ func (self *EditingHelper) Selected(s context.ContextTree) (models.Lines, []stri
 	return last, code, true
 }
 
-// LinesKey names lines of a file, as where the server says they are
+// LinesKey names lines of a file, as where the queue says they are
 // commented is kept under.
 func LinesKey(at models.Lines) string {
 	return fmt.Sprintf("%s %s %d %s %d", at.Path, at.StartSide, at.StartLine, at.Side, at.Line)
@@ -157,7 +157,7 @@ func (self *EditingHelper) Ask(s context.ContextTree) (context.ContextTree, tea.
 	return self.edit(s, types.Editing{Purpose: "ask", At: at, Key: "ask " + LinesKey(at), About: about})
 }
 
-// Stop is the state asking the server to stop Claude answering the
+// Stop is the state asking Claude to stop answering the
 // conversation at the cursor, or saying why it cannot, and the command that
 // asks.
 func (self *EditingHelper) Stop(s context.ContextTree) (context.ContextTree, tea.Cmd) {
@@ -293,8 +293,8 @@ func (self *EditingHelper) AfterEditing(s context.ContextTree, msg types.Edited)
 	}
 }
 
-// AfterChange is the state once the server queued, saved or dropped a
-// comment, or Claude answered, or why it did not.
+// AfterChange is the state once a comment was queued, saved or dropped, or
+// Claude answered, or why it did not.
 func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed) (context.ContextTree, tea.Cmd) {
 	e, h := msg.E, self.c.Helpers
 	if e.Purpose == "ask" || e.Purpose == "reply" {
@@ -334,7 +334,7 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.QueuedAbout, map[string]string{"about": strings.TrimSuffix(e.About[0], ".")}), false), nil
 }
 
-// AfterCheck is the state once the server says where a comment would go:
+// AfterCheck is the state once the queue says where a comment would go:
 // the editor open on it, a choice of pull requests, or why it cannot.
 func (self *EditingHelper) AfterCheck(s context.ContextTree, msg types.Checked) (context.ContextTree, tea.Cmd) {
 	switch {
@@ -358,7 +358,7 @@ func (self *EditingHelper) AfterCheck(s context.ContextTree, msg types.Checked) 
 	return self.edit(s.Said("", false), e)
 }
 
-// CheckWhere is the command that asks the server where a comment would go.
+// CheckWhere is the command that asks the queue where a comment would go.
 func (self *EditingHelper) CheckWhere(s context.ContextTree, e types.Editing) tea.Cmd {
 	c, id, build := self.c.Reviews, s.Review.ID, s.Review.Page.Build
 	return func() tea.Msg {
@@ -367,7 +367,7 @@ func (self *EditingHelper) CheckWhere(s context.ContextTree, e types.Editing) te
 	}
 }
 
-// WhereNow is the command that asks the server where a comment on the
+// WhereNow is the command that asks the queue where a comment on the
 // diff's selection would go, when the selection changed, or nothing.
 func (self *EditingHelper) WhereNow(s context.ContextTree) tea.Cmd {
 	if s.Screen() != context.ScreenDiff || !s.Diff.Selecting || s.Review == nil {

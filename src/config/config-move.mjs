@@ -31,7 +31,6 @@ const words = english.config.move;
 const MOVED = 'settings.json.moved';
 const VARIABLES = [
   ['LAZYREVIEW_HOME', 'dataHome'],
-  ['LAZYREVIEW_PORT', 'server.port'],
   ['LAZYREVIEW_CLAUDE', 'claude.command'],
   ['LAZYREVIEW_MODEL', 'claude.model'],
   ['LAZYREVIEW_EDITOR', 'os.editor'],
@@ -62,14 +61,7 @@ export function planMove({ env, platform, home, files = nodeFiles }) {
     from.push({ key, source });
   };
   for (const [name, key] of VARIABLES) {
-    if (!env[name]) continue;
-    if (key === 'server.port') {
-      const port = Number(env[name]);
-      if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(english.config.badPort(env[name]));
-      give(key, port, name);
-    } else {
-      give(key, key === 'dataHome' ? dataHome : env[name], name);
-    }
+    if (env[name]) give(key, key === 'dataHome' ? dataHome : env[name], name);
   }
   if (settingsExists) give('github.accounts', readSettingsFile(settingsPath, files), settingsPath);
   return Object.freeze({

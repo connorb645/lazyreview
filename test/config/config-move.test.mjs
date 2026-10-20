@@ -23,14 +23,14 @@ function standIn(settings = SETTINGS) {
 test('the check reads settings.json and the variables, shows what the move would write, and writes nothing', () => {
   const s = standIn();
   try {
-    const lines = checkLines(planMove(s.where({ LAZYREVIEW_PORT: '4748', LAZYREVIEW_CLAUDE: 'claude' })));
+    const lines = checkLines(planMove(s.where({ LAZYREVIEW_MODEL: 'claude-sonnet', LAZYREVIEW_CLAUDE: 'claude' })));
     assert.deepEqual(lines, [
       `would write ${s.config}:`,
       '',
       '  # yaml-language-server: $schema=https://raw.githubusercontent.com/connorb645/lazyreview/main/schema/config.json',
       '  # lazyreview\'s config. docs/Config.md lists every setting and its default.',
-      '  server:',
-      '    port: 4748',
+      '  claude:',
+      '    model: claude-sonnet',
       '  github:',
       '    accounts:',
       '      - login: lee',
@@ -40,7 +40,7 @@ test('the check reads settings.json and the variables, shows what the move would
       '            since: \'2026-10-01\'',
       '          - name: example-org/web',
       '',
-      'server.port from LAZYREVIEW_PORT',
+      'claude.model from LAZYREVIEW_MODEL',
       `github.accounts from ${s.settings}`,
       `would rename ${s.settings} to settings.json.moved`,
       'nothing was written; lazyreview config move makes the move',
@@ -55,14 +55,13 @@ test('the check reads settings.json and the variables, shows what the move would
 test('the move loses nothing: every account, team and variable reads the same after it, and settings.json is kept, byte for byte', () => {
   const s = standIn();
   try {
-    const env = { LAZYREVIEW_HOME: s.data, LAZYREVIEW_PORT: '4748', LAZYREVIEW_MODEL: 'claude-sonnet', LAZYREVIEW_EDITOR: 'nvim' };
+    const env = { LAZYREVIEW_HOME: s.data, LAZYREVIEW_MODEL: 'claude-sonnet', LAZYREVIEW_EDITOR: 'nvim' };
     const said = move(planMove(s.where(env)));
     assert.equal(said[0], `wrote ${s.config}:`);
-    assert.deepEqual(said.slice(-6), [
+    assert.deepEqual(said.slice(-5), [
       '',
       `renamed ${s.settings} to settings.json.moved`,
       'LAZYREVIEW_HOME is still set, and overrides dataHome while it is; taking it out of your shell\'s setup is safe, and not needed',
-      'LAZYREVIEW_PORT is still set, and overrides server.port while it is; taking it out of your shell\'s setup is safe, and not needed',
       'LAZYREVIEW_MODEL is still set, and overrides claude.model while it is; taking it out of your shell\'s setup is safe, and not needed',
       'LAZYREVIEW_EDITOR is still set, and overrides os.editor while it is; taking it out of your shell\'s setup is safe, and not needed',
     ]);
@@ -74,16 +73,16 @@ test('the move loses nothing: every account, team and variable reads the same af
     const fromFile = readUserConfig(s.where({}));
     for (const config of [withVariables, fromFile]) {
       assert.deepEqual(config.values, {
-        dataHome: s.data, server: { port: 4748 }, claude: { command: 'claude', model: 'claude-sonnet' }, os: { editor: 'nvim' },
+        dataHome: s.data, claude: { command: 'claude', model: 'claude-sonnet' }, os: { editor: 'nvim' },
         github: { accounts: [{ login: 'lee', teams: [] }, { login: 'lee-at-work', teams: [{ name: 'example-org/mobile', since: '2026-10-01' }, { name: 'example-org/web', since: null }] }], hiddenRepositories: [] },
         gui: defaults().gui,
         keybinding: defaults().keybinding,
       });
     }
     const checked = checkedConfigText(fromFile);
-    for (const value of ['lee', 'lee-at-work', 'example-org/mobile', '2026-10-01', 'example-org/web', '4748', 'claude-sonnet', 'nvim', s.data]) assert.ok(checked.includes(value), value);
-    assert.match(checkedConfigText(withVariables), /port: 4748 +# LAZYREVIEW_PORT\n/);
-    assert.match(checked, /port: 4748 +# the file\n/);
+    for (const value of ['lee', 'lee-at-work', 'example-org/mobile', '2026-10-01', 'example-org/web', 'claude-sonnet', 'nvim', s.data]) assert.ok(checked.includes(value), value);
+    assert.match(checkedConfigText(withVariables), /model: claude-sonnet +# LAZYREVIEW_MODEL\n/);
+    assert.match(checked, /model: claude-sonnet +# the file\n/);
   } finally {
     s.done();
   }
@@ -143,7 +142,6 @@ test('a move that fails partway puts back what it did, and a settings.json that 
   const wrong = standIn('{"accounts": [{"login": "lee author:alex"}]}');
   try {
     assert.throws(() => planMove(wrong.where({})), new RegExp(`^Error: ${wrong.settings.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} gives account 1 no GitHub login$`));
-    assert.throws(() => planMove(wrong.where({ LAZYREVIEW_PORT: 'x' })), /^Error: LAZYREVIEW_PORT must be a port number, not "x"$/);
   } finally {
     wrong.done();
   }

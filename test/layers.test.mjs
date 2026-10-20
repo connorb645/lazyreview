@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(ROOT, 'src');
-const LOGIC = ['ask', 'build', 'config', 'home', 'loader', 'queue', 'review'];
+const LOGIC = ['ask', 'config', 'review'];
 
 function modules(folder) {
   return readdirSync(folder, { withFileTypes: true }).flatMap(entry => {
@@ -46,12 +46,8 @@ test('models import only node\'s own modules and the strings', () => {
   assert.deepEqual(importsBreaking(SRC, ['models'], (to, from) => ['node:', 'i18n', from].includes(to)), []);
 });
 
-test('the logic and the store never import what the user sees, nor the startup', () => {
-  assert.deepEqual(importsBreaking(SRC, [...LOGIC, 'store'], to => !['server', 'cli', 'app'].includes(to)), []);
-});
-
-test('the server never imports the command line', () => {
-  assert.deepEqual(importsBreaking(SRC, ['server'], to => to !== 'cli'), []);
+test('the logic and the store never import the command line, nor the startup', () => {
+  assert.deepEqual(importsBreaking(SRC, [...LOGIC, 'store'], to => !['cli', 'app'].includes(to)), []);
 });
 
 test('the strings import nothing', () => {
@@ -64,5 +60,5 @@ test('only the commands run other programs', () => {
 
 test('every folder of src/ has a layer', () => {
   const folders = readdirSync(SRC, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name);
-  assert.deepEqual(folders.filter(f => ![...LOGIC, 'commands', 'models', 'i18n', 'store', 'server', 'cli', 'app'].includes(f)), []);
+  assert.deepEqual(folders.filter(f => ![...LOGIC, 'commands', 'models', 'i18n', 'store', 'cli', 'app'].includes(f)), []);
 });

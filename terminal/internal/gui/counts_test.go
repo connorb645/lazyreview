@@ -66,8 +66,8 @@ func TestACountGoesBeforeMatchesJumpsAndBoxes(t *testing.T) {
 		t.Fatalf("2 Ctrl-o went to screen %d item %d, not screen %d item %d", counted.Screen(), counted.ReviewView.View.Cursor, twice.Screen(), twice.ReviewView.View.Cursor)
 	}
 	d := press(t, onDiagram(t), "2", "G")
-	focusedOn(t, d, "Basket")
-	focusedOn(t, press(t, d, "G", "1", "G"), "MemoryCatalog")
+	focusedOn(t, d, "Search")
+	focusedOn(t, press(t, d, "G", "1", "G"), "Basket")
 }
 
 // On the home screen, Ctrl-d and Ctrl-u move in the repository's panel

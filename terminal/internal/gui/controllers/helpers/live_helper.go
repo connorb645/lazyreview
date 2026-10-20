@@ -84,7 +84,7 @@ func (self *LiveHelper) ListenTo(s context.ContextTree, id string) (context.Cont
 	return s, nextNotice(s.Live)
 }
 
-// AfterNotice is the state once the server tells of a change: the review
+// AfterNotice is the state once a change to the review is heard: the review
 // or its state loading again, or a notice that a draft holds it back.
 func (self *LiveHelper) AfterNotice(s context.ContextTree, msg types.LiveNotice) (context.ContextTree, tea.Cmd) {
 	next := nextNotice(s.Live)

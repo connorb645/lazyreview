@@ -13,7 +13,6 @@
  * the threads as GitHub's GraphQL API gives them, and `extra` routes are
  * added as they are.
  */
-import { splitDiff } from '../../src/build/diff/diff-parser.mjs';
 
 export function githubRoutes({ repo, name = 'octo/widgets', me = 'reviewer', pulls, reviews = {}, extra = {} }) {
   const routes = {
@@ -34,11 +33,7 @@ export function githubRoutes({ repo, name = 'octo/widgets', me = 'reviewer', pul
     };
     if (!p.state || p.state === 'open') open.push(routes[`GET repos/${name}/pulls/${p.number}`]);
     const diff = repo.git('diff', '--no-color', '--find-renames', start, head);
-    routes[`GET repos/${name}/pulls/${p.number}/files?per_page=100&page=1`] = splitDiff(diff).map(chunk => {
-      const lines = chunk.text.split('\n');
-      const first = lines.findIndex(l => l.startsWith('@@'));
-      return { filename: chunk.path, ...(first >= 0 ? { patch: lines.slice(first).join('\n') } : {}) };
-    });
+    routes[`GET repos/${name}/pulls/${p.number}/files?per_page=100&page=1`] = files(diff);
     const existing = { reviews: [], comments: [], threads: [], ...reviews[p.number] };
     routes[`GET repos/${name}/pulls/${p.number}/reviews?per_page=100&page=1`] = existing.reviews;
     routes[`GET repos/${name}/pulls/${p.number}/comments?per_page=100&page=1`] = existing.comments;
@@ -46,4 +41,22 @@ export function githubRoutes({ repo, name = 'octo/widgets', me = 'reviewer', pul
   }
   routes[`GET repos/${name}/pulls?state=open&per_page=100&page=1`] = open;
   return { ...routes, ...extra };
+}
+
+// Each file of a diff as GitHub's files route gives it: its path, and its
+// patch from its first hunk.
+function files(diff) {
+  const out = [];
+  for (const line of diff.split('\n')) {
+    if (line.startsWith('diff --git ')) out.push({ filename: line.split(' b/').pop(), lines: [] });
+    else if (out.length) {
+      if (line.startsWith('+++ b/')) out.at(-1).filename = line.slice('+++ b/'.length);
+      out.at(-1).lines.push(line);
+    }
+  }
+  return out.map(({ filename, lines }) => {
+    while (lines.length && lines.at(-1) === '') lines.pop();
+    const first = lines.findIndex(l => l.startsWith('@@'));
+    return { filename, ...(first >= 0 ? { patch: lines.slice(first).join('\n') } : {}) };
+  });
 }

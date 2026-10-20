@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // Lands a branch on main, on every remote and in this checkout, as a
-// fast-forward. Run it as make land BRANCH=<branch>, which then restarts the
-// app. It checks everything first, says what it will do, and ends saying
-// where main is.
+// fast-forward. Run it as make land BRANCH=<branch>. It checks everything
+// first, says what it will do, and ends saying where main is.
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Landing, describe } from './land/landing.mjs';

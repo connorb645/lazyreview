@@ -64,7 +64,6 @@ function settingSchema(setting) {
 
 const TYPES = {
   folder: { type: 'string', pattern: '^(~|~/.*|/.*)$' },
-  port: { type: 'integer', minimum: 1, maximum: 65535 },
   command: { type: 'string', minLength: 1 },
   text: { type: 'string' },
   choice: { type: 'string' },

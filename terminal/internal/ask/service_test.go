@@ -62,7 +62,7 @@ func newWorld(t *testing.T) *world {
 	reviews := store.NewReviewStore(tr, home, locks)
 	fake := testsupport.NewFakeClaude(t)
 	w := &world{t: t, repo: repo, home: home, reviews: reviews, fake: fake}
-	w.service = NewService(tr, reviews, locks, claude.New(tr, fake.Command, ""), nil, nil, nil, func() string { return "2026-10-15T13:00:00.000Z" })
+	w.service = NewService(tr, reviews, locks, claude.New(tr, fake.Command, ""), nil, nil, nil, nil, func() string { return "2026-10-15T13:00:00.000Z" })
 	return w
 }
 

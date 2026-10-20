@@ -60,7 +60,7 @@ func Run(review string) error {
 	answerer := func(ref models.ReviewRef, conversation int) error {
 		return oscommands.RunDetached(self, []string{"answer", "--data-home", given.DataHome, "--claude", given.Claude.Command, "--model", given.Claude.Model, ref.ID(), strconv.Itoa(conversation)})
 	}
-	asking := ask.NewService(tr, reviewStore, locks, claude.New(tr, given.Claude.Command, given.Claude.Model), nil, nil, answerer, isoNow)
+	asking := ask.NewService(tr, reviewStore, locks, claude.New(tr, given.Claude.Command, given.Claude.Model), nil, nil, answerer, nil, isoNow)
 	all := reviews.New(tr, reviewStore, queue.NewService(tr, reviewStore, gitHubFor(tr), isoNow), asking,
 		home.NewOpenPulls(tr, reviewStore, readConfig, gitHubFor(tr)), home.NewHiddenRepositories(tr, readConfig),
 		loader.NewLoader(tr, reviewStore, locks, git.NewClones(tr, nil), gitHubFor(tr), isoNow), loader.NewBranchLoader(tr, reviewStore, isoNow))
@@ -115,7 +115,7 @@ func Answer(dataHome, command, model, review string, conversation int) error {
 	}
 	locks := store.NewLocks(tr)
 	reviewStore := store.NewReviewStore(tr, store.DataHome{Root: dataHome}, locks)
-	asking := ask.NewService(tr, reviewStore, locks, claude.New(tr, command, model), nil, nil, nil, isoNow)
+	asking := ask.NewService(tr, reviewStore, locks, claude.New(tr, command, model), nil, nil, nil, nil, isoNow)
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
 	defer stop()
 	return asking.Answer(ctx, ref, conversation)
