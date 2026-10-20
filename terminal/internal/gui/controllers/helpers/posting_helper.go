@@ -71,7 +71,7 @@ func (self *PostingHelper) Post(s context.ContextTree) (context.ContextTree, tea
 	s = s.WithoutPosting()
 	m, _ := self.QueueMember(s, pn.Pull)
 	action := pn.Actions[pn.Choice]
-	client, id, build, set := self.c.Server, s.Review.ID, s.Review.Page.Build, m.Sets[action].Set
+	client, id, build, set := self.c.Reviews, s.Review.ID, s.Review.Page.Build, m.Sets[action].Set
 	return s.Said(self.c.Tr.CheckingThenSending, false), func() tea.Msg {
 		message, state, err := client.Post(id, pn.Pull, action, set, build)
 		return types.Posted{Message: message, State: state, Err: err}

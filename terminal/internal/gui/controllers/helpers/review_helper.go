@@ -20,7 +20,7 @@ type ReviewHelper struct {
 
 // Load is the command that loads a review's state and page.
 func (self *ReviewHelper) Load(id string) tea.Cmd {
-	c := self.c.Server
+	c := self.c.Reviews
 	couldNotOpen := utils.ResolvePlaceholderString(self.c.Tr.CouldNotOpen, map[string]string{"name": id})
 	return func() tea.Msg {
 		state, err := c.State(id)
@@ -38,7 +38,7 @@ func (self *ReviewHelper) Load(id string) tea.Cmd {
 // Reload is the command that loads the review open again, after the
 // server refreshes it from GitHub when refresh is set.
 func (self *ReviewHelper) Reload(id string, refresh bool) tea.Cmd {
-	c, load := self.c.Server, self.Load(id)
+	c, load := self.c.Reviews, self.Load(id)
 	return func() tea.Msg {
 		var notes []string
 		if refresh {
@@ -57,7 +57,7 @@ func (self *ReviewHelper) Reload(id string, refresh bool) tea.Cmd {
 
 // LoadState is the command that loads the review's state again.
 func (self *ReviewHelper) LoadState(id string) tea.Cmd {
-	c := self.c.Server
+	c := self.c.Reviews
 	return func() tea.Msg {
 		state, err := c.State(id)
 		return types.StateLoaded{State: state, Err: err}

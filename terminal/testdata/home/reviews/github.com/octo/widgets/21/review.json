@@ -1,0 +1,85 @@
+{
+  "id": "github.com/octo/widgets/21",
+  "host": "github.com",
+  "repo": "octo/widgets",
+  "account": null,
+  "me": "reviewer",
+  "title": "Stack #21 to #22",
+  "base": {
+    "ref": "main",
+    "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+  },
+  "context": true,
+  "loaded_at": "2026-10-15T12:00:00.000Z",
+  "notes": [],
+  "moved": null,
+  "members": [
+    {
+      "pull": 21,
+      "head": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+      "start": "ec30a03f5f35ca87815c1688954702bbe71b7d44",
+      "title": "Add search to the catalog",
+      "url": "https://github.com/octo/widgets/pull/21",
+      "author": "sam",
+      "base": "main",
+      "description": "Adds a search over the catalog by name.",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [
+        {
+          "id": 1,
+          "path": "Sources/Catalog/MemoryCatalog.swift",
+          "line": 10,
+          "side": "RIGHT",
+          "body": "Keep the order items came in.",
+          "code": "    func add(_ item: Item) {\n        stored.append(item)\n    }",
+          "start_line": 8,
+          "start_side": "RIGHT",
+          "shown": {
+            "path": "Sources/Catalog/MemoryCatalog.swift",
+            "line": 10,
+            "side": "RIGHT",
+            "start_line": 8,
+            "start_side": "RIGHT"
+          }
+        }
+      ],
+      "posted": []
+    },
+    {
+      "pull": 22,
+      "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+      "start": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+      "title": "Add a basket that uses search",
+      "url": "https://github.com/octo/widgets/pull/22",
+      "author": "sam",
+      "base": "feature/search",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 2,
+      "comments": [
+        {
+          "id": 2,
+          "path": "Sources/Basket/Basket.swift",
+          "line": 11,
+          "side": "RIGHT",
+          "body": "Why one?",
+          "code": "        0\n        1",
+          "start_line": 9,
+          "start_side": "LEFT",
+          "shown": {
+            "path": "Sources/Basket/Basket.swift",
+            "line": 11,
+            "side": "RIGHT",
+            "start_line": 9,
+            "start_side": "LEFT"
+          }
+        }
+      ],
+      "posted": []
+    }
+  ],
+  "earlier": []
+}

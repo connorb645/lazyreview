@@ -316,8 +316,8 @@ instead, and `R` loads it when you are ready.
 A comment, a question or an edit is written in your own editor: the
 config's `os.editor`, or with none the first of `VISUAL` and `EDITOR` that
 is set, or `vi`, as git chooses. `LAZYREVIEW_EDITOR` overrides the config. Write above the cut line and save; what is below it says where the
-comment goes and is never sent. Saving with no text sends nothing. When the
-server refuses a comment, the bar at the bottom says why and `c` or `e` opens
+comment goes and is never sent. Saving with no text sends nothing. When a
+comment is refused, the bar at the bottom says why and `c` or `e` opens
 your text again.
 
 Ask Claude works as your own Claude Code: your settings, `CLAUDE.md`,
@@ -404,6 +404,8 @@ maps each part to lazygit's own.
   (`vendor/`). `src/queue` holds the queue's rules and the one way a review
   is posted; `src/review` reads a written review and places GitHub's review
   threads; `src/ask` asks Claude; `src/home` lists the open pull requests.
+  The terminal app now queues and posts itself; the server's queue stays as
+  the reference its answers are checked against until the server goes.
 - `src/store` keeps the files on disk, and `src/config` reads the config.
 - `src/server` serves the JSON the terminal app reads and changes reviews
   through. `src/i18n/english.mjs` holds every sentence of the command and
@@ -411,12 +413,16 @@ maps each part to lazygit's own.
 - `terminal/` is the terminal app, in Go with Bubble Tea, Lip Gloss, Bubbles
   and Glamour, laid out as lazygit's own: `internal/gui` with its views,
   contexts, controllers and presentation, `internal/i18n/english.go` for its
-  words and `internal/theme` for its colours. `lazyreview terminal` builds it
-  and runs it.
+  words and `internal/theme` for its colours. It reads and changes reviews in
+  the data home itself, through `internal/store`, `internal/review`,
+  `internal/queue` and `internal/reviews`, and posts through `gh`.
+  `lazyreview terminal` builds it and runs it.
 
 Run the tests with `npm test`, and the terminal app's with `npm run
 test:terminal`. They make their own throwaway repositories and answer for
 GitHub and Claude Code with stand-ins, so they reach no network. The terminal
 app's tests read the server's answers from `terminal/testdata/record.json`,
 which a Node test checks against the server; when the server changes what it
-answers, `LAZYREVIEW_RECORD=1 npm test` writes it again.
+answers, `LAZYREVIEW_RECORD=1 npm test` writes it again, with the data home
+and GitHub's answers it was made from. A Go test checks that the Go code
+gives each answer it owns, from the same stand-in data home.

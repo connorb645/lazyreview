@@ -1,0 +1,43 @@
+{
+  "id": "github.com/octo/widgets/30",
+  "host": "github.com",
+  "repo": "octo/widgets",
+  "account": null,
+  "me": "reviewer",
+  "title": "Fix the guide wording",
+  "base": {
+    "ref": "main",
+    "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+  },
+  "context": false,
+  "loaded_at": "2026-10-15T12:00:01.000Z",
+  "notes": [],
+  "moved": null,
+  "members": [
+    {
+      "pull": 30,
+      "head": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+      "start": "ec30a03f5f35ca87815c1688954702bbe71b7d44",
+      "title": "Fix the guide wording",
+      "url": "https://github.com/octo/widgets/pull/30",
+      "author": "alex",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [
+        {
+          "id": 1,
+          "path": "docs/guide.md",
+          "line": 3,
+          "side": "RIGHT",
+          "body": "Every item, or every item shown?",
+          "code": "The catalog lists every item."
+        }
+      ],
+      "posted": []
+    }
+  ],
+  "earlier": []
+}

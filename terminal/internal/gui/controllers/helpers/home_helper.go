@@ -20,7 +20,7 @@ type HomeHelper struct {
 
 // ReadPulls is the command that reads the open pull requests.
 func (self *HomeHelper) ReadPulls() tea.Cmd {
-	c := self.c.Server
+	c := self.c.Reviews
 	return func() tea.Msg {
 		pulls, err := c.Pulls()
 		return types.PullsRead{Pulls: pulls, Err: err}
@@ -264,7 +264,7 @@ func (self *HomeHelper) Status(s context.ContextTree) string {
 }
 
 func (self *HomeHelper) changeHidden(s context.ContextTree, hide string, show []string) tea.Cmd {
-	c := self.c.Server
+	c := self.c.Reviews
 	names := make([]string, len(s.Home.List.Repos))
 	for i, repo := range s.Home.List.Repos {
 		names[i] = repo.Name
@@ -276,7 +276,7 @@ func (self *HomeHelper) changeHidden(s context.ContextTree, hide string, show []
 }
 
 func (self *HomeHelper) loadPulls(unit string, links []string, account string) tea.Cmd {
-	c := self.c.Server
+	c := self.c.Reviews
 	return func() tea.Msg {
 		id, notes, err := c.Load(links, account)
 		return types.PullsLoaded{Unit: unit, ID: id, Notes: notes, Err: err}

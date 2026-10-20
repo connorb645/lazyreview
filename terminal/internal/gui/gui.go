@@ -58,7 +58,7 @@ func New(cmn *common.Common, opts Options) App {
 		opts.Tick = tea.Tick
 	}
 	hc := &helpers.HelperCommon{
-		Common: cmn, Server: opts.Server, Open: opts.Open, Now: opts.Now, Location: opts.Location, Home: opts.Home,
+		Common: cmn, Reviews: opts.Reviews, Open: opts.Open, Now: opts.Now, Location: opts.Location, Home: opts.Home,
 		Editor: opts.Editor, Exec: opts.Exec, Listen: opts.Listen, Tick: opts.Tick, Markdown: presentation.NewMarkdown(cmn.Theme.Dark),
 	}
 	a := App{c: hc, helpers: helpers.NewHelpers(hc), controllers: controllers.NewControllers(hc), styles: diagram.Styles(cmn.Theme), ContextTree: context.NewContextTree(opts.Review)}

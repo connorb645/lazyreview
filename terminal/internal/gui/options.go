@@ -7,10 +7,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
 
-// Options are what the app needs from outside: the server, the review to
+// Options are what the app needs from outside: the reviews it reads and
+// changes, the review to
 // open, or none for the home screen, how to open an address in the
 // browser, the clock and the time zone dates are
 // shown in, the user's home folder, which a path under it is shown from as
@@ -19,7 +20,7 @@ import (
 // terminal, how the app hears a review's changes: as messages, until the
 // context ends, and how it sends itself a message after a wait.
 type Options struct {
-	Server   *server.Client
+	Reviews  types.Reviews
 	Review   string
 	Open     func(address string) error
 	Now      func() time.Time
@@ -27,6 +28,6 @@ type Options struct {
 	Home     string
 	Editor   string
 	Exec     func(*exec.Cmd, tea.ExecCallback) tea.Cmd
-	Listen   func(ctx stdcontext.Context, c *server.Client, id string) <-chan tea.Msg
+	Listen   func(ctx stdcontext.Context, c types.Reviews, id string) <-chan tea.Msg
 	Tick     func(time.Duration, func(time.Time) tea.Msg) tea.Cmd
 }

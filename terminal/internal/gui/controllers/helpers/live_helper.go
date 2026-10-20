@@ -6,7 +6,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/models"
@@ -15,16 +14,15 @@ import (
 
 const liveTries = 5
 
-// LiveHelper hears the changes the server tells of the review open, and
-// loads what changed.
+// LiveHelper hears the changes made to the review open, and loads what
+// changed.
 type LiveHelper struct {
 	c *HelperCommon
 }
 
-// Listen hears a review's changes from the server as messages until ctx
-// ends, trying again a few times, each after a longer wait, when the
+// Listen hears a review's changes as messages until ctx ends, trying again a few times, each after a longer wait, when the
 // stream breaks, then telling that it stopped.
-func Listen(ctx stdcontext.Context, c *server.Client, id string) <-chan tea.Msg {
+func Listen(ctx stdcontext.Context, c types.Reviews, id string) <-chan tea.Msg {
 	out := make(chan tea.Msg)
 	give := func(msg tea.Msg) bool {
 		select {
@@ -82,7 +80,7 @@ func (self *LiveHelper) ListenTo(s context.ContextTree, id string) (context.Cont
 		s.StopLive()
 	}
 	ctx, stop := stdcontext.WithCancel(stdcontext.Background())
-	s.Live, s.StopLive, s.LiveFor = self.c.Listen(ctx, self.c.Server, id), stop, id
+	s.Live, s.StopLive, s.LiveFor = self.c.Listen(ctx, self.c.Reviews, id), stop, id
 	return s, nextNotice(s.Live)
 }
 

@@ -1,5 +1,6 @@
 {
  "path": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
+ "dataHome": "/home/reviewer/.lazyreview",
  "editor": "vi",
  "theme": {
   "dark": {

@@ -169,7 +169,7 @@ func (self *EditingHelper) Stop(s context.ContextTree) (context.ContextTree, tea
 	if !presentation.Waiting(c) {
 		return s.Said(tr.NotWorking, false), nil
 	}
-	client, id := self.c.Server, s.Review.ID
+	client, id := self.c.Reviews, s.Review.ID
 	e := types.Editing{Purpose: "stop", Conversation: c.ID}
 	s.Stopped = c.ID
 	return s.Said(tr.Stopping, false), func() tea.Msg {
@@ -227,7 +227,7 @@ func (self *EditingHelper) DropQueued(s context.ContextTree) context.ContextTree
 func (self *EditingHelper) Dropped(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 	c := s.Confirmation
 	s = s.Closed(context.ConfirmationKey)
-	client, id, build := self.c.Server, s.Review.ID, s.Review.Page.Build
+	client, id, build := self.c.Reviews, s.Review.ID, s.Review.Page.Build
 	e := types.Editing{Purpose: "drop", Comment: c.Comment, Pull: c.Pull}
 	return s.Said(self.c.Tr.Dropping, false), func() tea.Msg {
 		state, err := client.Drop(id, c.Comment, c.Version, build)
@@ -267,7 +267,7 @@ func (self *EditingHelper) AfterEditing(s context.ContextTree, msg types.Edited)
 		return s.Said(utils.ResolvePlaceholderString(tr.QueuedAsItWas, map[string]string{"comment": utils.Itoa(msg.E.Comment)}), false), nil
 	}
 	s.Drafts = withDraft(s.Drafts, msg.E.Key, text)
-	client, id, build, e := self.c.Server, s.Review.ID, s.Review.Page.Build, msg.E
+	client, id, build, e := self.c.Reviews, s.Review.ID, s.Review.Page.Build, msg.E
 	switch e.Purpose {
 	case "comment":
 		return s.Said(tr.Queueing, false), func() tea.Msg {
@@ -360,7 +360,7 @@ func (self *EditingHelper) AfterCheck(s context.ContextTree, msg types.Checked) 
 
 // CheckWhere is the command that asks the server where a comment would go.
 func (self *EditingHelper) CheckWhere(s context.ContextTree, e types.Editing) tea.Cmd {
-	c, id, build := self.c.Server, s.Review.ID, s.Review.Page.Build
+	c, id, build := self.c.Reviews, s.Review.ID, s.Review.Page.Build
 	return func() tea.Msg {
 		where, err := c.Where(id, e.At, e.Pull, build)
 		return types.Checked{E: e, Where: where, Err: err}
@@ -377,7 +377,7 @@ func (self *EditingHelper) WhereNow(s context.ContextTree) tea.Cmd {
 	if !ok || LinesKey(at) == s.Where.Key {
 		return nil
 	}
-	client, id, build, key := self.c.Server, s.Review.ID, s.Review.Page.Build, LinesKey(at)
+	client, id, build, key := self.c.Reviews, s.Review.ID, s.Review.Page.Build, LinesKey(at)
 	return func() tea.Msg {
 		where, err := client.Where(id, at, 0, build)
 		words := where.Words

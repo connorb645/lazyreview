@@ -40,24 +40,42 @@ A citation starting `lazygit:` names a file and line of lazygit at
 ### What lazyreview adopts, and where
 
 - `terminal/main.go` reads the flags, and `internal/app` builds `Common`,
-  the server's client and the gui, then runs Bubble Tea.
+  the reviews and the gui, then runs Bubble Tea.
 - `internal/common` holds `Common`: the strings, the config handed over and
   the theme. `internal/i18n/english.go` holds `TranslationSet` and
   `EnglishTranslationSet()`, every string the terminal app shows, with
   named placeholders filled by `utils.ResolvePlaceholderString`.
 - `internal/config` reads the part of the config lazyreview hands over:
-  the config file's path, the editor, the theme's colours and every key.
+  the config file's path, the data home, the editor, the theme's colours
+  and every key.
   `internal/theme` turns the colours for the terminal's background into
   styles.
-- `internal/commands/server` is the server's client and the types of its
-  answers; `internal/commands/oscommands` opens an address in the browser,
+- `internal/models` holds plain values, as lazygit's
+  `pkg/commands/models` does: the refs that name a pull request, a branch
+  or a review, what a review's files keep, and what GitHub answers.
+- `internal/store` reads and writes a review's folder in the data home.
+  Each file is replaced whole, and a change to several files is all or
+  none, under a lock folder that every process respects.
+- `internal/review` builds what a page shows from what the store read: a
+  file's hunks and whole text, the code a comment quotes, a Markdown
+  file's blocks and a written review. `internal/queue` holds the queue's
+  rules as pure functions, and the service that queues, changes, drops and
+  posts comments.
+- `internal/reviews` is how the gui reads and changes a review. It answers
+  from the data home, and hears a change by watching the review's files.
+  Asking Claude, refreshing, the home screen's lists, hiding a repository
+  and loading still go to the server, until they move into Go.
+- `internal/commands/github` runs `gh` for the queue: the account it
+  answers as, a pull request, its files and reviews, and sending a review.
+  `internal/commands/server` is the client of the server for what is still
+  there; `internal/commands/oscommands` opens an address in the browser,
   and writes the page of a written review's drawings that it opens.
 - `internal/gui` is the app: `views` draw framed rectangles and the canvas;
   `context` holds one context per view, of lazygit's kinds, in a
   `ContextTree` with a focus stack whose top takes keys first;
   `controllers` give each context its bindings, help and hints, with the
-  steps several share in `controllers/helpers`, the only layer that calls
-  the server; `presentation` builds rows, with the diagram in
+  steps several share in `controllers/helpers`, the only layer that reads
+  or changes a review; `presentation` builds rows, with the diagram in
   `presentation/diagram`; `types` holds the values every layer shares.
 - `internal/gui/layers_test.go` reads every package's imports and fails on
   one the rule forbids.

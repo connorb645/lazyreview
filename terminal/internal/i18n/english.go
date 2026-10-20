@@ -11,6 +11,7 @@ type TranslationSet struct {
 	TerminalFailed       string
 	UserConfigUnreadable string
 	MoreThanOneValue     string
+	NoDataHome           string
 
 	ServerNotRunning        string
 	CouldNotRead            string
@@ -550,6 +551,116 @@ type TranslationSet struct {
 
 	LoadedElsewhere string
 	LoadedAgain     string
+
+	NotAPull                  string
+	NotAPullAddress           string
+	NotABranch                string
+	NotABranchID              string
+	NotAReviewID              string
+	GaveUpWaiting             string
+	HeldElsewhere             string
+	NoBuild                   string
+	LoadedAgainSince          string
+	NotWritten                string
+	Unreadable                string
+	NoFile                    string
+	NotAFileOfReview          string
+	NoSuchReview              string
+	ReviewNone                string
+	NotInCombinedDiff         string
+	StackPlace                string
+	StackPlaceOf              string
+	ChangedIn                 string
+	LastChanged               string
+	NoPullTakes               string
+	NoneShows                 string
+	OneShows                  string
+	SeveralShow               string
+	And                       string
+	WrittenNoHeader           string
+	WrittenHeaderLine         string
+	WrittenUnknownField       string
+	WrittenNeedsHead          string
+	WrittenPullOrStack        string
+	WrittenPullNumber         string
+	WrittenStackNumbers       string
+	WrittenTextBefore         string
+	WrittenNoSection          string
+	WrittenEmptySection       string
+	WrittenProblems           string
+	ProblemNoun               string
+	LineWord                  string
+	RemovedLineWord           string
+	OneLine                   string
+	LineToLine2               string
+	LinesRange                string
+	BranchTakesNone           string
+	ReviewMovedHere           string
+	NotInChange               string
+	NotADiffLine              string
+	LeavesHunk                string
+	Backwards                 string
+	NotThisReview             string
+	OtherHeads                string
+	LastChangedBy             string
+	NotShownBy                string
+	NotAllTo                  string
+	NotAllToOne               string
+	ChooseAmong               string
+	LeftStack                 string
+	PullEndedHere             string
+	GoesOn                    string
+	GoesOnOf                  string
+	PressComment              string
+	PressApproveWithComments  string
+	PressApprove              string
+	PressApproveKeeps         string
+	ThisCommentGoes           string
+	TheseCommentsGo           string
+	Stays                     string
+	Stay                      string
+	QueuedCommentNoun         string
+	EmptyText                 string
+	NotOnDiff                 string
+	StartsOff                 string
+	AcrossHunks               string
+	StartsAfter               string
+	RemovedWord               string
+	QueueReviewMoved          string
+	NotInStackAnyMore         string
+	NotInReview               string
+	NoVersion                 string
+	ChangedSince              string
+	NoComment                 string
+	NotQueued                 string
+	NotChanged                string
+	NotDropped                string
+	NothingWasPosted          string
+	HeadMoved                 string
+	CommentAt                 string
+	CommentAtOf               string
+	Placed                    string
+	NotAnAction               string
+	NotOffered                string
+	OtherSet                  string
+	OtherAccount              string
+	AlreadyDone               string
+	OwnPull                   string
+	ReadBack                  string
+	PostedComment             string
+	PostedApproveWithComments string
+	PostedApprove             string
+	PullIsEnded               string
+	HeadMovedFrom             string
+	CommentNamed              string
+	CommentProblem            string
+	CommentText               string
+	CommentStale              string
+	GitHubNoToken             string
+	GitHubTooSlow             string
+	GitHubUnreachable         string
+	GitHubRefused             string
+	GitHubUnreadable          string
 }
 
 // EnglishTranslationSet is the strings in English.
@@ -561,6 +672,7 @@ func EnglishTranslationSet() *TranslationSet {
 		TerminalFailed:       "lazyreview terminal",
 		UserConfigUnreadable: "could not read the config handed over by lazyreview",
 		MoreThanOneValue:     "it holds more than one value",
+		NoDataHome:           "the config handed over by lazyreview names no data home by its full path",
 
 		ServerNotRunning:        "the lazyreview server is not running; lazyreview start starts it",
 		CouldNotRead:            "could not read {{.path}}",
@@ -1016,7 +1128,7 @@ func EnglishTranslationSet() *TranslationSet {
 		PullWasState:            "#{{.pull}} was {{.state}}, so nothing can be sent to it",
 		CheckingThenSending:     "Checking the pull request with GitHub, then sending…",
 		SentToGitHub:            "Sent to GitHub",
-		SentHowToClose:          "Sent; {{.close}} closes the server's answer.",
+		SentHowToClose:          "Sent; {{.close}} closes GitHub's answer.",
 		NothingPosted:           "Nothing was posted",
 		NothingPostedHowToClose: "Nothing was posted; {{.close}} closes why.",
 		PostTo:                  "Post to {{.repo}}#{{.pull}}",
@@ -1100,5 +1212,115 @@ func EnglishTranslationSet() *TranslationSet {
 
 		LoadedElsewhere: "This review was loaded again. {{.refresh}} loads it here; your drafts stay.",
 		LoadedAgain:     "Loaded again.",
+
+		NotAPull:                  "not a pull request: {{.host}}/{{.repo}}#{{.pull}}",
+		NotAPullAddress:           "\"{{.text}}\" is not a pull request's address, such as https://github.com/owner/repo/pull/12",
+		NotABranch:                "not a branch review: {{.repoKey}} {{.branch}}",
+		NotABranchID:              "\"{{.text}}\" is not a branch review's id, such as local/widgets-1a2b3c4d/feature~search",
+		NotAReviewID:              "\"{{.id}}\" is not a review id, such as github.com/owner/repo/12",
+		GaveUpWaiting:             "gave up waiting for {{.path}}",
+		HeldElsewhere:             "another process holds {{.path}}",
+		NoBuild:                   "the change does not name the page build its window was drawn from",
+		LoadedAgainSince:          "the review was loaded again after this window opened, so its lines may have moved; reload it, then try again",
+		NotWritten:                "could not write the review, so every file is as it was: {{.why}}",
+		Unreadable:                "could not read {{.path}}: {{.why}}",
+		NoFile:                    "no file: {{.why}}",
+		NotAFileOfReview:          "{{.path}} is not a file of this review",
+		NoSuchReview:              "no such review",
+		ReviewNone:                "there is no review {{.id}}",
+		NotInCombinedDiff:         "the line is not in the combined diff",
+		StackPlace:                "#{{.pull}}, line {{.line}}",
+		StackPlaceOf:              "#{{.pull}}, line {{.line}} of {{.path}}",
+		ChangedIn:                 "Changed in #{{.pull}}. A comment here goes on {{.place}}.",
+		LastChanged:               "Unchanged here; #{{.pull}} last changed it. A comment here goes on {{.place}}.",
+		NoPullTakes:               "No pull request in the stack can take a comment here: {{.why}}.",
+		NoneShows:                 "Unchanged, and no pull request in the stack shows this line, so it takes no comment.",
+		OneShows:                  "Unchanged. A comment here goes on {{.place}}.",
+		SeveralShow:               "Unchanged, and shown by {{.places}}. A comment here names which one it is for.",
+		And:                       "and",
+		WrittenNoHeader:           "the written review must start with a header between --- lines",
+		WrittenHeaderLine:         "the header line \"{{.line}}\" is not \"name: value\"",
+		WrittenUnknownField:       "the header has an unknown field \"{{.field}}\"",
+		WrittenNeedsHead:          "the header needs \"head\", the head commit the review read",
+		WrittenPullOrStack:        "the header needs \"pull\", or \"stack\" for a stack, and not both",
+		WrittenPullNumber:         "the header's \"pull\" must be the pull request number",
+		WrittenStackNumbers:       "the header's \"stack\" must list two or more pull request numbers, bottom first",
+		WrittenTextBefore:         "text before the first ## section heading",
+		WrittenNoSection:          "the written review needs at least one ## section",
+		WrittenEmptySection:       "\"## {{.title}}\" is empty; a section with nothing to say says so in one line",
+		WrittenProblems:           "the written review has {{.problems}}",
+		ProblemNoun:               "problem",
+		LineWord:                  "line",
+		RemovedLineWord:           "removed line",
+		OneLine:                   "{{.side}} {{.line}}",
+		LineToLine2:               "{{.startSide}} {{.start}} to {{.side}} {{.line}}",
+		LinesRange:                "{{.side}}s {{.start}}-{{.line}}",
+		BranchTakesNone:           "A branch with no pull request takes no comments. Ask Claude about these lines instead.",
+		ReviewMovedHere:           "This review moved, so nothing can be queued here.",
+		NotInChange:               "This file is not in the change, so a comment cannot go on it. Ask Claude about it instead.",
+		NotADiffLine:              "GitHub takes comments only on lines of the diff, and this one is not. Ask Claude about it instead.",
+		LeavesHunk:                "GitHub takes a range only inside one hunk of the diff, and this one leaves it. Pick lines inside one hunk, or ask Claude about these.",
+		Backwards:                 "A range runs from its first line to its last, and this one does not.",
+		NotThisReview:             "This review is #{{.own}}'s, not #{{.given}}'s.",
+		OtherHeads:                "This page shows other heads of {{.pulls}} than the review holds. Load the stack again, then queue.",
+		LastChangedBy:             "#{{.last}} last changed this line, not #{{.given}}.",
+		NotShownBy:                "#{{.pull}}'s diff does not show this line.",
+		NotAllTo:                  "These lines do not all go to #{{.pull}}. Comment on fewer lines, or choose another pull request.",
+		NotAllToOne:               "These lines do not all go to one pull request of the stack. Comment on fewer lines, or one comment per pull request.",
+		ChooseAmong:               "Unchanged, and shown by {{.pulls}}. Choose the pull request it goes on.",
+		LeftStack:                 "#{{.pull}} is not in this stack any more.",
+		PullEndedHere:             "#{{.pull}} is {{.state}}, so nothing can be queued for it.",
+		GoesOn:                    "Goes on #{{.pull}}, {{.lines}}.",
+		GoesOnOf:                  "Goes on #{{.pull}}, {{.lines}} of {{.path}}.",
+		PressComment:              "{{.these}} on {{.where}} under your name, exactly as shown.",
+		PressApproveWithComments:  "You approve {{.where}}, and {{.these}} with the approval under your name, exactly as shown.",
+		PressApprove:              "You approve {{.where}} with no comments.",
+		PressApproveKeeps:         " The queued {{.comments}} {{.stay}} queued, unposted.",
+		ThisCommentGoes:           "this comment goes",
+		TheseCommentsGo:           "these {{.comments}} go",
+		Stays:                     "stays",
+		Stay:                      "stay",
+		QueuedCommentNoun:         "queued comment",
+		EmptyText:                 "the text is empty",
+		NotOnDiff:                 "is not on a line of the diff",
+		StartsOff:                 "starts on {{.removed}}line {{.line}}, which is not on a line of the diff",
+		AcrossHunks:               "runs from {{.removed}}line {{.line}} across more than one hunk of the diff, and GitHub takes a range only inside one hunk",
+		StartsAfter:               "starts on {{.removed}}line {{.line}}, which does not come before its last line in the diff",
+		RemovedWord:               "removed ",
+		QueueReviewMoved:          "this review moved to {{.to}}; nothing changed here",
+		NotInStackAnyMore:         "#{{.pull}} is not in this stack any more",
+		NotInReview:               "#{{.pull}} is not part of this review",
+		NoVersion:                 "the change does not name the version of comment {{.id}} it was made on",
+		ChangedSince:              "comment {{.id}} was changed after this window showed it, and now reads \"{{.body}}\"",
+		NoComment:                 "no queued comment {{.id}}",
+		NotQueued:                 "not queued: {{.why}}",
+		NotChanged:                "not changed: {{.why}}",
+		NotDropped:                "not dropped: {{.why}}",
+		NothingWasPosted:          "nothing was posted: {{.why}}",
+		HeadMoved:                 "#{{.pull}} moved from {{.from}} to {{.to}}; load it again, then queue",
+		CommentAt:                 "{{.path}}:{{.lines}}",
+		CommentAtOf:               "{{.path}}:{{.lines}} of #{{.pull}}",
+		Placed:                    "{{.at}} {{.problem}}",
+		NotAnAction:               "\"{{.action}}\" is not an action; nothing was posted",
+		NotOffered:                "\"{{.action}}\" is not offered for #{{.pull}}; nothing was posted",
+		OtherSet:                  "the page showed set {{.shown}}, but \"{{.action}}\" now gives set {{.now}}; nothing was posted",
+		OtherAccount:              "GitHub answers as {{.now}} now, but this review was loaded as {{.loaded}}; nothing was posted",
+		AlreadyDone:               "already done as {{.url}}; posted nothing new",
+		OwnPull:                   "this is your own pull request, which GitHub does not let you approve",
+		ReadBack:                  "posted {{.url}}, but GitHub reads back state {{.state}} with {{.back}} of {{.comments}}: check it",
+		PostedComment:             "posted {{.comments}} as one review: {{.url}}",
+		PostedApproveWithComments: "approved with {{.comments}}: {{.url}}",
+		PostedApprove:             "approved, with no comments: {{.url}}",
+		PullIsEnded:               "#{{.pull}} is {{.state}}",
+		HeadMovedFrom:             "the head moved from {{.from}} to {{.to}}",
+		CommentNamed:              "comment {{.id}} ({{.path}}:{{.line}})",
+		CommentProblem:            "{{.comment}} {{.problem}}",
+		CommentText:               "{{.comment}}: {{.problem}}",
+		CommentStale:              "{{.comment}} is stale: {{.why}}; queue it again or drop it",
+		GitHubNoToken:             "gh has no token for {{.account}} on {{.host}}: {{.why}}",
+		GitHubTooSlow:             "GitHub did not answer {{.method}} {{.path}} in time; nothing changed",
+		GitHubUnreachable:         "could not reach {{.host}}: {{.why}}",
+		GitHubRefused:             "GitHub refused {{.method}} {{.path}}: {{.why}}",
+		GitHubUnreadable:          "could not read GitHub's answer to {{.method}} {{.path}}: {{.why}}",
 	}
 }

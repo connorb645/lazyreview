@@ -1,0 +1,64 @@
+[
+  {
+    "id": "T1",
+    "pull": 21,
+    "path": "Sources/Catalog/MemoryCatalog.swift",
+    "side": "RIGHT",
+    "line": 9,
+    "start_line": null,
+    "start_side": null,
+    "original_line": 9,
+    "resolved": false,
+    "resolved_by": null,
+    "outdated": false,
+    "file": false,
+    "comments": [
+      {
+        "id": 1,
+        "author": "sam",
+        "bot": false,
+        "body": "Should this keep the order items were added in?",
+        "at": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/21#discussion_r1"
+      }
+    ],
+    "more": 0,
+    "hunk": "",
+    "at": {
+      "path": "Sources/Catalog/MemoryCatalog.swift",
+      "side": "RIGHT",
+      "line": 9
+    }
+  },
+  {
+    "id": "T2",
+    "pull": 22,
+    "path": "Sources/Basket/Basket.swift",
+    "side": "RIGHT",
+    "line": 7,
+    "start_line": null,
+    "start_side": null,
+    "original_line": 7,
+    "resolved": true,
+    "resolved_by": "sam",
+    "outdated": false,
+    "file": false,
+    "comments": [
+      {
+        "id": 2,
+        "author": "sam",
+        "bot": false,
+        "body": "Could the search be passed in?",
+        "at": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/21#discussion_r2"
+      }
+    ],
+    "more": 0,
+    "hunk": "",
+    "at": {
+      "path": "Sources/Basket/Basket.swift",
+      "side": "RIGHT",
+      "line": 7
+    }
+  }
+]

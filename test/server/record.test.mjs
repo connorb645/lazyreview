@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { request } from 'node:http';
 import { workbench } from '../support/workbench.mjs';
@@ -18,6 +18,11 @@ import { configFrom, terminalPart } from '../../src/config/user-config.mjs';
 
 const RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal', 'testdata', 'record.json');
 const CONFIG = join(dirname(RECORD), 'config.json');
+// The data home the answers were recorded from, before any change, and the fake GitHub's routes while they were: the Go
+// code that answers in the server's place reads them, and gives the same answers.
+const HOME = join(dirname(RECORD), 'home');
+const ROUTES = join(dirname(RECORD), 'github.json');
+const STAND_IN_ORIGIN = '/stand-in/origin.git';
 const STACK = 'github.com/octo/widgets/21';
 const SINGLE = 'github.com/octo/widgets/30';
 
@@ -139,6 +144,7 @@ async function recordAnswers() {
         result: null,
       }));
 
+      const dataHome = filesUnder(w.home.root, 'reviews');
       const paths = [];
       for (const id of [STACK, SINGLE]) {
         const base = `/api/reviews/${id}`;
@@ -187,6 +193,7 @@ async function recordAnswers() {
         'POST repos/octo/widgets/pulls/30/reviews': { id: 8, state: 'APPROVED', html_url: 'https://github.com/octo/widgets/pull/30#pullrequestreview-8' },
         'GET repos/octo/widgets/pulls/30/comments?per_page=100&page=1': [{ pull_request_review_id: 8 }],
       } });
+      const routes = JSON.parse(readFileSync(w.gh.extra.FAKE_GH_ROUTES, 'utf8').replaceAll(w.repo.origin, STAND_IN_ORIGIN));
       changes.push(
         ['POST', `${one}/post`, { pull: 30, action: 'comment', set: 'stale0000000', build: oneBuild }],
         ['POST', `${one}/post`, { pull: 30, action: 'approve-with-comments', set: oneState.queue.members[0].sets['approve-with-comments'].set, build: oneBuild }],
@@ -209,7 +216,7 @@ async function recordAnswers() {
         const [method, path, body] = change;
         answers[key(method, path, body)] = await send(address, method, path, body);
       }
-      return answers;
+      return { answers, home: dataHome, routes };
     } finally {
       await server.close();
     }
@@ -227,13 +234,38 @@ function firstDifference(recorded, now) {
   return null;
 }
 
+// Every file under `folder` of `root`, by its path from root, as text.
+function filesUnder(root, folder) {
+  const out = {};
+  const walk = path => {
+    for (const entry of readdirSync(join(root, path), { withFileTypes: true })) {
+      const inner = join(path, entry.name);
+      if (entry.name.startsWith('.')) continue;
+      if (entry.isDirectory()) walk(inner);
+      else out[inner] = readFileSync(join(root, inner), 'utf8');
+    }
+  };
+  walk(folder);
+  return out;
+}
+
 test('the server answers the terminal app is tested against are the ones it gives now', async () => {
-  const now = await recordAnswers();
+  const { answers: now, home, routes } = await recordAnswers();
   if (process.env.LAZYREVIEW_RECORD) {
     mkdirSync(dirname(RECORD), { recursive: true });
     writeFileSync(RECORD, JSON.stringify(now, null, 1) + '\n');
+    for (const [path, text] of Object.entries(home)) {
+      mkdirSync(dirname(join(HOME, path)), { recursive: true });
+      writeFileSync(join(HOME, path), text);
+    }
+    writeFileSync(ROUTES, JSON.stringify(routes, null, 1) + '\n');
     return;
   }
+  for (const [path, text] of Object.entries(home)) {
+    assert.ok(existsSync(join(HOME, path)) && readFileSync(join(HOME, path), 'utf8') === text,
+      `${relative(dirname(RECORD), join(HOME, path))} is not the data home the answers come from; write it again with LAZYREVIEW_RECORD=1 npm test`);
+  }
+  assert.deepEqual(JSON.parse(readFileSync(ROUTES, 'utf8')), routes, `${ROUTES} is not the routes the answers come from; write it again with LAZYREVIEW_RECORD=1 npm test`);
   let recorded;
   try {
     recorded = JSON.parse(readFileSync(RECORD, 'utf8'));
@@ -245,7 +277,7 @@ test('the server answers the terminal app is tested against are the ones it give
 });
 
 test('the default config the terminal app\'s tests read is the part lazyreview hands it now', () => {
-  const now = JSON.stringify(terminalPart({ path: STAND_IN_CONFIG, values: configFrom('', STAND_IN_CONFIG).values }, {}), null, 1) + '\n';
+  const now = JSON.stringify(terminalPart({ path: STAND_IN_CONFIG, values: configFrom('', STAND_IN_CONFIG, '/home/reviewer').values }, {}), null, 1) + '\n';
   if (process.env.LAZYREVIEW_RECORD) {
     writeFileSync(CONFIG, now);
     return;

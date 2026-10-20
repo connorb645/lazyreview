@@ -202,7 +202,7 @@ func openedIn(t *testing.T, cmn *common.Common, changed *changes, review string,
 	t.Helper()
 	var visited []string
 	opts := Options{
-		Server: served(t, changed), Review: review,
+		Reviews: served(t, changed), Review: review,
 		Open:     func(address string) error { visited = append(visited, address); return nil },
 		Now:      func() time.Time { return time.Date(2026, 10, 15, 14, 0, 0, 0, time.UTC) },
 		Location: time.UTC,
@@ -249,7 +249,7 @@ func drive(t *testing.T, a App, cmd tea.Cmd) App {
 	return a
 }
 
-func heardNothing(stdcontext.Context, *server.Client, string) <-chan tea.Msg {
+func heardNothing(stdcontext.Context, types.Reviews, string) <-chan tea.Msg {
 	none := make(chan tea.Msg)
 	close(none)
 	return none

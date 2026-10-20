@@ -72,10 +72,10 @@ test('the diff\'s line numbers are absolute unless the file says relative or non
   }
 });
 
-test('the terminal app is handed the file\'s path and the editor: the variable, the setting, then VISUAL, EDITOR and vi', () => {
-  const config = editor => ({ path: PATH, values: { ...defaults(), os: { editor } } });
+test('the terminal app is handed the file\'s path, the data home and the editor: the variable, the setting, then VISUAL, EDITOR and vi', () => {
+  const config = editor => ({ path: PATH, values: { ...defaults(), dataHome: '/home/lee/.lazyreview', os: { editor } } });
   const { theme, keybinding, ...rest } = terminalPart(config(''), {});
-  assert.deepEqual(rest, { path: PATH, editor: 'vi', lineNumbers: 'absolute' });
+  assert.deepEqual(rest, { path: PATH, dataHome: '/home/lee/.lazyreview', editor: 'vi', lineNumbers: 'absolute' });
   assert.deepEqual(theme, defaults().gui.theme);
   assert.deepEqual(keybinding.universal.quit, ['Z Z', 'ctrl+c']);
   assert.equal(terminalPart(config(''), { EDITOR: 'nano' }).editor, 'nano');

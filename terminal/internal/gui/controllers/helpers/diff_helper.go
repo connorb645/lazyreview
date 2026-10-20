@@ -237,7 +237,7 @@ func withRunOpen(v context.DiffContext, path, side string, line int) context.Dif
 }
 
 func (self *DiffHelper) loadFiles(id, build string, paths []string, place *models.Lines) tea.Cmd {
-	tr, c := self.c.Tr, self.c.Server
+	tr, c := self.c.Tr, self.c.Reviews
 	return func() tea.Msg {
 		files := map[string]models.File{}
 		var mu sync.Mutex

@@ -1,0 +1,327 @@
+{
+ "GET repos/octo/widgets": {
+  "full_name": "octo/widgets",
+  "clone_url": "/stand-in/origin.git"
+ },
+ "GET user": {
+  "login": "reviewer"
+ },
+ "GET repos/octo/widgets/pulls/21": {
+  "number": 21,
+  "title": "Add search to the catalog",
+  "body": "Adds a search over the catalog by name.",
+  "html_url": "https://github.com/octo/widgets/pull/21",
+  "state": "open",
+  "merged_at": null,
+  "closed_at": null,
+  "user": {
+   "login": "sam"
+  },
+  "draft": false,
+  "base": {
+   "ref": "main",
+   "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44",
+   "repo": {
+    "full_name": "octo/widgets"
+   }
+  },
+  "head": {
+   "ref": "feature/search",
+   "sha": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+   "repo": {
+    "full_name": "octo/widgets"
+   }
+  }
+ },
+ "GET repos/octo/widgets/pulls/21/files?per_page=100&page=1": [
+  {
+   "filename": "Sources/Catalog/MemoryCatalog.swift",
+   "patch": "@@ -4,4 +4,8 @@ final class MemoryCatalog: Catalog {\n     func items() -> [Item] {\n         stored\n     }\n+\n+    func add(_ item: Item) {\n+        stored.append(item)\n+    }\n }"
+  },
+  {
+   "filename": "Sources/Catalog/Search.swift",
+   "patch": "@@ -0,0 +1,7 @@\n+struct Search {\n+    let catalog: Catalog\n+\n+    func find(_ text: String) -> [Item] {\n+        catalog.items().filter { $0.name.contains(text) }\n+    }\n+}"
+  }
+ ],
+ "GET repos/octo/widgets/pulls/21/reviews?per_page=100&page=1": [],
+ "GET repos/octo/widgets/pulls/21/comments?per_page=100&page=1": [],
+ "POST graphql octo/widgets#21": {
+  "data": {
+   "repository": {
+    "pullRequest": {
+     "reviewThreads": {
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": null
+      },
+      "nodes": [
+       {
+        "id": "T1",
+        "isResolved": false,
+        "isOutdated": false,
+        "path": "Sources/Catalog/MemoryCatalog.swift",
+        "line": 9,
+        "startLine": null,
+        "originalLine": 9,
+        "originalStartLine": null,
+        "diffSide": "RIGHT",
+        "startDiffSide": null,
+        "subjectType": "LINE",
+        "resolvedBy": null,
+        "comments": {
+         "totalCount": 1,
+         "nodes": [
+          {
+           "databaseId": 1,
+           "author": {
+            "login": "sam",
+            "__typename": "User"
+           },
+           "body": "Should this keep the order items were added in?",
+           "createdAt": "2026-10-15T10:00:00Z",
+           "url": "https://github.com/octo/widgets/pull/21#discussion_r1",
+           "diffHunk": ""
+          }
+         ]
+        }
+       }
+      ]
+     }
+    }
+   }
+  }
+ },
+ "GET repos/octo/widgets/pulls/22": {
+  "number": 22,
+  "title": "Add a basket that uses search",
+  "body": "",
+  "html_url": "https://github.com/octo/widgets/pull/22",
+  "state": "open",
+  "merged_at": null,
+  "closed_at": null,
+  "user": {
+   "login": "sam"
+  },
+  "draft": false,
+  "base": {
+   "ref": "feature/search",
+   "sha": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+   "repo": {
+    "full_name": "octo/widgets"
+   }
+  },
+  "head": {
+   "ref": "feature/basket",
+   "sha": "cd3c70277eb3b388699274ec861c66932edb9348",
+   "repo": {
+    "full_name": "octo/widgets"
+   }
+  }
+ },
+ "GET repos/octo/widgets/pulls/22/files?per_page=100&page=1": [
+  {
+   "filename": "Sources/Basket/Basket.swift",
+   "patch": "@@ -1,11 +1,13 @@\n final class Basket {\n     let catalog: Catalog\n+    let search: Search\n \n     init(catalog: Catalog) {\n         self.catalog = catalog\n+        self.search = Search(catalog: catalog)\n     }\n \n     func total() -> Int {\n-        0\n+        1\n     }\n }"
+  },
+  {
+   "filename": "web/src/cart.ts",
+   "patch": "@@ -1,3 +1,4 @@\n export function cartTotal(prices: number[]): number {\n+  if (!prices.length) return 0;\n   return prices.reduce((a, b) => a + b, 0);\n }"
+  }
+ ],
+ "GET repos/octo/widgets/pulls/22/reviews?per_page=100&page=1": [],
+ "GET repos/octo/widgets/pulls/22/comments?per_page=100&page=1": [],
+ "POST graphql octo/widgets#22": {
+  "data": {
+   "repository": {
+    "pullRequest": {
+     "reviewThreads": {
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": null
+      },
+      "nodes": [
+       {
+        "id": "T2",
+        "isResolved": true,
+        "isOutdated": false,
+        "path": "Sources/Basket/Basket.swift",
+        "line": 7,
+        "startLine": null,
+        "originalLine": 7,
+        "originalStartLine": null,
+        "diffSide": "RIGHT",
+        "startDiffSide": null,
+        "subjectType": "LINE",
+        "resolvedBy": {
+         "login": "sam"
+        },
+        "comments": {
+         "totalCount": 1,
+         "nodes": [
+          {
+           "databaseId": 2,
+           "author": {
+            "login": "sam",
+            "__typename": "User"
+           },
+           "body": "Could the search be passed in?",
+           "createdAt": "2026-10-15T10:00:00Z",
+           "url": "https://github.com/octo/widgets/pull/21#discussion_r2",
+           "diffHunk": ""
+          }
+         ]
+        }
+       }
+      ]
+     }
+    }
+   }
+  }
+ },
+ "GET repos/octo/widgets/pulls/30": {
+  "number": 30,
+  "title": "Fix the guide wording",
+  "body": "",
+  "html_url": "https://github.com/octo/widgets/pull/30",
+  "state": "open",
+  "merged_at": null,
+  "closed_at": null,
+  "user": {
+   "login": "alex"
+  },
+  "draft": false,
+  "base": {
+   "ref": "main",
+   "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44",
+   "repo": {
+    "full_name": "octo/widgets"
+   }
+  },
+  "head": {
+   "ref": "fix/wording",
+   "sha": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+   "repo": {
+    "full_name": "octo/widgets"
+   }
+  }
+ },
+ "GET repos/octo/widgets/pulls/30/files?per_page=100&page=1": [
+  {
+   "filename": "docs/basket.md",
+   "patch": "@@ -0,0 +1,6 @@\n+# Basket\n+\n+A basket keeps its prices until checkout.\n+\n+1. Add an item\n+2. Remove an item"
+  },
+  {
+   "filename": "docs/guide.md",
+   "patch": "@@ -1,6 +1,17 @@\n # Guide\n \n-The catalog lists items.\n+The catalog lists every item.\n \n - Browse\n - Search\n+- Keep a basket\n+\n+## Steps\n+\n+1. Open the catalog.\n+1. Pick an item.\n+1. Add it to the basket.\n+\n+```swift\n+let basket = Basket(catalog: catalog)\n+```"
+  }
+ ],
+ "GET repos/octo/widgets/pulls/30/reviews?per_page=100&page=1": [],
+ "GET repos/octo/widgets/pulls/30/comments?per_page=100&page=1": [
+  {
+   "pull_request_review_id": 8
+  }
+ ],
+ "POST graphql octo/widgets#30": {
+  "data": {
+   "repository": {
+    "pullRequest": {
+     "reviewThreads": {
+      "pageInfo": {
+       "hasNextPage": false,
+       "endCursor": null
+      },
+      "nodes": []
+     }
+    }
+   }
+  }
+ },
+ "GET repos/octo/widgets/pulls?state=open&per_page=100&page=1": [
+  {
+   "number": 21,
+   "title": "Add search to the catalog",
+   "body": "Adds a search over the catalog by name.",
+   "html_url": "https://github.com/octo/widgets/pull/21",
+   "state": "open",
+   "merged_at": null,
+   "closed_at": null,
+   "user": {
+    "login": "sam"
+   },
+   "draft": false,
+   "base": {
+    "ref": "main",
+    "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44",
+    "repo": {
+     "full_name": "octo/widgets"
+    }
+   },
+   "head": {
+    "ref": "feature/search",
+    "sha": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+    "repo": {
+     "full_name": "octo/widgets"
+    }
+   }
+  },
+  {
+   "number": 22,
+   "title": "Add a basket that uses search",
+   "body": "",
+   "html_url": "https://github.com/octo/widgets/pull/22",
+   "state": "open",
+   "merged_at": null,
+   "closed_at": null,
+   "user": {
+    "login": "sam"
+   },
+   "draft": false,
+   "base": {
+    "ref": "feature/search",
+    "sha": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+    "repo": {
+     "full_name": "octo/widgets"
+    }
+   },
+   "head": {
+    "ref": "feature/basket",
+    "sha": "cd3c70277eb3b388699274ec861c66932edb9348",
+    "repo": {
+     "full_name": "octo/widgets"
+    }
+   }
+  },
+  {
+   "number": 30,
+   "title": "Fix the guide wording",
+   "body": "",
+   "html_url": "https://github.com/octo/widgets/pull/30",
+   "state": "open",
+   "merged_at": null,
+   "closed_at": null,
+   "user": {
+    "login": "alex"
+   },
+   "draft": false,
+   "base": {
+    "ref": "main",
+    "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44",
+    "repo": {
+     "full_name": "octo/widgets"
+    }
+   },
+   "head": {
+    "ref": "fix/wording",
+    "sha": "058ff259fab61c8e1dfc3f58fc5ff8de38f84733",
+    "repo": {
+     "full_name": "octo/widgets"
+    }
+   }
+  }
+ ],
+ "POST repos/octo/widgets/pulls/30/reviews": {
+  "id": 8,
+  "state": "APPROVED",
+  "html_url": "https://github.com/octo/widgets/pull/30#pullrequestreview-8"
+ }
+}
