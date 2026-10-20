@@ -59,7 +59,7 @@ func TestACommentIsWrittenInTheEditorAndQueued(t *testing.T) {
 	if string(file) != want {
 		t.Fatalf("the editor was given:\n%s\nnot:\n%s", file, want)
 	}
-	if a.Notice != "Queued: A comment on Sources/Basket/Basket.swift, line 3" || a.Bad {
+	if a.Notice != "Queued a comment on Basket.swift, line 3." || a.Bad {
 		t.Fatalf("the status line says %q", a.Notice)
 	}
 	screenIs(t, a, "comment-queued")
@@ -199,7 +199,7 @@ func TestClaudesAnswerBecomesTheComment(t *testing.T) {
 		t.Fatalf("on %+v", r)
 	}
 	a = press(t, a, "c")
-	if a.Bad || a.Notice != "Queued: A comment on Sources/Basket/Basket.swift, line 7, from Claude's answer" {
+	if a.Bad || a.Notice != "Queued Claude's answer on Basket.swift, line 7." {
 		t.Fatalf("the status line says %q", a.Notice)
 	}
 	if r := a.Diff.Rows[a.Diff.Cursor]; r.Key != "conversation:1" || r.Part != "claude" {

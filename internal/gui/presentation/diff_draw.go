@@ -130,12 +130,21 @@ func noteLine(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v D
 		return ""
 	}
 	if r.Kind == "notehead" {
-		head, keys := NoteHead(tr, labels, d, n, v.NoteOpen(n))
+		heads, keys := NoteHead(tr, labels, d, n, v.NoteOpen(n))
 		style := map[string]lipgloss.Style{"queued": th.Accent, "conversation": th.Bold, "thread": th.Bold}[n.Kind]
 		if n.Kind == "queued" {
 			style = th.PullRequest(MemberColor(d.State, n.Pull))
 		}
-		return utils.Spread(indent+style.Render(head), th.Key.Render(keys)+" ", v.Width-1)
+		width := v.Width - 1
+		if full, keyed := indent+style.Render(heads[0]), th.Key.Render(keys)+" "; ansi.StringWidth(full)+1+ansi.StringWidth(keyed) <= width {
+			return utils.Spread(full, keyed, width)
+		}
+		for _, head := range heads {
+			if ansi.StringWidth(indent+head) <= width {
+				return indent + style.Render(head)
+			}
+		}
+		return utils.Fit(indent+style.Render(heads[len(heads)-1]), width)
 	}
 	style := map[string]lipgloss.Style{"body": th.Text, "you": th.Bold, "claude": th.Text, "error": th.Bad, "stale": th.Warning, "author": th.Muted, "waiting": th.Muted, "step": th.Muted, "refused": th.Bad}[r.Part]
 	return indent + "  " + style.Render(r.Text)

@@ -217,9 +217,11 @@ func NoteWords(tr *i18n.TranslationSet, n Note) string {
 	return utils.ResolvePlaceholderString(tr.AThreadOn, map[string]string{"pull": utils.Itoa(n.Pull)}) + " · " + lines
 }
 
-// NoteHead is a note's first row in a diff, and the keys that act on it,
-// labelled from labels.
-func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n Note, open bool) (string, string) {
+// NoteHead is a note's first row in a diff, in forms from the fullest to
+// the shortest, and the keys that act on it, labelled from labels. Each
+// shorter form leaves out more of what the code row above the note already
+// says, and words its state more briefly, but keeps its state.
+func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n Note, open bool) ([]string, string) {
 	fold := "▸"
 	if open {
 		fold = "▾"
@@ -227,21 +229,23 @@ func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n N
 	keys := map[string]string{"edit": labels.Of("edit"), "drop": labels.Of("drop"), "ask": labels.Of("ask"), "fold": labels.Of("toggle fold"), "github": labels.Of("github")}
 	lines := ""
 	if n.At != nil {
-		lines = " · " + LinesWords(tr, n.At.Side, n.At.Line, n.At.StartLine, n.At.StartSide)
+		lines = LinesWords(tr, n.At.Side, n.At.Line, n.At.StartLine, n.At.StartSide)
 	}
 	switch n.Kind {
 	case "queued":
-		head := fold + " " + utils.ResolvePlaceholderString(tr.QueuedNumber, map[string]string{"comment": utils.Itoa(n.Comment.ID)}) + fmt.Sprintf(" → #%d%s", n.Pull, lines)
+		lead := fold + " " + utils.ResolvePlaceholderString(tr.QueuedNumber, map[string]string{"comment": utils.Itoa(n.Comment.ID)}) + fmt.Sprintf(" → #%d", n.Pull)
+		stale := ""
 		if n.Comment.Stale != "" {
-			head += " · " + tr.Stale
+			stale = tr.Stale
 		}
-		return head, utils.ResolvePlaceholderString(tr.QueuedNoteKeys, keys)
+		return []string{headOf(lead, lines, stale), headOf(lead, stale)}, utils.ResolvePlaceholderString(tr.QueuedNoteKeys, keys)
 	case "conversation":
-		head := fold + " " + tr.Claude + " · " + utils.Plural(len(n.Conversation.Messages), tr.MessageNoun) + lines
+		lead, count := fold+" "+tr.Claude, utils.Plural(len(n.Conversation.Messages), tr.MessageNoun)
+		keyed := utils.ResolvePlaceholderString(tr.ConversationNoteKeys, keys)
 		if Waiting(*n.Conversation) {
-			head += " · " + tr.WaitingForClaudeWords
+			return []string{headOf(lead, count, lines, tr.WaitingForClaudeWords), headOf(lead, count, tr.WaitingForClaudeWords), headOf(lead, count, tr.Waiting), headOf(lead, tr.Waiting)}, keyed
 		}
-		return head, utils.ResolvePlaceholderString(tr.ConversationNoteKeys, keys)
+		return []string{headOf(lead, count, lines), headOf(lead, count)}, keyed
 	}
 	var people []string
 	for _, c := range n.Thread.Comments {
@@ -249,17 +253,21 @@ func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n N
 			people = append(people, c.Author)
 		}
 	}
-	head := fmt.Sprintf("%s %s · %s", fold, strings.Join(people, ", "), utils.Plural(len(n.Thread.Comments)+n.Thread.More, tr.CommentNoun))
+	lead, count, resolved, outdated, whole := fold+" "+strings.Join(people, ", "), utils.Plural(len(n.Thread.Comments)+n.Thread.More, tr.CommentNoun), "", "", ""
 	if n.Thread.Resolved {
-		head += " · " + tr.Resolved
+		resolved = tr.Resolved
 	}
 	if n.Thread.Outdated {
-		head += " · " + tr.Outdated
+		outdated = tr.Outdated
 	}
 	if n.At == nil {
-		head += " · " + tr.TheWholeFile
+		whole = tr.TheWholeFile
 	}
-	return head, utils.ResolvePlaceholderString(tr.ThreadNoteKeys, keys)
+	return []string{headOf(lead, count, resolved, outdated, whole), headOf(lead, count, resolved, outdated), headOf(lead, resolved, outdated)}, utils.ResolvePlaceholderString(tr.ThreadNoteKeys, keys)
+}
+
+func headOf(parts ...string) string {
+	return strings.Join(slices.DeleteFunc(parts, func(p string) bool { return p == "" }), " · ")
 }
 
 const shownSteps = 3

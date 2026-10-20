@@ -112,7 +112,7 @@ func (self *EditingHelper) Comment(s context.ContextTree) (context.ContextTree, 
 		case n.Kind == "conversation" && r.Part == "claude":
 			text := n.Conversation.Messages[r.Message].Text
 			about := utils.ResolvePlaceholderString(tr.CommentFromAnswer, map[string]string{"on": onWords(tr, *n.At)})
-			e := types.Editing{Purpose: "comment", At: *n.At, Text: text, Key: "comment " + LinesKey(*n.At), About: []string{about}}
+			e := types.Editing{Purpose: "comment", At: *n.At, Text: text, Answer: true, Key: "comment " + LinesKey(*n.At), About: []string{about}}
 			return s.Said(tr.CheckingWhere, false), self.CheckWhere(s, e)
 		case n.Kind == "queued":
 			return s.Said(self.keyed(s, tr.EditsQueuedComment, "edit"), true), nil
@@ -378,7 +378,11 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 	case "drop":
 		return self.followed(s.Said(utils.ResolvePlaceholderString(self.c.Tr.DroppedQueued, comment), false))
 	}
-	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.QueuedAbout, map[string]string{"about": strings.TrimSuffix(e.About[0], ".")}), false), nil
+	queued := self.c.Tr.QueuedOn
+	if e.Answer {
+		queued = self.c.Tr.QueuedAnswerOn
+	}
+	return s.Said(utils.ResolvePlaceholderString(queued, map[string]string{"on": fileLineWords(self.c.Tr, e.At)}), false), nil
 }
 
 // AfterCheck is the state once the queue says where a comment would go:

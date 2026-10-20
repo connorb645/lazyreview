@@ -170,7 +170,7 @@ func TestAQuestionAskedElsewhereShowsAsWaiting(t *testing.T) {
 	state.Threads = append(state.Threads, models.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, Messages: []models.Message{{From: "you", Text: "Why here?"}}})
 	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
 	n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "conversation:9")
-	if head, _ := presentation.NoteHead(a.c.Tr, a.controllers.Labels(context.DiffKey), *a.Review, n, false); head != "▸ Claude · 1 message · line 3 · waiting for Claude" {
-		t.Fatalf("the conversation's head reads %q", head)
+	if heads, _ := presentation.NoteHead(a.c.Tr, a.controllers.Labels(context.DiffKey), *a.Review, n, false); heads[0] != "▸ Claude · 1 message · line 3 · waiting for Claude" {
+		t.Fatalf("the conversation's head reads %q", heads[0])
 	}
 }

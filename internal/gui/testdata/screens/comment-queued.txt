@@ -27,4 +27,4 @@
 │ ■ widgets                     ││                                                                 │
 │ ■ Unchanged code              ││                                                                 │
 ╰────────────────────────1 of 2─╯╰────line 3 · Changed in #22. A comment here goes on #22, line 3.─╯
- Move: j k | Hunks: ]c [c | Keys: Space ?  Queued: A comment on Sources/Basket/Basket.swift, line 3
+ Move: j k | Hunks: ]c [c | Select: V | Keys: Space ?     Queued a comment on Basket.swift, line 3.

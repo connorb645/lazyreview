@@ -14,8 +14,19 @@ func (a App) barLine() string {
 	if a.Has(context.PromptKey) {
 		return utils.Fit(" "+a.Prompt.Input.View(), a.Width)
 	}
-	right := ""
-	widest := max(10, a.Width*2/3)
+	sep := th.Faint.Render(" | ")
+	hints := a.controllers.Hints(a.ContextTree)
+	parts := make([]string, len(hints))
+	for i, h := range hints {
+		parts[i] = th.Muted.Render(h[1]+": ") + th.Accent.Render(h[0])
+	}
+	right, widest, beside := "", max(10, a.Width*2/3), a.Width-3
+	if len(parts) > 0 {
+		beside -= ansi.StringWidth(parts[len(parts)-1]) + 1
+	}
+	if notice := ansi.StringWidth(a.Notice); notice > widest && notice <= beside {
+		widest = notice
+	}
 	status := a.helpers.Home.Status(a.ContextTree)
 	if status == "" {
 		status = a.helpers.AppStatus.Status(a.ContextTree, widest)
@@ -32,15 +43,9 @@ func (a App) barLine() string {
 	case status != "":
 		right = th.Muted.Render(ansi.Truncate(status, widest, "…"))
 	}
-	hints := a.controllers.Hints(a.ContextTree)
 	room := a.Width - 3
 	if right != "" {
 		room -= ansi.StringWidth(right) + 1
-	}
-	sep := th.Faint.Render(" | ")
-	parts := make([]string, len(hints))
-	for i, h := range hints {
-		parts[i] = th.Muted.Render(h[1]+": ") + th.Accent.Render(h[0])
 	}
 	for len(parts) > 1 && ansi.StringWidth(strings.Join(parts, sep)) > room {
 		parts = append(parts[:len(parts)-2], parts[len(parts)-1])

@@ -450,7 +450,8 @@ type TranslationSet struct {
 	SavedQueued             string
 	DroppedQueued           string
 	DeletedConversation     string
-	QueuedAbout             string
+	QueuedOn                string
+	QueuedAnswerOn          string
 
 	AddComments             string
 	ApproveWithComments     string
@@ -1405,7 +1406,8 @@ func EnglishTranslationSet() *TranslationSet {
 		SavedQueued:             "Saved queued comment {{.comment}}.",
 		DroppedQueued:           "Dropped queued comment {{.comment}}.",
 		DeletedConversation:     "Deleted the conversation on {{.on}}.",
-		QueuedAbout:             "Queued: {{.about}}",
+		QueuedOn:                "Queued a comment on {{.on}}.",
+		QueuedAnswerOn:          "Queued Claude's answer on {{.on}}.",
 
 		AddComments:             "Add Comments",
 		ApproveWithComments:     "Approve With Comments",
