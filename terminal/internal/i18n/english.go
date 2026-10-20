@@ -980,7 +980,7 @@ func EnglishTranslationSet() *TranslationSet {
 
 		WrittenStale:        "This written review read head {{.head}}; the pull request has moved on since, so it may not match the diff.",
 		NoWrittenReview:     "No written review is attached. The diagram and the diffs hold the change.",
-		BranchReadOnly:      "This branch has no pull request yet, so its review is read only.",
+		BranchReadOnly:      "This review is read only: nothing can be posted from a branch.",
 		QueuedComments:      "Queued comments",
 		CommentNoun:         "comment",
 		GitHubThreadsLoaded: "{{.threads}}, {{.open}} unresolved, as GitHub had them when this review was loaded.",

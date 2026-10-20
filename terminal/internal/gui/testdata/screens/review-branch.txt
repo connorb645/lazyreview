@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Review─────────────────────────────────────────╮
+│ feature/local → main   ││ Branch feature/local in widgets, with no pull      │
+╰─────────────────1 of 1─╯│ request yet                                        │
+╭─[2]─Files──────────────╮│ feature/local                                      │
+│ ▾ ■ docs        +18 −1 ││ Base main · Head 0a5da661 · 2 files +18 −1         │
+│   A basket.md          ││                                                    │
+│   M guide.md           ││ This review is read only: nothing can be posted    │
+│                        ││ from a branch.                                     │
+│                        ││                                                    │
+╰─────────────────1 of 3─╯│▌▾ The change                                       │
+╭─[3]─Notes──────────────╮│   ■ docs  2 files +18 −1                           │
+│ Nothing queued or aske…││                                                    │
+│                        ││                                                    │
+│                        ││                                                    │
+╰─────────────────0 of 0─╯│                                                    │
+╭─[4]─Diagram────────────╮│                                                    │
+│ Components             ││                                                    │
+│ ■ docs                 ││                                                    │
+│                        ││                                                    │
+│                        ││                                                    │
+│                        ││                                                    │
+│                        ││                                                    │
+╰─────────────────1 of 1─╯╰─────────────────────────────────────────The change─╯
+ Move: j k | Open: Enter | Sections: ]] [[ | Fold: za | Keys: Space ?

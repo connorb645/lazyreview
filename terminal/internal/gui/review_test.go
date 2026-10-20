@@ -1,9 +1,13 @@
 package gui
 
 import (
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/ansi"
+
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 func TestTheReviewViewOfAStack(t *testing.T) {
@@ -30,6 +34,23 @@ func TestTheReviewViewOfAStack(t *testing.T) {
 	a = press(t, a, "G")
 	if it := a.ReviewView.View.Items[a.ReviewView.View.Cursor]; it.Kind != "component" {
 		t.Fatalf("G stops on the last item, the change's last component, not %+v", it)
+	}
+}
+
+func TestTheReviewViewOfABranchSaysOnceThatItHasNoPullRequest(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/30", 80, 24)
+	state := a.Review.State
+	state.Kind, state.Repo, state.Title, state.Members, state.Queue, state.GitHub = "branch", "widgets", "feature/local", nil, nil, nil
+	state.Base, state.Head = models.Ref{Ref: "main", Sha: state.Base.Sha}, models.Ref{Ref: "feature/local", Sha: "0a5da661c0ffee"}
+	a = relaid(a.with(a.helpers.Refresh.WithState(a.ContextTree, state)))
+	a = press(t, a, "0")
+	screenIs(t, a, "review-branch")
+	var words []string
+	for _, l := range a.ReviewView.View.Lines {
+		words = append(words, strings.TrimSpace(ansi.Strip(l.Text)))
+	}
+	if said := strings.Count(strings.Join(words, " "), "no pull request"); said != 1 {
+		t.Fatalf("the Review view of a branch says %d times that it has no pull request", said)
 	}
 }
 
