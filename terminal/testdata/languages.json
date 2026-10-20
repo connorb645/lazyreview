@@ -1,0 +1,4090 @@
+{
+ "readings": [
+  {
+   "language": "Swift",
+   "text": "import Foundation\n\n/// A session. struct NotThis {}\n@MainActor public final class CheckoutSession: NSObject, CheckoutRunning, @unchecked Sendable {\n    private let clock: ShopClock\n    weak var delegate: CheckoutDelegate?\n    static let shared = CheckoutSession()\n    private lazy var reader = ReceiptReader(url: url)\n    var computed: Int { 1 }\n\n    struct Config: Codable {\n        let speed: Double\n    }\n\n    func run() {\n        let local: LocalOnly = LocalOnly()\n        class func notAType() {}\n    }\n}\n\nprotocol CheckoutRunning: AnyObject {\n    var progress: CheckoutProgress { get }\n}\n\nenum PaymentKind: String, CaseIterable { case card }\n\nextension CheckoutSession: CustomStringConvertible where Self: AnyObject {\n    var description: String { \"\" }\n}\n\nstruct Box<T: Equatable>: Container where T: Hashable {}\nactor Store {}\n",
+   "masked": "import Foundation\n\n                                \n@MainActor public final class CheckoutSession: NSObject, CheckoutRunning, @unchecked Sendable {\n    private let clock: ShopClock\n    weak var delegate: CheckoutDelegate?\n    static let shared = CheckoutSession()\n    private lazy var reader = ReceiptReader(url: url)\n    var computed: Int { 1 }\n\n    struct Config: Codable {\n        let speed: Double\n    }\n\n    func run() {\n        let local: LocalOnly = LocalOnly()\n        class func notAType() {}\n    }\n}\n\nprotocol CheckoutRunning: AnyObject {\n    var progress: CheckoutProgress { get }\n}\n\nenum PaymentKind: String, CaseIterable { case card }\n\nextension CheckoutSession: CustomStringConvertible where Self: AnyObject {\n    var description: String { \"\" }\n}\n\nstruct Box<T: Equatable>: Container where T: Hashable {}\nactor Store {}\n",
+   "declarations": [
+    {
+     "name": "CheckoutSession",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "NSObject",
+      "CheckoutRunning",
+      "Sendable"
+     ],
+     "at": 76,
+     "span": [
+      52,
+      509
+     ],
+     "body": [
+      146,
+      508
+     ],
+     "depth": 0,
+     "start": 4,
+     "end": 19,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "CheckoutSession",
+     "top": true,
+     "properties": [
+      {
+       "name": "clock",
+       "type": "ShopClock",
+       "line": 5,
+       "inferred": false
+      },
+      {
+       "name": "delegate",
+       "type": "CheckoutDelegate?",
+       "line": 6,
+       "inferred": false
+      },
+      {
+       "name": "reader",
+       "type": "ReceiptReader",
+       "line": 8,
+       "inferred": true
+      }
+     ]
+    },
+    {
+     "name": "Config",
+     "kind": "struct",
+     "label": null,
+     "inherits": [
+      "Codable"
+     ],
+     "at": 351,
+     "span": [
+      351,
+      407
+     ],
+     "body": [
+      374,
+      406
+     ],
+     "depth": 1,
+     "start": 11,
+     "end": 13,
+     "view": false,
+     "test": false,
+     "parent": "CheckoutSession",
+     "owner": "CheckoutSession",
+     "top": false,
+     "properties": [
+      {
+       "name": "speed",
+       "type": "Double",
+       "line": 12,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "CheckoutRunning",
+     "kind": "protocol",
+     "label": null,
+     "inherits": [
+      "AnyObject"
+     ],
+     "at": 511,
+     "span": [
+      511,
+      593
+     ],
+     "body": [
+      547,
+      592
+     ],
+     "depth": 0,
+     "start": 21,
+     "end": 23,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "CheckoutRunning",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "PaymentKind",
+     "kind": "enum",
+     "label": null,
+     "inherits": [
+      "String",
+      "CaseIterable"
+     ],
+     "at": 595,
+     "span": [
+      595,
+      647
+     ],
+     "body": [
+      634,
+      646
+     ],
+     "depth": 0,
+     "start": 25,
+     "end": 25,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "PaymentKind",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "CheckoutSession",
+     "kind": "extension",
+     "label": null,
+     "inherits": [
+      "CustomStringConvertible"
+     ],
+     "at": 649,
+     "span": [
+      649,
+      760
+     ],
+     "body": [
+      722,
+      759
+     ],
+     "depth": 0,
+     "start": 27,
+     "end": 29,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "CheckoutSession",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Box",
+     "kind": "struct",
+     "label": null,
+     "inherits": [
+      "Container"
+     ],
+     "at": 762,
+     "span": [
+      762,
+      818
+     ],
+     "body": [
+      816,
+      817
+     ],
+     "depth": 0,
+     "start": 31,
+     "end": 31,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Box",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Store",
+     "kind": "actor",
+     "label": null,
+     "inherits": [],
+     "at": 819,
+     "span": [
+      819,
+      833
+     ],
+     "body": [
+      831,
+      832
+     ],
+     "depth": 0,
+     "start": 32,
+     "end": 32,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Store",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Swift",
+   "text": "struct MapView: View { var body: some View { Text(\"\") } }\nfinal class MapTests: XCTestCase {}\n@Suite struct NewTests {}",
+   "masked": "struct MapView: View { var body: some View { Text(\"\") } }\nfinal class MapTests: XCTestCase {}\n@Suite struct NewTests {}",
+   "declarations": [
+    {
+     "name": "MapView",
+     "kind": "struct",
+     "label": null,
+     "inherits": [
+      "View"
+     ],
+     "at": 0,
+     "span": [
+      0,
+      57
+     ],
+     "body": [
+      21,
+      56
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 1,
+     "view": true,
+     "test": false,
+     "parent": null,
+     "owner": "MapView",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "MapTests",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "XCTestCase"
+     ],
+     "at": 64,
+     "span": [
+      58,
+      93
+     ],
+     "body": [
+      91,
+      92
+     ],
+     "depth": 0,
+     "start": 2,
+     "end": 2,
+     "view": false,
+     "test": true,
+     "parent": null,
+     "owner": "MapTests",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "NewTests",
+     "kind": "struct",
+     "label": null,
+     "inherits": [],
+     "at": 101,
+     "span": [
+      94,
+      119
+     ],
+     "body": [
+      117,
+      118
+     ],
+     "depth": 0,
+     "start": 3,
+     "end": 3,
+     "view": false,
+     "test": true,
+     "parent": null,
+     "owner": "NewTests",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Swift",
+   "text": "struct Settings {\n    var volume: Int = 3 {\n        didSet { save() }\n    }\n    var name: String {\n        get { \"\" }\n        set { }\n    }\n    private(set) var count = Counter.zero()\n    unowned(unsafe) var owner: Owner\n    let made = Factory.Part.make()\n    @Published var items: [Item] = []\n    let pair: (Int, String)\n    var closure: () -> Void = {}\n}\n",
+   "masked": "struct Settings {\n    var volume: Int = 3 {\n        didSet { save() }\n    }\n    var name: String {\n        get { \"\" }\n        set { }\n    }\n    private(set) var count = Counter.zero()\n    unowned(unsafe) var owner: Owner\n    let made = Factory.Part.make()\n    @Published var items: [Item] = []\n    let pair: (Int, String)\n    var closure: () -> Void = {}\n}\n",
+   "declarations": [
+    {
+     "name": "Settings",
+     "kind": "struct",
+     "label": null,
+     "inherits": [],
+     "at": 0,
+     "span": [
+      0,
+      356
+     ],
+     "body": [
+      16,
+      355
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 15,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Settings",
+     "top": true,
+     "properties": [
+      {
+       "name": "volume",
+       "type": "Int",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "count",
+       "type": "Counter",
+       "line": 9,
+       "inferred": true
+      },
+      {
+       "name": "owner",
+       "type": "Owner",
+       "line": 10,
+       "inferred": false
+      },
+      {
+       "name": "made",
+       "type": "Factory",
+       "line": 11,
+       "inferred": true
+      },
+      {
+       "name": "items",
+       "type": "[Item]",
+       "line": 12,
+       "inferred": false
+      },
+      {
+       "name": "pair",
+       "type": "(Int, String)",
+       "line": 13,
+       "inferred": false
+      },
+      {
+       "name": "closure",
+       "type": "() -> Void",
+       "line": 14,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Swift",
+   "text": "let s = \"\\(d[\"k\"]) {\"; let r = #\"a \"{\" b\"#; struct After {}\nlet raw = #\"x \\#(value) {\"#\nlet multi = \"\"\"\n  class Hidden {\n  \"\"\"\n/* outer /* inner { */ still */ class Visible {}\nextension Outer.Inner: Equatable {}\nindirect enum Tree<T> where T: Comparable { case leaf }\nclass func notThis() {}\nclass var notThisEither: Int { 0 }\nstruct Generic<T: (Int) -> Void>: P {}\nstruct Open {\n    var x: Int\n",
+   "masked": "let s = \"           \"; let r = #\"       \"#; struct After {}\nlet raw = #\"             \"#\nlet multi = \"\"\"\n                \n  \"\"\"\n                                class Visible {}\nextension Outer.Inner: Equatable {}\nindirect enum Tree<T> where T: Comparable { case leaf }\nclass func notThis() {}\nclass var notThisEither: Int { 0 }\nstruct Generic<T: (Int) -> Void>: P {}\nstruct Open {\n    var x: Int\n",
+   "declarations": [
+    {
+     "name": "After",
+     "kind": "struct",
+     "label": null,
+     "inherits": [],
+     "at": 44,
+     "span": [
+      44,
+      59
+     ],
+     "body": [
+      57,
+      58
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 1,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "After",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Visible",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 159,
+     "span": [
+      159,
+      175
+     ],
+     "body": [
+      173,
+      174
+     ],
+     "depth": 0,
+     "start": 6,
+     "end": 6,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Visible",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Outer.Inner",
+     "kind": "extension",
+     "label": null,
+     "inherits": [
+      "Equatable"
+     ],
+     "at": 176,
+     "span": [
+      176,
+      211
+     ],
+     "body": [
+      209,
+      210
+     ],
+     "depth": 0,
+     "start": 7,
+     "end": 7,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Outer.Inner",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Tree",
+     "kind": "enum",
+     "label": null,
+     "inherits": [],
+     "at": 221,
+     "span": [
+      212,
+      267
+     ],
+     "body": [
+      254,
+      266
+     ],
+     "depth": 0,
+     "start": 8,
+     "end": 8,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Tree",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Generic",
+     "kind": "struct",
+     "label": null,
+     "inherits": [
+      "P"
+     ],
+     "at": 327,
+     "span": [
+      327,
+      365
+     ],
+     "body": [
+      363,
+      364
+     ],
+     "depth": 0,
+     "start": 11,
+     "end": 11,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Generic",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Open",
+     "kind": "struct",
+     "label": null,
+     "inherits": [],
+     "at": 366,
+     "span": [
+      366,
+      395
+     ],
+     "body": [
+      378,
+      395
+     ],
+     "depth": 0,
+     "start": 12,
+     "end": 14,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Open",
+     "top": true,
+     "properties": [
+      {
+       "name": "x",
+       "type": "Int",
+       "line": 13,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Swift",
+   "text": "public struct Line: Hashable {\r\n    let a: Int\r\n    var b: String = \"\"\r\n    lazy var c = Maker()\r\n}\r\n",
+   "masked": "public struct Line: Hashable {\r\n    let a: Int\r\n    var b: String = \"\"\r\n    lazy var c = Maker()\r\n}\r\n",
+   "declarations": [
+    {
+     "name": "Line",
+     "kind": "struct",
+     "label": null,
+     "inherits": [
+      "Hashable"
+     ],
+     "at": 7,
+     "span": [
+      0,
+      99
+     ],
+     "body": [
+      29,
+      98
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Line",
+     "top": true,
+     "properties": [
+      {
+       "name": "a",
+       "type": "Int",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "b",
+       "type": "String",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "c",
+       "type": "Maker",
+       "line": 4,
+       "inferred": true
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Swift",
+   "text": "﻿struct Café { let name: String; let price: Price }\n// é 😀 { not a brace\nlet greeting = \"héllo { 😀\"\nstruct Spaced { let x: Int }\nclass Owner { let tag: Tag<\"é\"> }\n",
+   "masked": "﻿struct Café { let name: String; let price: Price }\n                        \nlet greeting = \"             \"\nstruct Spaced { let x: Int }\nclass Owner { let tag: Tag<\"  \"> }\n",
+   "declarations": [
+    {
+     "name": "Spaced",
+     "kind": "struct",
+     "label": null,
+     "inherits": [],
+     "at": 111,
+     "span": [
+      111,
+      140
+     ],
+     "body": [
+      126,
+      139
+     ],
+     "depth": 0,
+     "start": 4,
+     "end": 4,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Spaced",
+     "top": true,
+     "properties": [
+      {
+       "name": "x",
+       "type": "Int",
+       "line": 4,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Owner",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 141,
+     "span": [
+      141,
+      175
+     ],
+     "body": [
+      153,
+      174
+     ],
+     "depth": 0,
+     "start": 5,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Owner",
+     "top": true,
+     "properties": [
+      {
+       "name": "tag",
+       "type": "Tag<\" \">",
+       "line": 5,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Swift",
+   "text": "@available(iOS 15, *)\npublic class Old: NSObject {\n    @objc dynamic var flag: Bool = false\n    nonisolated let id: UUID\n}\nstruct S { let a: Int; let b: Int }\nenum E { case a; static let x = 1 }\nprotocol P where Self: AnyObject {}\nstruct Q: some P {}\nstruct R : ~Copyable {}\n",
+   "masked": "@available(iOS 15, *)\npublic class Old: NSObject {\n    @objc dynamic var flag: Bool = false\n    nonisolated let id: UUID\n}\nstruct S { let a: Int; let b: Int }\nenum E { case a; static let x = 1 }\nprotocol P where Self: AnyObject {}\nstruct Q: some P {}\nstruct R : ~Copyable {}\n",
+   "declarations": [
+    {
+     "name": "Old",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "NSObject"
+     ],
+     "at": 29,
+     "span": [
+      0,
+      122
+     ],
+     "body": [
+      49,
+      121
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Old",
+     "top": true,
+     "properties": [
+      {
+       "name": "flag",
+       "type": "Bool",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "id",
+       "type": "UUID",
+       "line": 4,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "S",
+     "kind": "struct",
+     "label": null,
+     "inherits": [],
+     "at": 123,
+     "span": [
+      123,
+      158
+     ],
+     "body": [
+      132,
+      157
+     ],
+     "depth": 0,
+     "start": 6,
+     "end": 6,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "S",
+     "top": true,
+     "properties": [
+      {
+       "name": "a",
+       "type": "Int; let b: Int",
+       "line": 6,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "E",
+     "kind": "enum",
+     "label": null,
+     "inherits": [],
+     "at": 159,
+     "span": [
+      159,
+      194
+     ],
+     "body": [
+      166,
+      193
+     ],
+     "depth": 0,
+     "start": 7,
+     "end": 7,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "E",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "P",
+     "kind": "protocol",
+     "label": null,
+     "inherits": [],
+     "at": 195,
+     "span": [
+      195,
+      230
+     ],
+     "body": [
+      228,
+      229
+     ],
+     "depth": 0,
+     "start": 8,
+     "end": 8,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "P",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Q",
+     "kind": "struct",
+     "label": null,
+     "inherits": [
+      "P"
+     ],
+     "at": 231,
+     "span": [
+      231,
+      250
+     ],
+     "body": [
+      248,
+      249
+     ],
+     "depth": 0,
+     "start": 9,
+     "end": 9,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Q",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "R",
+     "kind": "struct",
+     "label": null,
+     "inherits": [
+      "Copyable"
+     ],
+     "at": 251,
+     "span": [
+      251,
+      274
+     ],
+     "body": [
+      272,
+      273
+     ],
+     "depth": 0,
+     "start": 10,
+     "end": 10,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "R",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Kotlin",
+   "text": "package com.example\n\ndata class Price(val amount: Double, private val source: PriceSource, count: Int)\n\nsealed interface Outcome\n\nclass Uploader(\n    private val client: HttpClient,\n) : BaseUploader(client), Outcome, Closeable by client {\n    private val queue: UploadQueue = UploadQueue()\n    val lazyThing by lazy { Parser() }\n    companion object {\n        const val LIMIT = 3\n    }\n    inner class Part\n}\n\nobject Registry : Lookup\n\nenum class Mode { FAST, SLOW }\n\nclass UploaderTest {\n    @Test fun works() {}\n}\n",
+   "masked": "package com.example\n\ndata class Price(val amount: Double, private val source: PriceSource, count: Int)\n\nsealed interface Outcome\n\nclass Uploader(\n    private val client: HttpClient,\n) : BaseUploader(client), Outcome, Closeable by client {\n    private val queue: UploadQueue = UploadQueue()\n    val lazyThing by lazy { Parser() }\n    companion object {\n        const val LIMIT = 3\n    }\n    inner class Part\n}\n\nobject Registry : Lookup\n\nenum class Mode { FAST, SLOW }\n\nclass UploaderTest {\n    @Test fun works() {}\n}\n",
+   "declarations": [
+    {
+     "name": "Price",
+     "kind": "class",
+     "label": "data class",
+     "inherits": [],
+     "at": 26,
+     "span": [
+      21,
+      102
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 3,
+     "end": 3,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Price",
+     "top": true,
+     "properties": [
+      {
+       "name": "amount",
+       "type": "Double",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "source",
+       "type": "PriceSource",
+       "line": 3,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Outcome",
+     "kind": "interface",
+     "label": "sealed interface",
+     "inherits": [],
+     "at": 111,
+     "span": [
+      104,
+      128
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 5,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Outcome",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Uploader",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "BaseUploader",
+      "Outcome",
+      "Closeable"
+     ],
+     "at": 130,
+     "span": [
+      130,
+      408
+     ],
+     "body": [
+      237,
+      407
+     ],
+     "depth": 0,
+     "start": 7,
+     "end": 16,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Uploader",
+     "top": true,
+     "properties": [
+      {
+       "name": "client",
+       "type": "HttpClient",
+       "line": 8,
+       "inferred": false
+      },
+      {
+       "name": "queue",
+       "type": "UploadQueue",
+       "line": 10,
+       "inferred": false
+      },
+      {
+       "name": "lazyThing",
+       "type": "Parser",
+       "line": 11,
+       "inferred": true
+      }
+     ]
+    },
+    {
+     "name": "Part",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 396,
+     "span": [
+      390,
+      406
+     ],
+     "body": null,
+     "depth": 1,
+     "start": 15,
+     "end": 15,
+     "view": false,
+     "test": false,
+     "parent": "Uploader",
+     "owner": "Uploader",
+     "top": false,
+     "properties": []
+    },
+    {
+     "name": "Registry",
+     "kind": "object",
+     "label": null,
+     "inherits": [
+      "Lookup"
+     ],
+     "at": 410,
+     "span": [
+      410,
+      434
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 18,
+     "end": 18,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Registry",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Mode",
+     "kind": "enum",
+     "label": null,
+     "inherits": [],
+     "at": 441,
+     "span": [
+      436,
+      466
+     ],
+     "body": [
+      452,
+      465
+     ],
+     "depth": 0,
+     "start": 20,
+     "end": 20,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Mode",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "UploaderTest",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 468,
+     "span": [
+      468,
+      515
+     ],
+     "body": [
+      487,
+      514
+     ],
+     "depth": 0,
+     "start": 22,
+     "end": 24,
+     "view": false,
+     "test": true,
+     "parent": null,
+     "owner": "UploaderTest",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Kotlin",
+   "text": "class Shop<T : Comparable<T>>(val item: T) : Base<T>(), Store\n    where T : Any {\n    val size: Int get() = 1\n    val other: Int\n        get() = 2\n    var counted: Int = 0\n        private set\n    val plain = 3\n    val made = Factory()\n    companion object Named {\n        val x = 1\n    }\n}\nfun interface Callback { fun call() }\nvalue class Id(val raw: String)\ninline class Old(val raw: Int)\nannotation class Marker\nabstract class Shape\nsealed class Result {\n    object Done : Result()\n}\nenum class Level(val weight: Int) { LOW(1), HIGH(2) }\nobject : Listener {}\n",
+   "masked": "class Shop<T : Comparable<T>>(val item: T) : Base<T>(), Store\n    where T : Any {\n    val size: Int get() = 1\n    val other: Int\n        get() = 2\n    var counted: Int = 0\n        private set\n    val plain = 3\n    val made = Factory()\n    companion object Named {\n        val x = 1\n    }\n}\nfun interface Callback { fun call() }\nvalue class Id(val raw: String)\ninline class Old(val raw: Int)\nannotation class Marker\nabstract class Shape\nsealed class Result {\n    object Done : Result()\n}\nenum class Level(val weight: Int) { LOW(1), HIGH(2) }\nobject : Listener {}\n",
+   "declarations": [
+    {
+     "name": "Shop",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Base",
+      "Store"
+     ],
+     "at": 0,
+     "span": [
+      0,
+      289
+     ],
+     "body": [
+      80,
+      288
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 13,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Shop",
+     "top": true,
+     "properties": [
+      {
+       "name": "item",
+       "type": "T",
+       "line": 1,
+       "inferred": false
+      },
+      {
+       "name": "counted",
+       "type": "Int",
+       "line": 6,
+       "inferred": false
+      },
+      {
+       "name": "plain",
+       "type": null,
+       "line": 8,
+       "inferred": false
+      },
+      {
+       "name": "made",
+       "type": "Factory",
+       "line": 9,
+       "inferred": true
+      }
+     ]
+    },
+    {
+     "name": "Callback",
+     "kind": "interface",
+     "label": "fun interface",
+     "inherits": [],
+     "at": 294,
+     "span": [
+      290,
+      327
+     ],
+     "body": [
+      313,
+      326
+     ],
+     "depth": 0,
+     "start": 14,
+     "end": 14,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Callback",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Id",
+     "kind": "class",
+     "label": "value class",
+     "inherits": [],
+     "at": 334,
+     "span": [
+      328,
+      359
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 15,
+     "end": 15,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Id",
+     "top": true,
+     "properties": [
+      {
+       "name": "raw",
+       "type": "String",
+       "line": 15,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Old",
+     "kind": "class",
+     "label": "value class",
+     "inherits": [],
+     "at": 367,
+     "span": [
+      360,
+      390
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 16,
+     "end": 16,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Old",
+     "top": true,
+     "properties": [
+      {
+       "name": "raw",
+       "type": "Int",
+       "line": 16,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Marker",
+     "kind": "annotation",
+     "label": null,
+     "inherits": [],
+     "at": 402,
+     "span": [
+      391,
+      414
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 17,
+     "end": 17,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Marker",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Shape",
+     "kind": "class",
+     "label": "abstract class",
+     "inherits": [],
+     "at": 424,
+     "span": [
+      415,
+      435
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 18,
+     "end": 18,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Shape",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Result",
+     "kind": "class",
+     "label": "sealed class",
+     "inherits": [],
+     "at": 443,
+     "span": [
+      436,
+      486
+     ],
+     "body": [
+      456,
+      485
+     ],
+     "depth": 0,
+     "start": 19,
+     "end": 21,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Result",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Done",
+     "kind": "object",
+     "label": null,
+     "inherits": [
+      "Result"
+     ],
+     "at": 462,
+     "span": [
+      462,
+      484
+     ],
+     "body": null,
+     "depth": 1,
+     "start": 20,
+     "end": 20,
+     "view": false,
+     "test": false,
+     "parent": "Result",
+     "owner": "Result",
+     "top": false,
+     "properties": []
+    },
+    {
+     "name": "Level",
+     "kind": "enum",
+     "label": null,
+     "inherits": [],
+     "at": 492,
+     "span": [
+      487,
+      540
+     ],
+     "body": [
+      521,
+      539
+     ],
+     "depth": 0,
+     "start": 22,
+     "end": 22,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Level",
+     "top": true,
+     "properties": [
+      {
+       "name": "weight",
+       "type": "Int",
+       "line": 22,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Kotlin",
+   "text": "class Text(\n    @SerializedName(\"x\") val x: String = \"a, b\",\n    val list: List<Map<String, Int>>,\n) {\n    val template = \"${values.map { \"}\" }} {\"\n    val raw = \"\"\"\n        class Hidden {\n    \"\"\"\n    val brace = '{'\n}\nclass Multi :\n    Base(),\n    Other\n{\n    val y: Int = 0\n}\nclass Lambda(val f: (Int) -> Unit) : Handler<(String) -> Unit>\nclass Parameterized {\n    @ParameterizedTest fun many() {}\n}\n/* outer /* inner */ class Hidden {} */\nclass Unclosed {\n",
+   "masked": "class Text(\n    @SerializedName(\" \") val x: String = \"    \",\n    val list: List<Map<String, Int>>,\n) {\n    val template = \"                       \"\n    val raw = \"\"\"\n                      \n    \"\"\"\n    val brace = ' '\n}\nclass Multi :\n    Base(),\n    Other\n{\n    val y: Int = 0\n}\nclass Lambda(val f: (Int) -> Unit) : Handler<(String) -> Unit>\nclass Parameterized {\n    @ParameterizedTest fun many() {}\n}\n                                       \nclass Unclosed {\n",
+   "declarations": [
+    {
+     "name": "Text",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 0,
+     "span": [
+      0,
+      218
+     ],
+     "body": [
+      101,
+      217
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 10,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Text",
+     "top": true,
+     "properties": [
+      {
+       "name": "x",
+       "type": "String",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "list",
+       "type": "List<Map<String, Int>>",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "template",
+       "type": null,
+       "line": 5,
+       "inferred": false
+      },
+      {
+       "name": "raw",
+       "type": null,
+       "line": 6,
+       "inferred": false
+      },
+      {
+       "name": "brace",
+       "type": null,
+       "line": 9,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Multi",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 219,
+     "span": [
+      219,
+      232
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 11,
+     "end": 11,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Multi",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Lambda",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Handler"
+     ],
+     "at": 278,
+     "span": [
+      278,
+      340
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 17,
+     "end": 17,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Lambda",
+     "top": true,
+     "properties": [
+      {
+       "name": "f",
+       "type": "(Int) -> Unit",
+       "line": 17,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Parameterized",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 341,
+     "span": [
+      341,
+      401
+     ],
+     "body": [
+      361,
+      400
+     ],
+     "depth": 0,
+     "start": 18,
+     "end": 20,
+     "view": false,
+     "test": true,
+     "parent": null,
+     "owner": "Parameterized",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Unclosed",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 442,
+     "span": [
+      442,
+      459
+     ],
+     "body": [
+      457,
+      459
+     ],
+     "depth": 0,
+     "start": 22,
+     "end": 23,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Unclosed",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Kotlin",
+   "text": "class Windows(val a: Int) {\r\n    val b: String = \"\"\r\n    val c by lazy { Thing() }\r\n}\r\n",
+   "masked": "class Windows(val a: Int) {\r\n    val b: String = \"\"\r\n    val c by lazy { Thing() }\r\n}\r\n",
+   "declarations": [
+    {
+     "name": "Windows",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 0,
+     "span": [
+      0,
+      85
+     ],
+     "body": [
+      26,
+      84
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 4,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Windows",
+     "top": true,
+     "properties": [
+      {
+       "name": "a",
+       "type": "Int",
+       "line": 1,
+       "inferred": false
+      },
+      {
+       "name": "b",
+       "type": "String",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "c",
+       "type": "Thing",
+       "line": 3,
+       "inferred": true
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Kotlin",
+   "text": "﻿class Ünit(val café: String)\n// é 😀 {\nclass Label(val text: String = \"é {\") { val tag: Tag = Tag(\"😀\") }\nprivate  companion object Inside\nexpect class Platform\nactual class Platform\n",
+   "masked": "﻿class Ünit(val café: String)\n            \nclass Label(val text: String = \"    \") { val tag: Tag = Tag(\"    \") }\nprivate  companion object Inside\nexpect class Platform\nactual class Platform\n",
+   "declarations": [
+    {
+     "name": "Label",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 47,
+     "span": [
+      47,
+      116
+     ],
+     "body": [
+      86,
+      115
+     ],
+     "depth": 0,
+     "start": 3,
+     "end": 3,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Label",
+     "top": true,
+     "properties": [
+      {
+       "name": "text",
+       "type": "String",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "tag",
+       "type": "Tag",
+       "line": 3,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Platform",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 157,
+     "span": [
+      150,
+      171
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 5,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Platform",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Platform",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 179,
+     "span": [
+      172,
+      193
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 6,
+     "end": 6,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Platform",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Java",
+   "text": "package x;\npublic abstract class Store<T> extends BaseStore<T> implements Closeable, Flushable {\n    private final Cache cache = new Cache();\n    private static Logger LOG;\n    protected List<Entry> entries;\n    public Store() { Local l = null; }\n    static class Inner {}\n}\ninterface Flushable extends Thing {}\nrecord Point(int x, Label label) implements Shape {}\n",
+   "masked": "package x;\npublic abstract class Store<T> extends BaseStore<T> implements Closeable, Flushable {\n    private final Cache cache = new Cache();\n    private static Logger LOG;\n    protected List<Entry> entries;\n    public Store() { Local l = null; }\n    static class Inner {}\n}\ninterface Flushable extends Thing {}\nrecord Point(int x, Label label) implements Shape {}\n",
+   "declarations": [
+    {
+     "name": "Store",
+     "kind": "class",
+     "label": "abstract class",
+     "inherits": [
+      "BaseStore",
+      "Closeable",
+      "Flushable"
+     ],
+     "at": 27,
+     "span": [
+      11,
+      274
+     ],
+     "body": [
+      95,
+      273
+     ],
+     "depth": 0,
+     "start": 2,
+     "end": 8,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Store",
+     "top": true,
+     "properties": [
+      {
+       "name": "cache",
+       "type": "Cache",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "entries",
+       "type": "List<Entry>",
+       "line": 5,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Inner",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 258,
+     "span": [
+      251,
+      272
+     ],
+     "body": [
+      270,
+      271
+     ],
+     "depth": 1,
+     "start": 7,
+     "end": 7,
+     "view": false,
+     "test": false,
+     "parent": "Store",
+     "owner": "Store",
+     "top": false,
+     "properties": []
+    },
+    {
+     "name": "Flushable",
+     "kind": "interface",
+     "label": null,
+     "inherits": [
+      "Thing"
+     ],
+     "at": 275,
+     "span": [
+      275,
+      311
+     ],
+     "body": [
+      309,
+      310
+     ],
+     "depth": 0,
+     "start": 9,
+     "end": 9,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Flushable",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Point",
+     "kind": "record",
+     "label": null,
+     "inherits": [
+      "Shape"
+     ],
+     "at": 312,
+     "span": [
+      312,
+      364
+     ],
+     "body": [
+      362,
+      363
+     ],
+     "depth": 0,
+     "start": 10,
+     "end": 10,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Point",
+     "top": true,
+     "properties": [
+      {
+       "name": "x",
+       "type": "int",
+       "line": 10,
+       "inferred": false
+      },
+      {
+       "name": "label",
+       "type": "Label",
+       "line": 10,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Java",
+   "text": "@interface Marker {}\nsealed interface Shape permits Circle, Square {}\nnon-sealed class Circle implements Shape {\n    String[] names;\n    final Map<String, List<Integer>> map = new HashMap<>();\n    transient volatile Counter counter;\n    void run() { return; }\n}\nfinal class Square implements Shape, Comparable<Square> {\n    @Inject Service service;\n}\nrecord Pair<A, B>(@NotNull A first, List<Map<String, B>> second) {}\nenum Mode { FAST, SLOW; private Speed speed; }\nclass Outer<T extends Comparable<T>> extends Base<T> {\n    void make() { class Local {} }\n    @Test void works() {}\n}\n",
+   "masked": "@interface Marker {}\nsealed interface Shape permits Circle, Square {}\nnon-sealed class Circle implements Shape {\n    String[] names;\n    final Map<String, List<Integer>> map = new HashMap<>();\n    transient volatile Counter counter;\n    void run() { return; }\n}\nfinal class Square implements Shape, Comparable<Square> {\n    @Inject Service service;\n}\nrecord Pair<A, B>(@NotNull A first, List<Map<String, B>> second) {}\nenum Mode { FAST, SLOW; private Speed speed; }\nclass Outer<T extends Comparable<T>> extends Base<T> {\n    void make() { class Local {} }\n    @Test void works() {}\n}\n",
+   "declarations": [
+    {
+     "name": "Marker",
+     "kind": "annotation",
+     "label": null,
+     "inherits": [],
+     "at": 0,
+     "span": [
+      0,
+      20
+     ],
+     "body": [
+      18,
+      19
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 1,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Marker",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Shape",
+     "kind": "interface",
+     "label": null,
+     "inherits": [],
+     "at": 28,
+     "span": [
+      21,
+      69
+     ],
+     "body": [
+      67,
+      68
+     ],
+     "depth": 0,
+     "start": 2,
+     "end": 2,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Shape",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Circle",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Shape"
+     ],
+     "at": 81,
+     "span": [
+      70,
+      261
+     ],
+     "body": [
+      111,
+      260
+     ],
+     "depth": 0,
+     "start": 3,
+     "end": 8,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Circle",
+     "top": true,
+     "properties": [
+      {
+       "name": "names",
+       "type": "String[]",
+       "line": 4,
+       "inferred": false
+      },
+      {
+       "name": "map",
+       "type": "Map<String, List<Integer>>",
+       "line": 5,
+       "inferred": false
+      },
+      {
+       "name": "counter",
+       "type": "Counter",
+       "line": 6,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Square",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Shape",
+      "Comparable"
+     ],
+     "at": 268,
+     "span": [
+      262,
+      350
+     ],
+     "body": [
+      318,
+      349
+     ],
+     "depth": 0,
+     "start": 9,
+     "end": 11,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Square",
+     "top": true,
+     "properties": [
+      {
+       "name": "service",
+       "type": "Service",
+       "line": 10,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Pair",
+     "kind": "record",
+     "label": null,
+     "inherits": [],
+     "at": 351,
+     "span": [
+      351,
+      418
+     ],
+     "body": [
+      416,
+      417
+     ],
+     "depth": 0,
+     "start": 12,
+     "end": 12,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Pair",
+     "top": true,
+     "properties": [
+      {
+       "name": "first",
+       "type": "A",
+       "line": 12,
+       "inferred": false
+      },
+      {
+       "name": "second",
+       "type": "List<Map<String, B>>",
+       "line": 12,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Mode",
+     "kind": "enum",
+     "label": null,
+     "inherits": [],
+     "at": 419,
+     "span": [
+      419,
+      465
+     ],
+     "body": [
+      429,
+      464
+     ],
+     "depth": 0,
+     "start": 13,
+     "end": 13,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Mode",
+     "top": true,
+     "properties": [
+      {
+       "name": "speed",
+       "type": "Speed",
+       "line": 13,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Outer",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Base"
+     ],
+     "at": 466,
+     "span": [
+      466,
+      583
+     ],
+     "body": [
+      519,
+      582
+     ],
+     "depth": 0,
+     "start": 14,
+     "end": 17,
+     "view": false,
+     "test": true,
+     "parent": null,
+     "owner": "Outer",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Local",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 539,
+     "span": [
+      539,
+      553
+     ],
+     "body": [
+      551,
+      552
+     ],
+     "depth": 2,
+     "start": 15,
+     "end": 15,
+     "view": false,
+     "test": false,
+     "parent": "Outer",
+     "owner": "Outer",
+     "top": false,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Java",
+   "text": "class Text {\n    String block = \"\"\"\n        class Hidden {\n        \"\"\";\n    char brace = '{';\n    String s = \"}\";\n}\n/* class Commented {} */\nclass Unclosed {\n",
+   "masked": "class Text {\n    String block = \"\"\"\n                      \n        \"\"\";\n    char brace = ' ';\n    String s = \" \";\n}\n                        \nclass Unclosed {\n",
+   "declarations": [
+    {
+     "name": "Text",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 0,
+     "span": [
+      0,
+      115
+     ],
+     "body": [
+      11,
+      114
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 7,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Text",
+     "top": true,
+     "properties": [
+      {
+       "name": "block",
+       "type": "String",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "s",
+       "type": "String",
+       "line": 6,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Unclosed",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 141,
+     "span": [
+      141,
+      158
+     ],
+     "body": [
+      156,
+      158
+     ],
+     "depth": 0,
+     "start": 9,
+     "end": 10,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Unclosed",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Java",
+   "text": "public class Windows {\r\n    private Name name;\r\n    Count count = new Count();\r\n}\r\n",
+   "masked": "public class Windows {\r\n    private Name name;\r\n    Count count = new Count();\r\n}\r\n",
+   "declarations": [
+    {
+     "name": "Windows",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 7,
+     "span": [
+      0,
+      81
+     ],
+     "body": [
+      21,
+      80
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 4,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Windows",
+     "top": true,
+     "properties": [
+      {
+       "name": "name",
+       "type": "Name",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "count",
+       "type": "Count",
+       "line": 3,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Java",
+   "text": "﻿public class Café {\n    String é = \"😀 {\";\n    // é {\n    Label label;\n}\n",
+   "masked": "﻿public class Café {\n    String é = \"      \";\n           \n    Label label;\n}\n",
+   "declarations": [
+    {
+     "name": "Caf",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 10,
+     "span": [
+      3,
+      80
+     ],
+     "body": [
+      22,
+      79
+     ],
+     "depth": 0,
+     "start": 1,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Caf",
+     "top": true,
+     "properties": [
+      {
+       "name": "label",
+       "type": "Label",
+       "line": 4,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "TypeScript",
+   "text": "import { Fetcher, type Options as Opts } from './fetcher';\nimport * as path from \"node:path\";\nimport Default, { Named } from '../shared/named.js';\nexport * from './everything';\nconst lazy = await import('./lazy');\nconst old = require('./old');\n// import { Ghost } from './ghost';\n\n@Injectable()\nexport class Service extends Base<Item> implements Runner, Stopper {\n  private readonly cache: Map<string, Item> = new Map();\n  #secret = new Secret();\n  constructor(private readonly fetcher: Fetcher, plain: number) { super(); }\n  run(): void {}\n}\n\nexport interface Runner extends Thing { run(): void; status: Status }\nexport type Result = { ok: boolean; item: Item } | Failure;\nexport const enum Flag { On, Off }\nexport namespace Shapes { export class Circle {} }\nfunction inner() { class Local {} }\n",
+   "masked": "import { Fetcher, type Options as Opts } from '         ';\nimport * as path from \"         \";\nimport Default, { Named } from '                  ';\nexport * from '            ';\nconst lazy = await import('      ');\nconst old = require('     ');\n                                   \n\n@Injectable()\nexport class Service extends Base<Item> implements Runner, Stopper {\n  private readonly cache: Map<string, Item> = new Map();\n  #secret = new Secret();\n  constructor(private readonly fetcher: Fetcher, plain: number) { super(); }\n  run(): void {}\n}\n\nexport interface Runner extends Thing { run(): void; status: Status }\nexport type Result = { ok: boolean; item: Item } | Failure;\nexport const enum Flag { On, Off }\nexport namespace Shapes { export class Circle {} }\nfunction inner() { class Local {} }\n",
+   "declarations": [
+    {
+     "name": "Service",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Base",
+      "Runner",
+      "Stopper"
+     ],
+     "at": 302,
+     "span": [
+      281,
+      542
+     ],
+     "body": [
+      362,
+      541
+     ],
+     "depth": 0,
+     "start": 9,
+     "end": 15,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Service",
+     "top": true,
+     "properties": [
+      {
+       "name": "cache",
+       "type": "Map<string, Item>",
+       "line": 11,
+       "inferred": false
+      },
+      {
+       "name": "#secret",
+       "type": "Secret",
+       "line": 12,
+       "inferred": true
+      },
+      {
+       "name": "fetcher",
+       "type": "Fetcher",
+       "line": 13,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Runner",
+     "kind": "interface",
+     "label": null,
+     "inherits": [
+      "Thing"
+     ],
+     "at": 551,
+     "span": [
+      544,
+      613
+     ],
+     "body": [
+      582,
+      612
+     ],
+     "depth": 0,
+     "start": 17,
+     "end": 17,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Runner",
+     "top": true,
+     "properties": [
+      {
+       "name": "status",
+       "type": "Status",
+       "line": 17,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Result",
+     "kind": "type",
+     "label": null,
+     "inherits": [],
+     "at": 621,
+     "span": [
+      614,
+      672
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 18,
+     "end": 18,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Result",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Flag",
+     "kind": "enum",
+     "label": null,
+     "inherits": [],
+     "at": 687,
+     "span": [
+      674,
+      708
+     ],
+     "body": [
+      697,
+      707
+     ],
+     "depth": 0,
+     "start": 19,
+     "end": 19,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Flag",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Circle",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 742,
+     "span": [
+      735,
+      757
+     ],
+     "body": [
+      755,
+      756
+     ],
+     "depth": 1,
+     "start": 20,
+     "end": 20,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Circle",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Local",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 779,
+     "span": [
+      779,
+      793
+     ],
+     "body": [
+      791,
+      792
+     ],
+     "depth": 1,
+     "start": 21,
+     "end": 21,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Local",
+     "top": false,
+     "properties": []
+    }
+   ],
+   "imports": [
+    {
+     "spec": "./fetcher",
+     "names": [
+      "Fetcher",
+      "Opts"
+     ]
+    },
+    {
+     "spec": "node:path",
+     "names": null
+    },
+    {
+     "spec": "../shared/named.js",
+     "names": [
+      "Named",
+      "Default"
+     ]
+    },
+    {
+     "spec": "./everything",
+     "names": null
+    },
+    {
+     "spec": "./lazy",
+     "names": null
+    },
+    {
+     "spec": "./old",
+     "names": null
+    }
+   ]
+  },
+  {
+   "language": "TypeScript",
+   "text": "export type Shape =\n  | Circle\n  | Square;\ntype Pair<A, B> = [A, B]\ntype Fn = (a: number) => void\ntype Obj = {\n  a: string\n}\ndeclare class Declared { x: number }\nexport default class Main {\n  name?: string;\n  count!: number;\n  static shared = new Main();\n  readonly made = new Map<string, number>();\n  value = 3\n  get computed() { return 1; }\n}\nabstract class Base<T extends (x: number) => void> implements Runner {}\nnamespace A.B { class Deep {} }\nconst ratio = a / b / c; class AfterDivision {}\nconst re = /[{\"]/g; class AfterRegex {}\nconst t = `a ${ {x: \"}\"}.x } {`; class AfterTemplate {}\n",
+   "masked": "export type Shape =\n  | Circle\n  | Square;\ntype Pair<A, B> = [A, B]\ntype Fn = (a: number) => void\ntype Obj = {\n  a: string\n}\ndeclare class Declared { x: number }\nexport default class Main {\n  name?: string;\n  count!: number;\n  static shared = new Main();\n  readonly made = new Map<string, number>();\n  value = 3\n  get computed() { return 1; }\n}\nabstract class Base<T extends (x: number) => void> implements Runner {}\nnamespace A.B { class Deep {} }\nconst ratio = a / b / c; class AfterDivision {}\nconst re = /    /g; class AfterRegex {}\nconst t = `                   `; class AfterTemplate {}\n",
+   "declarations": [
+    {
+     "name": "Shape",
+     "kind": "type",
+     "label": null,
+     "inherits": [],
+     "at": 7,
+     "span": [
+      0,
+      41
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 1,
+     "end": 3,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Shape",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Pair",
+     "kind": "type",
+     "label": null,
+     "inherits": [],
+     "at": 43,
+     "span": [
+      43,
+      67
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 4,
+     "end": 4,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Pair",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Fn",
+     "kind": "type",
+     "label": null,
+     "inherits": [],
+     "at": 68,
+     "span": [
+      68,
+      97
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 5,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Fn",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Obj",
+     "kind": "type",
+     "label": null,
+     "inherits": [],
+     "at": 98,
+     "span": [
+      98,
+      124
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 6,
+     "end": 8,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Obj",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Declared",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 133,
+     "span": [
+      125,
+      161
+     ],
+     "body": [
+      148,
+      160
+     ],
+     "depth": 0,
+     "start": 9,
+     "end": 9,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Declared",
+     "top": true,
+     "properties": [
+      {
+       "name": "x",
+       "type": "number",
+       "line": 9,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Main",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 177,
+     "span": [
+      162,
+      344
+     ],
+     "body": [
+      188,
+      343
+     ],
+     "depth": 0,
+     "start": 10,
+     "end": 17,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Main",
+     "top": true,
+     "properties": [
+      {
+       "name": "name",
+       "type": "string",
+       "line": 11,
+       "inferred": false
+      },
+      {
+       "name": "count",
+       "type": "number",
+       "line": 12,
+       "inferred": false
+      },
+      {
+       "name": "made",
+       "type": "Map",
+       "line": 14,
+       "inferred": true
+      },
+      {
+       "name": "value",
+       "type": null,
+       "line": 15,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Base",
+     "kind": "class",
+     "label": "abstract class",
+     "inherits": [
+      "Runner"
+     ],
+     "at": 354,
+     "span": [
+      345,
+      416
+     ],
+     "body": [
+      414,
+      415
+     ],
+     "depth": 0,
+     "start": 18,
+     "end": 18,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Base",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Deep",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 433,
+     "span": [
+      433,
+      446
+     ],
+     "body": [
+      444,
+      445
+     ],
+     "depth": 1,
+     "start": 19,
+     "end": 19,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Deep",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "AfterDivision",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 474,
+     "span": [
+      474,
+      496
+     ],
+     "body": [
+      494,
+      495
+     ],
+     "depth": 0,
+     "start": 20,
+     "end": 20,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "AfterDivision",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "AfterRegex",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 517,
+     "span": [
+      517,
+      536
+     ],
+     "body": [
+      534,
+      535
+     ],
+     "depth": 0,
+     "start": 21,
+     "end": 21,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "AfterRegex",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "AfterTemplate",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 570,
+     "span": [
+      570,
+      592
+     ],
+     "body": [
+      590,
+      591
+     ],
+     "depth": 0,
+     "start": 22,
+     "end": 22,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "AfterTemplate",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "TypeScript",
+   "text": "import type { A } from 'a';\nimport x, * as y from 'z';\nexport { a as b } from \"./c\";\nimport './polyfill';\nimport {\n  One,\n  Two as Second,\n} from './multi';\nconst s = \"import { Fake } from 'fake'\";\nimport Default from './d'\n",
+   "masked": "import type { A } from ' ';\nimport x, * as y from ' ';\nexport { a as b } from \"   \";\nimport '          ';\nimport {\n  One,\n  Two as Second,\n} from '       ';\nconst s = \"                           \";\nimport Default from '   '\n",
+   "declarations": [],
+   "imports": [
+    {
+     "spec": "a",
+     "names": [
+      "A"
+     ]
+    },
+    {
+     "spec": "z",
+     "names": [
+      "x"
+     ]
+    },
+    {
+     "spec": "./c",
+     "names": [
+      "b"
+     ]
+    },
+    {
+     "spec": "./multi",
+     "names": [
+      "One",
+      "Second"
+     ]
+    },
+    {
+     "spec": "./d",
+     "names": [
+      "Default"
+     ]
+    }
+   ]
+  },
+  {
+   "language": "TypeScript",
+   "text": "export function View() {\n  return <div className=\"x\">{value}</div>;\n}\nclass AfterJsx {}\ninterface Props { label: string }\n",
+   "masked": "export function View() {\n  return <div className=\" \">{value}</div>;\n}\nclass AfterJsx {}\ninterface Props { label: string }\n",
+   "declarations": [
+    {
+     "name": "AfterJsx",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 70,
+     "span": [
+      70,
+      87
+     ],
+     "body": [
+      85,
+      86
+     ],
+     "depth": 0,
+     "start": 4,
+     "end": 4,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "AfterJsx",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Props",
+     "kind": "interface",
+     "label": null,
+     "inherits": [],
+     "at": 88,
+     "span": [
+      88,
+      121
+     ],
+     "body": [
+      104,
+      120
+     ],
+     "depth": 0,
+     "start": 5,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Props",
+     "top": true,
+     "properties": [
+      {
+       "name": "label",
+       "type": "string",
+       "line": 5,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "TypeScript",
+   "text": "import { A } from './a';\r\nexport class Windows {\r\n  name: string;\r\n  count = new Counter();\r\n  label: string\r\n}\r\n",
+   "masked": "import { A } from '   ';\r\nexport class Windows {\r\n  name: string;\r\n  count = new Counter();\r\n  label: string\r\n}\r\n",
+   "declarations": [
+    {
+     "name": "Windows",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 33,
+     "span": [
+      26,
+      111
+     ],
+     "body": [
+      47,
+      110
+     ],
+     "depth": 0,
+     "start": 2,
+     "end": 6,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Windows",
+     "top": true,
+     "properties": [
+      {
+       "name": "name",
+       "type": "string",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "count",
+       "type": "Counter",
+       "line": 4,
+       "inferred": true
+      },
+      {
+       "name": "label",
+       "type": "string",
+       "line": 5,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": [
+    {
+     "spec": "./a",
+     "names": [
+      "A"
+     ]
+    }
+   ]
+  },
+  {
+   "language": "TypeScript",
+   "text": "﻿import { é } from './é';\nexport class Café {\n  kind: 'café' | '😀';\n  // é {\n  note: string = \"é {\";\n}\ninterface Spaced { x: number }\n",
+   "masked": "﻿import { é } from '    ';\nexport class Café {\n  kind: '     ' | '    ';\n         \n  note: string = \"    \";\n}\ninterface Spaced { x: number }\n",
+   "declarations": [
+    {
+     "name": "Caf",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 37,
+     "span": [
+      30,
+      113
+     ],
+     "body": [
+      49,
+      112
+     ],
+     "depth": 0,
+     "start": 2,
+     "end": 6,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Caf",
+     "top": true,
+     "properties": [
+      {
+       "name": "kind",
+       "type": "'    ' | '  '",
+       "line": 3,
+       "inferred": false
+      },
+      {
+       "name": "note",
+       "type": "string",
+       "line": 5,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Spaced",
+     "kind": "interface",
+     "label": null,
+     "inherits": [],
+     "at": 114,
+     "span": [
+      114,
+      145
+     ],
+     "body": [
+      132,
+      144
+     ],
+     "depth": 0,
+     "start": 7,
+     "end": 7,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Spaced",
+     "top": true,
+     "properties": [
+      {
+       "name": "x",
+       "type": "number",
+       "line": 7,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Python",
+   "text": "from __future__ import annotations\nfrom .store import (Store,\n    Entry as E)\nimport os, pkg.sub.mod as m\n\n\"\"\"\nclass NotThis:\n\"\"\"\n\n@dataclass(frozen=True)\nclass Price(Base, metaclass=ABCMeta):\n    amount: float\n    source: PriceSource = None\n\n    def __init__(self, uploader: Uploader):\n        self.uploader: Uploader = uploader\n        self.queue = UploadQueue()\n        local: Ignored = 1\n\n    class Inner:\n        pass\n\nclass Reader(Protocol):\n    def read(self) -> bytes: ...\n\nclass Mode(Enum):\n    A = 1\n",
+   "masked": "from __future__ import annotations\nfrom .store import (Store,\n    Entry as E)\nimport os, pkg.sub.mod as m\n\n\"\"\"\n              \n\"\"\"\n\n@dataclass(frozen=True)\nclass Price(Base, metaclass=ABCMeta):\n    amount: float\n    source: PriceSource = None\n\n    def __init__(self, uploader: Uploader):\n        self.uploader: Uploader = uploader\n        self.queue = UploadQueue()\n        local: Ignored = 1\n\n    class Inner:\n        pass\n\nclass Reader(Protocol):\n    def read(self) -> bytes: ...\n\nclass Mode(Enum):\n    A = 1\n",
+   "declarations": [
+    {
+     "name": "Price",
+     "kind": "class",
+     "label": "dataclass",
+     "inherits": [
+      "Base"
+     ],
+     "at": 155,
+     "span": [
+      155,
+      422
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 11,
+     "end": 21,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Price",
+     "top": true,
+     "properties": [
+      {
+       "name": "amount",
+       "type": "float",
+       "line": 12,
+       "inferred": false
+      },
+      {
+       "name": "source",
+       "type": "PriceSource",
+       "line": 13,
+       "inferred": false
+      },
+      {
+       "name": "uploader",
+       "type": "Uploader",
+       "line": 16,
+       "inferred": false
+      },
+      {
+       "name": "queue",
+       "type": "UploadQueue",
+       "line": 17,
+       "inferred": true
+      }
+     ]
+    },
+    {
+     "name": "Inner",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 397,
+     "span": [
+      393,
+      422
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 20,
+     "end": 21,
+     "view": false,
+     "test": false,
+     "parent": "Price",
+     "owner": "Price",
+     "top": false,
+     "properties": []
+    },
+    {
+     "name": "Reader",
+     "kind": "protocol",
+     "label": null,
+     "inherits": [
+      "Protocol"
+     ],
+     "at": 424,
+     "span": [
+      424,
+      480
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 23,
+     "end": 24,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Reader",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Mode",
+     "kind": "enum",
+     "label": null,
+     "inherits": [
+      "Enum"
+     ],
+     "at": 482,
+     "span": [
+      482,
+      509
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 26,
+     "end": 27,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Mode",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": [
+    {
+     "spec": "__future__",
+     "names": [
+      "annotations"
+     ],
+     "python": true
+    },
+    {
+     "spec": ".store",
+     "names": [
+      "Store",
+      "E"
+     ],
+     "python": true
+    },
+    {
+     "spec": "os",
+     "names": null,
+     "python": true
+    },
+    {
+     "spec": "pkg.sub.mod",
+     "names": null,
+     "python": true
+    }
+   ]
+  },
+  {
+   "language": "Python",
+   "text": "class Point(NamedTuple):\n    x: int\n    y: int\nclass Movie(TypedDict):\n    title: str\nclass Shape(ABC):\n    pass\nclass Abstract(metaclass=ABCMeta):\n    pass\n@dataclasses.dataclass\nclass Data:\n    a: int\nclass Box[T](Base):\n    item: T\nclass Generic(Generic[T], Base):\n    pass\nclass Tests(unittest.TestCase):\n    def test_it(self):\n        pass\nclass Mixed:\n    async def __init__(self):\n        self.a: int = 0\n        self.b = Maker()\n        self.c = maker()\n        self.a = Other()\n    value: int\n    def other(self):\n        self.d = Hidden()\n",
+   "masked": "class Point(NamedTuple):\n    x: int\n    y: int\nclass Movie(TypedDict):\n    title: str\nclass Shape(ABC):\n    pass\nclass Abstract(metaclass=ABCMeta):\n    pass\n@dataclasses.dataclass\nclass Data:\n    a: int\nclass Box[T](Base):\n    item: T\nclass Generic(Generic[T], Base):\n    pass\nclass Tests(unittest.TestCase):\n    def test_it(self):\n        pass\nclass Mixed:\n    async def __init__(self):\n        self.a: int = 0\n        self.b = Maker()\n        self.c = maker()\n        self.a = Other()\n    value: int\n    def other(self):\n        self.d = Hidden()\n",
+   "declarations": [
+    {
+     "name": "Point",
+     "kind": "class",
+     "label": "named tuple",
+     "inherits": [
+      "NamedTuple"
+     ],
+     "at": 0,
+     "span": [
+      0,
+      46
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 1,
+     "end": 3,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Point",
+     "top": true,
+     "properties": [
+      {
+       "name": "x",
+       "type": "int",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "y",
+       "type": "int",
+       "line": 3,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Movie",
+     "kind": "class",
+     "label": "typed dict",
+     "inherits": [
+      "TypedDict"
+     ],
+     "at": 47,
+     "span": [
+      47,
+      85
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 4,
+     "end": 5,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Movie",
+     "top": true,
+     "properties": [
+      {
+       "name": "title",
+       "type": "str",
+       "line": 5,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Shape",
+     "kind": "class",
+     "label": "abstract class",
+     "inherits": [
+      "ABC"
+     ],
+     "at": 86,
+     "span": [
+      86,
+      112
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 6,
+     "end": 7,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Shape",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Abstract",
+     "kind": "class",
+     "label": "abstract class",
+     "inherits": [],
+     "at": 113,
+     "span": [
+      113,
+      156
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 8,
+     "end": 9,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Abstract",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Data",
+     "kind": "class",
+     "label": "dataclass",
+     "inherits": [],
+     "at": 180,
+     "span": [
+      180,
+      202
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 11,
+     "end": 12,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Data",
+     "top": true,
+     "properties": [
+      {
+       "name": "a",
+       "type": "int",
+       "line": 12,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Box",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Base"
+     ],
+     "at": 203,
+     "span": [
+      203,
+      234
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 13,
+     "end": 14,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Box",
+     "top": true,
+     "properties": [
+      {
+       "name": "item",
+       "type": "T",
+       "line": 14,
+       "inferred": false
+      }
+     ]
+    },
+    {
+     "name": "Generic",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "Generic",
+      "Base"
+     ],
+     "at": 235,
+     "span": [
+      235,
+      276
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 15,
+     "end": 16,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Generic",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Tests",
+     "kind": "class",
+     "label": null,
+     "inherits": [
+      "TestCase"
+     ],
+     "at": 277,
+     "span": [
+      277,
+      344
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 17,
+     "end": 19,
+     "view": false,
+     "test": true,
+     "parent": null,
+     "owner": "Tests",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Mixed",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 345,
+     "span": [
+      345,
+      548
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 20,
+     "end": 28,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Mixed",
+     "top": true,
+     "properties": [
+      {
+       "name": "a",
+       "type": "int",
+       "line": 22,
+       "inferred": false
+      },
+      {
+       "name": "b",
+       "type": "Maker",
+       "line": 23,
+       "inferred": true
+      },
+      {
+       "name": "value",
+       "type": "int",
+       "line": 26,
+       "inferred": false
+      }
+     ]
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Python",
+   "text": "x = rb\"class Fake:\"\ny = f\"{class_name}\"\nz = '''\nclass Doc:\n'''\nclass Real:\n    pass\n# class Commented:\nfrom a import b, \\\n    c\nfrom . import x\nfrom .. import (a as b, c)\nimport a.b as c, d\nfrom x import *\nimport os # comment\nclass Open(\n",
+   "masked": "x = rb\"           \"\ny = f\"            \"\nz = '''\n          \n'''\nclass Real:\n    pass\n                  \nfrom a import b, \\\n    c\nfrom . import x\nfrom .. import (a as b, c)\nimport a.b as c, d\nfrom x import *\nimport os          \nclass Open(\n",
+   "declarations": [
+    {
+     "name": "Real",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 63,
+     "span": [
+      63,
+      83
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 6,
+     "end": 7,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Real",
+     "top": true,
+     "properties": []
+    },
+    {
+     "name": "Open",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 226,
+     "span": [
+      226,
+      19
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 16,
+     "end": 1,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Open",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": [
+    {
+     "spec": "a",
+     "names": [
+      "b",
+      "c"
+     ],
+     "python": true
+    },
+    {
+     "spec": ".",
+     "names": [
+      "x"
+     ],
+     "python": true
+    },
+    {
+     "spec": "..",
+     "names": [
+      "b",
+      "c"
+     ],
+     "python": true
+    },
+    {
+     "spec": "x",
+     "names": null,
+     "python": true
+    },
+    {
+     "spec": "a.b",
+     "names": null,
+     "python": true
+    },
+    {
+     "spec": "d",
+     "names": null,
+     "python": true
+    },
+    {
+     "spec": "os",
+     "names": null,
+     "python": true
+    }
+   ]
+  },
+  {
+   "language": "Python",
+   "text": "class Tabbed:\n\tname: str\n\tdef __init__(self):\n\t\tself.size = Size()\nclass After:\n    pass\n",
+   "masked": "class Tabbed:\n\tname: str\n\tdef __init__(self):\n\t\tself.size = Size()\nclass After:\n    pass\n",
+   "declarations": [
+    {
+     "name": "Tabbed",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 0,
+     "span": [
+      0,
+      66
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 1,
+     "end": 4,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Tabbed",
+     "top": true,
+     "properties": [
+      {
+       "name": "name",
+       "type": "str",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "size",
+       "type": "Size",
+       "line": 4,
+       "inferred": true
+      }
+     ]
+    },
+    {
+     "name": "After",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 67,
+     "span": [
+      67,
+      88
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 5,
+     "end": 6,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "After",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  },
+  {
+   "language": "Python",
+   "text": "class Windows:\r\n    name: str\r\n    def __init__(self):\r\n        self.size = Size()\r\nfrom a import b\r\n",
+   "masked": "class Windows:\r\n    name: str\r\n    def __init__(self):\r\n        self.size = Size()\r\nfrom a import b\r\n",
+   "declarations": [
+    {
+     "name": "Windows",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 0,
+     "span": [
+      0,
+      83
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 1,
+     "end": 4,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Windows",
+     "top": true,
+     "properties": [
+      {
+       "name": "name",
+       "type": "str",
+       "line": 2,
+       "inferred": false
+      },
+      {
+       "name": "size",
+       "type": "Size",
+       "line": 4,
+       "inferred": true
+      }
+     ]
+    }
+   ],
+   "imports": [
+    {
+     "spec": "a",
+     "names": [
+      "b"
+     ],
+     "python": true
+    }
+   ]
+  },
+  {
+   "language": "Python",
+   "text": "﻿class Café:\n    note: str = \"é\"\n    \"\"\"\né is here\n    \"\"\"\n    label: Literal[\"é\", \"😀\"]\nclass Next:\n    pass\n",
+   "masked": "﻿class Café:\n    note: str = \"  \"\n    \"\"\"\n          \n    \"\"\"\n    label: Literal[\"  \", \"    \"]\nclass Next:\n    pass\n",
+   "declarations": [
+    {
+     "name": "Next",
+     "kind": "class",
+     "label": null,
+     "inherits": [],
+     "at": 97,
+     "span": [
+      97,
+      117
+     ],
+     "body": null,
+     "depth": 0,
+     "start": 7,
+     "end": 8,
+     "view": false,
+     "test": false,
+     "parent": null,
+     "owner": "Next",
+     "top": true,
+     "properties": []
+    }
+   ],
+   "imports": []
+  }
+ ],
+ "masks": [
+  {
+   "syntax": "swift",
+   "text": "let a = \"x { y\" // brace {\n/* { */ let b = 1",
+   "masked": "let a = \"     \"           \n        let b = 1"
+  },
+  {
+   "syntax": "swift",
+   "text": "/* a /* b */ { */ class C {}",
+   "masked": "                  class C {}"
+  },
+  {
+   "syntax": "swift",
+   "text": "\"unterminated { string\nnext {",
+   "masked": "\"                     \nnext {"
+  },
+  {
+   "syntax": "swift",
+   "text": "/* never closed {",
+   "masked": "                 "
+  },
+  {
+   "syntax": "swift",
+   "text": "x = rb\"class Fake:\"\n\"\"\"\nclass Doc:\n\"\"\"\nclass Real:\n    pass",
+   "masked": "x = rb\"           \"\n\"\"\"\n          \n\"\"\"\nclass Real:\n    pass"
+  },
+  {
+   "syntax": "swift",
+   "text": "'a\\'b' \"c\\\"d\" `e ${f + `g ${h}`} i` { }",
+   "masked": "'a\\'b' \"    \" `e ${f + `g ${h}`} i` { }"
+  },
+  {
+   "syntax": "swift",
+   "text": "a = b / c / d; e = /x{/; return /[/]/.test(s) {",
+   "masked": "a = b / c / d; e = /x{/; return /[/]/.test(s) {"
+  },
+  {
+   "syntax": "swift",
+   "text": "x = \"é😀\" // é😀 {\n\"\"\"é\"\"\" { }",
+   "masked": "x = \"      \"            \n\"\"\"  \"\"\" { }"
+  },
+  {
+   "syntax": "swift",
+   "text": "r#\"a\"# r##\"b\"## #\"c\"# { }",
+   "masked": "r#\" \"# r##\" \"## #\" \"# { }"
+  },
+  {
+   "syntax": "swift",
+   "text": "'{' '\\'' \"{\" { }",
+   "masked": "'{' '\\'' \" \" { }"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "let a = \"x { y\" // brace {\n/* { */ let b = 1",
+   "masked": "let a = \"     \"           \n        let b = 1"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "/* a /* b */ { */ class C {}",
+   "masked": "                  class C {}"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "\"unterminated { string\nnext {",
+   "masked": "\"                     \nnext {"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "/* never closed {",
+   "masked": "                 "
+  },
+  {
+   "syntax": "kotlin",
+   "text": "x = rb\"class Fake:\"\n\"\"\"\nclass Doc:\n\"\"\"\nclass Real:\n    pass",
+   "masked": "x = rb\"           \"\n\"\"\"\n          \n\"\"\"\nclass Real:\n    pass"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "'a\\'b' \"c\\\"d\" `e ${f + `g ${h}`} i` { }",
+   "masked": "'    ' \"    \" `e ${f + `g ${h}`} i` { }"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "a = b / c / d; e = /x{/; return /[/]/.test(s) {",
+   "masked": "a = b / c / d; e = /x{/; return /[/]/.test(s) {"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "x = \"é😀\" // é😀 {\n\"\"\"é\"\"\" { }",
+   "masked": "x = \"      \"            \n\"\"\"  \"\"\" { }"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "r#\"a\"# r##\"b\"## #\"c\"# { }",
+   "masked": "r#\" \"# r##\" \"## #\" \"# { }"
+  },
+  {
+   "syntax": "kotlin",
+   "text": "'{' '\\'' \"{\" { }",
+   "masked": "' ' '  ' \" \" { }"
+  },
+  {
+   "syntax": "java",
+   "text": "let a = \"x { y\" // brace {\n/* { */ let b = 1",
+   "masked": "let a = \"     \"           \n        let b = 1"
+  },
+  {
+   "syntax": "java",
+   "text": "/* a /* b */ { */ class C {}",
+   "masked": "             { */ class C {}"
+  },
+  {
+   "syntax": "java",
+   "text": "\"unterminated { string\nnext {",
+   "masked": "\"                     \nnext {"
+  },
+  {
+   "syntax": "java",
+   "text": "/* never closed {",
+   "masked": "                 "
+  },
+  {
+   "syntax": "java",
+   "text": "x = rb\"class Fake:\"\n\"\"\"\nclass Doc:\n\"\"\"\nclass Real:\n    pass",
+   "masked": "x = rb\"           \"\n\"\"\"\n          \n\"\"\"\nclass Real:\n    pass"
+  },
+  {
+   "syntax": "java",
+   "text": "'a\\'b' \"c\\\"d\" `e ${f + `g ${h}`} i` { }",
+   "masked": "'    ' \"    \" `e ${f + `g ${h}`} i` { }"
+  },
+  {
+   "syntax": "java",
+   "text": "a = b / c / d; e = /x{/; return /[/]/.test(s) {",
+   "masked": "a = b / c / d; e = /x{/; return /[/]/.test(s) {"
+  },
+  {
+   "syntax": "java",
+   "text": "x = \"é😀\" // é😀 {\n\"\"\"é\"\"\" { }",
+   "masked": "x = \"      \"            \n\"\"\"  \"\"\" { }"
+  },
+  {
+   "syntax": "java",
+   "text": "r#\"a\"# r##\"b\"## #\"c\"# { }",
+   "masked": "r#\" \"# r##\" \"## #\" \"# { }"
+  },
+  {
+   "syntax": "java",
+   "text": "'{' '\\'' \"{\" { }",
+   "masked": "' ' '  ' \" \" { }"
+  },
+  {
+   "syntax": "typescript",
+   "text": "let a = \"x { y\" // brace {\n/* { */ let b = 1",
+   "masked": "let a = \"     \"           \n        let b = 1"
+  },
+  {
+   "syntax": "typescript",
+   "text": "/* a /* b */ { */ class C {}",
+   "masked": "             { */ class C {}"
+  },
+  {
+   "syntax": "typescript",
+   "text": "\"unterminated { string\nnext {",
+   "masked": "\"                     \nnext {"
+  },
+  {
+   "syntax": "typescript",
+   "text": "/* never closed {",
+   "masked": "                 "
+  },
+  {
+   "syntax": "typescript",
+   "text": "x = rb\"class Fake:\"\n\"\"\"\nclass Doc:\n\"\"\"\nclass Real:\n    pass",
+   "masked": "x = rb\"           \"\n\"\"\"\nclass Doc:\n\"\"\"\nclass Real:\n    pass"
+  },
+  {
+   "syntax": "typescript",
+   "text": "'a\\'b' \"c\\\"d\" `e ${f + `g ${h}`} i` { }",
+   "masked": "'    ' \"    \" `                   ` { }"
+  },
+  {
+   "syntax": "typescript",
+   "text": "a = b / c / d; e = /x{/; return /[/]/.test(s) {",
+   "masked": "a = b / c / d; e = /  /; return /   /.test(s) {"
+  },
+  {
+   "syntax": "typescript",
+   "text": "x = \"é😀\" // é😀 {\n\"\"\"é\"\"\" { }",
+   "masked": "x = \"      \"            \n\"\"\"  \"\"\" { }"
+  },
+  {
+   "syntax": "typescript",
+   "text": "r#\"a\"# r##\"b\"## #\"c\"# { }",
+   "masked": "r#\" \"# r##\" \"## #\" \"# { }"
+  },
+  {
+   "syntax": "typescript",
+   "text": "'{' '\\'' \"{\" { }",
+   "masked": "' ' '  ' \" \" { }"
+  },
+  {
+   "syntax": "python",
+   "text": "let a = \"x { y\" // brace {\n/* { */ let b = 1",
+   "masked": "let a = \"     \" // brace {\n/* { */ let b = 1"
+  },
+  {
+   "syntax": "python",
+   "text": "/* a /* b */ { */ class C {}",
+   "masked": "/* a /* b */ { */ class C {}"
+  },
+  {
+   "syntax": "python",
+   "text": "\"unterminated { string\nnext {",
+   "masked": "\"                     \nnext {"
+  },
+  {
+   "syntax": "python",
+   "text": "/* never closed {",
+   "masked": "/* never closed {"
+  },
+  {
+   "syntax": "python",
+   "text": "x = rb\"class Fake:\"\n\"\"\"\nclass Doc:\n\"\"\"\nclass Real:\n    pass",
+   "masked": "x = rb\"           \"\n\"\"\"\n          \n\"\"\"\nclass Real:\n    pass"
+  },
+  {
+   "syntax": "python",
+   "text": "'a\\'b' \"c\\\"d\" `e ${f + `g ${h}`} i` { }",
+   "masked": "'    ' \"    \" `e ${f + `g ${h}`} i` { }"
+  },
+  {
+   "syntax": "python",
+   "text": "a = b / c / d; e = /x{/; return /[/]/.test(s) {",
+   "masked": "a = b / c / d; e = /x{/; return /[/]/.test(s) {"
+  },
+  {
+   "syntax": "python",
+   "text": "x = \"é😀\" // é😀 {\n\"\"\"é\"\"\" { }",
+   "masked": "x = \"      \" // é😀 {\n\"\"\"  \"\"\" { }"
+  },
+  {
+   "syntax": "python",
+   "text": "r#\"a\"# r##\"b\"## #\"c\"# { }",
+   "masked": "r                        "
+  },
+  {
+   "syntax": "python",
+   "text": "'{' '\\'' \"{\" { }",
+   "masked": "' ' '  ' \" \" { }"
+  }
+ ],
+ "bareNames": [
+  {
+   "entry": "@unchecked Sendable",
+   "name": "Sendable"
+  },
+  {
+   "entry": "Foundation.NSObject",
+   "name": "NSObject"
+  },
+  {
+   "entry": "Generic[T]",
+   "name": "Generic"
+  },
+  {
+   "entry": "~Copyable",
+   "name": "Copyable"
+  },
+  {
+   "entry": "any P",
+   "name": "P"
+  },
+  {
+   "entry": "some View",
+   "name": "View"
+  },
+  {
+   "entry": "Base<T>(args)",
+   "name": "Base"
+  },
+  {
+   "entry": "out T",
+   "name": "T"
+  },
+  {
+   "entry": "in T",
+   "name": "T"
+  },
+  {
+   "entry": "",
+   "name": ""
+  },
+  {
+   "entry": "123",
+   "name": ""
+  },
+  {
+   "entry": "a.b.",
+   "name": "b"
+  },
+  {
+   "entry": "@Foo(bar) Baz",
+   "name": "Baz"
+  },
+  {
+   "entry": "NSObject?",
+   "name": "NSObject"
+  },
+  {
+   "entry": "[Int]",
+   "name": ""
+  },
+  {
+   "entry": "(A, B)",
+   "name": ""
+  },
+  {
+   "entry": "Map<K, V>",
+   "name": "Map"
+  },
+  {
+   "entry": "public Foo",
+   "name": "Foo"
+  },
+  {
+   "entry": "internal(set) X",
+   "name": ""
+  },
+  {
+   "entry": "$Dollar",
+   "name": "$Dollar"
+  },
+  {
+   "entry": "é",
+   "name": ""
+  },
+  {
+   "entry": "A B",
+   "name": "A"
+  },
+  {
+   "entry": "Interface",
+   "name": "Interface"
+  },
+  {
+   "entry": "final  Base",
+   "name": "Base"
+  },
+  {
+   "entry": "abstract.Thing",
+   "name": "Thing"
+  },
+  {
+   "entry": "Outer.Inner<T>.Deep",
+   "name": "Inner"
+  }
+ ],
+ "splits": [
+  {
+   "text": "A<B, C>, D(e, f), G",
+   "parts": [
+    "A<B, C>",
+    "D(e, f)",
+    "G"
+   ]
+  },
+  {
+   "text": "a -> b, c",
+   "parts": [
+    "a -> b",
+    "c"
+   ]
+  },
+  {
+   "text": "",
+   "parts": []
+  },
+  {
+   "text": " , ,",
+   "parts": []
+  },
+  {
+   "text": "F<(A) -> B>, C",
+   "parts": [
+    "F<(A) -> B>",
+    "C"
+   ]
+  },
+  {
+   "text": "x[1,2], {a, b}",
+   "parts": [
+    "x[1,2]",
+    "{a, b}"
+   ]
+  },
+  {
+   "text": ">, a",
+   "parts": [
+    ">",
+    "a"
+   ]
+  },
+  {
+   "text": "é, 😀 , b ",
+   "parts": [
+    "é",
+    "😀",
+    "b"
+   ]
+  }
+ ],
+ "identifiers": [
+  {
+   "text": "a b a",
+   "words": [
+    "a",
+    "b"
+   ]
+  },
+  {
+   "text": "foo.bar(baz) $x _y 1z",
+   "words": [
+    "foo",
+    "bar",
+    "baz",
+    "$x",
+    "_y",
+    "z"
+   ]
+  },
+  {
+   "text": "émile x",
+   "words": [
+    "mile",
+    "x"
+   ]
+  },
+  {
+   "text": "",
+   "words": []
+  },
+  {
+   "text": "class A extends A<B> { b: B }",
+   "words": [
+    "class",
+    "A",
+    "extends",
+    "B",
+    "b"
+   ]
+  }
+ ],
+ "languages": [
+  {
+   "path": "a/B.swift",
+   "name": "Swift",
+   "family": "swift"
+  },
+  {
+   "path": "a/b.kt",
+   "name": "Kotlin",
+   "family": "jvm"
+  },
+  {
+   "path": "a/b.kts",
+   "name": "Kotlin",
+   "family": "jvm"
+  },
+  {
+   "path": "a/b.java",
+   "name": "Java",
+   "family": "jvm"
+  },
+  {
+   "path": "a/b.tsx",
+   "name": "TypeScript",
+   "family": "js"
+  },
+  {
+   "path": "a/b.d.ts",
+   "name": "TypeScript",
+   "family": "js"
+  },
+  {
+   "path": "a/b.mjs",
+   "name": "TypeScript",
+   "family": "js"
+  },
+  {
+   "path": "a/b.cjs",
+   "name": "TypeScript",
+   "family": "js"
+  },
+  {
+   "path": "a/b.jsx",
+   "name": "TypeScript",
+   "family": "js"
+  },
+  {
+   "path": "a/b.mts",
+   "name": "TypeScript",
+   "family": "js"
+  },
+  {
+   "path": "a/b.cts",
+   "name": "TypeScript",
+   "family": "js"
+  },
+  {
+   "path": "a/b.py",
+   "name": "Python",
+   "family": "python"
+  },
+  {
+   "path": "a/b.pyi",
+   "name": "Python",
+   "family": "python"
+  },
+  {
+   "path": "a/README.md",
+   "name": null,
+   "family": null
+  },
+  {
+   "path": "X.KT",
+   "name": "Kotlin",
+   "family": "jvm"
+  },
+  {
+   "path": "A.Swift",
+   "name": "Swift",
+   "family": "swift"
+  },
+  {
+   "path": ".swift",
+   "name": "Swift",
+   "family": "swift"
+  },
+  {
+   "path": "swift",
+   "name": null,
+   "family": null
+  },
+  {
+   "path": "a/b.ts.orig",
+   "name": null,
+   "family": null
+  }
+ ]
+}

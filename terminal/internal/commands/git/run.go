@@ -14,12 +14,13 @@ import (
 const timeout = 15 * time.Minute
 
 // Run runs git with args in dir, or where it was started with no dir, with
-// env added to this process's environment, until ctx ends.
-type Run func(ctx context.Context, dir string, args []string, env []string) Ran
+// env added to this process's environment and input on its standard input,
+// until ctx ends.
+type Run func(ctx context.Context, dir string, args []string, env []string, input []byte) Ran
 
 // RunGit runs git itself, for fifteen minutes at most, never asking for a
 // password on the terminal.
-func RunGit(ctx context.Context, dir string, args []string, env []string) Ran {
+func RunGit(ctx context.Context, dir string, args []string, env []string, input []byte) Ran {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	if dir != "" {
@@ -27,6 +28,9 @@ func RunGit(ctx context.Context, dir string, args []string, env []string) Ran {
 	}
 	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Env = append(append(os.Environ(), "GIT_TERMINAL_PROMPT=0"), env...)
+	if input != nil {
+		cmd.Stdin = bytes.NewReader(input)
+	}
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	err := cmd.Run()

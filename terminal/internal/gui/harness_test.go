@@ -19,7 +19,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/common"
 	"github.com/connorb645/lazyreview/terminal/internal/config"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
@@ -133,16 +132,11 @@ func (c *changes) get(key string) (answer, bool) {
 	return a, ok
 }
 
-func served(t *testing.T, changed *changes) *server.Client {
+func served(t *testing.T, changed *changes) standInReviews {
 	t.Helper()
 	answers := recorded(t)
 	stand := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if r.Method != http.MethodGet && r.Header.Get("Authorization") != "Bearer test-token" {
-			w.WriteHeader(http.StatusForbidden)
-			_, _ = w.Write([]byte(`{"error":"changes come only from the app's own pages, or a client with its token"}`))
-			return
-		}
 		key := r.Method + " " + r.URL.EscapedPath()
 		if q := r.URL.Query(); len(q) > 0 {
 			key += "?" + q.Encode()
@@ -165,16 +159,11 @@ func served(t *testing.T, changed *changes) *server.Client {
 	return servedBy(t, stand)
 }
 
-// servedBy is a client of a stand-in server that answers with a handler in
-// the test's own process.
-func servedBy(t *testing.T, handler http.Handler) *server.Client {
+// servedBy gives the app its reviews from handler, in the test's own
+// process.
+func servedBy(t *testing.T, handler http.Handler) standInReviews {
 	t.Helper()
-	file := filepath.Join(t.TempDir(), "server.json")
-	record, _ := json.Marshal(server.Record{Address: "http://stand-in", Token: "test-token"})
-	if err := os.WriteFile(file, record, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	return server.NewClientThrough(testCommon(), file, inProcess{handler: handler})
+	return standInReviews{handler: handler}
 }
 
 func sortedFields(t *testing.T, body io.Reader) string {

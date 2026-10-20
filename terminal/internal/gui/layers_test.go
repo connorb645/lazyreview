@@ -4,7 +4,6 @@ import (
 	"go/parser"
 	"go/token"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -15,7 +14,7 @@ import (
 const internal = "github.com/connorb645/lazyreview/terminal/internal/"
 
 var mayUse = map[string][]string{
-	"app":          {"gui", "controllers", "helpers", "context", "presentation", "views", "types", "reviews", "logic", "store", "server", "github", "claude", "git", "oscommands", "diagram", "shared"},
+	"app":          {"gui", "controllers", "helpers", "context", "presentation", "views", "types", "reviews", "logic", "store", "github", "claude", "git", "oscommands", "diagram", "shared"},
 	"gui":          {"controllers", "helpers", "context", "presentation", "views", "types", "oscommands", "diagram", "shared"},
 	"controllers":  {"helpers", "context", "presentation", "views", "types", "diagram", "shared"},
 	"helpers":      {"context", "presentation", "views", "types", "oscommands", "diagram", "shared"},
@@ -24,10 +23,9 @@ var mayUse = map[string][]string{
 	"views":        {"shared"},
 	"types":        {"shared"},
 	"diagram":      {"shared"},
-	"reviews":      {"logic", "store", "server", "github", "shared"},
+	"reviews":      {"logic", "store", "github", "shared"},
 	"logic":        {"store", "github", "claude", "git", "shared"},
 	"store":        {"shared"},
-	"server":       {"shared"},
 	"github":       {"shared"},
 	"claude":       {"shared"},
 	"git":          {"shared"},
@@ -36,13 +34,11 @@ var mayUse = map[string][]string{
 	"shared":       {},
 }
 
-var callsServer = []string{"app", "reviews", "server"}
-
 func layerOf(pkg string) string {
 	switch pkg {
 	case "app", "gui", "diagram", "reviews", "store", "testsupport":
 		return pkg
-	case "queue", "review", "ask", "home":
+	case "queue", "review", "ask", "home", "loader":
 		return "logic"
 	case "gui/controllers":
 		return "controllers"
@@ -56,8 +52,6 @@ func layerOf(pkg string) string {
 		return "views"
 	case "gui/types":
 		return "types"
-	case "commands/server":
-		return "server"
 	case "commands/github":
 		return "github"
 	case "commands/claude":
@@ -67,6 +61,9 @@ func layerOf(pkg string) string {
 	case "commands/oscommands":
 		return "oscommands"
 	}
+	if strings.HasPrefix(pkg, "build/") {
+		return "logic"
+	}
 	return "shared"
 }
 
@@ -74,8 +71,8 @@ func layerOf(pkg string) string {
 // dependency rule has them, the shared packages, such as the models, being
 // below all, and only tests use testsupport. The gui reaches reviews only
 // through the Reviews it is given; the reviews reach the logic of the queue,
-// of a review and of asking Claude, which reach the store, GitHub, git and
-// Claude Code. Of the server, only the app's start and the reviews hold a
+// of a review, of asking Claude and of loading a review and building its
+// page, which reach the store, GitHub, git and Claude Code. Of the server, only the app's start and the reviews hold a
 // client.
 func TestEachLayerImportsOnlyTheLayersBelowIt(t *testing.T) {
 	root := ".."
@@ -98,13 +95,6 @@ func TestEachLayerImportsOnlyTheLayersBelowIt(t *testing.T) {
 			if other := layerOf(pkg); ok && other != layer && !slices.Contains(mayUse[layer], other) {
 				t.Errorf("%s imports %s, but the %s layer may not use the %s layer", path, pkg, layer, other)
 			}
-		}
-		source, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		if !slices.Contains(callsServer, layer) && (strings.Contains(string(source), "server.Client") || strings.Contains(string(source), "server.NewClient")) {
-			t.Errorf("%s holds a client of the server, but the %s layer may use only its answers' types", path, layer)
 		}
 		return nil
 	})

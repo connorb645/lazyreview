@@ -12,13 +12,17 @@ import { notices } from '../support/notices.mjs';
 import { fakeClaude } from '../support/fake-claude.mjs';
 import { fakeGh } from '../support/fake-gh.mjs';
 import { run as command } from '../../src/cli/main.mjs';
+import { TerminalApp } from '../../src/commands/os/terminal-app.mjs';
 
 const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'lazyreview');
 const SLOW_DISK = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '..', 'support', 'slow-disk.mjs')).href;
 
+// Runs the command; whether the terminal app's program must be built first
+// depends on this machine, not on the command, so a line saying it is
+// building is left out.
 function run(args, env) {
   return new Promise(resolve => {
-    execFile(BIN, args, { env, timeout: 120_000 }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout, stderr }));
+    execFile(BIN, args, { env, timeout: 600_000 }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout: stdout.replace(/^building the terminal app…\n/, ''), stderr }));
   });
 }
 
@@ -93,7 +97,8 @@ test('the terminal app opens on the review a link names, loading a pull request 
   const env = { ...w.env, LAZYREVIEW_PORT: String(port) };
   const said = [];
   const opened = [];
-  const terminal = { launch: async ({ review }) => { opened.push(review); } };
+  const program = new TerminalApp();
+  const terminal = { launch: async ({ review }) => { opened.push(review); }, load: (args, options) => program.load(args, options) };
   const open = link => command(['terminal', link], { env, bin: BIN, say: line => said.push(line), terminal });
   try {
     await assert.rejects(open(`http://127.0.0.1:${port}/`), /is not the address of a review or of a pull request/);

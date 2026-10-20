@@ -4,12 +4,14 @@
  * changes, then run in this terminal.
  *
  * new TerminalApp({folder, run}) names the folder; `run` runs a command and
- * resolves {code, stderr}. launch({serverFile, review, env, say}) builds the
- * app when its program is missing or older than any of its code, saying so
- * first with `say`, then runs it on this terminal, telling it where the
- * server records its address and token, and which review to open, or none
- * for the home screen; it reads the config itself, from `env`. It resolves
- * once the app quits, and throws when it cannot be built or fails.
+ * resolves {code, stdout, stderr}. launch({review, env, say}) builds the app
+ * when its program is missing or older than any of its code, saying so
+ * first with `say`, then runs it on this terminal, telling it which review
+ * to open, or none for the home screen; it reads the config itself, from
+ * `env`. It resolves once the app quits, and throws when it cannot be built
+ * or fails. load(args, {env, say}) builds it the same way and has it load a
+ * review, as `lazyreview-terminal load` with `args`, and resolves with what
+ * it loaded: {id, review, counts, notes}, or throws saying why it could not.
  */
 import { spawn, execFile } from 'node:child_process';
 import { readdirSync, statSync, existsSync } from 'node:fs';
@@ -19,6 +21,7 @@ import { english } from '../../i18n/english.mjs';
 
 const FOLDER = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'terminal');
 const BUILD_TIMEOUT = 10 * 60_000;
+const LOAD_TIMEOUT = 30 * 60_000;
 
 export class TerminalApp {
   #folder;
@@ -33,17 +36,21 @@ export class TerminalApp {
     return join(this.#folder, 'bin', 'lazyreview-terminal');
   }
 
-  async launch({ serverFile, review, env, say = () => {} }) {
-    if (this.stale()) {
-      say(english.terminalApp.building);
-      await this.#build(env);
-    }
+  async launch({ review, env, say = () => {} }) {
+    await this.#ready(env, say);
     const code = await new Promise((resolve, reject) => {
-      const child = spawn(this.program, ['--server-file', serverFile, ...(review ? [review] : [])], { stdio: 'inherit', env });
+      const child = spawn(this.program, review ? [review] : [], { stdio: 'inherit', env });
       child.once('error', reject);
       child.once('exit', (exit, signal) => resolve(signal ? 1 : exit));
     });
     if (code !== 0) throw new Error(english.terminalApp.stopped(code));
+  }
+
+  async load(args, { env, say = () => {} }) {
+    await this.#ready(env, say);
+    const done = await this.#run(this.program, ['load', ...args], { env, timeout: LOAD_TIMEOUT });
+    if (done.code !== 0) throw new Error(done.stderr.trim() || english.terminalApp.stopped(done.code));
+    return JSON.parse(done.stdout);
   }
 
   /** Whether the program is missing, or older than any of its code. */
@@ -51,6 +58,12 @@ export class TerminalApp {
     if (!existsSync(this.program)) return true;
     const built = statSync(this.program).mtimeMs;
     return sources(this.#folder).some(path => statSync(path).mtimeMs > built);
+  }
+
+  async #ready(env, say) {
+    if (!this.stale()) return;
+    say(english.terminalApp.building);
+    await this.#build(env);
   }
 
   async #build(env) {
@@ -76,8 +89,8 @@ function sources(folder) {
 
 function runCommand(command, args, { cwd, env, timeout }) {
   return new Promise(resolve => {
-    execFile(command, args, { cwd, env, timeout, maxBuffer: 1 << 24 }, (error, stdout, stderr) => {
-      resolve({ code: error ? error.code ?? 1 : 0, stderr: String(stderr || (error ? error.message : '')) });
+    execFile(command, args, { cwd, env, timeout, maxBuffer: 1 << 26 }, (error, stdout, stderr) => {
+      resolve({ code: error ? error.code ?? 1 : 0, stdout: String(stdout), stderr: String(stderr || (error ? error.message : '')) });
     });
   });
 }

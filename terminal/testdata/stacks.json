@@ -1,0 +1,2398 @@
+[
+ {
+  "name": "three members in step, with a rename, an edit and a removed line",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "src/Cache.swift": "final class Cache {\n    // line 1\n    // line 2\n    // line 3\n    // line 4\n    // line 5\n    // line 6\n    // line 7\n    // line 8\n    // line 9\n    // line 10\n    // line 11\n    // line 12\n    // line 13\n    // line 14\n    // line 15\n    // line 16\n    // line 17\n    // line 18\n}\n",
+      "src/Store.swift": "protocol Store {}\n",
+      "notes.md": "note 1\nnote 2\nnote 3\nnote 4\nnote 5\nnote 6\nnote 7\nnote 8\nnote 9\nnote 10\nnote 11\nnote 12\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "pr1",
+     {
+      "src/Cache.swift": "final class Cache {\n    // line 1\n    // line 2\n    let clock: Clock\n    // line 3\n    // line 4\n    // line 5\n    // line 6\n    // line 7\n    // line 8\n    // line 9\n    // line 10\n    // line 11\n    // line 12\n    // line 13\n    // line 14\n    // line 15\n    // line 16\n    // line 17\n    // line 18\n}\n",
+      "src/Clock.swift": "protocol Clock {\n    // clock 1\n    // clock 2\n    // clock 3\n    // clock 4\n    // clock 5\n    // clock 6\n    // clock 7\n    // clock 8\n}\n",
+      "notes.md": "note 1\nnote 2\nnote 3\nnote 4\nnote 5\nnote 7\nnote 8\nnote 9\nnote 10\nnote 11\nnote 12\n"
+     },
+     "pr1"
+    ]
+   },
+   {
+    "commit": [
+     "pr2",
+     {
+      "src/Cache.swift": "final class Cache {\n    // line 1\n    // line 2\n    let clock: Clock\n    // line 3\n    // line 4\n    // line 5\n    // line 6\n    // line 7\n    // line 8\n    // line 9\n    // line 10\n    // line 11\n    // line 12\n    // line 13\n    // line 14\n    // line fifteen\n    // line 16\n    // line 17\n    // line 18\n}\n",
+      "src/Clock.swift": null,
+      "src/Time/Clock.swift": "protocol Clock {\n    // clock 1\n    // clock 2\n    // clock 3\n    // clock 4\n    // clock 5\n    // clock 6\n    // clock seven\n    // clock 8\n}\n",
+      "src/Timer.swift": "struct Timer: Clock {\n    let every = 1\n    let label = \"a\"\n}\n"
+     },
+     "pr2"
+    ]
+   },
+   {
+    "commit": [
+     "pr3",
+     {
+      "src/Timer.swift": "struct Timer: Clock {\n    let every = 5\n    let label = \"a\"\n}\n",
+      "README.md": "# Readme\n"
+     },
+     "pr3"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 101,
+    "head": "a3a9420fccee7580a5a22b88074b4244fe6339ce"
+   },
+   {
+    "pull": 102,
+    "head": "8cc08bfd656d7a0fed467bc076780e98e472e184"
+   },
+   {
+    "pull": 103,
+    "head": "cbdaa80438357d471fa8f3ee2bdf6970b354dafb"
+   }
+  ],
+  "top": "cbdaa80438357d471fa8f3ee2bdf6970b354dafb",
+  "heads": [
+   "a3a9420fccee7580a5a22b88074b4244fe6339ce",
+   "8cc08bfd656d7a0fed467bc076780e98e472e184",
+   "cbdaa80438357d471fa8f3ee2bdf6970b354dafb"
+  ],
+  "starts": [
+   "c6c7094541a67a9070ee9735120a0f48b73d7b0b",
+   "a3a9420fccee7580a5a22b88074b4244fe6339ce",
+   "8cc08bfd656d7a0fed467bc076780e98e472e184"
+  ],
+  "warnings": [],
+  "counts": [
+   {
+    "pull": 101,
+    "files": 3,
+    "commits": 1,
+    "adds": 11,
+    "dels": 1
+   },
+   {
+    "pull": 102,
+    "files": 3,
+    "commits": 1,
+    "adds": 6,
+    "dels": 2
+   },
+   {
+    "pull": 103,
+    "files": 2,
+    "commits": 1,
+    "adds": 2,
+    "dels": 1
+   }
+  ],
+  "lines": {
+   "README.md": {
+    "RIGHT": {
+     "1": [
+      103,
+      1
+     ]
+    },
+    "LEFT": {}
+   },
+   "notes.md": {
+    "RIGHT": {
+     "3": {
+      "c": [
+       [
+        101,
+        3
+       ]
+      ]
+     },
+     "4": {
+      "c": [
+       [
+        101,
+        4
+       ]
+      ]
+     },
+     "5": {
+      "c": [
+       [
+        101,
+        5
+       ]
+      ]
+     },
+     "6": {
+      "c": [
+       [
+        101,
+        6
+       ]
+      ]
+     },
+     "7": {
+      "c": [
+       [
+        101,
+        7
+       ]
+      ]
+     },
+     "8": {
+      "c": [
+       [
+        101,
+        8
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "3": {
+      "c": [
+       [
+        101,
+        3
+       ]
+      ]
+     },
+     "4": {
+      "c": [
+       [
+        101,
+        4
+       ]
+      ]
+     },
+     "5": {
+      "c": [
+       [
+        101,
+        5
+       ]
+      ]
+     },
+     "6": [
+      101,
+      6
+     ],
+     "7": {
+      "c": [
+       [
+        101,
+        7
+       ]
+      ]
+     },
+     "8": {
+      "c": [
+       [
+        101,
+        8
+       ]
+      ]
+     },
+     "9": {
+      "c": [
+       [
+        101,
+        9
+       ]
+      ]
+     }
+    }
+   },
+   "src/Cache.swift": {
+    "RIGHT": {
+     "1": {
+      "c": [
+       [
+        101,
+        1
+       ]
+      ]
+     },
+     "2": {
+      "c": [
+       [
+        101,
+        2
+       ]
+      ]
+     },
+     "3": {
+      "c": [
+       [
+        101,
+        3
+       ]
+      ]
+     },
+     "4": [
+      101,
+      4
+     ],
+     "5": {
+      "c": [
+       [
+        101,
+        5
+       ]
+      ]
+     },
+     "6": {
+      "c": [
+       [
+        101,
+        6
+       ]
+      ]
+     },
+     "7": {
+      "c": [
+       [
+        101,
+        7
+       ]
+      ]
+     },
+     "14": {
+      "c": [
+       [
+        102,
+        14
+       ]
+      ]
+     },
+     "15": {
+      "c": [
+       [
+        102,
+        15
+       ]
+      ]
+     },
+     "16": {
+      "c": [
+       [
+        102,
+        16
+       ]
+      ]
+     },
+     "17": [
+      102,
+      17
+     ],
+     "18": {
+      "c": [
+       [
+        102,
+        18
+       ]
+      ]
+     },
+     "19": {
+      "c": [
+       [
+        102,
+        19
+       ]
+      ]
+     },
+     "20": {
+      "c": [
+       [
+        102,
+        20
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "1": {
+      "c": [
+       [
+        101,
+        1
+       ]
+      ]
+     },
+     "2": {
+      "c": [
+       [
+        101,
+        2
+       ]
+      ]
+     },
+     "3": {
+      "c": [
+       [
+        101,
+        3
+       ]
+      ]
+     },
+     "4": {
+      "c": [
+       [
+        101,
+        4
+       ]
+      ]
+     },
+     "5": {
+      "c": [
+       [
+        101,
+        5
+       ]
+      ]
+     },
+     "6": {
+      "c": [
+       [
+        101,
+        6
+       ]
+      ]
+     },
+     "13": {
+      "c": [
+       [
+        102,
+        14
+       ]
+      ]
+     },
+     "14": {
+      "c": [
+       [
+        102,
+        15
+       ]
+      ]
+     },
+     "15": {
+      "c": [
+       [
+        102,
+        16
+       ]
+      ]
+     },
+     "16": [
+      102,
+      17
+     ],
+     "17": {
+      "c": [
+       [
+        102,
+        18
+       ]
+      ]
+     },
+     "18": {
+      "c": [
+       [
+        102,
+        19
+       ]
+      ]
+     },
+     "19": {
+      "c": [
+       [
+        102,
+        20
+       ]
+      ]
+     }
+    }
+   },
+   "src/Time/Clock.swift": {
+    "RIGHT": {
+     "1": [
+      101,
+      1,
+      "src/Clock.swift"
+     ],
+     "2": [
+      101,
+      2,
+      "src/Clock.swift"
+     ],
+     "3": [
+      101,
+      3,
+      "src/Clock.swift"
+     ],
+     "4": [
+      101,
+      4,
+      "src/Clock.swift"
+     ],
+     "5": [
+      101,
+      5,
+      "src/Clock.swift"
+     ],
+     "6": [
+      101,
+      6,
+      "src/Clock.swift"
+     ],
+     "7": [
+      101,
+      7,
+      "src/Clock.swift"
+     ],
+     "8": [
+      102,
+      8
+     ],
+     "9": [
+      101,
+      9,
+      "src/Clock.swift"
+     ],
+     "10": [
+      101,
+      10,
+      "src/Clock.swift"
+     ]
+    },
+    "LEFT": {}
+   },
+   "src/Timer.swift": {
+    "RIGHT": {
+     "1": [
+      102,
+      1
+     ],
+     "2": [
+      103,
+      2
+     ],
+     "3": [
+      102,
+      3
+     ],
+     "4": [
+      102,
+      4
+     ]
+    },
+    "LEFT": {}
+   }
+  },
+  "files": {
+   "README.md": {
+    "pulls": [
+     103
+    ],
+    "byPull": {
+     "103": [
+      1,
+      0
+     ]
+    }
+   },
+   "notes.md": {
+    "pulls": [
+     101
+    ],
+    "byPull": {
+     "101": [
+      0,
+      1
+     ]
+    }
+   },
+   "src/Cache.swift": {
+    "pulls": [
+     101,
+     102
+    ],
+    "byPull": {
+     "101": [
+      1,
+      0
+     ],
+     "102": [
+      1,
+      1
+     ]
+    }
+   },
+   "src/Time/Clock.swift": {
+    "pulls": [
+     101,
+     102
+    ],
+    "byPull": {
+     "101": [
+      9,
+      0
+     ],
+     "102": [
+      1,
+      0
+     ]
+    }
+   },
+   "src/Timer.swift": {
+    "pulls": [
+     102,
+     103
+    ],
+    "byPull": {
+     "102": [
+      3,
+      0
+     ],
+     "103": [
+      1,
+      0
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "out of step: the member below gains a commit the one above lacks",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "web/cart.ts": "// cart 1\n// cart 2\n// cart 3\n// cart 4\n// cart 5\n// cart 6\n// cart 7\n// cart 8\n// cart 9\n// cart 10\n// cart 11\n// cart 12\n// cart 13\n// cart 14\n// cart 15\n// cart 16\n// cart 17\n// cart 18\n// cart 19\n// cart 20\n",
+      "web/total.ts": "// total 1\n// total 2\n// total 3\n// total 4\n// total 5\n// total 6\n// total 7\n// total 8\n// total 9\n// total 10\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "lower",
+     {
+      "web/cart.ts": "// cart 1\n// cart 2\n// cart 3\n// cart four\n// cart 5\n// cart 6\n// cart 7\n// cart 8\n// cart 9\n// cart 10\n// cart 11\n// cart 12\n// cart 13\n// cart 14\n// cart 15\n// cart 16\n// cart 17\n// cart 18\n// cart 19\n// cart 20\n"
+     },
+     "lower"
+    ]
+   },
+   {
+    "commit": [
+     "upper",
+     {
+      "web/total.ts": "// total 1\n// total two\n// total 3\n// total 4\n// total 5\n// total 6\n// total 7\n// total 8\n// total 9\n// total 10\n"
+     },
+     "upper"
+    ]
+   },
+   {
+    "checkout": "lower"
+   },
+   {
+    "commit": [
+     "lower",
+     {
+      "web/cart.ts": "// cart 1\n// cart 2\n// cart 3\n// cart four\n// cart 5\n// cart 6\n// cart 7\n// cart 8\n// cart 9\n// cart 10\n// cart 11\n// cart 12\n// cart 13\n// cart 14\n// cart fifteen\n// cart 16\n// cart 17\n// cart 18\n// cart 19\n// cart 20\n"
+     },
+     "lower again"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 201,
+    "head": "f85d3e5e022a51cb86f74dacf603bebf6fab183f"
+   },
+   {
+    "pull": 202,
+    "head": "6b76fdcf310b344acd03a057608a89b36b9de612"
+   }
+  ],
+  "top": "6b76fdcf310b344acd03a057608a89b36b9de612",
+  "heads": [
+   "f85d3e5e022a51cb86f74dacf603bebf6fab183f",
+   "6b76fdcf310b344acd03a057608a89b36b9de612"
+  ],
+  "starts": [
+   "b315d8ea8423cbce2fc608ae6c15f111441d2b1c",
+   "d9379c655514608b14e873e5296247eaa94595ca"
+  ],
+  "warnings": [
+   "#202 is not built on #201's head: #201 has commits #202 does not hold. Until #202 is rebased, its own diff also shows the older #201 it holds; a comment on a line #201's head still holds goes to #201."
+  ],
+  "counts": [
+   {
+    "pull": 201,
+    "files": 1,
+    "commits": 2,
+    "adds": 2,
+    "dels": 2
+   },
+   {
+    "pull": 202,
+    "files": 1,
+    "commits": 1,
+    "adds": 1,
+    "dels": 1
+   }
+  ],
+  "lines": {
+   "web/cart.ts": {
+    "RIGHT": {
+     "1": {
+      "c": [
+       [
+        201,
+        1
+       ]
+      ]
+     },
+     "2": {
+      "c": [
+       [
+        201,
+        2
+       ]
+      ]
+     },
+     "3": {
+      "c": [
+       [
+        201,
+        3
+       ]
+      ]
+     },
+     "4": [
+      201,
+      4
+     ],
+     "5": {
+      "c": [
+       [
+        201,
+        5
+       ]
+      ]
+     },
+     "6": {
+      "c": [
+       [
+        201,
+        6
+       ]
+      ]
+     },
+     "7": {
+      "c": [
+       [
+        201,
+        7
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "1": {
+      "c": [
+       [
+        201,
+        1
+       ]
+      ]
+     },
+     "2": {
+      "c": [
+       [
+        201,
+        2
+       ]
+      ]
+     },
+     "3": {
+      "c": [
+       [
+        201,
+        3
+       ]
+      ]
+     },
+     "4": [
+      201,
+      4
+     ],
+     "5": {
+      "c": [
+       [
+        201,
+        5
+       ]
+      ]
+     },
+     "6": {
+      "c": [
+       [
+        201,
+        6
+       ]
+      ]
+     },
+     "7": {
+      "c": [
+       [
+        201,
+        7
+       ]
+      ]
+     }
+    }
+   },
+   "web/total.ts": {
+    "RIGHT": {
+     "1": {
+      "c": [
+       [
+        202,
+        1
+       ]
+      ]
+     },
+     "2": [
+      202,
+      2
+     ],
+     "3": {
+      "c": [
+       [
+        202,
+        3
+       ]
+      ]
+     },
+     "4": {
+      "c": [
+       [
+        202,
+        4
+       ]
+      ]
+     },
+     "5": {
+      "c": [
+       [
+        202,
+        5
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "1": {
+      "c": [
+       [
+        202,
+        1
+       ]
+      ]
+     },
+     "2": [
+      202,
+      2
+     ],
+     "3": {
+      "c": [
+       [
+        202,
+        3
+       ]
+      ]
+     },
+     "4": {
+      "c": [
+       [
+        202,
+        4
+       ]
+      ]
+     },
+     "5": {
+      "c": [
+       [
+        202,
+        5
+       ]
+      ]
+     }
+    }
+   }
+  },
+  "files": {
+   "web/cart.ts": {
+    "pulls": [
+     201
+    ],
+    "byPull": {
+     "201": [
+      1,
+      1
+     ]
+    }
+   },
+   "web/total.ts": {
+    "pulls": [
+     202
+    ],
+    "byPull": {
+     "202": [
+      1,
+      1
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "out of step: the member below rewritten, the one above still on its old commit",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "web/cart.ts": "// cart 1\n// cart 2\n// cart 3\n// cart 4\n// cart 5\n// cart 6\n// cart 7\n// cart 8\n// cart 9\n// cart 10\n// cart 11\n// cart 12\n// cart 13\n// cart 14\n// cart 15\n// cart 16\n// cart 17\n// cart 18\n// cart 19\n// cart 20\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "lower",
+     {
+      "web/cart.ts": "// cart 1\n// cart 2\n// cart 3\n// cart four\n// cart 5\n// cart 6\n// cart 7\n// cart 8\n// cart 9\n// cart 10\n// cart 11\n// cart 12\n// cart 13\n// cart 14\n// cart 15\n// cart 16\n// cart 17\n// cart 18\n// cart 19\n// cart 20\n"
+     },
+     "lower"
+    ]
+   },
+   {
+    "commit": [
+     "upper",
+     {
+      "web/cart.ts": "// cart 1\n// cart 2\n// cart 3\n// cart four\n// cart 5\n// cart 6\n// cart 7\n// cart 8\n// cart 9\n// cart 10\n// cart 11\n// cart twelve\n// cart 13\n// cart 14\n// cart 15\n// cart 16\n// cart 17\n// cart 18\n// cart 19\n// cart 20\n"
+     },
+     "upper"
+    ]
+   },
+   {
+    "checkout": "lower"
+   },
+   {
+    "commit": [
+     "lower",
+     {
+      "web/cart.ts": "// cart 1\n// cart 2\n// cart 3\n// cart 4, again\n// cart 5\n// cart 6\n// cart 7\n// cart 8\n// cart 9\n// cart 10\n// cart 11\n// cart 12\n// cart 13\n// cart 14\n// cart 15\n// cart 16\n// cart 17\n// cart 18\n// cart 19\n// cart 20\n"
+     },
+     "lower amended"
+    ]
+   },
+   {
+    "git": [
+     "reset",
+     "-q",
+     "--soft",
+     "HEAD~2"
+    ]
+   },
+   {
+    "git": [
+     "commit",
+     "-q",
+     "-m",
+     "lower rewritten"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 301,
+    "head": "949551f1730f9ae04a7e24ae5baa82d4d27f9100"
+   },
+   {
+    "pull": 302,
+    "head": "e2fee61e8d85033fe83685050470fc23eba49c23"
+   }
+  ],
+  "top": "e2fee61e8d85033fe83685050470fc23eba49c23",
+  "heads": [
+   "949551f1730f9ae04a7e24ae5baa82d4d27f9100",
+   "e2fee61e8d85033fe83685050470fc23eba49c23"
+  ],
+  "starts": [
+   "2923e0ad9619be4a6e856c001dd1b567e2b03c17",
+   "2923e0ad9619be4a6e856c001dd1b567e2b03c17"
+  ],
+  "warnings": [
+   "#302 is not built on #301's head: #301 has commits #302 does not hold. Until #302 is rebased, its own diff also shows the older #301 it holds; a comment on a line #301's head still holds goes to #301."
+  ],
+  "counts": [
+   {
+    "pull": 301,
+    "files": 1,
+    "commits": 1,
+    "adds": 1,
+    "dels": 1
+   },
+   {
+    "pull": 302,
+    "files": 1,
+    "commits": 2,
+    "adds": 2,
+    "dels": 2
+   }
+  ],
+  "lines": {
+   "web/cart.ts": {
+    "RIGHT": {
+     "1": {
+      "c": [
+       [
+        301,
+        1
+       ],
+       [
+        302,
+        1
+       ]
+      ]
+     },
+     "2": {
+      "c": [
+       [
+        301,
+        2
+       ],
+       [
+        302,
+        2
+       ]
+      ]
+     },
+     "3": {
+      "c": [
+       [
+        301,
+        3
+       ],
+       [
+        302,
+        3
+       ]
+      ]
+     },
+     "4": [
+      302,
+      4
+     ],
+     "5": {
+      "c": [
+       [
+        301,
+        5
+       ],
+       [
+        302,
+        5
+       ]
+      ]
+     },
+     "6": {
+      "c": [
+       [
+        301,
+        6
+       ],
+       [
+        302,
+        6
+       ]
+      ]
+     },
+     "7": {
+      "c": [
+       [
+        301,
+        7
+       ],
+       [
+        302,
+        7
+       ]
+      ]
+     },
+     "9": {
+      "c": [
+       [
+        302,
+        9
+       ]
+      ]
+     },
+     "10": {
+      "c": [
+       [
+        302,
+        10
+       ]
+      ]
+     },
+     "11": {
+      "c": [
+       [
+        302,
+        11
+       ]
+      ]
+     },
+     "12": [
+      302,
+      12
+     ],
+     "13": {
+      "c": [
+       [
+        302,
+        13
+       ]
+      ]
+     },
+     "14": {
+      "c": [
+       [
+        302,
+        14
+       ]
+      ]
+     },
+     "15": {
+      "c": [
+       [
+        302,
+        15
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "1": {
+      "c": [
+       [
+        301,
+        1
+       ],
+       [
+        302,
+        1
+       ]
+      ]
+     },
+     "2": {
+      "c": [
+       [
+        301,
+        2
+       ],
+       [
+        302,
+        2
+       ]
+      ]
+     },
+     "3": {
+      "c": [
+       [
+        301,
+        3
+       ],
+       [
+        302,
+        3
+       ]
+      ]
+     },
+     "4": [
+      301,
+      4
+     ],
+     "5": {
+      "c": [
+       [
+        301,
+        5
+       ],
+       [
+        302,
+        5
+       ]
+      ]
+     },
+     "6": {
+      "c": [
+       [
+        301,
+        6
+       ],
+       [
+        302,
+        6
+       ]
+      ]
+     },
+     "7": {
+      "c": [
+       [
+        301,
+        7
+       ],
+       [
+        302,
+        7
+       ]
+      ]
+     },
+     "9": {
+      "c": [
+       [
+        302,
+        9
+       ]
+      ]
+     },
+     "10": {
+      "c": [
+       [
+        302,
+        10
+       ]
+      ]
+     },
+     "11": {
+      "c": [
+       [
+        302,
+        11
+       ]
+      ]
+     },
+     "12": [
+      302,
+      12
+     ],
+     "13": {
+      "c": [
+       [
+        302,
+        13
+       ]
+      ]
+     },
+     "14": {
+      "c": [
+       [
+        302,
+        14
+       ]
+      ]
+     },
+     "15": {
+      "c": [
+       [
+        302,
+        15
+       ]
+      ]
+     }
+    }
+   }
+  },
+  "files": {
+   "web/cart.ts": {
+    "pulls": [
+     301,
+     302
+    ],
+    "byPull": {
+     "301": [
+      0,
+      1
+     ],
+     "302": [
+      2,
+      1
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "out of step: the member below takes back a line it added and puts back one it removed",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "web/list.ts": "// list 1\n// list 2\n// list 3\n// list 4\n// list 5\n// list 6\n// list 7\n// list 8\n// list 9\n// list 10\n// list 11\n// list 12\n// list 13\n// list 14\n// list 15\n// list 16\n// list 17\n// list 18\n// list 19\n// list 20\n// list 21\n// list 22\n// list 23\n// list 24\n// list 25\n// list 26\n// list 27\n// list 28\n// list 29\n// list 30\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "lower",
+     {
+      "web/list.ts": "// list 1\n// list 2\n// list 3\n// list 4\n// list 5\n// list 5a\n// list 6\n// list 7\n// list 8\n// list 9\n// list 10\n// list 11\n// list 12\n// list 13\n// list 14\n// list 16\n// list 17\n// list 18\n// list 19\n// list 20\n// list 21\n// list 22\n// list 23\n// list 24\n// list 25\n// list 26\n// list 27\n// list 28\n// list 29\n// list 30\n"
+     },
+     "lower"
+    ]
+   },
+   {
+    "commit": [
+     "upper",
+     {
+      "web/list.ts": "// list 1\n// list 2\n// list 3\n// list 4\n// list 5\n// list 5a\n// list 6\n// list 7\n// list 8\n// list 9\n// list 10\n// list 11\n// list 12\n// list 13\n// list 14\n// list 16\n// list 17\n// list 18\n// list 19\n// list 20\n// list 21\n// list 22\n// list 23\n// list 24\n// list 25\n// list 26\n// list twenty-seven\n// list 28\n// list 29\n// list 30\n"
+     },
+     "upper"
+    ]
+   },
+   {
+    "checkout": "lower"
+   },
+   {
+    "commit": [
+     "lower",
+     {
+      "web/list.ts": "// list 1\n// list 2\n// list 3\n// list 4\n// list 5\n// list 6\n// list 7\n// list 8\n// list 9\n// list 10\n// list 11\n// list 12\n// list 13\n// list 14\n// list 15\n// list 16\n// list 17\n// list 18\n// list 19\n// list 20\n// list 21\n// list 22\n// list 23\n// list 24\n// list 25\n// list 26\n// list 27\n// list 28\n// list 29\n// list 30\n"
+     },
+     "lower takes it back"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 351,
+    "head": "2b10abc4f0a90c7efe58c8feef1bdf69dbd29d0f"
+   },
+   {
+    "pull": 352,
+    "head": "b11d922fdb7c90401f5aaec02b007e73b8c879c8"
+   }
+  ],
+  "top": "b11d922fdb7c90401f5aaec02b007e73b8c879c8",
+  "heads": [
+   "2b10abc4f0a90c7efe58c8feef1bdf69dbd29d0f",
+   "b11d922fdb7c90401f5aaec02b007e73b8c879c8"
+  ],
+  "starts": [
+   "ccd01dbf40bcf260bc3c60a317dc24e14a63573a",
+   "eff9f9ca6d2063f2b9fd4558257efe372383fa50"
+  ],
+  "warnings": [
+   "#352 is not built on #351's head: #351 has commits #352 does not hold. Until #352 is rebased, its own diff also shows the older #351 it holds; a comment on a line #351's head still holds goes to #351."
+  ],
+  "counts": [
+   {
+    "pull": 351,
+    "files": 0,
+    "commits": 2,
+    "adds": 0,
+    "dels": 0
+   },
+   {
+    "pull": 352,
+    "files": 1,
+    "commits": 1,
+    "adds": 1,
+    "dels": 1
+   }
+  ],
+  "lines": {
+   "web/list.ts": {
+    "RIGHT": {
+     "3": {
+      "c": []
+     },
+     "4": {
+      "c": []
+     },
+     "5": {
+      "c": []
+     },
+     "6": {
+      "x": "no pull request's own diff adds this line as it reads here"
+     },
+     "7": {
+      "c": []
+     },
+     "8": {
+      "c": []
+     },
+     "9": {
+      "c": []
+     },
+     "13": {
+      "c": []
+     },
+     "14": {
+      "c": []
+     },
+     "15": {
+      "c": []
+     },
+     "16": {
+      "c": []
+     },
+     "17": {
+      "c": []
+     },
+     "18": {
+      "c": []
+     },
+     "24": {
+      "c": [
+       [
+        352,
+        24
+       ]
+      ]
+     },
+     "25": {
+      "c": [
+       [
+        352,
+        25
+       ]
+      ]
+     },
+     "26": {
+      "c": [
+       [
+        352,
+        26
+       ]
+      ]
+     },
+     "27": [
+      352,
+      27
+     ],
+     "28": {
+      "c": [
+       [
+        352,
+        28
+       ]
+      ]
+     },
+     "29": {
+      "c": [
+       [
+        352,
+        29
+       ]
+      ]
+     },
+     "30": {
+      "c": [
+       [
+        352,
+        30
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "3": {
+      "c": []
+     },
+     "4": {
+      "c": []
+     },
+     "5": {
+      "c": []
+     },
+     "6": {
+      "c": []
+     },
+     "7": {
+      "c": []
+     },
+     "8": {
+      "c": []
+     },
+     "12": {
+      "c": []
+     },
+     "13": {
+      "c": []
+     },
+     "14": {
+      "c": []
+     },
+     "15": {
+      "x": "no pull request's own diff removes this line as it reads here"
+     },
+     "16": {
+      "c": []
+     },
+     "17": {
+      "c": []
+     },
+     "18": {
+      "c": []
+     },
+     "24": {
+      "c": [
+       [
+        352,
+        24
+       ]
+      ]
+     },
+     "25": {
+      "c": [
+       [
+        352,
+        25
+       ]
+      ]
+     },
+     "26": {
+      "c": [
+       [
+        352,
+        26
+       ]
+      ]
+     },
+     "27": [
+      352,
+      27
+     ],
+     "28": {
+      "c": [
+       [
+        352,
+        28
+       ]
+      ]
+     },
+     "29": {
+      "c": [
+       [
+        352,
+        29
+       ]
+      ]
+     },
+     "30": {
+      "c": [
+       [
+        352,
+        30
+       ]
+      ]
+     }
+    }
+   }
+  },
+  "files": {
+   "web/list.ts": {
+    "pulls": [
+     352
+    ],
+    "byPull": {
+     "352": [
+      1,
+      1
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "a pure rename in one member, then a change to the renamed file in the next",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "src/Old.swift": "struct Old {\n    // old 1\n    // old 2\n    // old 3\n    // old 4\n    // old 5\n    // old 6\n    // old 7\n    // old 8\n    // old 9\n    // old 10\n    // old 11\n    // old 12\n}\n",
+      "docs/a.md": "words 1\nwords 2\nwords 3\nwords 4\nwords 5\nwords 6\nwords 7\nwords 8\nwords 9\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "git": [
+     "checkout",
+     "-q",
+     "-b",
+     "move"
+    ]
+   },
+   {
+    "git": [
+     "mv",
+     "src/Old.swift",
+     "src/New.swift"
+    ]
+   },
+   {
+    "git": [
+     "mv",
+     "docs/a.md",
+     "docs/b.md"
+    ]
+   },
+   {
+    "commit": [
+     "move",
+     {},
+     "move"
+    ]
+   },
+   {
+    "commit": [
+     "edit",
+     {
+      "src/New.swift": "struct Old {\n    // old 1\n    // old 2\n    // old 3\n    // old 4\n    // old 5\n    // old 6\n    // old 7\n    // old 8\n    // old nine\n    // old 10\n    // old 11\n    // old 12\n}\n"
+     },
+     "edit"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 401,
+    "head": "0de4d9021cc6127bd7fb0c787885e3581ae65951"
+   },
+   {
+    "pull": 402,
+    "head": "a5f331d9c7e8dd93e2672b54a33009f84398e12a"
+   }
+  ],
+  "top": "a5f331d9c7e8dd93e2672b54a33009f84398e12a",
+  "heads": [
+   "0de4d9021cc6127bd7fb0c787885e3581ae65951",
+   "a5f331d9c7e8dd93e2672b54a33009f84398e12a"
+  ],
+  "starts": [
+   "9ebea3b6c9c081a03b3243b9a98ab482d161a584",
+   "0de4d9021cc6127bd7fb0c787885e3581ae65951"
+  ],
+  "warnings": [],
+  "counts": [
+   {
+    "pull": 401,
+    "files": 2,
+    "commits": 1,
+    "adds": 0,
+    "dels": 0
+   },
+   {
+    "pull": 402,
+    "files": 1,
+    "commits": 1,
+    "adds": 1,
+    "dels": 1
+   }
+  ],
+  "lines": {
+   "docs/b.md": {
+    "RIGHT": {},
+    "LEFT": {}
+   },
+   "src/New.swift": {
+    "RIGHT": {
+     "7": {
+      "c": [
+       [
+        402,
+        7
+       ]
+      ]
+     },
+     "8": {
+      "c": [
+       [
+        402,
+        8
+       ]
+      ]
+     },
+     "9": {
+      "c": [
+       [
+        402,
+        9
+       ]
+      ]
+     },
+     "10": [
+      402,
+      10
+     ],
+     "11": {
+      "c": [
+       [
+        402,
+        11
+       ]
+      ]
+     },
+     "12": {
+      "c": [
+       [
+        402,
+        12
+       ]
+      ]
+     },
+     "13": {
+      "c": [
+       [
+        402,
+        13
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "7": {
+      "c": [
+       [
+        402,
+        7
+       ]
+      ]
+     },
+     "8": {
+      "c": [
+       [
+        402,
+        8
+       ]
+      ]
+     },
+     "9": {
+      "c": [
+       [
+        402,
+        9
+       ]
+      ]
+     },
+     "10": [
+      402,
+      10
+     ],
+     "11": {
+      "c": [
+       [
+        402,
+        11
+       ]
+      ]
+     },
+     "12": {
+      "c": [
+       [
+        402,
+        12
+       ]
+      ]
+     },
+     "13": {
+      "c": [
+       [
+        402,
+        13
+       ]
+      ]
+     }
+    }
+   }
+  },
+  "files": {
+   "docs/b.md": {
+    "pulls": [
+     401
+    ],
+    "byPull": {}
+   },
+   "src/New.swift": {
+    "pulls": [
+     402
+    ],
+    "byPull": {
+     "402": [
+      1,
+      1
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "files deleted, one the member below changed first",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "src/Gone.swift": "enum Gone {\n    // gone 1\n    // gone 2\n    // gone 3\n    // gone 4\n    // gone 5\n}\n",
+      "src/Temp.swift": "// temp 1\n// temp 2\n// temp 3\n// temp 4\n// temp 5\n// temp 6\n// temp 7\n// temp 8\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "first",
+     {
+      "src/Gone.swift": null,
+      "src/Temp.swift": "// temp 1\n// temp 2\n// temp three\n// temp 4\n// temp 5\n// temp 6\n// temp 7\n// temp 8\n"
+     },
+     "first"
+    ]
+   },
+   {
+    "commit": [
+     "second",
+     {
+      "src/Temp.swift": null
+     },
+     "second"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 501,
+    "head": "ec9b461617a6c97c47f6b144e75871d8adceb8fe"
+   },
+   {
+    "pull": 502,
+    "head": "0fd03f027f28d92e795826a23eee17f2927e03a1"
+   }
+  ],
+  "top": "0fd03f027f28d92e795826a23eee17f2927e03a1",
+  "heads": [
+   "ec9b461617a6c97c47f6b144e75871d8adceb8fe",
+   "0fd03f027f28d92e795826a23eee17f2927e03a1"
+  ],
+  "starts": [
+   "2bf42c05748156a31507376c492de9eb4f2c795c",
+   "ec9b461617a6c97c47f6b144e75871d8adceb8fe"
+  ],
+  "warnings": [],
+  "counts": [
+   {
+    "pull": 501,
+    "files": 2,
+    "commits": 1,
+    "adds": 1,
+    "dels": 8
+   },
+   {
+    "pull": 502,
+    "files": 1,
+    "commits": 1,
+    "adds": 0,
+    "dels": 8
+   }
+  ],
+  "lines": {
+   "src/Gone.swift": {
+    "RIGHT": {},
+    "LEFT": {
+     "1": [
+      501,
+      1
+     ],
+     "2": [
+      501,
+      2
+     ],
+     "3": [
+      501,
+      3
+     ],
+     "4": [
+      501,
+      4
+     ],
+     "5": [
+      501,
+      5
+     ],
+     "6": [
+      501,
+      6
+     ],
+     "7": [
+      501,
+      7
+     ]
+    }
+   },
+   "src/Temp.swift": {
+    "RIGHT": {},
+    "LEFT": {
+     "1": [
+      502,
+      1
+     ],
+     "2": [
+      502,
+      2
+     ],
+     "3": [
+      501,
+      3
+     ],
+     "4": [
+      502,
+      4
+     ],
+     "5": [
+      502,
+      5
+     ],
+     "6": [
+      502,
+      6
+     ],
+     "7": [
+      502,
+      7
+     ],
+     "8": [
+      502,
+      8
+     ]
+    }
+   }
+  },
+  "files": {
+   "src/Gone.swift": {
+    "pulls": [
+     501
+    ],
+    "byPull": {
+     "501": [
+      0,
+      7
+     ]
+    }
+   },
+   "src/Temp.swift": {
+    "pulls": [
+     501,
+     502
+    ],
+    "byPull": {
+     "501": [
+      0,
+      1
+     ],
+     "502": [
+      0,
+      7
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "a binary file added in one member and changed in the next",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "README.md": "# Readme\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "add-icon",
+     {
+      "assets/icon.bin": "\u0000\u0001icon\u0000one\n"
+     },
+     "add icon"
+    ]
+   },
+   {
+    "commit": [
+     "new-icon",
+     {
+      "assets/icon.bin": "\u0000\u0002icon\u0000two\n",
+      "README.md": "# Readme\n\nNow with an icon.\n"
+     },
+     "new icon"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 601,
+    "head": "dd40c21a547c037e1167d2cd2c4c15d93c550d72"
+   },
+   {
+    "pull": 602,
+    "head": "b408a00aa5d6835c1e23adb31909750611efb473"
+   }
+  ],
+  "top": "b408a00aa5d6835c1e23adb31909750611efb473",
+  "heads": [
+   "dd40c21a547c037e1167d2cd2c4c15d93c550d72",
+   "b408a00aa5d6835c1e23adb31909750611efb473"
+  ],
+  "starts": [
+   "bc419982a8c871384f799ae4516d9bb39024fb8c",
+   "dd40c21a547c037e1167d2cd2c4c15d93c550d72"
+  ],
+  "warnings": [],
+  "counts": [
+   {
+    "pull": 601,
+    "files": 1,
+    "commits": 1,
+    "adds": 0,
+    "dels": 0
+   },
+   {
+    "pull": 602,
+    "files": 2,
+    "commits": 1,
+    "adds": 2,
+    "dels": 0
+   }
+  ],
+  "lines": {
+   "README.md": {
+    "RIGHT": {
+     "1": {
+      "c": [
+       [
+        602,
+        1
+       ]
+      ]
+     },
+     "2": [
+      602,
+      2
+     ],
+     "3": [
+      602,
+      3
+     ]
+    },
+    "LEFT": {
+     "1": {
+      "c": [
+       [
+        602,
+        1
+       ]
+      ]
+     }
+    }
+   },
+   "assets/icon.bin": {
+    "RIGHT": {},
+    "LEFT": {}
+   }
+  },
+  "files": {
+   "README.md": {
+    "pulls": [
+     602
+    ],
+    "byPull": {
+     "602": [
+      2,
+      0
+     ]
+    }
+   },
+   "assets/icon.bin": {
+    "pulls": [
+     601,
+     602
+    ],
+    "byPull": {}
+   }
+  }
+ },
+ {
+  "name": "lines removed between lines another member added, and lines shown by both",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "notes.md": "note 1\nnote 2\nnote 3\nnote 4\nnote 5\nnote 6\nnote 7\nnote 8\nnote 9\nnote 10\nnote 11\nnote 12\nnote 13\nnote 14\nnote 15\nnote 16\nnote 17\nnote 18\nnote 19\nnote 20\nnote 21\nnote 22\nnote 23\nnote 24\nnote 25\nnote 26\nnote 27\nnote 28\nnote 29\nnote 30\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "adds",
+     {
+      "notes.md": "note 1\nnote 2\nnote 3\nnote 4\nnote 5\nnote 6\nnote 7\nnote 8\nnote 9\nnote 10\nnote 10a\nnote 11\nnote 12\nnote 13\nnote 14\nnote 15\nnote 16\nnote 17\nnote 18\nnote 19\nnote 20\nnote 21\nnote 22\nnote 23\nnote 24\nnote 25\nnote 26\nnote 27\nnote 28\nnote 29\nnote 30\n"
+     },
+     "adds"
+    ]
+   },
+   {
+    "commit": [
+     "removes",
+     {
+      "notes.md": "note 1\nnote 2\nnote 3\nnote 4\nnote 5\nnote 6\nnote 7\nnote 8\nnote 9\nnote 10\nnote 10a\nnote 12\nnote 13\nnote 14\nnote 15\nnote 17\nnote 18\nnote 19\nnote 20\nnote 21\nnote 22\nnote 23\nnote 24\nnote 25\nnote 26\nnote 27\nnote 28\nnote 29\nnote 30\n"
+     },
+     "removes"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 701,
+    "head": "d330405ffff91fe7f6ca32b3d439380cfe46e983"
+   },
+   {
+    "pull": 702,
+    "head": "47e27354d48a52e1b0f830338f35c0030863dbef"
+   }
+  ],
+  "top": "47e27354d48a52e1b0f830338f35c0030863dbef",
+  "heads": [
+   "d330405ffff91fe7f6ca32b3d439380cfe46e983",
+   "47e27354d48a52e1b0f830338f35c0030863dbef"
+  ],
+  "starts": [
+   "d319c3e6968d436feeeb0c8c10cca6ecffe2b346",
+   "d330405ffff91fe7f6ca32b3d439380cfe46e983"
+  ],
+  "warnings": [],
+  "counts": [
+   {
+    "pull": 701,
+    "files": 1,
+    "commits": 1,
+    "adds": 1,
+    "dels": 0
+   },
+   {
+    "pull": 702,
+    "files": 1,
+    "commits": 1,
+    "adds": 0,
+    "dels": 2
+   }
+  ],
+  "lines": {
+   "notes.md": {
+    "RIGHT": {
+     "8": {
+      "c": [
+       [
+        701,
+        8
+       ]
+      ]
+     },
+     "9": {
+      "c": [
+       [
+        701,
+        9
+       ],
+       [
+        702,
+        9
+       ]
+      ]
+     },
+     "10": {
+      "c": [
+       [
+        701,
+        10
+       ],
+       [
+        702,
+        10
+       ]
+      ]
+     },
+     "11": [
+      701,
+      11
+     ],
+     "12": {
+      "c": [
+       [
+        701,
+        13
+       ],
+       [
+        702,
+        12
+       ]
+      ]
+     },
+     "13": {
+      "c": [
+       [
+        701,
+        14
+       ],
+       [
+        702,
+        13
+       ]
+      ]
+     },
+     "14": {
+      "c": [
+       [
+        702,
+        14
+       ]
+      ]
+     },
+     "15": {
+      "c": [
+       [
+        702,
+        15
+       ]
+      ]
+     },
+     "16": {
+      "c": [
+       [
+        702,
+        16
+       ]
+      ]
+     },
+     "17": {
+      "c": [
+       [
+        702,
+        17
+       ]
+      ]
+     },
+     "18": {
+      "c": [
+       [
+        702,
+        18
+       ]
+      ]
+     }
+    },
+    "LEFT": {
+     "8": {
+      "c": [
+       [
+        701,
+        8
+       ]
+      ]
+     },
+     "9": {
+      "c": [
+       [
+        701,
+        9
+       ],
+       [
+        702,
+        9
+       ]
+      ]
+     },
+     "10": {
+      "c": [
+       [
+        701,
+        10
+       ],
+       [
+        702,
+        10
+       ]
+      ]
+     },
+     "11": [
+      702,
+      12
+     ],
+     "12": {
+      "c": [
+       [
+        701,
+        12
+       ],
+       [
+        702,
+        13
+       ]
+      ]
+     },
+     "13": {
+      "c": [
+       [
+        701,
+        13
+       ],
+       [
+        702,
+        14
+       ]
+      ]
+     },
+     "14": {
+      "c": [
+       [
+        702,
+        15
+       ]
+      ]
+     },
+     "15": {
+      "c": [
+       [
+        702,
+        16
+       ]
+      ]
+     },
+     "16": [
+      702,
+      17
+     ],
+     "17": {
+      "c": [
+       [
+        702,
+        18
+       ]
+      ]
+     },
+     "18": {
+      "c": [
+       [
+        702,
+        19
+       ]
+      ]
+     },
+     "19": {
+      "c": [
+       [
+        702,
+        20
+       ]
+      ]
+     }
+    }
+   }
+  },
+  "files": {
+   "notes.md": {
+    "pulls": [
+     701,
+     702
+    ],
+    "byPull": {
+     "701": [
+      1,
+      0
+     ],
+     "702": [
+      0,
+      2
+     ]
+    }
+   }
+  }
+ },
+ {
+  "name": "a member whose head is not in the repository",
+  "base": "main",
+  "script": [
+   {
+    "commit": [
+     "main",
+     {
+      "notes.md": "note 1\nnote 2\nnote 3\nnote 4\nnote 5\n"
+     },
+     "base"
+    ]
+   },
+   {
+    "commit": [
+     "only",
+     {
+      "notes.md": "note 1\nnote 2\nnote 3\nnote 4\nnote 5\nnote 6\n"
+     },
+     "only"
+    ]
+   }
+  ],
+  "members": [
+   {
+    "pull": 801,
+    "head": "bb2b54fdc5faad41a9c890b3b08c116d0f677735"
+   },
+   {
+    "pull": 802,
+    "head": "0123456789abcdef0123456789abcdef01234567"
+   }
+  ],
+  "top": "bb2b54fdc5faad41a9c890b3b08c116d0f677735",
+  "error": "#802's head 0123456789ab is not a commit in this repository; fetch it with git fetch origin pull/802/head"
+ }
+]

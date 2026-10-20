@@ -99,6 +99,20 @@ func (s *ReviewStore) PageBuild(ref models.ReviewRef) (string, error) {
 	return PageBuild(text), nil
 }
 
+// ReadConfig is the components config the review was last loaded with, as
+// its JSON text, or nil when it has none.
+func (s *ReviewStore) ReadConfig(ref models.ReviewRef) ([]byte, error) {
+	path := s.home.Review(ref).Config()
+	text, found, err := utils.ReadText(path)
+	if err != nil {
+		return nil, s.unreadable(path, err)
+	}
+	if !found {
+		return nil, nil
+	}
+	return []byte(text), nil
+}
+
 // ReadWritten is the review's written review, and false when it has none.
 func (s *ReviewStore) ReadWritten(ref models.ReviewRef) (string, bool, error) {
 	path := s.home.Review(ref).Written()

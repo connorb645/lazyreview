@@ -11,8 +11,9 @@
  * that no review holds yet, and with none the home screen of open pull
  * requests; it says whether it started the app or found it running, and
  * refuses a link that names no review before it starts anything. `load`
- * reads pull requests from GitHub, or with --repo a branch from a
- * repository on this machine. `config` says where the config file
+ * has the terminal app's program read pull requests from GitHub, or with
+ * --repo a branch from a repository on this machine, and so does
+ * `terminal` with a link no review holds. `config` says where the config file
  * is, prints the default config or every setting as read, and makes the
  * one-time move into the config; it reads no other setting first, so a
  * config with a mistake in it can always be found and fixed.
@@ -39,16 +40,16 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
 
   switch (options.command) {
     case 'load':
-      return load(app, options);
+      return load(app, options, { env, say });
     case 'attach':
       return attach(app, options);
     case 'list':
       return list(app);
     case 'terminal': {
-      const review = options.positional.length ? await reviewToOpen(options.positional[0], { app, say }) : null;
+      const review = options.positional.length ? await reviewToOpen(options.positional[0], { app, env, say }) : null;
       const running = await app.background.running();
       say(running ? english.cli.runningAlready(running) : english.cli.started(await app.background.start()));
-      await app.terminal.launch({ serverFile: app.home.serverFile, review, env, say });
+      await app.terminal.launch({ review, env, say });
       return [];
     }
     case 'start': {
@@ -64,18 +65,20 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
   }
 }
 
-async function load(app, options) {
-  const drawing = {
-    config: options.config ? readConfigFile(options.config) : undefined,
-    context: options.context ? true : options.noContext ? false : undefined,
-  };
-  const loaded = options.repo !== undefined
-    ? await app.branches.load({ repo: options.repo, base: options.base, head: options.head, title: options.title, ...drawing })
-    : await app.loader.load({ links: options.positional, account: options.account, ...drawing });
+async function load(app, options, { env, say }) {
+  if (options.config) readConfigFile(options.config);
+  const loaded = await app.terminal.load([
+    ...(options.account !== undefined ? ['--account', options.account] : []),
+    ...(options.config ? ['--config', options.config] : []),
+    ...(options.context ? ['--context'] : options.noContext ? ['--no-context'] : []),
+    ...(options.repo !== undefined ? ['--repo', options.repo, '--base', options.base, '--head', options.head] : []),
+    ...(options.title !== undefined ? ['--title', options.title] : []),
+    ...options.positional,
+  ], { env, say });
   const address = (await app.background.running()) || (await app.background.start());
   return [
     english.cli.loaded(changeName(loaded.review), loaded.counts),
-    english.cli.open(reviewAddress(address, loaded.ref)),
+    english.cli.open(reviewAddress(address, loaded)),
     ...loaded.notes.map(english.cli.note),
   ];
 }
@@ -131,7 +134,7 @@ function reviewAddress(address, ref) {
   return `${address}/review/${ref.id.split('/').map(encodeURIComponent).join('/')}`;
 }
 
-async function reviewToOpen(text, { app, say }) {
+async function reviewToOpen(text, { app, env, say }) {
   const { review, pull } = readTerminalLink(text);
   if (review) {
     if (!app.store.read(review)) throw new Error(english.cli.noReview(review.id));
@@ -140,9 +143,9 @@ async function reviewToOpen(text, { app, say }) {
   const found = app.store.find(pull);
   if (found) return found.ref.id;
   say(english.cli.loading(pull.url));
-  const loaded = await app.loader.load({ links: [text] });
+  const loaded = await app.terminal.load([text], { env, say });
   for (const note of loaded.notes) say(english.cli.note(note));
-  return loaded.ref.id;
+  return loaded.id;
 }
 
 function readConfigFile(path) {

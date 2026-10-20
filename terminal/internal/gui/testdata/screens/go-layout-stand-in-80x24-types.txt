@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Diagram · Core › Model─────────────────────────╮
+│                        ││                                                    ▐
+╰─────────────────0 of 0─╯│  ╭───────────────────────╮                ╭────────▐
+╭─[2]─Files──────────────╮│  │ Invoice               │                │ Clock  ▐
+│                        ││  │ Invoice.swift changed │                │ Clock.s▐
+│                        ││  ╰──────────▲────────────╯                ╰───────┬▐
+│                        ││             │                                     │▐
+│                        ││             │                                     │▐
+╰─────────────────0 of 0─╯│             │                                     ╰▐
+╭─[3]─Notes──────────────╮│             │ conforms to                          ▐
+│                        ││             │                                      ▐
+│                        ││  ┏━━━━━━━━━━┷━━━━━━━━━━┓                ╭──────────▐
+│                        ││  ┃ Order               ┃                │ Pricer   ▐
+│                        ││  ┃ Order.swift changed ┃                │ Pricer.sw▐
+╰─────────────────0 of 0─╯│  ┗━━━━━━┯━━━━▲━━━━━━┯━━┛                ╰──────────▐
+╭─[4]─Diagram────────────╮│         │    │      └─▶ uses Store · in Shop       ▐
+│                        ││         │    │                                     ▐
+│                        ││         │    ╰─╮ uses                              ▐
+│                        ││         ╰╮ hol…│                                   ▐
+│                        ││          │     │                                   │
+│                        ││  ╭───────▼─────┴────────╮                ╭─────────│
+│                        ││  │ Ledger               │                │ Refunds │
+╰─────────────────0 of 0─╯╰─Order · class · Sources/Core/Order.swift · changed─╯
+ Diff: Enter | Follow: gd | Links: Space l | Keys: Space ?

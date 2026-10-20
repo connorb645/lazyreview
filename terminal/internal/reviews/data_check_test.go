@@ -25,7 +25,7 @@ func TestEveryReviewOfADataHomeOpens(t *testing.T) {
 	}
 	tr := i18n.EnglishTranslationSet()
 	reviews := store.NewReviewStore(tr, store.DataHome{Root: root}, store.NewLocks(tr))
-	r := New(tr, reviews, nil, nil, nil, nil, nil)
+	r := New(tr, reviews, nil, nil, nil, nil, nil, nil)
 	ids := reviewIDs(t, filepath.Join(root, "reviews"))
 	opened, pulls, branches, moved, comments, conversations, files := 0, 0, 0, 0, 0, 0, 0
 	var failed []string

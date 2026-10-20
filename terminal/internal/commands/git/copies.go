@@ -86,7 +86,7 @@ func (c *Copies) Prune(parent string, unused time.Duration, keep string) {
 }
 
 func (c *Copies) make(ctx context.Context, folder string, of CopyOf) error {
-	if c.run(ctx, of.Source, []string{"cat-file", "-e", of.Commit + "^{commit}"}, nil).Code != 0 {
+	if c.run(ctx, of.Source, []string{"cat-file", "-e", of.Commit + "^{commit}"}, nil, nil).Code != 0 {
 		return models.Refused(utils.ResolvePlaceholderString(c.tr.CommitMissing, map[string]string{"commit": short(of.Commit), "repo": of.Source}))
 	}
 	if err := os.MkdirAll(filepath.Dir(folder), 0o755); err != nil {
@@ -128,7 +128,7 @@ func (c *Copies) make(ctx context.Context, folder string, of CopyOf) error {
 }
 
 func (c *Copies) git(ctx context.Context, dir string, args []string) error {
-	done := c.run(ctx, dir, args, copyEnv)
+	done := c.run(ctx, dir, args, copyEnv, nil)
 	if done.Code != 0 {
 		return failed(c.tr, commandOf(args), lastLine(done.Stderr))
 	}

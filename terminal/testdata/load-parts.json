@@ -1,0 +1,2428 @@
+{
+ "threads": [
+  {
+   "pull": 30,
+   "stack": null,
+   "nodes": [
+    {
+     "id": "T1",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "docs/guide.md",
+     "line": 3,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T2",
+     "isResolved": true,
+     "isOutdated": false,
+     "path": "docs/guide.md",
+     "line": 3,
+     "startLine": 2,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": "LEFT",
+     "subjectType": "LINE",
+     "resolvedBy": {
+      "login": "sam"
+     },
+     "comments": {
+      "totalCount": 104,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       },
+       {
+        "databaseId": 12,
+        "author": {
+         "login": "lint-helper",
+         "__typename": "Bot"
+        },
+        "body": "Comment 12",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r12",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       },
+       {
+        "databaseId": 13,
+        "author": null,
+        "body": "Comment 13",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r13",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       },
+       {
+        "databaseId": 14,
+        "author": {
+         "login": "",
+         "__typename": "User"
+        },
+        "body": "Use <b>bold</b> & \"quotes\"\nand a second line",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r14",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T3",
+     "isResolved": false,
+     "isOutdated": true,
+     "path": "docs/guide.md",
+     "line": null,
+     "startLine": null,
+     "originalLine": 9,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T4",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "docs/guide.md",
+     "line": null,
+     "startLine": null,
+     "originalLine": null,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "FILE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T5",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "docs/guide.md",
+     "line": 3,
+     "startLine": 1,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T6",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "docs/guide.md",
+     "line": 3,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 0,
+      "nodes": []
+     }
+    },
+    {
+     "id": "T7",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "docs/guide.md",
+     "line": 3,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 15,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 15",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r15",
+        "diffHunk": ""
+       }
+      ]
+     }
+    },
+    {
+     "id": "T8",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "docs/guide.md",
+     "line": 5,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "LEFT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 2,
+      "nodes": [
+       {
+        "databaseId": 16,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 16",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r16",
+        "diffHunk": "@@ -5 +5 @@\n-x"
+       }
+      ]
+     }
+    }
+   ],
+   "github": "[\n  {\n    \"id\": \"T1\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"RIGHT\",\n    \"line\": 3,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"docs/guide.md\",\n      \"side\": \"RIGHT\",\n      \"line\": 3\n    }\n  },\n  {\n    \"id\": \"T2\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"RIGHT\",\n    \"line\": 3,\n    \"start_line\": 2,\n    \"start_side\": \"LEFT\",\n    \"original_line\": 3,\n    \"resolved\": true,\n    \"resolved_by\": \"sam\",\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      },\n      {\n        \"id\": 12,\n        \"author\": \"lint-helper\",\n        \"bot\": true,\n        \"body\": \"Comment 12\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r12\"\n      },\n      {\n        \"id\": 13,\n        \"author\": \"ghost\",\n        \"bot\": false,\n        \"body\": \"Comment 13\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r13\"\n      },\n      {\n        \"id\": 14,\n        \"author\": \"ghost\",\n        \"bot\": false,\n        \"body\": \"Use <b>bold</b> & \\\"quotes\\\"\\nand a second line\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r14\"\n      }\n    ],\n    \"more\": 100,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"docs/guide.md\",\n      \"side\": \"RIGHT\",\n      \"line\": 3,\n      \"start_line\": 2,\n      \"start_side\": \"LEFT\"\n    }\n  },\n  {\n    \"id\": \"T3\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"RIGHT\",\n    \"line\": null,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 9,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": true,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": null\n  },\n  {\n    \"id\": \"T4\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"RIGHT\",\n    \"line\": null,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": null,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": true,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": null\n  },\n  {\n    \"id\": \"T5\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"RIGHT\",\n    \"line\": 3,\n    \"start_line\": 1,\n    \"start_side\": \"RIGHT\",\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"docs/guide.md\",\n      \"side\": \"RIGHT\",\n      \"line\": 3,\n      \"start_line\": 1,\n      \"start_side\": \"RIGHT\"\n    }\n  },\n  {\n    \"id\": \"T6\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"RIGHT\",\n    \"line\": 3,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [],\n    \"more\": 0,\n    \"hunk\": \"\",\n    \"at\": {\n      \"path\": \"docs/guide.md\",\n      \"side\": \"RIGHT\",\n      \"line\": 3\n    }\n  },\n  {\n    \"id\": \"T7\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"RIGHT\",\n    \"line\": 3,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 15,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 15\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r15\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"\",\n    \"at\": {\n      \"path\": \"docs/guide.md\",\n      \"side\": \"RIGHT\",\n      \"line\": 3\n    }\n  },\n  {\n    \"id\": \"T8\",\n    \"pull\": 30,\n    \"path\": \"docs/guide.md\",\n    \"side\": \"LEFT\",\n    \"line\": 5,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 16,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 16\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r16\"\n      }\n    ],\n    \"more\": 1,\n    \"hunk\": \"@@ -5 +5 @@\\n-x\",\n    \"at\": {\n      \"path\": \"docs/guide.md\",\n      \"side\": \"LEFT\",\n      \"line\": 5\n    }\n  }\n]\n"
+  },
+  {
+   "pull": 21,
+   "stack": {
+    "members": [],
+    "warnings": [],
+    "lines": {
+     "web/cart.ts": {
+      "RIGHT": {
+       "4": [
+        21,
+        2
+       ],
+       "5": [
+        21,
+        3
+       ],
+       "9": {
+        "c": [
+         [
+          21,
+          7
+         ],
+         [
+          22,
+          8
+         ]
+        ]
+       },
+       "10": {
+        "c": []
+       },
+       "12": [
+        22,
+        12
+       ],
+       "14": {
+        "x": "no pull request's own diff adds this line as it reads here"
+       }
+      },
+      "LEFT": {
+       "6": [
+        21,
+        6
+       ],
+       "7": [
+        21,
+        7
+       ]
+      }
+     },
+     "web/total.ts": {
+      "RIGHT": {
+       "3": [
+        22,
+        3,
+        "web/sum.ts"
+       ],
+       "4": [
+        22,
+        4,
+        "web/sum.ts"
+       ]
+      },
+      "LEFT": {}
+     }
+    }
+   },
+   "nodes": [
+    {
+     "id": "T1",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/cart.ts",
+     "line": 3,
+     "startLine": 2,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T2",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/cart.ts",
+     "line": 7,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T3",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/cart.ts",
+     "line": 6,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "LEFT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T4",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/cart.ts",
+     "line": 7,
+     "startLine": 6,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "LEFT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T5",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/cart.ts",
+     "line": 12,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T6",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/cart.ts",
+     "line": 3,
+     "startLine": 1,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    }
+   ],
+   "github": "[\n  {\n    \"id\": \"T1\",\n    \"pull\": 21,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 3,\n    \"start_line\": 2,\n    \"start_side\": \"RIGHT\",\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/cart.ts\",\n      \"side\": \"RIGHT\",\n      \"line\": 5,\n      \"start_line\": 4,\n      \"start_side\": \"RIGHT\"\n    }\n  },\n  {\n    \"id\": \"T2\",\n    \"pull\": 21,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 7,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/cart.ts\",\n      \"side\": \"RIGHT\",\n      \"line\": 9\n    }\n  },\n  {\n    \"id\": \"T3\",\n    \"pull\": 21,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"LEFT\",\n    \"line\": 6,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/cart.ts\",\n      \"side\": \"LEFT\",\n      \"line\": 6\n    }\n  },\n  {\n    \"id\": \"T4\",\n    \"pull\": 21,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"LEFT\",\n    \"line\": 7,\n    \"start_line\": 6,\n    \"start_side\": \"LEFT\",\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/cart.ts\",\n      \"side\": \"LEFT\",\n      \"line\": 7,\n      \"start_line\": 6,\n      \"start_side\": \"LEFT\"\n    }\n  },\n  {\n    \"id\": \"T5\",\n    \"pull\": 21,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 12,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": null\n  },\n  {\n    \"id\": \"T6\",\n    \"pull\": 21,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 3,\n    \"start_line\": 1,\n    \"start_side\": \"RIGHT\",\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/cart.ts\",\n      \"side\": \"RIGHT\",\n      \"line\": 5\n    }\n  }\n]\n"
+  },
+  {
+   "pull": 22,
+   "stack": {
+    "members": [],
+    "warnings": [],
+    "lines": {
+     "web/cart.ts": {
+      "RIGHT": {
+       "4": [
+        21,
+        2
+       ],
+       "5": [
+        21,
+        3
+       ],
+       "9": {
+        "c": [
+         [
+          21,
+          7
+         ],
+         [
+          22,
+          8
+         ]
+        ]
+       },
+       "10": {
+        "c": []
+       },
+       "12": [
+        22,
+        12
+       ],
+       "14": {
+        "x": "no pull request's own diff adds this line as it reads here"
+       }
+      },
+      "LEFT": {
+       "6": [
+        21,
+        6
+       ],
+       "7": [
+        21,
+        7
+       ]
+      }
+     },
+     "web/total.ts": {
+      "RIGHT": {
+       "3": [
+        22,
+        3,
+        "web/sum.ts"
+       ],
+       "4": [
+        22,
+        4,
+        "web/sum.ts"
+       ]
+      },
+      "LEFT": {}
+     }
+    }
+   },
+   "nodes": [
+    {
+     "id": "T1",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/cart.ts",
+     "line": 8,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T2",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/sum.ts",
+     "line": 4,
+     "startLine": 3,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T3",
+     "isResolved": false,
+     "isOutdated": false,
+     "path": "web/sum.ts",
+     "line": 4,
+     "startLine": 8,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    },
+    {
+     "id": "T4",
+     "isResolved": false,
+     "isOutdated": true,
+     "path": "web/cart.ts",
+     "line": 12,
+     "startLine": null,
+     "originalLine": 3,
+     "originalStartLine": null,
+     "diffSide": "RIGHT",
+     "startDiffSide": null,
+     "subjectType": "LINE",
+     "resolvedBy": null,
+     "comments": {
+      "totalCount": 1,
+      "nodes": [
+       {
+        "databaseId": 11,
+        "author": {
+         "login": "alex",
+         "__typename": "User"
+        },
+        "body": "Comment 11",
+        "createdAt": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/30#discussion_r11",
+        "diffHunk": "@@ -1,6 +1,6 @@\n a\n b\n-c\n+C\n d\n e"
+       }
+      ]
+     }
+    }
+   ],
+   "github": "[\n  {\n    \"id\": \"T1\",\n    \"pull\": 22,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 8,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/cart.ts\",\n      \"side\": \"RIGHT\",\n      \"line\": 9\n    }\n  },\n  {\n    \"id\": \"T2\",\n    \"pull\": 22,\n    \"path\": \"web/sum.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 4,\n    \"start_line\": 3,\n    \"start_side\": \"RIGHT\",\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/total.ts\",\n      \"side\": \"RIGHT\",\n      \"line\": 4,\n      \"start_line\": 3,\n      \"start_side\": \"RIGHT\"\n    }\n  },\n  {\n    \"id\": \"T3\",\n    \"pull\": 22,\n    \"path\": \"web/sum.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 4,\n    \"start_line\": 8,\n    \"start_side\": \"RIGHT\",\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": false,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": {\n      \"path\": \"web/total.ts\",\n      \"side\": \"RIGHT\",\n      \"line\": 4\n    }\n  },\n  {\n    \"id\": \"T4\",\n    \"pull\": 22,\n    \"path\": \"web/cart.ts\",\n    \"side\": \"RIGHT\",\n    \"line\": 12,\n    \"start_line\": null,\n    \"start_side\": null,\n    \"original_line\": 3,\n    \"resolved\": false,\n    \"resolved_by\": null,\n    \"outdated\": true,\n    \"file\": false,\n    \"comments\": [\n      {\n        \"id\": 11,\n        \"author\": \"alex\",\n        \"bot\": false,\n        \"body\": \"Comment 11\",\n        \"at\": \"2026-10-15T10:00:00Z\",\n        \"url\": \"https://github.com/octo/widgets/pull/30#discussion_r11\"\n      }\n    ],\n    \"more\": 0,\n    \"hunk\": \"-c\\n+C\\n d\\n e\",\n    \"at\": null\n  }\n]\n"
+  }
+ ],
+ "regroups": [
+  {
+   "given": {
+    "previous": null,
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {},
+    "absorbed": [],
+    "anchor": "github.com/octo/widgets/1",
+    "now": "now"
+   },
+   "out": {
+    "members": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 2,
+      "comments": [],
+      "posted": []
+     }
+    ],
+    "earlier": [],
+    "moved": [],
+    "notes": []
+   }
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": null,
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 3,
+       "comments": [
+        {
+         "id": 1,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 1",
+         "code": ""
+        }
+       ],
+       "posted": []
+      },
+      {
+       "pull": 2,
+       "head": "2222222222222222222222222222222222222222",
+       "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+       "title": "Pull request 2",
+       "url": "https://github.com/octo/widgets/pull/2",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [
+        {
+         "id": 2,
+         "path": "a.ts",
+         "line": 3,
+         "side": "LEFT",
+         "body": "Comment 2",
+         "code": ""
+        },
+        {
+         "id": 3,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 3",
+         "code": ""
+        },
+        {
+         "id": 4,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 4",
+         "code": "",
+         "start_line": 1,
+         "start_side": "LEFT"
+        },
+        {
+         "id": 5,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 5",
+         "code": "",
+         "stale": "already stale"
+        }
+       ],
+       "posted": []
+      }
+     ],
+     "earlier": []
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "moved1headmoved1headmoved1headmoved1head",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "start111start111start111start111start111",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 4,
+      "head": "4444444444444444444444444444444444444444",
+      "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+      "title": "Pull request 4",
+      "url": "https://github.com/octo/widgets/pull/4",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {},
+    "absorbed": [],
+    "anchor": "github.com/octo/widgets/1",
+    "now": "now"
+   },
+   "out": {
+    "members": [
+     {
+      "pull": 1,
+      "head": "moved1headmoved1headmoved1headmoved1head",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 3,
+      "comments": [
+       {
+        "id": 1,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 1",
+        "code": "",
+        "stale": "queued at 11111111, and #1 is now at moved1he"
+       }
+      ],
+      "posted": []
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "start111start111start111start111start111",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [
+       {
+        "id": 2,
+        "path": "a.ts",
+        "line": 3,
+        "side": "LEFT",
+        "body": "Comment 2",
+        "code": "",
+        "stale": "queued on a removed line, and #2's diff now starts from start111, not s2s2s2s2"
+       },
+       {
+        "id": 3,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 3",
+        "code": ""
+       },
+       {
+        "id": 4,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 4",
+        "code": "",
+        "start_line": 1,
+        "start_side": "LEFT",
+        "stale": "queued on a removed line, and #2's diff now starts from start111, not s2s2s2s2"
+       },
+       {
+        "id": 5,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 5",
+        "code": "",
+        "stale": "already stale"
+       }
+      ],
+      "posted": []
+     },
+     {
+      "pull": 4,
+      "head": "4444444444444444444444444444444444444444",
+      "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+      "title": "Pull request 4",
+      "url": "https://github.com/octo/widgets/pull/4",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 2,
+      "comments": [],
+      "posted": []
+     }
+    ],
+    "earlier": [],
+    "moved": [],
+    "notes": [
+     "#1: 1 queued comment marked stale (queued at 11111111, and #1 is now at moved1he); queue each again or drop it",
+     "#2: 2 queued comments marked stale (queued on a removed line, and #2's diff now starts from start111, not s2s2s2s2); queue each again or drop it"
+    ]
+   }
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": null,
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [
+        {
+         "id": 4,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 4",
+         "code": ""
+        }
+       ],
+       "posted": [
+        {
+         "set": "set000000000",
+         "action": "comment",
+         "review": "https://github.com/r/1",
+         "at": "2026-10-15T11:00:00Z",
+         "comments": [
+          {
+           "id": 7,
+           "path": "a.ts",
+           "line": 3,
+           "side": "RIGHT",
+           "body": "Comment 7",
+           "code": ""
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "earlier": []
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {},
+    "absorbed": [
+     {
+      "ref": "github.com/octo/widgets/2",
+      "review": {
+       "id": "github.com/octo/widgets/2",
+       "host": "github.com",
+       "repo": "octo/widgets",
+       "account": null,
+       "me": "reviewer",
+       "title": "A review",
+       "base": {
+        "ref": "main",
+        "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+       },
+       "context": false,
+       "loaded_at": "2026-10-15T10:00:00.000Z",
+       "notes": [],
+       "moved": null,
+       "members": [
+        {
+         "pull": 2,
+         "head": "other2headother2headother2headother2head",
+         "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+         "title": "Pull request 2",
+         "url": "https://github.com/octo/widgets/pull/2",
+         "author": "author",
+         "base": "main",
+         "description": "",
+         "state": "open",
+         "ended_at": null,
+         "color": 1,
+         "comments": [
+          {
+           "id": 1,
+           "path": "a.ts",
+           "line": 3,
+           "side": "RIGHT",
+           "body": "Comment 1",
+           "code": ""
+          },
+          {
+           "id": 2,
+           "path": "a.ts",
+           "line": 3,
+           "side": "LEFT",
+           "body": "Comment 2",
+           "code": ""
+          }
+         ],
+         "posted": [
+          {
+           "set": "set000000000",
+           "action": "comment",
+           "review": "https://github.com/r/2",
+           "at": "2026-10-15T11:00:00Z",
+           "comments": []
+          },
+          {
+           "set": "set000000000",
+           "action": "comment",
+           "review": "https://github.com/r/2",
+           "at": "2026-10-15T11:00:00Z",
+           "comments": []
+          }
+         ]
+        }
+       ],
+       "earlier": []
+      }
+     }
+    ],
+    "anchor": "github.com/octo/widgets/1",
+    "now": "2026-10-15T12:00:00.000Z"
+   },
+   "out": {
+    "members": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [
+       {
+        "id": 4,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 4",
+        "code": ""
+       }
+      ],
+      "posted": [
+       {
+        "set": "set000000000",
+        "action": "comment",
+        "review": "https://github.com/r/1",
+        "at": "2026-10-15T11:00:00Z",
+        "comments": [
+         {
+          "id": 7,
+          "path": "a.ts",
+          "line": 3,
+          "side": "RIGHT",
+          "body": "Comment 7",
+          "code": ""
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 2,
+      "comments": [
+       {
+        "id": 8,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 1",
+        "code": "",
+        "stale": "queued at other2he, and #2 is now at 22222222"
+       },
+       {
+        "id": 9,
+        "path": "a.ts",
+        "line": 3,
+        "side": "LEFT",
+        "body": "Comment 2",
+        "code": "",
+        "stale": "queued at other2he, and #2 is now at 22222222"
+       }
+      ],
+      "posted": [
+       {
+        "set": "set000000000",
+        "action": "comment",
+        "review": "https://github.com/r/2",
+        "at": "2026-10-15T11:00:00Z",
+        "comments": []
+       }
+      ]
+     }
+    ],
+    "earlier": [],
+    "moved": [
+     {
+      "ref": "github.com/octo/widgets/2",
+      "review": {
+       "id": "github.com/octo/widgets/2",
+       "host": "github.com",
+       "repo": "octo/widgets",
+       "account": null,
+       "me": "reviewer",
+       "title": "A review",
+       "base": {
+        "ref": "main",
+        "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+       },
+       "context": false,
+       "loaded_at": "2026-10-15T10:00:00.000Z",
+       "notes": [],
+       "moved": {
+        "to": "github.com/octo/widgets/1",
+        "stack": [
+         1,
+         2
+        ],
+        "at": "2026-10-15T12:00:00.000Z"
+       },
+       "members": [
+        {
+         "pull": 2,
+         "head": "other2headother2headother2headother2head",
+         "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+         "title": "Pull request 2",
+         "url": "https://github.com/octo/widgets/pull/2",
+         "author": "author",
+         "base": "main",
+         "description": "",
+         "state": "open",
+         "ended_at": null,
+         "color": 1,
+         "comments": [],
+         "posted": [
+          {
+           "set": "set000000000",
+           "action": "comment",
+           "review": "https://github.com/r/2",
+           "at": "2026-10-15T11:00:00Z",
+           "comments": []
+          },
+          {
+           "set": "set000000000",
+           "action": "comment",
+           "review": "https://github.com/r/2",
+           "at": "2026-10-15T11:00:00Z",
+           "comments": []
+          }
+         ]
+        }
+       ],
+       "earlier": []
+      }
+     }
+    ],
+    "notes": [
+     "#2: 2 queued comments marked stale (queued at other2he, and #2 is now at 22222222); queue each again or drop it",
+     "#2's comment 1 is now 8",
+     "#2's comment 2 is now 9"
+    ]
+   }
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": null,
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 2,
+       "head": "2222222222222222222222222222222222222222",
+       "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+       "title": "Pull request 2",
+       "url": "https://github.com/octo/widgets/pull/2",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 2,
+       "comments": [
+        {
+         "id": 1,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 1",
+         "code": ""
+        },
+        {
+         "id": 2,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 2",
+         "code": ""
+        }
+       ],
+       "posted": []
+      }
+     ],
+     "earlier": []
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {
+     "2": {
+      "state": "open",
+      "ended_at": null
+     }
+    },
+    "absorbed": [],
+    "anchor": "a",
+    "now": "n"
+   },
+   "error": "#2 is still open with 2 queued comments, so it cannot leave the stack; post or drop them first"
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": null,
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 2,
+       "head": "2222222222222222222222222222222222222222",
+       "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+       "title": "Pull request 2",
+       "url": "https://github.com/octo/widgets/pull/2",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 2,
+       "comments": [
+        {
+         "id": 1,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 1",
+         "code": ""
+        }
+       ],
+       "posted": []
+      }
+     ],
+     "earlier": []
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {
+     "2": {
+      "state": "closed",
+      "ended_at": "then"
+     }
+    },
+    "absorbed": [],
+    "anchor": "a",
+    "now": "n"
+   },
+   "out": {
+    "members": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [],
+      "posted": []
+     }
+    ],
+    "earlier": [
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "closed",
+      "ended_at": "then",
+      "color": 2,
+      "comments": [
+       {
+        "id": 1,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 1",
+        "code": ""
+       }
+      ],
+      "posted": []
+     }
+    ],
+    "moved": [],
+    "notes": [
+     "#2 left the stack (closed)"
+    ]
+   }
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": null,
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 2,
+       "head": "2222222222222222222222222222222222222222",
+       "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+       "title": "Pull request 2",
+       "url": "https://github.com/octo/widgets/pull/2",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "merged",
+       "ended_at": null,
+       "color": 2,
+       "comments": [
+        {
+         "id": 1,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 1",
+         "code": ""
+        }
+       ],
+       "posted": []
+      },
+      {
+       "pull": 3,
+       "head": "3333333333333333333333333333333333333333",
+       "start": "s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3",
+       "title": "Pull request 3",
+       "url": "https://github.com/octo/widgets/pull/3",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "",
+       "ended_at": null,
+       "color": 3,
+       "comments": [],
+       "posted": []
+      }
+     ],
+     "earlier": [
+      {
+       "pull": 9,
+       "head": "9999999999999999999999999999999999999999",
+       "start": "s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9",
+       "title": "Pull request 9",
+       "url": "https://github.com/octo/widgets/pull/9",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "closed",
+       "ended_at": "then",
+       "color": 5,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 4,
+       "head": "4444444444444444444444444444444444444444",
+       "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+       "title": "Pull request 4",
+       "url": "https://github.com/octo/widgets/pull/4",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "merged",
+       "ended_at": null,
+       "color": 6,
+       "comments": [
+        {
+         "id": 8,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 8",
+         "code": ""
+        }
+       ],
+       "posted": []
+      }
+     ]
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 4,
+      "head": "4444444444444444444444444444444444444444",
+      "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+      "title": "Pull request 4",
+      "url": "https://github.com/octo/widgets/pull/4",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {},
+    "absorbed": [],
+    "anchor": "a",
+    "now": "n"
+   },
+   "out": {
+    "members": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 4,
+      "head": "4444444444444444444444444444444444444444",
+      "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+      "title": "Pull request 4",
+      "url": "https://github.com/octo/widgets/pull/4",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 6,
+      "comments": [
+       {
+        "id": 8,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 8",
+        "code": ""
+       }
+      ],
+      "posted": []
+     }
+    ],
+    "earlier": [
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "merged",
+      "ended_at": null,
+      "color": 2,
+      "comments": [
+       {
+        "id": 1,
+        "path": "a.ts",
+        "line": 3,
+        "side": "RIGHT",
+        "body": "Comment 1",
+        "code": ""
+       }
+      ],
+      "posted": []
+     },
+     {
+      "pull": 3,
+      "head": "3333333333333333333333333333333333333333",
+      "start": "s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3",
+      "title": "Pull request 3",
+      "url": "https://github.com/octo/widgets/pull/3",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 3,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 9,
+      "head": "9999999999999999999999999999999999999999",
+      "start": "s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9",
+      "title": "Pull request 9",
+      "url": "https://github.com/octo/widgets/pull/9",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "closed",
+      "ended_at": "then",
+      "color": 5,
+      "comments": [],
+      "posted": []
+     }
+    ],
+    "moved": [],
+    "notes": [
+     "#2 left the stack (merged)",
+     "#3 left the stack (open)"
+    ]
+   }
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": {
+      "to": "github.com/octo/widgets/5",
+      "stack": [
+       5,
+       1
+      ],
+      "at": "then"
+     },
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [
+        {
+         "id": 1,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 1",
+         "code": ""
+        }
+       ],
+       "posted": []
+      }
+     ],
+     "earlier": []
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {},
+    "absorbed": [],
+    "anchor": "a",
+    "now": "n"
+   },
+   "out": {
+    "members": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [],
+      "posted": []
+     }
+    ],
+    "earlier": [],
+    "moved": [],
+    "notes": []
+   }
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": null,
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 2,
+       "head": "2222222222222222222222222222222222222222",
+       "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+       "title": "Pull request 2",
+       "url": "https://github.com/octo/widgets/pull/2",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 2,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 3,
+       "head": "3333333333333333333333333333333333333333",
+       "start": "s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3",
+       "title": "Pull request 3",
+       "url": "https://github.com/octo/widgets/pull/3",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 3,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 4,
+       "head": "4444444444444444444444444444444444444444",
+       "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+       "title": "Pull request 4",
+       "url": "https://github.com/octo/widgets/pull/4",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 4,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 5,
+       "head": "5555555555555555555555555555555555555555",
+       "start": "s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5",
+       "title": "Pull request 5",
+       "url": "https://github.com/octo/widgets/pull/5",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 5,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 6,
+       "head": "6666666666666666666666666666666666666666",
+       "start": "s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6",
+       "title": "Pull request 6",
+       "url": "https://github.com/octo/widgets/pull/6",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 6,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 7,
+       "head": "7777777777777777777777777777777777777777",
+       "start": "s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7",
+       "title": "Pull request 7",
+       "url": "https://github.com/octo/widgets/pull/7",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 7,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 8,
+       "head": "8888888888888888888888888888888888888888",
+       "start": "s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8",
+       "title": "Pull request 8",
+       "url": "https://github.com/octo/widgets/pull/8",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 8,
+       "comments": [],
+       "posted": []
+      }
+     ],
+     "earlier": []
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 3,
+      "head": "3333333333333333333333333333333333333333",
+      "start": "s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3",
+      "title": "Pull request 3",
+      "url": "https://github.com/octo/widgets/pull/3",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 4,
+      "head": "4444444444444444444444444444444444444444",
+      "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+      "title": "Pull request 4",
+      "url": "https://github.com/octo/widgets/pull/4",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 5,
+      "head": "5555555555555555555555555555555555555555",
+      "start": "s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5",
+      "title": "Pull request 5",
+      "url": "https://github.com/octo/widgets/pull/5",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 6,
+      "head": "6666666666666666666666666666666666666666",
+      "start": "s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6",
+      "title": "Pull request 6",
+      "url": "https://github.com/octo/widgets/pull/6",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 7,
+      "head": "7777777777777777777777777777777777777777",
+      "start": "s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7",
+      "title": "Pull request 7",
+      "url": "https://github.com/octo/widgets/pull/7",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 8,
+      "head": "8888888888888888888888888888888888888888",
+      "start": "s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8",
+      "title": "Pull request 8",
+      "url": "https://github.com/octo/widgets/pull/8",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 9,
+      "head": "9999999999999999999999999999999999999999",
+      "start": "s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9",
+      "title": "Pull request 9",
+      "url": "https://github.com/octo/widgets/pull/9",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     },
+     {
+      "pull": 10,
+      "head": "1010101010101010101010101010101010101010",
+      "start": "s10s10s10s10s10s10s10s10s10s10s10s10s10s",
+      "title": "Pull request 10",
+      "url": "https://github.com/octo/widgets/pull/10",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {},
+    "absorbed": [],
+    "anchor": "a",
+    "now": "n"
+   },
+   "out": {
+    "members": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 2,
+      "head": "2222222222222222222222222222222222222222",
+      "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+      "title": "Pull request 2",
+      "url": "https://github.com/octo/widgets/pull/2",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 2,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 3,
+      "head": "3333333333333333333333333333333333333333",
+      "start": "s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3s3",
+      "title": "Pull request 3",
+      "url": "https://github.com/octo/widgets/pull/3",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 3,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 4,
+      "head": "4444444444444444444444444444444444444444",
+      "start": "s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4s4",
+      "title": "Pull request 4",
+      "url": "https://github.com/octo/widgets/pull/4",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 4,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 5,
+      "head": "5555555555555555555555555555555555555555",
+      "start": "s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5s5",
+      "title": "Pull request 5",
+      "url": "https://github.com/octo/widgets/pull/5",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 5,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 6,
+      "head": "6666666666666666666666666666666666666666",
+      "start": "s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6s6",
+      "title": "Pull request 6",
+      "url": "https://github.com/octo/widgets/pull/6",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 6,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 7,
+      "head": "7777777777777777777777777777777777777777",
+      "start": "s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7s7",
+      "title": "Pull request 7",
+      "url": "https://github.com/octo/widgets/pull/7",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 7,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 8,
+      "head": "8888888888888888888888888888888888888888",
+      "start": "s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8s8",
+      "title": "Pull request 8",
+      "url": "https://github.com/octo/widgets/pull/8",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 8,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 9,
+      "head": "9999999999999999999999999999999999999999",
+      "start": "s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9s9",
+      "title": "Pull request 9",
+      "url": "https://github.com/octo/widgets/pull/9",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [],
+      "posted": []
+     },
+     {
+      "pull": 10,
+      "head": "1010101010101010101010101010101010101010",
+      "start": "s10s10s10s10s10s10s10s10s10s10s10s10s10s",
+      "title": "Pull request 10",
+      "url": "https://github.com/octo/widgets/pull/10",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null,
+      "color": 1,
+      "comments": [],
+      "posted": []
+     }
+    ],
+    "earlier": [],
+    "moved": [],
+    "notes": []
+   }
+  },
+  {
+   "given": {
+    "previous": {
+     "id": "github.com/octo/widgets/1",
+     "host": "github.com",
+     "repo": "octo/widgets",
+     "account": null,
+     "me": "reviewer",
+     "title": "A review",
+     "base": {
+      "ref": "main",
+      "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+     },
+     "context": false,
+     "loaded_at": "2026-10-15T10:00:00.000Z",
+     "notes": [],
+     "moved": null,
+     "members": [
+      {
+       "pull": 1,
+       "head": "1111111111111111111111111111111111111111",
+       "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+       "title": "Pull request 1",
+       "url": "https://github.com/octo/widgets/pull/1",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "open",
+       "ended_at": null,
+       "color": 1,
+       "comments": [],
+       "posted": []
+      },
+      {
+       "pull": 2,
+       "head": "2222222222222222222222222222222222222222",
+       "start": "s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2s2",
+       "title": "Pull request 2",
+       "url": "https://github.com/octo/widgets/pull/2",
+       "author": "author",
+       "base": "main",
+       "description": "",
+       "state": "",
+       "ended_at": null,
+       "color": 2,
+       "comments": [
+        {
+         "id": 1,
+         "path": "a.ts",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Comment 1",
+         "code": ""
+        }
+       ],
+       "posted": []
+      }
+     ],
+     "earlier": []
+    },
+    "fresh": [
+     {
+      "pull": 1,
+      "head": "1111111111111111111111111111111111111111",
+      "start": "s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1s1",
+      "title": "Pull request 1",
+      "url": "https://github.com/octo/widgets/pull/1",
+      "author": "author",
+      "base": "main",
+      "description": "",
+      "state": "open",
+      "ended_at": null
+     }
+    ],
+    "leaving": {},
+    "absorbed": [],
+    "anchor": "a",
+    "now": "n"
+   },
+   "error": "#2 is still open with 1 queued comment, so it cannot leave the stack; post or drop them first"
+  }
+ ]
+}

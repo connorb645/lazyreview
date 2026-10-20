@@ -28,6 +28,24 @@ const (
 
 var unreachable = regexp.MustCompile(`^error connecting to `)
 
+const threadsQuery = `query($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      reviewThreads(first: 50, after: $after) {
+        pageInfo { hasNextPage endCursor }
+        nodes {
+          id isResolved isOutdated path line startLine originalLine originalStartLine diffSide startDiffSide subjectType
+          resolvedBy { login }
+          comments(first: 100) {
+            totalCount
+            nodes { databaseId author { login __typename } body createdAt url diffHunk }
+          }
+        }
+      }
+    }
+  }
+}`
+
 // GitHub answers as one account on one host. With an account named, each
 // call carries that account's own token, so the account gh has active for
 // everything else on the machine never changes; with none, it answers as
@@ -139,6 +157,76 @@ func (g *GitHub) ReviewComments(repo string, number int) ([]models.GitHubReviewC
 	return pages[models.GitHubReviewComment](g, "repos/"+repo+"/pulls/"+strconv.Itoa(number)+"/comments")
 }
 
+// Repository is the repository repo, owner/name, with the address a clone
+// fetches from.
+func (g *GitHub) Repository(repo string) (models.GitHubRepo, error) {
+	var found models.GitHubRepo
+	return found, g.API("GET", "repos/"+repo, nil, &found)
+}
+
+// ReviewThreads is every review thread on the pull request, as GitHub's
+// GraphQL API gives them, each with its first 100 comments and their
+// count: the REST API does not say which threads are resolved.
+func (g *GitHub) ReviewThreads(repo string, number int) ([]models.GitHubReviewThread, error) {
+	owner, name, _ := strings.Cut(repo, "/")
+	words := map[string]string{"repo": repo, "number": strconv.Itoa(number)}
+	threads := []models.GitHubReviewThread{}
+	var after *string
+	for {
+		payload := struct {
+			Query     string `json:"query"`
+			Variables struct {
+				Owner  string  `json:"owner"`
+				Name   string  `json:"name"`
+				Number int     `json:"number"`
+				After  *string `json:"after"`
+			} `json:"variables"`
+		}{Query: threadsQuery}
+		payload.Variables.Owner, payload.Variables.Name, payload.Variables.Number, payload.Variables.After = owner, name, number, after
+		var answer struct {
+			Data *struct {
+				Repository *struct {
+					PullRequest *struct {
+						ReviewThreads *struct {
+							PageInfo struct {
+								HasNextPage bool    `json:"hasNextPage"`
+								EndCursor   *string `json:"endCursor"`
+							} `json:"pageInfo"`
+							Nodes []models.GitHubReviewThread `json:"nodes"`
+						} `json:"reviewThreads"`
+					} `json:"pullRequest"`
+				} `json:"repository"`
+			} `json:"data"`
+			Errors []struct {
+				Message string `json:"message"`
+			} `json:"errors"`
+		}
+		if err := g.API("POST", "graphql", payload, &answer); err != nil {
+			return nil, err
+		}
+		if len(answer.Errors) > 0 {
+			messages := make([]string, len(answer.Errors))
+			for i, e := range answer.Errors {
+				messages[i] = e.Message
+			}
+			words["why"] = strings.Join(messages, "; ")
+			return nil, models.Refused(utils.ResolvePlaceholderString(g.tr.GitHubThreadsRefused, words))
+		}
+		if answer.Data == nil || answer.Data.Repository == nil || answer.Data.Repository.PullRequest == nil || answer.Data.Repository.PullRequest.ReviewThreads == nil {
+			return nil, models.Refused(utils.ResolvePlaceholderString(g.tr.GitHubNoThreads, words))
+		}
+		page := answer.Data.Repository.PullRequest.ReviewThreads
+		threads = append(threads, page.Nodes...)
+		after = nil
+		if page.PageInfo.HasNextPage {
+			after = page.PageInfo.EndCursor
+		}
+		if after == nil || *after == "" {
+			return threads, nil
+		}
+	}
+}
+
 // CreateReview sends a review, its comments and its event in one request,
 // so a failure sends nothing.
 func (g *GitHub) CreateReview(repo string, number int, payload any) (models.GitHubReview, error) {
@@ -175,8 +263,6 @@ func (g *GitHub) Search(query string) ([]models.GitHubIssue, error) {
 	}
 }
 
-// formEncoded is text as a form encodes a field: letters, digits and
-// *-._ as they are, a space as +, and every other byte as %XX.
 func formEncoded(text string) string {
 	var out strings.Builder
 	for _, b := range []byte(text) {

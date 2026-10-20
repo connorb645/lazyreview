@@ -41,3 +41,15 @@ func (e *LineEntry) UnmarshalJSON(data []byte) error {
 	e.Candidates = other.C
 	return nil
 }
+
+// MarshalJSON writes the entry in the shape it holds.
+func (e LineEntry) MarshalJSON() ([]byte, error) {
+	switch {
+	case e.Owner != nil:
+		return json.Marshal(*e.Owner)
+	case e.Candidates != nil:
+		return json.Marshal(map[string][]LinePlace{"c": e.Candidates})
+	default:
+		return json.Marshal(map[string]string{"x": e.None})
+	}
+}

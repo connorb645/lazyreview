@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Diagram · widgets › Sources────────────────────╮
+│▌All                    ││                                                    │
+│ #21 Add search to the …││  ┏━━━━━━━━━━━━━━━━━━━━━━┓                          │
+│ #22 Add a basket that …││  ┃ Basket               ┃                          │
+╰─────────────────1 of 3─╯│  ┃ Basket.swift changed ┃                          │
+╭─[2]─Files──────────────╮│  ┗━━━━━━━━━━━┯━━━━━━━┯━━┛                          │
+│ ▾ ■ widgets     +15 −1 ││              │       └─▶ holds catalog Catalog · in│
+│   ▾ Sources/Basket     ││              │                                     │
+│     M Basket.swift   ● ││              │ holds search                        │
+│   ▾ Sources/Catalog    ││              │                                     │
+│     M MemoryCatalog… ● ││  ╭▀▀▀▀▀▀▀▀▀▀▀▼▀▀▀▀▀▀╮                              │
+╰────────────────1 of 10─╯│  │ «struct» Search  │                              │
+╭─[3]─Notes──────────────╮│  │ Search.swift new │                              │
+│ Queued               2 ││  ╰──────────────────╯                              │
+│ 1 MemoryCatalog.s… #21 ││                                                    │
+│ 2 Basket.swift:9-… #22 ││                                                    │
+│ Claude               1 ││  ╭▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀╮                   │
+╰─────────────────1 of 5─╯│  │ MemoryCatalog               │                   │
+╭─[4]─Diagram────────────╮│  │ MemoryCatalog.swift changed │                   │
+│ Components             ││  ╰─────────────────────────────╯                   │
+│ ■ widgets              ││                                                    │
+│ ■ Unchanged code       ││                                                    │
+╰─────────────────1 of 2─╯╰───Basket · class · …/Basket.swift · changed in #22─╯
+ Review: Enter | Panels: h l | Keys: Space ?

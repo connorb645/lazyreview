@@ -1,6 +1,9 @@
 package models
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -11,6 +14,8 @@ var (
 	branchKey      = regexp.MustCompile(`^[A-Za-z0-9_-][A-Za-z0-9_.-]*-[0-9a-f]{8}$`)
 	branchID       = regexp.MustCompile(`^local/([^/]+)/([^/]+)$`)
 	branchRefusals = regexp.MustCompile(`[\x00-\x20~^:?*[\\\x7f]|\.\.|@\{|//|^/|/$|\.$`)
+	notInName      = regexp.MustCompile(`[^A-Za-z0-9_.-]`)
+	leadingDots    = regexp.MustCompile(`^\.+`)
 )
 
 // BranchRef names one branch of a repository on this machine, for a review
@@ -29,6 +34,28 @@ func NewBranchRef(tr *i18n.TranslationSet, repoKey, branch string) (BranchRef, e
 		return BranchRef{}, refError(tr.NotABranch, map[string]string{"repoKey": repoKey, "branch": branch})
 	}
 	return BranchRef{RepoKey: repoKey, Branch: branch}, nil
+}
+
+// BranchRefOf names branch of the repository whose shared git folder is
+// gitFolder, an absolute path: every worktree of one repository gives the
+// same folder, so a branch keeps one review whichever worktree loads it.
+func BranchRefOf(tr *i18n.TranslationSet, gitFolder, branch string) (BranchRef, error) {
+	sum := sha256.Sum256([]byte(gitFolder))
+	return NewBranchRef(tr, RepositoryName(gitFolder)+"-"+hex.EncodeToString(sum[:])[:8], branch)
+}
+
+// RepositoryName is the name a repository shows, from its shared git
+// folder: the folder holding .git, or a bare repository's own name.
+func RepositoryName(gitFolder string) string {
+	name := strings.TrimSuffix(filepath.Base(gitFolder), ".git")
+	if filepath.Base(gitFolder) == ".git" {
+		name = filepath.Base(filepath.Dir(gitFolder))
+	}
+	name = leadingDots.ReplaceAllString(notInName.ReplaceAllString(name, "-"), "")
+	if name == "" {
+		return "repository"
+	}
+	return name
 }
 
 // ParseBranchRef reads a branch review's id back, such as

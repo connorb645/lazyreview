@@ -3,7 +3,7 @@
 lazyreview takes lazygit's way of laying out a program: its folders, its
 layers, its strings, its theme and its config. Each part takes it in its
 own language. The terminal app is Go, as lazygit is; the command and the
-server stay JavaScript.
+server stay JavaScript until they move into Go.
 
 A citation starting `lazygit:` names a file and line of lazygit at
 `v0.63.0`. Every other path is in this repository.
@@ -67,17 +67,25 @@ A citation starting `lazygit:` names a file and line of lazygit at
   the app quits; Claude Code asks `lazyreview-terminal guard` about each
   tool call.
 - `internal/reviews` is how the gui reads and changes a review. It answers
-  from the data home, and hears a change by watching the review's files.
-  Refreshing, the home screen's lists, hiding a repository and loading
-  still go to the server, until they move into Go.
-- `internal/commands/github` runs `gh` for the queue: the account it
-  answers as, a pull request, its files and reviews, and sending a review.
-  `internal/commands/claude` runs Claude Code once per question, and
-  `internal/commands/git` makes the throwaway copies of the code it works
-  in.
-  `internal/commands/server` is the client of the server for what is still
-  there; `internal/commands/oscommands` opens an address in the browser,
-  and writes the page of a written review's drawings that it opens.
+  from the data home, loads and refreshes reviews, and hears a change by
+  watching the review's files.
+- `internal/loader` loads a review: pull requests from GitHub, fetched into
+  the repository's bare clone, or a branch straight from a repository on
+  this machine. It builds the page through `internal/build`: `diff` reads
+  the change, `languages` the types each file declares, `components` the
+  config a change is drawn with, `placement` the component and package of
+  each file, `model` the diagram's types and links, `unchanged` the
+  unchanged code around the change, `stack` where a comment on each line
+  of a stack goes, `layout` where each card sits, and `page` puts them
+  together. `lazyreview-terminal load` is the same loader, for the command.
+- `internal/commands/github` runs `gh`: the account it answers as, a pull
+  request, its files, reviews and review threads, sending a review, and
+  the home screen's searches. `internal/commands/claude` runs Claude Code
+  once per question, and `internal/commands/git` reads a repository,
+  fetches into the bare clones and makes the throwaway copies of the code
+  Claude works in. `internal/commands/oscommands` opens an address in the
+  browser, and writes the page of a written review's drawings that it
+  opens.
 - `internal/gui` is the app: `views` draw framed rectangles and the canvas;
   `context` holds one context per view, of lazygit's kinds, in a
   `ContextTree` with a focus stack whose top takes keys first;

@@ -2,7 +2,7 @@ package models
 
 // Node is a type the diagram draws, or a file box for a file with no types.
 // State is new, changed, same, removed or context; on a stack Pulls are the
-// pull requests that changed it.
+// pull requests that changed it. Test marks test code.
 type Node struct {
 	ID         string     `json:"id"`
 	Name       string     `json:"name"`
@@ -14,6 +14,7 @@ type Node struct {
 	Package    string     `json:"package"`
 	State      string     `json:"state"`
 	Group      string     `json:"group"`
+	Test       bool       `json:"test"`
 	Pulls      []int      `json:"pulls"`
 	Properties []Property `json:"properties"`
 }

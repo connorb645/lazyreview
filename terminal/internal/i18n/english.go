@@ -5,7 +5,6 @@ package i18n
 // values names them as placeholders, such as {{.path}}, which
 // utils.ResolvePlaceholderString fills.
 type TranslationSet struct {
-	ServerFileFlag   string
 	DataHomeFlag     string
 	ClaudeFlag       string
 	ModelFlag        string
@@ -13,20 +12,6 @@ type TranslationSet struct {
 	TerminalFailed   string
 	MoreThanOneValue string
 	NoDataHome       string
-
-	ServerNotRunning        string
-	CouldNotRead            string
-	CouldNotListen          string
-	ServerDidNotAnswer      string
-	ServerAnsweredListening string
-	CouldNotReadNotice      string
-	StreamBroke             string
-	StreamEnded             string
-	CouldNotAsk             string
-	CouldNotWriteChange     string
-	CouldNotSendChange      string
-	CouldNotReadAnswer      string
-	ServerAnswered          string
 
 	LinkHolds        string
 	LinkConformsTo   string
@@ -805,33 +790,117 @@ type TranslationSet struct {
 	ConfigDocsOverrides             string
 	ConfigCannotChange              string
 	ConfigEditFailed                string
+
+	NotACommit            string
+	LoaderGiveLinks       string
+	LoaderOtherRepository string
+	LoaderNamedTwice      string
+	LoaderNotAStack       string
+	LoaderNotOnBelow      string
+	LoaderAlsoReviews     string
+	LoaderThreadsUnread   string
+	LoaderStackTitle      string
+	LoaderMovedLoadThat   string
+	LoaderNotABranch      string
+	LoaderNoDifference    string
+	LoaderLeftOut         string
+	LoaderLargeFile       string
+	StackHeadMissing      string
+	StackNotBuiltOn       string
+	StackNotAdded         string
+	StackNotRemoved       string
+
+	CommitNoun                string
+	ChangeOn                  string
+	ChangeHead                string
+	ChangeMergeBase           string
+	ChangeCommits             string
+	SubjectPull               string
+	SubjectStack              string
+	SubjectTo                 string
+	SubjectBranch             string
+	DiagramRepositoryRoot     string
+	DiagramUnchangedCode      string
+	DiagramOtherFiles         string
+	DiagramContextDescription string
+	DiagramTopLevel           string
+	DiagramGroup              string
+	DiagramConforming         string
+	DiagramInheriting         string
+	DiagramEachConforms       string
+	DiagramEachInherits       string
+	DiagramShows              string
+	DiagramTests              string
+	DiagramFile               string
+	DiagramExtension          string
+	DiagramExtensionOf        string
+	DiagramExtensionName      string
+	DiagramSummaryLabel       string
+	DiagramChangedFiles       string
+	DiagramRemovedLines       string
+	DiagramUnchangedFiles     string
+	DiagramOpenDiff           string
+
+	ComponentsProblems       string
+	ComponentsRoot           string
+	ComponentsContextTypes   string
+	ComponentsNamed          string
+	ComponentsNumbered       string
+	ComponentsComponent      string
+	ComponentsPackage        string
+	ComponentsArea           string
+	ComponentsGroup          string
+	ComponentsPackageOf      string
+	ComponentsLink           string
+	ComponentsSummary        string
+	ComponentsNotAnObject    string
+	ComponentsUnknownKey     string
+	ComponentsNeeds          string
+	ComponentsNotText        string
+	ComponentsBadID          string
+	ComponentsIDTwice        string
+	ComponentsNotAList       string
+	ComponentsNotStrings     string
+	ComponentsBadColor       string
+	ComponentsBadContext     string
+	ComponentsNeedsPath      string
+	ComponentsNeedsPaths     string
+	ComponentsNeedsComponent string
+	ComponentsInTwoAreas     string
+	ComponentsBadKind        string
+	ComponentsBadMax         string
+	ComponentsAreaUnknown    string
+	ComponentsSummaryUnknown string
+
+	GitHubThreadsRefused string
+	GitHubNoThreads      string
+	QueueStillOpen       string
+	QueueLeftTheStack    string
+	QueueRenumbered      string
+	QueueStaleHead       string
+	QueueStaleStart      string
+	QueueMarkedStale     string
+
+	AccountFlag   string
+	ConfigFlag    string
+	RepoFlag      string
+	BaseFlag      string
+	HeadFlag      string
+	TitleFlag     string
+	ContextFlag   string
+	NoContextFlag string
 }
 
 // EnglishTranslationSet is the strings in English.
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
-		ServerFileFlag:   "the lazyreview server's own record, server.json, holding its address and token",
 		DataHomeFlag:     "the data home that holds the review",
 		ClaudeFlag:       "the Claude Code command to ask",
 		ModelFlag:        "the model Claude answers with, over the user's default",
-		Usage:            "usage: lazyreview-terminal --server-file <server.json> [<review id>]\n       lazyreview-terminal answer --data-home <folder> [--claude <command>] [--model <model>] <review id> <conversation>\n       lazyreview-terminal guard <copy folder>",
+		Usage:            "usage: lazyreview-terminal [<review id>]\n       lazyreview-terminal load [--account <account>] [--config <file>] [--context | --no-context] <pull request address>...\n       lazyreview-terminal load --repo <folder> --base <base> --head <branch> [--title <title>] [--config <file>] [--context | --no-context]\n       lazyreview-terminal answer --data-home <folder> [--claude <command>] [--model <model>] <review id> <conversation>\n       lazyreview-terminal guard <copy folder>",
 		TerminalFailed:   "lazyreview terminal",
 		MoreThanOneValue: "it holds more than one value",
 		NoDataHome:       "the config names no data home by its full path",
-
-		ServerNotRunning:        "the lazyreview server is not running; lazyreview start starts it",
-		CouldNotRead:            "could not read {{.path}}",
-		CouldNotListen:          "could not listen for changes to {{.review}}",
-		ServerDidNotAnswer:      "the lazyreview server did not answer",
-		ServerAnsweredListening: "the server answered {{.status}} to listening for changes",
-		CouldNotReadNotice:      "could not read a change notice",
-		StreamBroke:             "the stream of changes broke",
-		StreamEnded:             "the server ended the stream of changes",
-		CouldNotAsk:             "could not ask the server for {{.path}}",
-		CouldNotWriteChange:     "could not write the change to {{.path}}",
-		CouldNotSendChange:      "could not send the change to {{.path}}",
-		CouldNotReadAnswer:      "could not read the server's answer to {{.path}}",
-		ServerAnswered:          "the server answered {{.status}}",
 
 		LinkHolds:        "holds",
 		LinkConformsTo:   "conforms to",
@@ -1610,5 +1679,104 @@ func EnglishTranslationSet() *TranslationSet {
 		ConfigDocsOverrides:             "Overrides",
 		ConfigCannotChange:              "{{.key}} is written in a way lazyreview cannot change line by line",
 		ConfigEditFailed:                "{{.path}} was not changed: {{.why}}; change it by hand, as docs/Config.md shows",
+
+		NotACommit:            "\"{{.ref}}\" is not a commit in this repository",
+		LoaderGiveLinks:       "give the pull request to load, or every pull request of a stack, bottom first",
+		LoaderOtherRepository: "a stack is in one repository, but {{.other}} is not {{.first}}",
+		LoaderNamedTwice:      "a pull request is named twice",
+		LoaderNotAStack:       "these are not a stack, bottom first: {{.why}}",
+		LoaderNotOnBelow:      "#{{.above}} is based on {{.base}}, not on #{{.below}}'s branch {{.head}}",
+		LoaderAlsoReviews:     "{{.id}} also reviews {{.pulls}}, which this load does not name; load the whole stack, bottom first",
+		LoaderThreadsUnread:   "#{{.pull}}'s review threads on GitHub are not shown, as they could not be read: {{.why}}",
+		LoaderStackTitle:      "Stack #{{.first}} to #{{.last}}",
+		LoaderMovedLoadThat:   "this review moved to {{.to}}; load that one",
+		LoaderNotABranch:      "\"{{.head}}\" is not a branch of {{.path}}; give a branch, so loading it again updates the same review",
+		LoaderNoDifference:    "there is no difference between {{.base}} and {{.head}}",
+		LoaderLeftOut:         "whole text left out for {{.files}}, which show their diff only: {{.paths}}",
+		LoaderLargeFile:       "large file",
+		StackHeadMissing:      "#{{.pull}}'s head {{.head}} is not a commit in this repository; fetch it with git fetch origin pull/{{.pull}}/head",
+		StackNotBuiltOn:       "#{{.pull}} is not built on #{{.below}}'s head: #{{.below}} has commits #{{.pull}} does not hold. Until #{{.pull}} is rebased, its own diff also shows the older #{{.below}} it holds; a comment on a line #{{.below}}'s head still holds goes to #{{.below}}.",
+		StackNotAdded:         "no pull request's own diff adds this line as it reads here",
+		StackNotRemoved:       "no pull request's own diff removes this line as it reads here",
+
+		CommitNoun:                "commit",
+		ChangeOn:                  " on ",
+		ChangeHead:                ": head ",
+		ChangeMergeBase:           ", merge base ",
+		ChangeCommits:             ", {{.commits}}",
+		SubjectPull:               "Pull request ",
+		SubjectStack:              "Stack ",
+		SubjectTo:                 " to ",
+		SubjectBranch:             "Branch ",
+		DiagramRepositoryRoot:     "Repository root",
+		DiagramUnchangedCode:      "Unchanged code",
+		DiagramOtherFiles:         "Other files",
+		DiagramContextDescription: "Code the change uses or plugs into, unchanged, shown for context.",
+		DiagramTopLevel:           "{{.name}}, top level",
+		DiagramGroup:              "{{.count}} {{.title}}",
+		DiagramConforming:         "types conforming to {{.name}}",
+		DiagramInheriting:         "types inheriting from {{.name}}",
+		DiagramEachConforms:       "each conforms to",
+		DiagramEachInherits:       "each inherits from",
+		DiagramShows:              "shows",
+		DiagramTests:              "tests",
+		DiagramFile:               "«file»",
+		DiagramExtension:          "«extension»",
+		DiagramExtensionOf:        "«extension» of {{.names}}",
+		DiagramExtensionName:      "{{.name}} extension",
+		DiagramSummaryLabel:       "{{.label}} · ",
+		DiagramChangedFiles:       "{{.count}} files · +{{.adds}}",
+		DiagramRemovedLines:       " −{{.dels}}",
+		DiagramUnchangedFiles:     "{{.count}} files · unchanged",
+		DiagramOpenDiff:           "Open diff →",
+
+		ComponentsProblems:       "the config has {{.count}}:\n{{.problems}}",
+		ComponentsRoot:           "the config",
+		ComponentsContextTypes:   "contextTypes",
+		ComponentsNamed:          "{{.kind}} \"{{.id}}\"",
+		ComponentsNumbered:       "{{.kind}} {{.number}}",
+		ComponentsComponent:      "component",
+		ComponentsPackage:        "package",
+		ComponentsArea:           "area",
+		ComponentsGroup:          "group",
+		ComponentsPackageOf:      "{{.component}}, {{.package}}",
+		ComponentsLink:           "link {{.number}}",
+		ComponentsSummary:        "summary {{.number}}",
+		ComponentsNotAnObject:    "{{.label}} is not an object",
+		ComponentsUnknownKey:     "{{.label}} has an unknown key \"{{.key}}\"",
+		ComponentsNeeds:          "{{.label}} needs \"{{.key}}\"",
+		ComponentsNotText:        "{{.label}}: \"{{.key}}\" must be a non-empty string",
+		ComponentsBadID:          "{{.label}}: id must be lower case letters, digits and dashes",
+		ComponentsIDTwice:        "{{.label}}: id \"{{.id}}\" is used twice",
+		ComponentsNotAList:       "{{.label}}: \"{{.key}}\" must be a list",
+		ComponentsNotStrings:     "{{.label}}: \"{{.key}}\" must hold non-empty strings",
+		ComponentsBadColor:       "{{.label}}: color must be one of {{.colors}}",
+		ComponentsBadContext:     "{{.label}}: \"context\" must be true or false",
+		ComponentsNeedsPath:      "{{.label}} needs at least one path",
+		ComponentsNeedsPaths:     "{{.label}} needs paths or packages",
+		ComponentsNeedsComponent: "{{.label}} needs at least one component",
+		ComponentsInTwoAreas:     "{{.label}}: component \"{{.component}}\" is already in another area",
+		ComponentsBadKind:        "{{.label}}: kind must be use or has",
+		ComponentsBadMax:         "contextTypes: max must be a whole number, 0 or more",
+		ComponentsAreaUnknown:    "area \"{{.area}}\" names component \"{{.component}}\", which the config does not declare",
+		ComponentsSummaryUnknown: "a summary names component \"{{.component}}\", which the config does not declare",
+
+		GitHubThreadsRefused: "GitHub refused the review threads of {{.repo}}#{{.number}}: {{.why}}",
+		GitHubNoThreads:      "GitHub gave no review threads for {{.repo}}#{{.number}}",
+		QueueStillOpen:       "#{{.pull}} is still open with {{.count}}, so it cannot leave the stack; post or drop them first",
+		QueueLeftTheStack:    "#{{.pull}} left the stack ({{.state}})",
+		QueueRenumbered:      "#{{.pull}}'s comment {{.id}} is now {{.next}}",
+		QueueStaleHead:       "queued at {{.from}}, and #{{.pull}} is now at {{.to}}",
+		QueueStaleStart:      "queued on a removed line, and #{{.pull}}'s diff now starts from {{.now}}, not {{.before}}",
+		QueueMarkedStale:     "#{{.pull}}: {{.count}} marked stale ({{.why}}); queue each again or drop it",
+
+		AccountFlag:   "the GitHub account to act as",
+		ConfigFlag:    "a components config file, as JSON, to draw the change with",
+		RepoFlag:      "the folder of a repository on this machine, to load a branch of",
+		BaseFlag:      "the branch the change is against",
+		HeadFlag:      "the branch to load",
+		TitleFlag:     "the review's title",
+		ContextFlag:   "draw the unchanged code the change touches",
+		NoContextFlag: "draw only the change",
 	}
 }

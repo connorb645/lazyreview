@@ -19,3 +19,8 @@ func (p *HeadingPart) UnmarshalJSON(data []byte) error {
 	}
 	return json.Unmarshal(pair[1], &p.Bold)
 }
+
+// MarshalJSON writes the part as [text, bold].
+func (p HeadingPart) MarshalJSON() ([]byte, error) {
+	return json.Marshal([]any{p.Text, p.Bold})
+}

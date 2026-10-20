@@ -33,3 +33,11 @@ func (p *LinePlace) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+
+// MarshalJSON writes [pull, line], or [pull, line, path] when it has a path.
+func (p LinePlace) MarshalJSON() ([]byte, error) {
+	if p.Path != "" {
+		return json.Marshal([]any{p.Pull, p.Line, p.Path})
+	}
+	return json.Marshal([]int{p.Pull, p.Line})
+}

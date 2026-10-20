@@ -1,7 +1,7 @@
 // Package reviews is what the terminal app reads and changes reviews
 // through. It reads a review's state, its page and each file from the data
 // home, keeps its queue and its conversations with Claude, and lists the
-// home screen's open pull requests, itself; the server still loads reviews.
+// home screen's open pull requests, and loads reviews, itself.
 package reviews
 
 import (
@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/connorb645/lazyreview/terminal/internal/ask"
-	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/home"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
+	"github.com/connorb645/lazyreview/terminal/internal/loader"
 	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/queue"
 	"github.com/connorb645/lazyreview/terminal/internal/review"
@@ -24,21 +24,22 @@ const watchEvery = 250 * time.Millisecond
 
 // Reviews reads and changes the reviews of one data home.
 type Reviews struct {
-	tr     *i18n.TranslationSet
-	store  *store.ReviewStore
-	queue  *queue.Service
-	asking *ask.Service
-	pulls  *home.OpenPulls
-	hidden *home.HiddenRepositories
-	server *server.Client
+	tr       *i18n.TranslationSet
+	store    *store.ReviewStore
+	queue    *queue.Service
+	asking   *ask.Service
+	pulls    *home.OpenPulls
+	hidden   *home.HiddenRepositories
+	loads    *loader.Loader
+	branches *loader.BranchLoader
 }
 
 // New returns the reviews kept in store, whose queues queue changes and
 // whose conversations asking keeps, with the home screen's open pull
-// requests and hidden repositories, asking the server for what it still
-// does.
-func New(tr *i18n.TranslationSet, reviews *store.ReviewStore, q *queue.Service, asking *ask.Service, pulls *home.OpenPulls, hidden *home.HiddenRepositories, s *server.Client) *Reviews {
-	return &Reviews{tr: tr, store: reviews, queue: q, asking: asking, pulls: pulls, hidden: hidden, server: s}
+// requests and hidden repositories, loading pull requests with loads and
+// branches with branches.
+func New(tr *i18n.TranslationSet, reviews *store.ReviewStore, q *queue.Service, asking *ask.Service, pulls *home.OpenPulls, hidden *home.HiddenRepositories, loads *loader.Loader, branches *loader.BranchLoader) *Reviews {
+	return &Reviews{tr: tr, store: reviews, queue: q, asking: asking, pulls: pulls, hidden: hidden, loads: loads, branches: branches}
 }
 
 // State reads a review's state: its pull requests, its queue, its
@@ -151,7 +152,18 @@ func (r *Reviews) Stop(id string, conversation int) (models.Conversation, error)
 // Refresh loads a review again: a pull request's from GitHub, or a branch's
 // from its repository, and returns the notes on what it found.
 func (r *Reviews) Refresh(id string) ([]string, error) {
-	return r.server.Refresh(id)
+	ref, err := models.ParseReviewRef(r.tr, id)
+	if err != nil {
+		return nil, refusal(err)
+	}
+	var loaded loader.Loaded
+	switch ref := ref.(type) {
+	case models.BranchRef:
+		loaded, err = r.branches.Refresh(ref)
+	case models.PullRef:
+		loaded, err = r.loads.Refresh(context.Background(), ref)
+	}
+	return loaded.Notes, refusal(err)
 }
 
 // Pulls reads the open pull requests that involve the accounts in the
@@ -172,7 +184,11 @@ func (r *Reviews) ChangeHidden(hide string, show, repos []string) (models.Hidden
 // as the GitHub account named, and returns the review's id and the notes on
 // what it found.
 func (r *Reviews) Load(links []string, account string) (string, []string, error) {
-	return r.server.Load(links, account)
+	loaded, err := r.loads.Load(context.Background(), loader.PullsRequest{Links: links, Account: &account})
+	if err != nil {
+		return "", nil, refusal(err)
+	}
+	return loaded.Ref.ID(), loaded.Notes, nil
 }
 
 // Events sends each change notice of a review to notices, the first naming
@@ -273,8 +289,6 @@ func (r *Reviews) conversed(id string, change func(models.ReviewRef) (models.Con
 	return c, refusal(err)
 }
 
-// refusal is err as the app's refusal: every way a review cannot be read or
-// changed is told in the same words to the person, as the server told it.
 func refusal(err error) error {
 	if err == nil {
 		return nil

@@ -15,6 +15,8 @@ import (
 //	threads/<n>.answering   held while Claude answers conversation n
 //	github.json             the review threads on GitHub, as the last load
 //	                        read them
+//	config.json             the components config it was loaded with, if
+//	                        any
 //	.lock                   held while the review changes
 //
 // It only names paths, and reads and writes nothing.
@@ -47,6 +49,9 @@ func (f ReviewFolder) Answering(n int) string {
 
 // GitHub is github.json.
 func (f ReviewFolder) GitHub() string { return filepath.Join(f.Path, "github.json") }
+
+// Config is config.json.
+func (f ReviewFolder) Config() string { return filepath.Join(f.Path, "config.json") }
 
 // Lock is the lock held while the review changes.
 func (f ReviewFolder) Lock() string { return filepath.Join(f.Path, ".lock") }

@@ -386,8 +386,7 @@ as `LAZYREVIEW_HOME` for the data home and `LAZYREVIEW_PORT` for the port.
 `settings.json` is no longer read; `lazyreview config move` moves it in.
 
 The server answers only requests addressed to 127.0.0.1 or localhost, and
-takes changes only as JSON from a client carrying its token, as the terminal
-app does.
+takes changes only as JSON from a client carrying its token.
 
 ## Code
 
@@ -406,9 +405,10 @@ maps each part to lazygit's own.
   (`vendor/`). `src/queue` holds the queue's rules and the one way a review
   is posted; `src/review` reads a written review and places GitHub's review
   threads; `src/ask` asks Claude; `src/home` lists the open pull requests.
-  The terminal app now queues, posts, asks Claude and lists the home screen
-  itself; the server's queue, conversations and lists stay as the reference
-  its answers are checked against until the server goes.
+  The terminal app now loads, queues, posts, asks Claude and lists the home
+  screen itself, and `lazyreview load` has it load; the server's loaders,
+  queue, conversations and lists stay as the reference its answers are
+  checked against until the server goes.
 - `src/store` keeps the files on disk, and `src/config` reads the config
   for the command and the server.
 - `src/server` serves the JSON the terminal app reads and changes reviews
@@ -420,8 +420,10 @@ maps each part to lazygit's own.
   words and `internal/theme` for its colours. It reads and changes reviews in
   the data home itself, through `internal/store`, `internal/review`,
   `internal/queue` and `internal/reviews`, posts through `gh`, asks Claude
-  through `internal/ask`, reads the config through `internal/config` and
-  lists the home screen through `internal/home`.
+  through `internal/ask`, reads the config through `internal/config`, lists
+  the home screen through `internal/home`, and loads a review through
+  `internal/loader`, which builds its page in `internal/build` and lays out
+  the diagram itself.
   `lazyreview terminal` builds it and runs it.
 
 Run the tests with `npm test`, and the terminal app's with `npm run
@@ -431,4 +433,8 @@ app's tests read the server's answers from `terminal/testdata/record.json`,
 which a Node test checks against the server; when the server changes what it
 answers, `LAZYREVIEW_RECORD=1 npm test` writes it again, with the data home
 and GitHub's answers it was made from. A Go test checks that the Go code
-gives each answer it owns, from the same stand-in data home.
+gives each answer it owns, from the same stand-in data home. In the same
+way, Node tests record how Node reads made-up code, stacks, configs, pages
+and whole loads, each as the commits that make its repository, in
+`terminal/testdata`, and Go tests build the same repositories and fail on
+any answer that differs.

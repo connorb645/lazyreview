@@ -1,0 +1,862 @@
+[
+  {
+    "name": "areas and named links",
+    "model": {
+      "components": [
+        {
+          "id": "app",
+          "title": "App",
+          "tag": "App/",
+          "color": "blue",
+          "area": null,
+          "context": false,
+          "packages": [
+            {
+              "id": "ui",
+              "title": "Screens",
+              "path": "App/ui/",
+              "description": "",
+              "bare": false
+            },
+            {
+              "id": "data",
+              "title": "Data",
+              "path": "App/data/",
+              "description": "",
+              "bare": false
+            }
+          ]
+        },
+        {
+          "id": "sdk",
+          "title": "SDK",
+          "tag": "Sources/",
+          "color": "teal",
+          "area": "lib",
+          "context": false,
+          "packages": [
+            {
+              "id": "core",
+              "title": "Core",
+              "path": "Sources/core/",
+              "description": "",
+              "bare": false
+            }
+          ]
+        }
+      ],
+      "areas": [
+        {
+          "id": "lib",
+          "title": "The library",
+          "description": "",
+          "components": [
+            "sdk"
+          ]
+        }
+      ],
+      "files": [],
+      "contextFiles": [],
+      "nodes": [
+        {
+          "id": "Home",
+          "name": "Home",
+          "kind": "class",
+          "stereotype": "",
+          "file": "ui/Home.swift",
+          "component": "app",
+          "package": "ui",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Detail",
+          "name": "Detail",
+          "kind": "class",
+          "stereotype": "",
+          "file": "ui/Detail.swift",
+          "component": "app",
+          "package": "ui",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Store",
+          "name": "Store",
+          "kind": "class",
+          "stereotype": "",
+          "file": "data/Store.swift",
+          "component": "app",
+          "package": "data",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Client",
+          "name": "Client",
+          "kind": "class",
+          "stereotype": "",
+          "file": "core/Client.swift",
+          "component": "sdk",
+          "package": "core",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Cache",
+          "name": "Cache",
+          "kind": "class",
+          "stereotype": "",
+          "file": "core/Cache.swift",
+          "component": "sdk",
+          "package": "core",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Token",
+          "name": "Token",
+          "kind": "class",
+          "stereotype": "",
+          "file": "core/Token.swift",
+          "component": "sdk",
+          "package": "core",
+          "state": "new",
+          "group": null,
+          "test": false
+        }
+      ],
+      "edges": [
+        {
+          "source": "Home",
+          "target": "Detail",
+          "kind": "has",
+          "label": "opens",
+          "key": true
+        },
+        {
+          "source": "Detail",
+          "target": "Store",
+          "kind": "use",
+          "label": "reads",
+          "key": true
+        },
+        {
+          "source": "Store",
+          "target": "Client",
+          "kind": "use",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "Client",
+          "target": "Cache",
+          "kind": "has",
+          "label": null,
+          "key": false
+        }
+      ],
+      "groups": [],
+      "summary": [
+        {
+          "source": "app",
+          "target": "sdk",
+          "count": 1,
+          "label": "calls",
+          "links": [
+            [
+              "Store",
+              "Client"
+            ]
+          ]
+        }
+      ]
+    },
+    "components": [
+      "app",
+      "sdk"
+    ],
+    "boxes": [
+      "Cache",
+      "Client",
+      "Detail",
+      "Home",
+      "Store",
+      "Token",
+      "pkg:app:data",
+      "pkg:app:ui",
+      "pkg:sdk:core"
+    ],
+    "pkgArrows": [
+      {
+        "comp": "app",
+        "from": "ui",
+        "to": "data",
+        "count": 1,
+        "words": "reads",
+        "countText": "1 link",
+        "links": [
+          [
+            "Detail",
+            "Store"
+          ]
+        ]
+      }
+    ],
+    "summaries": [
+      {
+        "source": "app",
+        "target": "sdk",
+        "both": false,
+        "lines": [
+          "→ calls · 1 link"
+        ],
+        "ways": [
+          {
+            "arrow": "→",
+            "label": "calls",
+            "links": [
+              [
+                "Store",
+                "Client"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "labels, tests, groups and arrows both ways",
+    "model": {
+      "components": [
+        {
+          "id": "shop",
+          "title": "Shop",
+          "tag": "Shop/",
+          "color": "blue",
+          "area": null,
+          "context": false,
+          "packages": [
+            {
+              "id": "ui",
+              "title": "Screens",
+              "path": "Shop/ui/",
+              "description": "",
+              "bare": false
+            },
+            {
+              "id": "data",
+              "title": "Data",
+              "path": "Shop/data/",
+              "description": "",
+              "bare": false
+            },
+            {
+              "id": "checks",
+              "title": "Checks",
+              "path": "Shop/checks/",
+              "description": "",
+              "bare": false
+            },
+            {
+              "id": "tests",
+              "title": "Tests",
+              "path": "Tests/",
+              "description": "",
+              "bare": false
+            }
+          ]
+        },
+        {
+          "id": "core",
+          "title": "Core",
+          "tag": "Core/",
+          "color": "teal",
+          "area": null,
+          "context": false,
+          "packages": [
+            {
+              "id": "model",
+              "title": "Model",
+              "path": "Core/model/",
+              "description": "What a basket holds",
+              "bare": false
+            }
+          ]
+        },
+        {
+          "id": "context",
+          "title": "Unchanged code",
+          "tag": "Base/",
+          "color": "grey",
+          "area": null,
+          "context": true,
+          "packages": [
+            {
+              "id": "top",
+              "title": "Base",
+              "path": "Base/",
+              "description": "",
+              "bare": true
+            }
+          ]
+        }
+      ],
+      "areas": [],
+      "files": [
+        {
+          "path": "Shop/ui/Home.swift",
+          "status": "M",
+          "adds": 1234,
+          "dels": 5678,
+          "component": "shop",
+          "package": "ui"
+        },
+        {
+          "path": "Core/model/Kind.swift",
+          "status": "A",
+          "adds": 12,
+          "dels": 0,
+          "component": "core",
+          "package": "model"
+        }
+      ],
+      "contextFiles": [
+        {
+          "path": "Base/Clock.swift",
+          "component": "context",
+          "package": "top"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "Home",
+          "name": "Home",
+          "kind": "class",
+          "stereotype": "",
+          "file": "ui/Home.swift",
+          "component": "shop",
+          "package": "ui",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "List",
+          "name": "List",
+          "kind": "class",
+          "stereotype": "",
+          "file": "ui/List.swift",
+          "component": "shop",
+          "package": "ui",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Store",
+          "name": "Store",
+          "kind": "class",
+          "stereotype": "",
+          "file": "data/Store.swift",
+          "component": "shop",
+          "package": "data",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Cache",
+          "name": "Cache",
+          "kind": "class",
+          "stereotype": "",
+          "file": "data/Cache.swift",
+          "component": "shop",
+          "package": "data",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Fixtures",
+          "name": "Fixtures",
+          "kind": "class",
+          "stereotype": "",
+          "file": "checks/Fixtures.swift",
+          "component": "shop",
+          "package": "checks",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "StoreChecks",
+          "name": "StoreChecks",
+          "kind": "class",
+          "stereotype": "",
+          "file": "checks/StoreChecks.swift",
+          "component": "shop",
+          "package": "checks",
+          "state": "new",
+          "group": null,
+          "test": true
+        },
+        {
+          "id": "HomeTests",
+          "name": "HomeTests",
+          "kind": "class",
+          "stereotype": "",
+          "file": "tests/HomeTests.swift",
+          "component": "shop",
+          "package": "tests",
+          "state": "new",
+          "group": null,
+          "test": true
+        },
+        {
+          "id": "ListTests",
+          "name": "ListTests",
+          "kind": "class",
+          "stereotype": "",
+          "file": "tests/ListTests.swift",
+          "component": "shop",
+          "package": "tests",
+          "state": "new",
+          "group": null,
+          "test": true
+        },
+        {
+          "id": "Kind",
+          "name": "Kind",
+          "kind": "protocol",
+          "stereotype": "«protocol»",
+          "file": "model/Kind.swift",
+          "component": "core",
+          "package": "model",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Apple",
+          "name": "Apple",
+          "kind": "struct",
+          "stereotype": "",
+          "file": "model/Apple.swift",
+          "component": "core",
+          "package": "model",
+          "state": "new",
+          "group": "fruit",
+          "test": false
+        },
+        {
+          "id": "Pear",
+          "name": "Pear",
+          "kind": "struct",
+          "stereotype": "",
+          "file": "model/Pear.swift",
+          "component": "core",
+          "package": "model",
+          "state": "new",
+          "group": "fruit",
+          "test": false
+        },
+        {
+          "id": "Basket",
+          "name": "Basket",
+          "kind": "class",
+          "stereotype": "",
+          "file": "model/Basket.swift",
+          "component": "core",
+          "package": "model",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "Clock",
+          "name": "Clock",
+          "kind": "class",
+          "stereotype": "",
+          "file": "top/Clock.swift",
+          "component": "context",
+          "package": "top",
+          "state": "context",
+          "group": null,
+          "test": false
+        }
+      ],
+      "edges": [
+        {
+          "source": "Home",
+          "target": "Store",
+          "kind": "use",
+          "label": "reads",
+          "key": true
+        },
+        {
+          "source": "List",
+          "target": "Store",
+          "kind": "use",
+          "label": "loads",
+          "key": true
+        },
+        {
+          "source": "List",
+          "target": "Cache",
+          "kind": "use",
+          "label": "reads",
+          "key": true
+        },
+        {
+          "source": "Home",
+          "target": "Cache",
+          "kind": "use",
+          "label": "saves",
+          "key": true
+        },
+        {
+          "source": "StoreChecks",
+          "target": "Store",
+          "kind": "test",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "StoreChecks",
+          "target": "Cache",
+          "kind": "test",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "HomeTests",
+          "target": "Home",
+          "kind": "test",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "ListTests",
+          "target": "List",
+          "kind": "test",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "group:fruit",
+          "target": "Kind",
+          "kind": "realize",
+          "label": "each conforms to",
+          "key": false
+        },
+        {
+          "source": "Basket",
+          "target": "Apple",
+          "kind": "has",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "Store",
+          "target": "Basket",
+          "kind": "use",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "Cache",
+          "target": "Kind",
+          "kind": "use",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "Basket",
+          "target": "Store",
+          "kind": "use",
+          "label": "feeds",
+          "key": true
+        },
+        {
+          "source": "Kind",
+          "target": "List",
+          "kind": "use",
+          "label": null,
+          "key": false
+        },
+        {
+          "source": "Basket",
+          "target": "Clock",
+          "kind": "use",
+          "label": null,
+          "key": false
+        }
+      ],
+      "groups": [
+        {
+          "id": "fruit",
+          "title": "2 types conforming to Kind",
+          "description": "Fruit",
+          "members": [
+            "Apple",
+            "Pear"
+          ],
+          "target": "Kind"
+        }
+      ],
+      "summary": [
+        {
+          "source": "core",
+          "target": "context",
+          "count": 1,
+          "label": null,
+          "links": [
+            [
+              "Basket",
+              "Clock"
+            ]
+          ]
+        },
+        {
+          "source": "core",
+          "target": "shop",
+          "count": 2,
+          "label": "feeds",
+          "links": [
+            [
+              "Basket",
+              "Store"
+            ],
+            [
+              "Kind",
+              "List"
+            ]
+          ]
+        },
+        {
+          "source": "shop",
+          "target": "core",
+          "count": 2,
+          "label": null,
+          "links": [
+            [
+              "Store",
+              "Basket"
+            ],
+            [
+              "Cache",
+              "Kind"
+            ]
+          ]
+        }
+      ]
+    },
+    "components": [
+      "context",
+      "core",
+      "shop"
+    ],
+    "boxes": [
+      "Apple",
+      "Basket",
+      "Cache",
+      "Clock",
+      "Fixtures",
+      "Home",
+      "HomeTests",
+      "Kind",
+      "List",
+      "ListTests",
+      "Pear",
+      "Store",
+      "StoreChecks",
+      "group:fruit",
+      "pkg:context:top",
+      "pkg:core:model",
+      "pkg:shop:checks",
+      "pkg:shop:data",
+      "pkg:shop:tests",
+      "pkg:shop:ui"
+    ],
+    "pkgArrows": [
+      {
+        "comp": "shop",
+        "from": "ui",
+        "to": "data",
+        "count": 4,
+        "words": "reads, loads",
+        "countText": "4 links",
+        "links": [
+          [
+            "Home",
+            "Store"
+          ],
+          [
+            "List",
+            "Store"
+          ],
+          [
+            "List",
+            "Cache"
+          ],
+          [
+            "Home",
+            "Cache"
+          ]
+        ]
+      },
+      {
+        "comp": "shop",
+        "from": "checks",
+        "to": "data",
+        "count": 2,
+        "words": "tests",
+        "countText": "2 links",
+        "links": [
+          [
+            "StoreChecks",
+            "Store"
+          ],
+          [
+            "StoreChecks",
+            "Cache"
+          ]
+        ]
+      }
+    ],
+    "summaries": [
+      {
+        "source": "core",
+        "target": "context",
+        "both": false,
+        "lines": [
+          "→ 1 link"
+        ],
+        "ways": [
+          {
+            "arrow": "→",
+            "label": null,
+            "links": [
+              [
+                "Basket",
+                "Clock"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "source": "core",
+        "target": "shop",
+        "both": true,
+        "lines": [
+          "→ feeds · 2 links",
+          "← 2 links"
+        ],
+        "ways": [
+          {
+            "arrow": "→",
+            "label": "feeds",
+            "links": [
+              [
+                "Basket",
+                "Store"
+              ],
+              [
+                "Kind",
+                "List"
+              ]
+            ]
+          },
+          {
+            "arrow": "←",
+            "label": null,
+            "links": [
+              [
+                "Store",
+                "Basket"
+              ],
+              [
+                "Cache",
+                "Kind"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "files with nothing linking them",
+    "model": {
+      "components": [
+        {
+          "id": "docs",
+          "title": "docs",
+          "tag": "docs/",
+          "color": "blue",
+          "area": null,
+          "context": false,
+          "packages": [
+            {
+              "id": "top",
+              "title": "docs",
+              "path": "docs/",
+              "description": "",
+              "bare": true
+            }
+          ]
+        }
+      ],
+      "areas": [],
+      "files": [],
+      "contextFiles": [],
+      "edges": [],
+      "groups": [],
+      "summary": [],
+      "nodes": [
+        {
+          "id": "file:docs/a.md",
+          "name": "a.md",
+          "kind": "artifact",
+          "stereotype": "«file»",
+          "file": "docs/a.md",
+          "component": "docs",
+          "package": "top",
+          "state": "new",
+          "group": null,
+          "test": false
+        },
+        {
+          "id": "file:docs/b.md",
+          "name": "b.md",
+          "kind": "artifact",
+          "stereotype": "«file»",
+          "file": "docs/b.md",
+          "component": "docs",
+          "package": "top",
+          "state": "new",
+          "group": null,
+          "test": false
+        }
+      ]
+    },
+    "components": [
+      "docs"
+    ],
+    "boxes": [
+      "file:docs/a.md",
+      "file:docs/b.md",
+      "pkg:docs:top"
+    ],
+    "pkgArrows": [],
+    "summaries": []
+  }
+]
