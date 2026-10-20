@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -20,8 +21,9 @@ import (
 )
 
 const (
-	timeout  = 60 * time.Second
-	pageSize = 100
+	timeout     = 60 * time.Second
+	pageSize    = 100
+	searchPages = 10
 )
 
 var unreachable = regexp.MustCompile(`^error connecting to `)
@@ -148,6 +150,46 @@ func (g *GitHub) CreateReview(repo string, number int, payload any) (models.GitH
 func (g *GitHub) Login() (string, error) {
 	var user models.GitHubUser
 	return user.Login, g.API("GET", "user", nil, &user)
+}
+
+// OpenPulls is every open pull request of the repository.
+func (g *GitHub) OpenPulls(repo string) ([]models.GitHubPull, error) {
+	return pages[models.GitHubPull](g, "repos/"+repo+"/pulls?state=open")
+}
+
+// Search is every issue and pull request a search finds, such as "is:pr
+// is:open author:@me", as GitHub's search gives them, up to the 1,000 it
+// gives.
+func (g *GitHub) Search(query string) ([]models.GitHubIssue, error) {
+	out := []models.GitHubIssue{}
+	for page := 1; ; page++ {
+		var found models.GitHubSearch
+		address := "search/issues?q=" + formEncoded(query) + "&per_page=" + strconv.Itoa(pageSize) + "&page=" + strconv.Itoa(page)
+		if err := g.API("GET", address, nil, &found); err != nil {
+			return nil, err
+		}
+		out = append(out, found.Items...)
+		if len(found.Items) < pageSize || page == searchPages {
+			return out, nil
+		}
+	}
+}
+
+// formEncoded is text as a form encodes a field: letters, digits and
+// *-._ as they are, a space as +, and every other byte as %XX.
+func formEncoded(text string) string {
+	var out strings.Builder
+	for _, b := range []byte(text) {
+		switch {
+		case b >= 'a' && b <= 'z', b >= 'A' && b <= 'Z', b >= '0' && b <= '9', b == '*', b == '-', b == '.', b == '_':
+			out.WriteByte(b)
+		case b == ' ':
+			out.WriteByte('+')
+		default:
+			out.WriteString(fmt.Sprintf("%%%02X", b))
+		}
+	}
+	return out.String()
 }
 
 func pages[T any](g *GitHub, path string) ([]T, error) {

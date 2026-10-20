@@ -14,7 +14,7 @@ import (
 func numberedAs(t *testing.T, numbers string) *common.Common {
 	t.Helper()
 	var handOver map[string]any
-	if err := json.Unmarshal([]byte(defaultHandOver()), &handOver); err != nil {
+	if err := json.Unmarshal([]byte(defaultConfig()), &handOver); err != nil {
 		t.Fatal(err)
 	}
 	handOver["lineNumbers"] = numbers

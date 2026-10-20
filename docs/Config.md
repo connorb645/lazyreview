@@ -42,7 +42,7 @@ schemas checks every setting and completes its name as you type:
 A variable overrides its setting while it is set, over the file and the
 default. An empty variable counts as not set.
 
-<!-- START VARIABLES: written by npm run docs from src/config/schema.mjs; do not change it by hand -->
+<!-- START VARIABLES: written from the config's schema; do not change it by hand -->
 | Variable | Overrides |
 | --- | --- |
 | `LAZYREVIEW_HOME` | `dataHome` |
@@ -59,7 +59,7 @@ default. An empty variable counts as not set.
 
 `lazyreview config defaults` prints the same text.
 
-<!-- START DEFAULT CONFIG: written by npm run docs from src/config/schema.mjs; do not change it by hand -->
+<!-- START DEFAULT CONFIG: written from the config's schema; do not change it by hand -->
 ```yaml
 # Where lazyreview keeps reviews, clones and the running app's files.
 dataHome: ~/.lazyreview                # LAZYREVIEW_HOME

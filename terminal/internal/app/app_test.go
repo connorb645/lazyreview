@@ -7,10 +7,10 @@ import (
 )
 
 func TestTheAppOpensNoDataHomeButOneNamedByItsFullPath(t *testing.T) {
-	want := i18n.EnglishTranslationSet().NoDataHome
-	for _, given := range []string{`{}`, `{"dataHome":""}`, `{"dataHome":"reviews"}`} {
-		if err := Run("", given, ""); err == nil || err.Error() != want {
-			t.Errorf("%s opens as %v", given, err)
-		}
+	t.Setenv("LAZYREVIEW_CONFIG_DIR", t.TempDir())
+	t.Setenv("LAZYREVIEW_HOME", "")
+	t.Setenv("HOME", "")
+	if err := Run("", ""); err == nil || err.Error() != i18n.EnglishTranslationSet().NoDataHome {
+		t.Errorf("a data home with no home folder to start from opens as %v", err)
 	}
 }

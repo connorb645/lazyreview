@@ -197,7 +197,7 @@ export const english = frozen({
     docs: {
       schemaTitle: 'lazyreview config',
       schemaDescription: 'lazyreview\'s config file, config.yml. docs/Config.md lists every setting and its default.',
-      generated: 'written by npm run docs from src/config/schema.mjs; do not change it by hand',
+      generated: 'written from the config\'s schema; do not change it by hand',
       noMarkers: name => `docs/Config.md has no START ${name} and END ${name} markers to write between`,
       variable: 'Variable',
       overrides: 'Overrides',

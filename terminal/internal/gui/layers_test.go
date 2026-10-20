@@ -42,7 +42,7 @@ func layerOf(pkg string) string {
 	switch pkg {
 	case "app", "gui", "diagram", "reviews", "store", "testsupport":
 		return pkg
-	case "queue", "review", "ask":
+	case "queue", "review", "ask", "home":
 		return "logic"
 	case "gui/controllers":
 		return "controllers"

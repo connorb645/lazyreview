@@ -92,7 +92,7 @@ func olderHome(t *testing.T) (*Reviews, string) {
 	tr := i18n.EnglishTranslationSet()
 	reviews := store.NewReviewStore(tr, store.DataHome{Root: root}, store.NewLocks(tr))
 	q := queue.NewService(tr, reviews, func(host, account string) *github.GitHub { return nil }, func() string { return "now" })
-	return New(tr, reviews, q, nil, nil), root
+	return New(tr, reviews, q, nil, nil, nil, nil), root
 }
 
 func TestReviewsInTheShapesEarlierVersionsWroteStillOpen(t *testing.T) {

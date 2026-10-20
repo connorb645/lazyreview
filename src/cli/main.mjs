@@ -26,7 +26,7 @@ import { PullRef } from '../models/pull-ref.mjs';
 import { readWrittenReview, checkWrittenReview } from '../review/written-review.mjs';
 import { english } from '../i18n/english.mjs';
 import { findConfigFile } from '../config/config-file.mjs';
-import { readUserConfig, terminalPart } from '../config/user-config.mjs';
+import { readUserConfig } from '../config/user-config.mjs';
 import { UNUSED } from '../config/schema.mjs';
 import { defaultConfigText, checkedConfigText } from '../config/config-text.mjs';
 import { planMove, checkLines, move } from '../config/config-move.mjs';
@@ -48,7 +48,7 @@ export async function run(argv, { env = process.env, bin, say = () => {}, termin
       const review = options.positional.length ? await reviewToOpen(options.positional[0], { app, say }) : null;
       const running = await app.background.running();
       say(running ? english.cli.runningAlready(running) : english.cli.started(await app.background.start()));
-      await app.terminal.launch({ serverFile: app.home.serverFile, review, env, userConfig: terminalPart(app.config, env), say });
+      await app.terminal.launch({ serverFile: app.home.serverFile, review, env, say });
       return [];
     }
     case 'start': {

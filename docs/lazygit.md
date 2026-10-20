@@ -41,15 +41,15 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 - `terminal/main.go` reads the flags, and `internal/app` builds `Common`,
   the reviews and the gui, then runs Bubble Tea.
-- `internal/common` holds `Common`: the strings, the config handed over and
-  the theme. `internal/i18n/english.go` holds `TranslationSet` and
+- `internal/common` holds `Common`: the strings, the terminal app's part
+  of the config and the theme. `internal/i18n/english.go` holds `TranslationSet` and
   `EnglishTranslationSet()`, every string the terminal app shows, with
   named placeholders filled by `utils.ResolvePlaceholderString`.
-- `internal/config` reads the part of the config lazyreview hands over:
-  the config file's path, the data home, the editor, the theme's colours
-  and every key.
-  `internal/theme` turns the colours for the terminal's background into
-  styles.
+- `internal/config` reads `config.yml` itself, as the config section
+  below says, and gives the terminal app its part: the config file's path,
+  the data home, the editor, Claude Code, the theme's colours and every
+  key. `internal/theme` turns the colours for the terminal's background
+  into styles.
 - `internal/models` holds plain values, as lazygit's
   `pkg/commands/models` does: the refs that name a pull request, a branch
   or a review, what a review's files keep, and what GitHub answers.
@@ -104,8 +104,9 @@ A citation starting `lazygit:` names a file and line of lazygit at
 - Other languages and their translation. Nothing translates lazyreview, so
   a switch would have no user; a second language would be a second set
   with the same fields.
-- Reading the config again while the app runs. A terminal session is
-  short, and the server reads the accounts again for each list.
+- Reading the config again while the app runs, but for the home screen's
+  accounts and hidden repositories, which `internal/home` reads at each
+  list and each change. A terminal session is short.
 
 ## The command and the server
 
@@ -168,23 +169,27 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 - `config.yml` in lazygit's place: on macOS
   `~/Library/Application Support/lazyreview/config.yml`, by the same order
-  of folders. `src/config/config-file.mjs` finds it.
-- `src/config/schema.mjs` holds every setting once: its default, its check,
-  the variable that overrides it and the words that describe it. The
-  reader, `docs/Config.md`, `schema/config.json` and `lazyreview config
-  defaults` are all made from it. `npm run docs` writes the docs, and a
-  test fails when they are out of date.
-- `src/config/user-config.mjs` reads the file onto the defaults, with
-  js-yaml's core schema (`vendor/js-yaml-4.3.2.min.js`), merging maps key by
-  key and replacing lists whole, and checks every setting.
+  of folders. `terminal/internal/config/find_config_file.go` finds it, and
+  `src/config/config-file.mjs` for the command.
+- `terminal/internal/config/schema.go` holds every setting once: its
+  default, its check, the variable that overrides it and the words that
+  describe it. The reader, `docs/Config.md` and `schema/config.json` are
+  made from it; `npm run docs` writes the docs through `go generate`, as
+  lazygit writes its own, and a test fails when they are out of date.
+  `src/config/schema.mjs` is the command's copy, and a test fails when it
+  would write the docs otherwise.
+- `terminal/internal/config` reads the file onto the defaults with YAML's
+  core schema, as `src/config/user-config.mjs` does for the command with
+  js-yaml (`vendor/js-yaml-4.3.2.min.js`), merging maps key by key and
+  replacing lists whole, and checks every setting. A Go test holds the two
+  to the same values and the same words for each of a set of configs.
 - `gui.theme` with lazygit's colour names where the role is the same, and
   `keybinding` with lazygit's way of writing keys.
 - `lazyreview config path`, `defaults`, `check` and `move`, for
   lazygit's `--print-config-dir` and `--config`
   (lazygit:`pkg/app/entry_point.go:204-208`), and the one-time move.
-- Node reads the config; the terminal app receives its part as one JSON
-  argument, `--user-config`, and decodes it strictly. One reader, one set
-  of defaults, one checker and one set of messages serve both parts.
+- The terminal app reads the config itself, with goccy/go-yaml for the
+  YAML, as lazygit reads its own in Go.
 
 ### What it leaves out, and why
 
@@ -200,8 +205,6 @@ A citation starting `lazygit:` names a file and line of lazygit at
   format is a command run by hand, with a check that writes nothing first,
   and it renames the old file rather than deleting it.
 - lazygit's older `jesseduffield/` folder, which lazyreview never had.
-- Go reading YAML. Node reads it already for the server and the command,
-  and the terminal app is only ever started by Node.
 
 ## Choices made in the building
 
@@ -216,7 +219,7 @@ A citation starting `lazygit:` names a file and line of lazygit at
 - A popup matches a key against its bindings, and gives any other key to
   its own handling, which says whether the key passes on, as the menu
   passes it on.
-- A number in a colour is handed over as text; the list of pull request
+- A number in a colour is read as text; the list of pull request
   colours is 8 long, as the stack's colours are.
 - The data home in the file is a full path or starts with `~/`.
 - `config check` prints the config as read, in the default config's shape,

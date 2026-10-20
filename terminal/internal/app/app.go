@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"syscall"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/common"
 	"github.com/connorb645/lazyreview/terminal/internal/config"
 	"github.com/connorb645/lazyreview/terminal/internal/gui"
+	"github.com/connorb645/lazyreview/terminal/internal/home"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/queue"
@@ -36,14 +38,20 @@ import (
 )
 
 // Run opens the app on the review id names, or with none on the home
-// screen, as a client of the server whose record is at serverFile, with
-// the part of the config lazyreview hands over as JSON, and returns once
-// the app quits.
-func Run(serverFile, userConfig, review string) error {
+// screen, with lazyreview's config as it reads now, as a client of the
+// server whose record is at serverFile for what the server still does, and
+// returns once the app quits.
+func Run(serverFile, review string) error {
 	tr := i18n.EnglishTranslationSet()
-	given, err := config.Decode(userConfig, tr)
+	userHome, _ := os.UserHomeDir()
+	readConfig := func() (config.Read, error) { return config.ReadUserConfig(tr, os.Getenv, runtime.GOOS, userHome) }
+	read, err := readConfig()
 	if err != nil {
-		return fmt.Errorf("%s: %w", tr.UserConfigUnreadable, err)
+		return err
+	}
+	given, err := config.TerminalPart(tr, read, os.Getenv)
+	if err != nil {
+		return err
 	}
 	if !filepath.IsAbs(given.DataHome) {
 		return errors.New(tr.NoDataHome)
@@ -60,7 +68,8 @@ func Run(serverFile, userConfig, review string) error {
 		return oscommands.RunDetached(self, []string{"answer", "--data-home", given.DataHome, "--claude", given.Claude.Command, "--model", given.Claude.Model, ref.ID(), strconv.Itoa(conversation)})
 	}
 	asking := ask.NewService(tr, reviewStore, locks, claude.New(tr, given.Claude.Command, given.Claude.Model), nil, nil, answerer, isoNow)
-	all := reviews.New(tr, reviewStore, queue.NewService(tr, reviewStore, gh, isoNow), asking, server.NewClient(cmn, serverFile))
+	all := reviews.New(tr, reviewStore, queue.NewService(tr, reviewStore, gh, isoNow), asking,
+		home.NewOpenPulls(tr, reviewStore, readConfig, gh), home.NewHiddenRepositories(tr, readConfig), server.NewClient(cmn, serverFile))
 	opts := gui.Options{Reviews: all, Review: review, Editor: given.Editor}
 	program := tea.NewProgram(gui.New(cmn, opts), tea.WithAltScreen(), tea.WithMouseCellMotion())
 	_, err = program.Run()

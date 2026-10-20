@@ -20,6 +20,8 @@ import (
 //	                                       this machine, for Claude's copies
 //	copies/<review id>/<conversation>/     a throwaway copy of the code that
 //	                                       Claude answers a conversation in
+//	settings.json                          an earlier version's settings,
+//	                                       no longer read
 //
 // It only names paths, and reads and writes nothing.
 type DataHome struct {
@@ -56,4 +58,15 @@ func (h DataHome) Copies() string {
 // a ref names.
 func (h DataHome) Copy(ref models.ReviewRef, n int) string {
 	return filepath.Join(append(append([]string{h.Copies()}, strings.Split(ref.ID(), "/")...), strconv.Itoa(n))...)
+}
+
+// Repository is the folder holding the reviews of repo, owner/name, on host.
+func (h DataHome) Repository(host, repo string) string {
+	return filepath.Join(append([]string{h.Reviews(), host}, strings.Split(repo, "/")...)...)
+}
+
+// SettingsFile is settings.json, which an earlier version read and the
+// config replaced.
+func (h DataHome) SettingsFile() string {
+	return filepath.Join(h.Root, "settings.json")
 }

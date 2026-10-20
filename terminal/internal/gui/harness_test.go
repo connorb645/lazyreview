@@ -42,16 +42,25 @@ func testCommon() *common.Common {
 }
 
 // commonFor is what every layer shares in a test: the default config, as
-// the lazyreview command hands it over and terminal/testdata/config.json
-// keeps it, drawn for a dark or a light terminal.
+// the config reader gives it with no file for a stand-in user, drawn for a
+// dark or a light terminal.
 func commonFor(dark bool) *common.Common {
-	return commonFrom(defaultHandOver(), dark)
+	return commonFrom(defaultConfig(), dark)
 }
 
-func defaultHandOver() string {
-	text, err := os.ReadFile(filepath.Join("..", "..", "testdata", "config.json"))
+func defaultConfig() string {
+	tr := i18n.EnglishTranslationSet()
+	read, err := config.ConfigFrom(tr, "", "/home/reviewer/Library/Application Support/lazyreview/config.yml", "/home/reviewer")
 	if err != nil {
 		panic("could not read the default config: " + err.Error())
+	}
+	given, err := config.TerminalPart(tr, read, func(string) string { return "" })
+	if err != nil {
+		panic("could not read the default config: " + err.Error())
+	}
+	text, err := json.Marshal(given)
+	if err != nil {
+		panic(err)
 	}
 	return string(text)
 }
@@ -59,7 +68,7 @@ func defaultHandOver() string {
 func handedOver(t *testing.T, keys map[string]map[string][]string) *common.Common {
 	t.Helper()
 	var handOver map[string]any
-	if err := json.Unmarshal([]byte(defaultHandOver()), &handOver); err != nil {
+	if err := json.Unmarshal([]byte(defaultConfig()), &handOver); err != nil {
 		t.Fatal(err)
 	}
 	binding := handOver["keybinding"].(map[string]any)

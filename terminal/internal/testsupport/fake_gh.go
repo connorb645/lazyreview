@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -212,8 +213,9 @@ func Testdata(parts ...string) string {
 }
 
 // StandInHome is a copy of the data home the recorded answers came from, in
-// a folder of the test's own.
-func StandInHome(t *testing.T) string {
+// a folder of the test's own: every review, or only those of reviews when
+// any are named, by id.
+func StandInHome(t *testing.T, reviews ...string) string {
 	t.Helper()
 	from, to := Testdata("home"), t.TempDir()
 	err := filepath.WalkDir(from, func(path string, d fs.DirEntry, err error) error {
@@ -221,6 +223,11 @@ func StandInHome(t *testing.T) string {
 			return err
 		}
 		rel, _ := filepath.Rel(from, path)
+		if len(reviews) > 0 && !slices.ContainsFunc(reviews, func(id string) bool {
+			return strings.HasPrefix(filepath.ToSlash(rel), "reviews/"+id+"/")
+		}) {
+			return nil
+		}
 		text, err := os.ReadFile(path)
 		if err != nil {
 			return err

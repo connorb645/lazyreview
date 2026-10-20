@@ -1,6 +1,7 @@
-// Package config is the terminal app's part of lazyreview's config, as the
-// lazyreview command hands it over: read from config.yml, checked and
-// resolved there, so the terminal app reads no file and no variable of it.
+// Package config is lazyreview's config: config.yml, found as lazygit finds
+// its own, read on top of the defaults its schema gives and checked
+// setting by setting, the variables that override it, and the
+// documentation made from the schema.
 package config
 
 import (
@@ -26,8 +27,8 @@ type UserConfig struct {
 	Keybinding  KeybindingConfig `json:"keybinding"`
 }
 
-// Decode reads the hand-over, refusing a field it does not know and
-// anything after the one value, which only a mistake in lazyreview causes.
+// Decode reads the terminal app's part of the config written as JSON,
+// refusing a field it does not know and anything after the one value.
 func Decode(text string, tr *i18n.TranslationSet) (UserConfig, error) {
 	var c UserConfig
 	decoder := json.NewDecoder(bytes.NewReader([]byte(text)))

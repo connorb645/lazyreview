@@ -5,16 +5,14 @@ package i18n
 // values names them as placeholders, such as {{.path}}, which
 // utils.ResolvePlaceholderString fills.
 type TranslationSet struct {
-	ServerFileFlag       string
-	UserConfigFlag       string
-	DataHomeFlag         string
-	ClaudeFlag           string
-	ModelFlag            string
-	Usage                string
-	TerminalFailed       string
-	UserConfigUnreadable string
-	MoreThanOneValue     string
-	NoDataHome           string
+	ServerFileFlag   string
+	DataHomeFlag     string
+	ClaudeFlag       string
+	ModelFlag        string
+	Usage            string
+	TerminalFailed   string
+	MoreThanOneValue string
+	NoDataHome       string
 
 	ServerNotRunning        string
 	CouldNotRead            string
@@ -739,21 +737,87 @@ type TranslationSet struct {
 	GuardFailed          string
 	GitFailed            string
 	CommitMissing        string
+
+	ConfigAboutDataHome             string
+	ConfigAboutPort                 string
+	ConfigAboutClaudeCommand        string
+	ConfigAboutClaudeModel          string
+	ConfigAboutEditor               string
+	ConfigAboutAccounts             string
+	ConfigAboutHiddenRepositories   string
+	ConfigAboutLineNumbers          string
+	ConfigAboutTheme                string
+	ConfigAboutKeys                 string
+	ConfigKeysUniversal             string
+	ConfigKeysHome                  string
+	ConfigKeysReviewScreen          string
+	ConfigKeysPanels                string
+	ConfigKeysReviewView            string
+	ConfigKeysDiagram               string
+	ConfigKeysMenu                  string
+	ConfigAccountsExample           string
+	ConfigHiddenRepositoriesExample string
+	ConfigFileMissing               string
+	ConfigUnreadable                string
+	ConfigYAMLError                 string
+	ConfigDuplicatedKey             string
+	ConfigProblem                   string
+	ConfigProblems                  string
+	ConfigListedProblem             string
+	ConfigNotAMap                   string
+	ConfigUnknown                   string
+	ConfigRetired                   string
+	ConfigRetiredDiagramPanelMove   string
+	ConfigUnusedWeb                 string
+	ConfigNotASection               string
+	ConfigNotAFolder                string
+	ConfigNotAPort                  string
+	ConfigNotACommand               string
+	ConfigNotText                   string
+	ConfigNotAChoice                string
+	ConfigNotAccounts               string
+	ConfigNotRepositories           string
+	ConfigNotARepository            string
+	ConfigNotAnEntry                string
+	ConfigNotAColour                string
+	ConfigNotColours                string
+	ConfigNotKeys                   string
+	ConfigNotNumberedKeys           string
+	ConfigKeyNotText                string
+	ConfigKeyEmpty                  string
+	ConfigKeyUnclosed               string
+	ConfigKeyDisabledAlone          string
+	ConfigKeyUnknown                string
+	ConfigNoLogin                   string
+	ConfigAccountKey                string
+	ConfigLoginTwice                string
+	ConfigTeamsNotList              string
+	ConfigTeamNotNamed              string
+	ConfigTeamKey                   string
+	ConfigSinceNotDate              string
+	ConfigBadPort                   string
+	ConfigNotMoved                  string
+	ConfigSchemaTitle               string
+	ConfigSchemaDescription         string
+	ConfigDocsGenerated             string
+	ConfigDocsNoMarkers             string
+	ConfigDocsVariable              string
+	ConfigDocsOverrides             string
+	ConfigCannotChange              string
+	ConfigEditFailed                string
 }
 
 // EnglishTranslationSet is the strings in English.
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
-		ServerFileFlag:       "the lazyreview server's own record, server.json, holding its address and token",
-		UserConfigFlag:       "the terminal app's part of lazyreview's config, as JSON: the config file's path and the editor",
-		DataHomeFlag:         "the data home that holds the review",
-		ClaudeFlag:           "the Claude Code command to ask",
-		ModelFlag:            "the model Claude answers with, over the user's default",
-		Usage:                "usage: lazyreview-terminal --server-file <server.json> --user-config <json> [<review id>]\n       lazyreview-terminal answer --data-home <folder> [--claude <command>] [--model <model>] <review id> <conversation>\n       lazyreview-terminal guard <copy folder>",
-		TerminalFailed:       "lazyreview terminal",
-		UserConfigUnreadable: "could not read the config handed over by lazyreview",
-		MoreThanOneValue:     "it holds more than one value",
-		NoDataHome:           "the config handed over by lazyreview names no data home by its full path",
+		ServerFileFlag:   "the lazyreview server's own record, server.json, holding its address and token",
+		DataHomeFlag:     "the data home that holds the review",
+		ClaudeFlag:       "the Claude Code command to ask",
+		ModelFlag:        "the model Claude answers with, over the user's default",
+		Usage:            "usage: lazyreview-terminal --server-file <server.json> [<review id>]\n       lazyreview-terminal answer --data-home <folder> [--claude <command>] [--model <model>] <review id> <conversation>\n       lazyreview-terminal guard <copy folder>",
+		TerminalFailed:   "lazyreview terminal",
+		MoreThanOneValue: "it holds more than one value",
+		NoDataHome:       "the config names no data home by its full path",
 
 		ServerNotRunning:        "the lazyreview server is not running; lazyreview start starts it",
 		CouldNotRead:            "could not read {{.path}}",
@@ -1478,5 +1542,73 @@ func EnglishTranslationSet() *TranslationSet {
 		GuardFailed:          "lazyreview refused this, as its guard could not read the call: {{.why}}",
 		GitFailed:            "git {{.command}} failed: {{.why}}",
 		CommitMissing:        "commit {{.commit}} is no longer in {{.repo}}; load the review again",
+
+		ConfigAboutDataHome:             "Where lazyreview keeps reviews, clones and the running app's files.",
+		ConfigAboutPort:                 "The port the app listens on, on this machine only.",
+		ConfigAboutClaudeCommand:        "The Claude Code command that answers a question about a line.",
+		ConfigAboutClaudeModel:          "The model that answers. Empty: Claude Code's own default.",
+		ConfigAboutEditor:               "The command that opens a comment, a question or an edit.\nEmpty: VISUAL, then EDITOR, then vi, as git chooses.",
+		ConfigAboutAccounts:             "The GitHub accounts whose open pull requests the home screen lists.\nEach is read by its own gh token. A review asked of a team counts as\nasked of the account, for pull requests opened on or after `since`.",
+		ConfigAboutHiddenRepositories:   "Repositories the home screen leaves out, for every account: owner/name,\nor owner/* for every repository of the owner. A review of one still opens.",
+		ConfigAboutLineNumbers:          "How the terminal app's diff numbers its lines: absolute, each line its\nown number; relative, the cursor's line its own number and every other\nline its distance from it, as Vim's number and relativenumber do; or none.",
+		ConfigAboutTheme:                "The terminal app's colours, for a dark terminal and a light one.\nEach is #rrggbb or a terminal colour number from 0 to 255.",
+		ConfigAboutKeys:                 "Keys as lazygit writes them: a letter, or <space>, <enter>, <esc>,\n<tab>, <up>, <down>, <left>, <right>, <c-x> for Ctrl-x. A sequence is\nits keys in a row, such as gg, ]c or <space>v. A list gives an action\nmore than one key. <disabled> removes a key.",
+		ConfigKeysUniversal:             "every screen",
+		ConfigKeysHome:                  "the home screen",
+		ConfigKeysReviewScreen:          "every panel of a review",
+		ConfigKeysPanels:                "every panel on the left",
+		ConfigKeysReviewView:            "the Review view in the main panel",
+		ConfigKeysDiagram:               "the diagram in the main panel",
+		ConfigKeysMenu:                  "every list that pops up",
+		ConfigAccountsExample:           "accounts:\n  - login: lee\n  - login: lee-at-work\n    teams:\n      - name: example-org/mobile\n        since: 2026-10-01",
+		ConfigHiddenRepositoriesExample: "hiddenRepositories:\n  - example-org/old-app\n  - example-bots/*",
+		ConfigFileMissing:               "LAZYREVIEW_CONFIG_FILE names {{.path}}, which does not exist",
+		ConfigUnreadable:                "{{.path}} could not be read: {{.why}}",
+		ConfigYAMLError:                 "{{.reason}} ({{.line}}:{{.column}})",
+		ConfigDuplicatedKey:             "duplicated mapping key",
+		ConfigProblem:                   "{{.path}} {{.problem}}",
+		ConfigProblems:                  "{{.path}} has {{.count}} problems:\n{{.problems}}",
+		ConfigListedProblem:             "  - {{.problem}}",
+		ConfigNotAMap:                   "holds no settings, written as lazyreview config defaults shows them",
+		ConfigUnknown:                   "sets {{.key}}, which is not a setting",
+		ConfigRetired:                   "sets {{.key}}, which is no longer a setting, so remove it: {{.why}}",
+		ConfigRetiredDiagramPanelMove:   "the Diagram panel switches panels as every panel on the left does, and keybinding.diagram.{{.side}} moves to the box on the {{.side}} in the main panel's diagram",
+		ConfigUnusedWeb:                 "lazyreview has no web app; keybinding.reviewView.drawings opens a written review's drawings in the browser",
+		ConfigNotASection:               "gives {{.key}} {{.value}}, which is not a group of settings",
+		ConfigNotAFolder:                "gives {{.key}} {{.value}}, which is not a full path, or one starting with ~/",
+		ConfigNotAPort:                  "gives {{.key}} {{.value}}, which is not a port number from 1 to 65535",
+		ConfigNotACommand:               "gives {{.key}} {{.value}}, which is not a command",
+		ConfigNotText:                   "gives {{.key}} {{.value}}, which is not text",
+		ConfigNotAChoice:                "gives {{.key}} {{.value}}, which is not {{.choices}} or {{.last}}",
+		ConfigNotAccounts:               "gives {{.key}} {{.value}}, which is not a list of accounts",
+		ConfigNotRepositories:           "gives {{.key}} {{.value}}, which is not a list of repositories",
+		ConfigNotARepository:            "gives {{.key}} {{.value}}, which is not a repository as owner/name, or owner/* for every repository of the owner",
+		ConfigNotAnEntry:                "{{.value}} is not a repository as owner/name, or owner/* for every repository of the owner",
+		ConfigNotAColour:                "gives {{.key}} {{.value}}, which is not a colour: #rrggbb or a terminal colour number from 0 to 255",
+		ConfigNotColours:                "gives {{.key}} {{.value}}, which is not a list of {{.count}} colours",
+		ConfigNotKeys:                   "gives {{.key}} {{.value}}, which is not a key or a list of keys: {{.why}}",
+		ConfigNotNumberedKeys:           "gives {{.key}} {{.value}}, which is not a list of {{.count}} keys, one for each by its place",
+		ConfigKeyNotText:                "a key is written as text",
+		ConfigKeyEmpty:                  "a key is not empty",
+		ConfigKeyUnclosed:               "a < starts a named key, such as <space>, and needs its >",
+		ConfigKeyDisabledAlone:          "<disabled> stands alone, for no key",
+		ConfigKeyUnknown:                "{{.token}} is not a key; a named key is <space>, <enter>, <esc>, <tab>, <up>, <down>, <left>, <right>, or <c-x> for Ctrl-x",
+		ConfigNoLogin:                   "gives account {{.number}} no GitHub login",
+		ConfigAccountKey:                "gives {{.login}} \"{{.key}}\", which an account does not have",
+		ConfigLoginTwice:                "names {{.login}} twice",
+		ConfigTeamsNotList:              "gives {{.login}} \"teams\" that are not a list",
+		ConfigTeamNotNamed:              "gives {{.login}} a team that is not named as organisation/team",
+		ConfigTeamKey:                   "gives {{.team}} \"{{.key}}\", which a team does not have",
+		ConfigSinceNotDate:              "gives {{.team}} a \"since\" that is not a date such as 2026-10-01",
+		ConfigBadPort:                   "LAZYREVIEW_PORT must be a port number, not \"{{.value}}\"",
+		ConfigNotMoved:                  "{{.settings}} is no longer read; lazyreview config move moves its accounts into {{.config}}",
+		ConfigSchemaTitle:               "lazyreview config",
+		ConfigSchemaDescription:         "lazyreview's config file, config.yml. docs/Config.md lists every setting and its default.",
+		ConfigDocsGenerated:             "written from the config's schema; do not change it by hand",
+		ConfigDocsNoMarkers:             "docs/Config.md has no START {{.name}} and END {{.name}} markers to write between",
+		ConfigDocsVariable:              "Variable",
+		ConfigDocsOverrides:             "Overrides",
+		ConfigCannotChange:              "{{.key}} is written in a way lazyreview cannot change line by line",
+		ConfigEditFailed:                "{{.path}} was not changed: {{.why}}; change it by hand, as docs/Config.md shows",
 	}
 }

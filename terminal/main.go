@@ -30,16 +30,15 @@ func main() {
 		}
 	}
 	serverFile := flag.String("server-file", "", tr.ServerFileFlag)
-	userConfig := flag.String("user-config", "", tr.UserConfigFlag)
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, tr.Usage)
 	}
 	flag.Parse()
-	if *serverFile == "" || *userConfig == "" || flag.NArg() > 1 {
+	if *serverFile == "" || flag.NArg() > 1 {
 		flag.Usage()
 		os.Exit(2)
 	}
-	if err := app.Run(*serverFile, *userConfig, flag.Arg(0)); err != nil {
+	if err := app.Run(*serverFile, flag.Arg(0)); err != nil {
 		fmt.Fprintln(os.Stderr, tr.TerminalFailed+":", err)
 		os.Exit(1)
 	}

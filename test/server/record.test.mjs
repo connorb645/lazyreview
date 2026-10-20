@@ -14,15 +14,14 @@ import { PullRef } from '../../src/models/pull-ref.mjs';
 import { OpenPulls } from '../../src/home/open-pulls.mjs';
 import { HiddenRepositories } from '../../src/home/hidden-repositories.mjs';
 import { SETTINGS, homeRoutes, accountsConfig } from '../support/home-routes.mjs';
-import { configFrom, terminalPart } from '../../src/config/user-config.mjs';
 
 const RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal', 'testdata', 'record.json');
-const CONFIG = join(dirname(RECORD), 'config.json');
 // The data home the answers were recorded from, before any change, and the fake GitHub's routes while they were: the Go
 // code that answers in the server's place reads them, and gives the same answers.
 const HOME = join(dirname(RECORD), 'home');
 const ROUTES = join(dirname(RECORD), 'github.json');
 const ASKED = join(dirname(RECORD), 'asked.json');
+const HOMES = join(dirname(RECORD), 'homes.json');
 const STAND_IN_HOME = '/home/reviewer/.lazyreview';
 const STAND_IN_ORIGIN = '/stand-in/origin.git';
 const STACK = 'github.com/octo/widgets/21';
@@ -96,6 +95,11 @@ async function recordAnswers() {
     const address = await server.listen();
     try {
       const answers = {};
+      // What each home screen list was read from, and each change to the hidden repositories made to, for the Go replay.
+      const homes = { lists: [], changes: [] };
+      const routesNow = () => JSON.parse(readFileSync(w.gh.extra.FAKE_GH_ROUTES, 'utf8').replaceAll(w.repo.origin, STAND_IN_ORIGIN));
+      const configNow = () => (existsSync(w.configFile) ? readFileSync(w.configFile, 'utf8') : null);
+      const reviewsNow = () => Object.keys(filesUnder(w.home.root, 'reviews')).filter(p => p.endsWith('/review.json')).map(p => p.slice('reviews/'.length, -'/review.json'.length)).sort();
       const home = async (variant, settings, extra) => {
         if (settings) writeFileSync(w.configFile, accountsConfig(settings.accounts, settings.hidden));
         else rmSync(w.configFile, { force: true });
@@ -103,6 +107,7 @@ async function recordAnswers() {
         const answer = await send(address, 'GET', '/api/pulls');
         assert.equal(answer.status, 200, variant);
         answers[`GET /api/pulls${variant}`] = { ...answer, body: { ...answer.body, config: answer.body.config.replace(w.configFile, STAND_IN_CONFIG) } };
+        homes.lists.push({ key: `GET /api/pulls${variant}`, config: configNow(), routes: routesNow(), reviews: reviewsNow() });
       };
       await home('', SETTINGS, homeRoutes());
       await home('#one repository', { accounts: [SETTINGS.accounts[1]] }, homeRoutes());
@@ -118,8 +123,10 @@ async function recordAnswers() {
       const hiding = async (config, changes) => {
         writeFileSync(w.configFile, config);
         for (const body of changes) {
+          const before = configNow();
           const answer = await send(address, 'POST', '/api/hidden', body);
           answers[key('POST', '/api/hidden', body)] = JSON.parse(JSON.stringify(answer).replaceAll(w.configFile, STAND_IN_CONFIG));
+          homes.changes.push({ key: key('POST', '/api/hidden', body), before, after: configNow() });
         }
       };
       await hiding(accountsConfig(SETTINGS.accounts), [
@@ -224,7 +231,7 @@ async function recordAnswers() {
         system: c.args[c.args.indexOf('--append-system-prompt') + 1],
         prompt: roots.reduce((text, root) => text.replaceAll(root, STAND_IN_HOME), c.prompt),
       }));
-      return { answers, home: dataHome, routes, asked };
+      return { answers, home: dataHome, routes, asked, homes };
     } finally {
       await server.close();
     }
@@ -258,7 +265,7 @@ function filesUnder(root, folder) {
 }
 
 test('the server answers the terminal app is tested against are the ones it gives now', async () => {
-  const { answers: now, home, routes, asked } = await recordAnswers();
+  const { answers: now, home, routes, asked, homes } = await recordAnswers();
   if (process.env.LAZYREVIEW_RECORD) {
     mkdirSync(dirname(RECORD), { recursive: true });
     writeFileSync(RECORD, JSON.stringify(now, null, 1) + '\n');
@@ -268,6 +275,7 @@ test('the server answers the terminal app is tested against are the ones it give
     }
     writeFileSync(ROUTES, JSON.stringify(routes, null, 1) + '\n');
     writeFileSync(ASKED, JSON.stringify(asked, null, 1) + '\n');
+    writeFileSync(HOMES, JSON.stringify(homes, null, 1) + '\n');
     return;
   }
   for (const [path, text] of Object.entries(home)) {
@@ -276,6 +284,7 @@ test('the server answers the terminal app is tested against are the ones it give
   }
   assert.deepEqual(JSON.parse(readFileSync(ROUTES, 'utf8')), routes, `${ROUTES} is not the routes the answers come from; write it again with LAZYREVIEW_RECORD=1 npm test`);
   assert.deepEqual(JSON.parse(readFileSync(ASKED, 'utf8')), asked, `${ASKED} is not the questions Claude was asked; write it again with LAZYREVIEW_RECORD=1 npm test`);
+  assert.deepEqual(JSON.parse(readFileSync(HOMES, 'utf8')), homes, `${HOMES} is not what the home screen was read from; write it again with LAZYREVIEW_RECORD=1 npm test`);
   let recorded;
   try {
     recorded = JSON.parse(readFileSync(RECORD, 'utf8'));
@@ -284,19 +293,4 @@ test('the server answers the terminal app is tested against are the ones it give
   }
   const differs = firstDifference(recorded, now);
   assert.equal(differs, null, `the server now answers ${differs} differently from the record the terminal app's tests read; write it again with LAZYREVIEW_RECORD=1 npm test, then run the Go tests`);
-});
-
-test('the default config the terminal app\'s tests read is the part lazyreview hands it now', () => {
-  const now = JSON.stringify(terminalPart({ path: STAND_IN_CONFIG, values: configFrom('', STAND_IN_CONFIG, '/home/reviewer').values }, {}), null, 1) + '\n';
-  if (process.env.LAZYREVIEW_RECORD) {
-    writeFileSync(CONFIG, now);
-    return;
-  }
-  let kept = null;
-  try {
-    kept = readFileSync(CONFIG, 'utf8');
-  } catch (error) {
-    assert.fail(`could not read ${CONFIG}: ${error.message}; write it with LAZYREVIEW_RECORD=1 npm test`);
-  }
-  assert.equal(kept, now, `the terminal app is now handed another default config than ${CONFIG} holds; write it again with LAZYREVIEW_RECORD=1 npm test, then run the Go tests`);
 });

@@ -90,7 +90,7 @@ func standInReviews(t *testing.T) (*Reviews, *testsupport.FakeClaude, string) {
 	fake := testsupport.NewFakeClaude(t)
 	fake.Knows("00000000-0000-4000-8000-000000000001")
 	asking := ask.NewService(tr, reviews, locks, claude.New(tr, fake.Command, ""), madeCopies{}, nil, nil, now)
-	return New(tr, reviews, q, asking, nil), fake, root
+	return New(tr, reviews, q, asking, nil, nil, nil), fake, root
 }
 
 // Each answer the terminal app is tested against, of what the Go code now

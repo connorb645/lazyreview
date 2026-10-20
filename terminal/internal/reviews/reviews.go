@@ -1,7 +1,7 @@
 // Package reviews is what the terminal app reads and changes reviews
 // through. It reads a review's state, its page and each file from the data
-// home, keeps its queue and its conversations with Claude, itself; the
-// server still loads reviews and lists the open pull requests.
+// home, keeps its queue and its conversations with Claude, and lists the
+// home screen's open pull requests, itself; the server still loads reviews.
 package reviews
 
 import (
@@ -11,6 +11,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/ask"
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
+	"github.com/connorb645/lazyreview/terminal/internal/home"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/queue"
@@ -27,14 +28,17 @@ type Reviews struct {
 	store  *store.ReviewStore
 	queue  *queue.Service
 	asking *ask.Service
+	pulls  *home.OpenPulls
+	hidden *home.HiddenRepositories
 	server *server.Client
 }
 
 // New returns the reviews kept in store, whose queues queue changes and
-// whose conversations asking keeps, asking the server for what it still
+// whose conversations asking keeps, with the home screen's open pull
+// requests and hidden repositories, asking the server for what it still
 // does.
-func New(tr *i18n.TranslationSet, reviews *store.ReviewStore, q *queue.Service, asking *ask.Service, s *server.Client) *Reviews {
-	return &Reviews{tr: tr, store: reviews, queue: q, asking: asking, server: s}
+func New(tr *i18n.TranslationSet, reviews *store.ReviewStore, q *queue.Service, asking *ask.Service, pulls *home.OpenPulls, hidden *home.HiddenRepositories, s *server.Client) *Reviews {
+	return &Reviews{tr: tr, store: reviews, queue: q, asking: asking, pulls: pulls, hidden: hidden, server: s}
 }
 
 // State reads a review's state: its pull requests, its queue, its
@@ -153,13 +157,15 @@ func (r *Reviews) Refresh(id string) ([]string, error) {
 // Pulls reads the open pull requests that involve the accounts in the
 // config, as GitHub has them now.
 func (r *Reviews) Pulls() (models.Pulls, error) {
-	return r.server.Pulls()
+	pulls, err := r.pulls.List()
+	return pulls, refusal(err)
 }
 
 // ChangeHidden puts an entry on the config's hidden repositories, or takes
 // entries off it, and returns what now hides each of repos.
 func (r *Reviews) ChangeHidden(hide string, show, repos []string) (models.Hidden, error) {
-	return r.server.ChangeHidden(hide, show, repos)
+	hidden, err := r.hidden.Change(hide, show, repos)
+	return hidden, refusal(err)
 }
 
 // Load loads pull requests from GitHub into a review, a stack bottom first,

@@ -61,7 +61,7 @@ func (s *ReviewStore) Read(ref models.ReviewRef) (*models.Review, error) {
 // ReadPage is the review's page with its build id, or nil when it has none.
 func (s *ReviewStore) ReadPage(ref models.ReviewRef) (*PageRead, error) {
 	path := s.home.Review(ref).Page()
-	text, found, err := ReadText(path)
+	text, found, err := utils.ReadText(path)
 	if err != nil {
 		return nil, s.unreadable(path, err)
 	}
@@ -89,7 +89,7 @@ func (s *ReviewStore) ReadPage(ref models.ReviewRef) (*PageRead, error) {
 // PageBuild is the build id of the review's page, or "" when it has none.
 func (s *ReviewStore) PageBuild(ref models.ReviewRef) (string, error) {
 	path := s.home.Review(ref).Page()
-	text, found, err := ReadText(path)
+	text, found, err := utils.ReadText(path)
 	if err != nil {
 		return "", s.unreadable(path, err)
 	}
@@ -102,7 +102,7 @@ func (s *ReviewStore) PageBuild(ref models.ReviewRef) (string, error) {
 // ReadWritten is the review's written review, and false when it has none.
 func (s *ReviewStore) ReadWritten(ref models.ReviewRef) (string, bool, error) {
 	path := s.home.Review(ref).Written()
-	text, found, err := ReadText(path)
+	text, found, err := utils.ReadText(path)
 	if err != nil {
 		return "", false, s.unreadable(path, err)
 	}
@@ -219,7 +219,7 @@ func (s *ReviewStore) writeAll(files []FileWrite) error {
 	}
 	var done []before
 	for _, f := range files {
-		text, exists, err := ReadText(f.Path)
+		text, exists, err := utils.ReadText(f.Path)
 		if err == nil {
 			err = replace(f)
 		}
@@ -245,11 +245,11 @@ func replace(f FileWrite) error {
 	if err := os.MkdirAll(filepath.Dir(f.Path), 0o755); err != nil {
 		return err
 	}
-	return WriteWhole(f.Path, f.Text, 0o644)
+	return utils.WriteWhole(f.Path, f.Text, 0o644)
 }
 
 func (s *ReviewStore) readJSON(path string, into any) (bool, error) {
-	text, found, err := ReadText(path)
+	text, found, err := utils.ReadText(path)
 	if err != nil {
 		return false, s.unreadable(path, err)
 	}
