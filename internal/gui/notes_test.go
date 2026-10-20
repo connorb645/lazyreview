@@ -159,6 +159,9 @@ func TestDropAsksFirst(t *testing.T) {
 	if _, ok := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", "queued:2"); ok {
 		t.Fatal("the dropped comment still shows")
 	}
+	if got := cursorAt(a); got != "Sources/Basket/Basket.swift RIGHT 11" {
+		t.Fatalf("the cursor went to %s, not the line the comment was on", got)
+	}
 }
 
 func TestClaudeIsAskedAndAFollowUpGoesInTheConversation(t *testing.T) {
@@ -198,6 +201,9 @@ func TestClaudesAnswerBecomesTheComment(t *testing.T) {
 	a = press(t, a, "c")
 	if a.Bad || a.Notice != "Queued: A comment on Sources/Basket/Basket.swift, line 7, from Claude's answer" {
 		t.Fatalf("the status line says %q", a.Notice)
+	}
+	if r := a.Diff.Rows[a.Diff.Cursor]; r.Key != "conversation:1" || r.Part != "claude" {
+		t.Fatalf("with the comment queued above it, the cursor left Claude's answer for %+v", r)
 	}
 }
 

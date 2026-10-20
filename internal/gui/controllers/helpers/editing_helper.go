@@ -329,7 +329,7 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 	case "edit":
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.SavedQueued, comment), false), nil
 	case "drop":
-		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.DroppedQueued, comment), false), nil
+		return self.followed(s.Said(utils.ResolvePlaceholderString(self.c.Tr.DroppedQueued, comment), false))
 	}
 	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.QueuedAbout, map[string]string{"about": strings.TrimSuffix(e.About[0], ".")}), false), nil
 }
@@ -389,6 +389,13 @@ func (self *EditingHelper) WhereNow(s context.ContextTree) tea.Cmd {
 		}
 		return types.WhereShown{Key: key, Words: words}
 	}
+}
+
+func (self *EditingHelper) followed(s context.ContextTree) (context.ContextTree, tea.Cmd) {
+	if s.Focus() != context.NotesPanel {
+		return s, nil
+	}
+	return self.c.Helpers.Panels.Followed(s)
 }
 
 func (self *EditingHelper) keyed(s context.ContextTree, words, action string) string {

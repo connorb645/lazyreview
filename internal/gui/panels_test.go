@@ -97,6 +97,41 @@ func TestTheNotesPanelShowsTheNoteInItsDiff(t *testing.T) {
 	}
 }
 
+func TestDroppingFromTheNotesPanelShowsTheNoteChosenInItsPlace(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	a = press(t, a, "3", "j")
+	if got := selectedKey(a, context.NotesPanel); got != "queued:2" {
+		t.Fatalf("on %s", got)
+	}
+	a = press(t, a, "d", "d", "y")
+	if a.Notice != "Dropped queued comment 2." || a.Focus() != context.NotesPanel {
+		t.Fatalf("the status line says %q, the keys are with panel %d", a.Notice, a.Focus())
+	}
+	if got, chosen := noteKeyAt(a), selectedKey(a, context.NotesPanel); got != "notehead "+chosen {
+		t.Fatalf("the main panel shows %s, not the note chosen in its place, %s", got, chosen)
+	}
+}
+
+func TestTheNotesPanelBarOffersTheKeysOfTheRowChosen(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	for key, want := range map[string]string{
+		"queued:1":       "Open: Enter | Edit: e | Drop: dd | Post: P | Panels: h l | Keys: Space ?",
+		"conversation:1": "Open: Enter | Panels: h l | Keys: Space ?",
+		"thread:T1":      "Open: Enter | Post: P | Panels: h l | Keys: Space ?",
+	} {
+		a = press(t, a, "3", "g", "g")
+		for range 10 {
+			if selectedKey(a, context.NotesPanel) == key {
+				break
+			}
+			a = press(t, a, "j")
+		}
+		if got := barSays(a); selectedKey(a, context.NotesPanel) != key || got != want {
+			t.Errorf("on %s the bar says %q", selectedKey(a, context.NotesPanel), got)
+		}
+	}
+}
+
 func TestTheDiagramPanelListsTheBoxesInReadingOrder(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	a = press(t, a, "4")

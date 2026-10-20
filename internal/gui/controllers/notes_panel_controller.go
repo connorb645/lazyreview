@@ -56,14 +56,22 @@ func (self *NotesPanelController) Help(labels presentation.KeyLabels) []HelpSect
 	return reviewScreenHelp(self.c, presentation.PanelNames(tr)[context.NotesPanel], rows, labels)
 }
 
-// Hints are what the bar shows of the Notes panel's keys: the queue's only
-// where there is a queue to post.
+// Hints are what the bar shows of the Notes panel's keys, by the row
+// selected: a queued comment's, and posting on a row of a pull request,
+// only where there is a queue to post.
 func (self *NotesPanelController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
-		if !canPost(s) {
-			return [][2]string{{labels.Of("open"), tr.Open}, panelsHint(self.c, labels)}
+		open, post, panels := [2]string{labels.Of("open"), tr.Open}, [2]string{labels.Of("post"), tr.Post}, panelsHint(self.c, labels)
+		row, _ := s.Side(context.NotesPanel).Selected()
+		switch {
+		case !canPost(s):
+			return [][2]string{open, panels}
+		case row.Item.Kind == "comment":
+			return [][2]string{open, {labels.Of("edit"), tr.Edit}, {labels.Of("drop"), tr.Drop}, post, panels}
+		case row.Item.Pull != 0:
+			return [][2]string{open, post, panels}
 		}
-		return [][2]string{{labels.Of("open"), tr.Open}, {labels.Of("edit"), tr.Edit}, {labels.Of("drop"), tr.Drop}, {labels.Of("post"), tr.Post}, panelsHint(self.c, labels)}
+		return [][2]string{open, panels}
 	})
 }

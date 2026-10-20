@@ -27,10 +27,11 @@ func NewDiffContext(files map[string]models.File, numbers presentation.LineNumbe
 }
 
 // Rebuilt is the diff of files made again from the review, its cursor kept
-// on its place, shown in a height. Its code goes back to the first column
-// when the files are not the ones it showed.
+// on its place, as far into a note's text as it was, or on the line a note
+// hung from once the note is gone, shown in a height. Its code goes back to
+// the first column when the files are not the ones it showed.
 func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown, loc *time.Location, d types.ReviewData, files []models.FileEntry, filter types.PullFilter, height int) DiffContext {
-	was, before := v.Place(), v.paths()
+	was, into, hung, before := v.Place(), v.intoNote(), v.hungFrom(), v.paths()
 	v.Rows = presentation.BuildDiff(tr, md, loc, d, v.DiffView, files, filter)
 	if !slices.Equal(before, v.paths()) {
 		v.Left = 0
@@ -39,7 +40,46 @@ func (v DiffContext) Rebuilt(tr *i18n.TranslationSet, md *presentation.Markdown,
 	if was != nil {
 		v = v.Find(*was)
 	}
+	if now := v.Place(); hung != nil && (now == nil || *now != *was) {
+		v = v.Find(*hung)
+	}
+	for r := v.Rows; into > 0 && v.Cursor+1 < len(r) && r[v.Cursor+1].Kind == "notetext" && r[v.Cursor+1].Key == r[v.Cursor].Key; into-- {
+		v.Cursor++
+	}
 	return v.Shown(height)
+}
+
+// intoNote is how many rows of its note's text are above the cursor, when
+// it is on that text.
+func (v DiffContext) intoNote() int {
+	if v.Cursor >= len(v.Rows) || v.Rows[v.Cursor].Kind != "notetext" {
+		return 0
+	}
+	n := 0
+	for i := v.Cursor - 1; i >= 0 && v.Rows[i].Kind == "notetext" && v.Rows[i].Key == v.Rows[v.Cursor].Key; i-- {
+		n++
+	}
+	return n
+}
+
+// hungFrom is the place of the row a note at the cursor hangs under, or nil
+// when the cursor is on no note.
+func (v DiffContext) hungFrom() *models.Lines {
+	if v.Cursor >= len(v.Rows) || !isNote(v.Rows[v.Cursor]) {
+		return nil
+	}
+	path := v.Rows[v.Cursor].Path
+	for i := v.Cursor - 1; i >= 0 && v.Rows[i].Path == path; i-- {
+		if !isNote(v.Rows[i]) {
+			v.Cursor = i
+			return v.Place()
+		}
+	}
+	return nil
+}
+
+func isNote(r presentation.DiffRow) bool {
+	return r.Kind == "notehead" || r.Kind == "notetext"
 }
 
 // Place is where the cursor is, as lines of a file or one of its parts.
