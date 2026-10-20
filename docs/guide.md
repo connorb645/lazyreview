@@ -111,7 +111,7 @@ a pull request link. A pull request that no review holds yet is loaded first,
 as `load` loads it, so one command opens it. A review id, such as
 `github.com/owner/repo/12`, works too, and so does an address an older
 lazyreview printed, such as `http://127.0.0.1:4747/review/github.com/owner/repo/12`.
-lazyreview is a Go program in `terminal/`. `bin/lazyreview` builds it on
+lazyreview is one Go program. `bin/lazyreview` builds it on
 this machine the first time it runs and again whenever its code changes,
 saying `building lazyreview…` first; building it needs Go 1.24 or later,
 and its libraries are vendored, so the build reaches no network.
@@ -404,10 +404,10 @@ The code takes lazygit's layers: the commands that run other programs sit
 apart from the logic that uses them, and the logic apart from what the user
 sees. [lazyreview and lazygit](lazygit.md) maps each part to lazygit's own.
 
-- `bin/lazyreview` builds the Go program in `terminal/` when its code
-  changed, then runs it in its own process.
-- `terminal/` is lazyreview, in Go with Bubble Tea, Lip Gloss, Bubbles and
-  Glamour, laid out as lazygit's own. `internal/cli` reads the command line
+- `bin/lazyreview` builds the Go program, as `bin/.lazyreview`, when its
+  code changed, then runs it in its own process.
+- `main.go` and `internal/` are lazyreview, in Go with Bubble Tea, Lip
+  Gloss, Bubbles and Glamour, laid out as lazygit's own. `internal/cli` reads the command line
   and `internal/app` runs each command. `internal/gui` is the terminal app,
   with its views, contexts, controllers and presentation,
   `internal/i18n/english.go` holds every word, and `internal/theme` the
@@ -417,17 +417,16 @@ sees. [lazyreview and lazygit](lazygit.md) maps each part to lazygit's own.
   `internal/ask`. `internal/config` reads the config, `internal/home` lists
   the home screen, and `internal/loader` loads a review, building its page
   in `internal/build` and laying out the diagram itself.
-- `terminal/cmd/land` lands a branch, for `make land`.
+- `cmd/land` lands a branch, for `make land`.
 
-Run the tests with `go test ./...` in `terminal/`. They make their own
+Run the tests with `go test ./...`. They make their own
 throwaway repositories and answer for GitHub and Claude Code with
 stand-ins, so they reach no network. The screen tests read the app's
-answers from `terminal/testdata/record.json`. A Go test makes them from its
+answers from `testdata/record.json`. A Go test makes them from its
 own loads into a stand-in data home, and fails when they differ from the
 record; when what the app answers changes,
-`LAZYREVIEW_RECORD=1 go test ./internal/reviews` in `terminal/` writes it
-again, with the data home, GitHub's answers and Claude's questions it was
-made from. The other records in `terminal/testdata` hold how lazyreview
+`LAZYREVIEW_RECORD=1 go test ./internal/reviews` writes it again, with the data home, GitHub's answers and Claude's questions it was
+made from. The other records in `testdata` hold how lazyreview
 reads made-up code, stacks, configs, pages and whole loads, each with the
 commits that make its repository, and what its config commands print; Go
 tests build the same repositories and fail on any answer that differs. A

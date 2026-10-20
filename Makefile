@@ -19,7 +19,7 @@ run:
 	@"$(root)bin/lazyreview" terminal $(if $(URL),"$(URL)")
 
 land:
-	@go -C "$(root)terminal" run -mod=vendor ./cmd/land "$(BRANCH)"
+	@go -C "$(root)" run -mod=vendor ./cmd/land "$(BRANCH)"
 
 restart:
 	@"$(root)bin/lazyreview" stop

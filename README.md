@@ -27,7 +27,8 @@ libraries are in the repository, so it reaches no network except through
     bin/lazyreview load https://github.com/owner/repo/pull/12
 
 `bin/lazyreview` builds the program the first time it runs, and again
-whenever its code changes. `load` prints the review's address, such as
+whenever its code changes. `go install github.com/connorb645/lazyreview@latest`
+installs it on its own, as `lazyreview`. `load` prints the review's address, such as
 `lazyreview://github.com/owner/repo/12`. lazyreview runs no server: the
 program reads and writes the data home itself.
 
@@ -58,8 +59,7 @@ says where it is.
 terminal app, components and packages, and where the data is kept.
 [Config](docs/Config.md) lists every setting of the config.
 
-Run the tests with `go test ./...` in `terminal/`. The tests reach no
-network.
+Run the tests with `go test ./...`. The tests reach no network.
 
 In a clone, `make run` opens the terminal app on the home screen, and
 `make run URL=<address>` opens the review at an address `load` or `list`
@@ -72,4 +72,4 @@ is still giving.
 
 ## Licence
 
-MIT. The libraries in `terminal/vendor/` keep their own licences.
+MIT. The libraries in `vendor/` keep their own licences.

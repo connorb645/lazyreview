@@ -1,8 +1,8 @@
 #!/bin/sh
-# lazyreview: builds the Go program in ../terminal the first time it runs,
-# and again whenever its code changes, then runs it with the same
-# arguments, in this process. Its code is the module's own Go files, and
-# what pins its libraries. Run `lazyreview help` for the commands.
+# lazyreview: builds the Go program of this repository, as bin/.lazyreview,
+# the first time it runs and again whenever its code changes, then runs it
+# with the same arguments, in this process. Its code is the module's own Go
+# files, and what pins its libraries. Run `lazyreview help` for the commands.
 
 self=$0
 while [ -L "$self" ]; do
@@ -12,13 +12,13 @@ while [ -L "$self" ]; do
     *) self=$(dirname "$self")/$link ;;
   esac
 done
-module=$(cd "$(dirname "$self")/../terminal" && pwd -P) || exit 1
-program=$module/bin/lazyreview
+module=$(cd "$(dirname "$self")/.." && pwd -P) || exit 1
+program=$module/bin/.lazyreview
 
 stale() {
   [ -x "$program" ] || return 0
   newer=$({
-    find "$module" \( -name bin -o -name vendor -o -name testdata \) -prune \
+    find "$module" \( -name .git -o -name bin -o -name vendor -o -name testdata \) -prune \
       -o -type f -name '*.go' ! -name '*_test.go' -newer "$program" -print
     for pin in "$module/go.mod" "$module/go.sum" "$module/vendor/modules.txt"; do
       [ -f "$pin" ] && find "$pin" -newer "$program" -print

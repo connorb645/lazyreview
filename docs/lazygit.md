@@ -38,7 +38,7 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 ### What lazyreview adopts, and where
 
-- `terminal/main.go` hands the command line to `internal/app`, which runs
+- `main.go` hands the command line to `internal/app`, which runs
   one command; for `terminal` it builds `Common`, the reviews and the gui,
   then runs Bubble Tea.
 - `internal/common` holds `Common`: the strings, the terminal app's part
@@ -175,17 +175,17 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 - `config.yml` in lazygit's place: on macOS
   `~/Library/Application Support/lazyreview/config.yml`, by the same order
-  of folders. `terminal/internal/config/find_config_file.go` finds it.
-- `terminal/internal/config/schema.go` holds every setting once: its
+  of folders. `internal/config/find_config_file.go` finds it.
+- `internal/config/schema.go` holds every setting once: its
   default, its check, the variable that overrides it and the words that
   describe it. The reader, `docs/Config.md` and `schema/config.json` are
   made from it; `go generate ./internal/config` writes the docs, as
   lazygit writes its own, and a test fails when they are out of date.
-- `terminal/internal/config` reads the file onto the defaults with YAML's
+- `internal/config` reads the file onto the defaults with YAML's
   core schema, through goccy/go-yaml, merging maps key by key and replacing
   lists whole, and checks every setting. A test holds it to the values and
-  words recorded in `terminal/testdata/configs.json`. `config check` and
-  `config move` write YAML as `terminal/testdata/config-commands.json`
+  words recorded in `testdata/configs.json`. `config check` and
+  `config move` write YAML as `testdata/config-commands.json`
   records it.
 - `gui.theme` with lazygit's colour names where the role is the same, and
   `keybinding` with lazygit's way of writing keys.

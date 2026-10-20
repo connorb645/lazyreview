@@ -1,0 +1,168 @@
+package controllers
+
+import (
+	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/connorb645/lazyreview/internal/gui/context"
+	"github.com/connorb645/lazyreview/internal/gui/controllers/helpers"
+	"github.com/connorb645/lazyreview/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/internal/utils"
+)
+
+// ReviewViewController binds the keys of the Review view in the main
+// panel: the review's sections, queued comments, conversations and links.
+type ReviewViewController struct {
+	baseController
+	c *helpers.HelperCommon
+}
+
+// NewReviewViewController binds the keys of the Review view.
+func NewReviewViewController(c *helpers.HelperCommon) *ReviewViewController {
+	return &ReviewViewController{c: c}
+}
+
+// Context is the Review view's.
+func (self *ReviewViewController) Context() context.ContextKey {
+	return context.ReviewViewKey
+}
+
+// Bindings are the keys of every place of a review, and the Review view's
+// own.
+func (self *ReviewViewController) Bindings() []Binding {
+	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
+	own := []Binding{
+		{Action: "down", Keys: kb.ReviewView.Down, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+			return v.Move(count.N, height)
+		}), Description: tr.Down},
+		{Action: "up", Keys: kb.ReviewView.Up, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+			return v.Move(-count.N, height)
+		}), Description: tr.Up},
+		{Action: "top", Keys: kb.ReviewView.Top, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+			if count.Typed {
+				return v.To(count.N-1, height)
+			}
+			return v.To(0, height)
+		}), Description: tr.Top},
+		{Action: "bottom", Keys: kb.ReviewView.Bottom, Handler: self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+			if count.Typed {
+				return v.To(count.N-1, height)
+			}
+			return v.To(len(v.Items)-1, height)
+		}), Description: tr.Bottom},
+		{Action: "half down", Keys: kb.ReviewView.HalfDown, Handler: self.paged(true, false), Description: tr.HalfPageDown},
+		{Action: "half up", Keys: kb.ReviewView.HalfUp, Handler: self.paged(true, true), Description: tr.HalfPageUp},
+		{Action: "page down", Keys: kb.ReviewView.PageDown, Handler: self.paged(false, false), Description: tr.PageDown},
+		{Action: "page up", Keys: kb.ReviewView.PageUp, Handler: self.paged(false, true), Description: tr.PageUp},
+		{Action: "next section", Keys: kb.ReviewView.NextSection, Handler: self.section(false), Description: tr.NextSection},
+		{Action: "previous section", Keys: kb.ReviewView.PreviousSection, Handler: self.section(true), Description: tr.PreviousSection},
+		{Action: "fold", Keys: kb.ReviewView.Fold, Handler: stateOnly(self.fold), Description: tr.Fold},
+		{Action: "open", Keys: kb.ReviewView.Open, Handler: uncounted(self.open), Description: tr.Open},
+		{Action: "edit", Keys: kb.ReviewView.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
+		{Action: "drop", Keys: kb.ReviewView.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
+		{Action: "post", Keys: kb.ReviewView.Post, Handler: stateOnly(self.post), Description: tr.Post},
+		{Action: "drawings", Keys: kb.ReviewView.Drawings, Handler: uncounted(h.Browser.OpenDrawings), Description: tr.Drawings},
+	}
+	return join(reviewScreenBindings(self.c), withReviewAll(own))
+}
+
+func (self *ReviewViewController) moved(move func(v context.Scroller, count Count, height int) context.Scroller) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		s.ReviewView.View = move(s.ReviewView.View, count, self.c.Helpers.Window.MainHeight(s))
+		return s, nil
+	}
+}
+
+func (self *ReviewViewController) paged(half, up bool) Handler {
+	return self.moved(func(v context.Scroller, count Count, height int) context.Scroller {
+		return v.Paged(pageBy(height, half, up)*count.N, height)
+	})
+}
+
+func (self *ReviewViewController) section(back bool) Handler {
+	return func(s context.ContextTree, count Count) (context.ContextTree, tea.Cmd) {
+		s.ReviewView = s.ReviewView.Section(back, count.N, self.c.Helpers.Window.MainHeight(s))
+		return s, nil
+	}
+}
+
+func (self *ReviewViewController) open(s context.ContextTree) (context.ContextTree, tea.Cmd) {
+	h, v := self.c.Helpers, s.ReviewView.View
+	if v.Cursor >= len(v.Items) {
+		return s, nil
+	}
+	it := v.Items[v.Cursor]
+	switch {
+	case it.Kind == "section":
+		return self.fold(s), nil
+	case it.Kind == "component":
+		s = h.Jump.Leave(s)
+		s = s.Focused(s.Focus(), context.FilesPanel)
+		return h.Diff.OpenComponent(s, it.Component, nil)
+	case it.Place != nil:
+		s = h.Jump.Leave(s)
+		s = s.Focused(s.Focus(), context.FilesPanel)
+		if it.Kind == "comment" || it.Kind == "thread" || it.Kind == "conversation" {
+			s = s.Focused(s.Focus(), context.NotesPanel)
+		}
+		return h.Diff.OpenFile(s, it.Place.Path, it.Place)
+	}
+	return s, nil
+}
+
+func (self *ReviewViewController) fold(s context.ContextTree) context.ContextTree {
+	id := s.ReviewView.SectionAt()
+	if id == "" {
+		return s
+	}
+	folded := utils.CopyBools(s.ReviewView.Folded)
+	folded[id] = !folded[id]
+	s.ReviewView.Folded = folded
+	for i, it := range s.ReviewView.View.Items {
+		if it.Kind == "section" && it.Section == id {
+			s.ReviewView.View.Cursor = i
+		}
+	}
+	return self.c.Helpers.Refresh.Relaid(s)
+}
+
+func (self *ReviewViewController) post(s context.ContextTree) context.ContextTree {
+	pull := 0
+	if v := s.ReviewView.View; v.Cursor < len(v.Items) {
+		pull = v.Items[v.Cursor].Pull
+	}
+	return self.c.Helpers.Posting.Open(s, pull)
+}
+
+// Help is the Review view's keys, then those of every panel.
+func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSection {
+	tr := self.c.Tr
+	rows := []presentation.HelpRow{
+		{Keys: labels.Of("down", "up"), Words: tr.HelpItemsMove},
+		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
+		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
+		{Keys: labels.Of("next section", "previous section"), Words: tr.HelpSections},
+		{Keys: utils.ResolvePlaceholderString(tr.HelpLineEndsKeys, map[string]string{"top": labels.Of("top"), "bottom": labels.Of("bottom")}), Words: tr.HelpItemsEnds},
+		{Keys: labels.Of("open"), Words: tr.HelpOpenItem},
+		{Keys: labels.Of("fold"), Words: tr.HelpFoldSection},
+		{Keys: labels.Of("edit", "drop"), Words: tr.HelpEditDrop},
+		{Keys: labels.Of("post"), Words: tr.HelpPostAtCursor},
+		{Keys: labels.Of("drawings"), Words: tr.HelpDrawings},
+	}
+	return reviewScreenHelp(self.c, tr.ReviewTitle, rows, labels)
+}
+
+// Hints are what the bar shows of the Review view's keys: posting and the
+// queued comment's keys on a pull request's item, folding on others.
+func (self *ReviewViewController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
+	return reviewScreenHints(self.c, s, labels, func() [][2]string {
+		tr := self.c.Tr
+		move, open, sections, list := [2]string{labels.Of("down", "up"), tr.Move}, [2]string{labels.Of("open"), tr.Open}, [2]string{labels.Of("next section", "previous section"), tr.Sections}, [2]string{labels.Nth("close", 1), tr.List}
+		if v := s.ReviewView.View; v.Cursor < len(v.Items) && v.Items[v.Cursor].Pull != 0 {
+			if !canPost(s) {
+				return [][2]string{move, open, sections, list}
+			}
+			return [][2]string{move, open, {labels.Of("post"), tr.Post}, {labels.Of("edit", "drop"), tr.EditDrop}, sections, list}
+		}
+		return [][2]string{move, open, sections, {labels.Of("fold"), tr.Fold}, list}
+	})
+}
