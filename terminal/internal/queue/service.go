@@ -288,7 +288,7 @@ func (s *Service) problemsIn(gh *github.GitHub, rev models.Review, member models
 		problems = append(problems, utils.ResolvePlaceholderString(s.tr.PullIsEnded, map[string]string{"pull": strconv.Itoa(member.Pull), "state": state}))
 	}
 	if now.Head.Sha != member.Head {
-		problems = append(problems, utils.ResolvePlaceholderString(s.tr.HeadMovedFrom, map[string]string{"from": prefix(member.Head, 9), "to": prefix(now.Head.Sha, 9)}))
+		problems = append(problems, utils.ResolvePlaceholderString(s.tr.HeadMovedFrom, map[string]string{"from": prefix(member.Head, 8), "to": prefix(now.Head.Sha, 8)}))
 	}
 	places := map[string]Places{}
 	if len(comments) > 0 {

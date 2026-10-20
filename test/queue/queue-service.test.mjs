@@ -189,7 +189,7 @@ test('nothing is posted to a closed pull request, a moved head, a stale comment 
     w.repo.commit('fix/wording', { 'docs/guide.md': '# Guide\n\nAll items.\n' }, 'more');
     w.repo.checkout('main');
     w.routes();
-    await assert.rejects(w.queue.post(ref(30), { build: built(w, 30), pull: 30, action: 'comment', set: shown.comment }), /the head moved from [0-9a-f]{9} to [0-9a-f]{9}/);
+    await assert.rejects(w.queue.post(ref(30), { build: built(w, 30), pull: 30, action: 'comment', set: shown.comment }), /the head moved from [0-9a-f]{8} to [0-9a-f]{8}(?![0-9a-f])/);
     await w.loader.load({ links: [w.link(30)] });
     assert.deepEqual(Object.keys(sets(w, 30)), ['approve'], 'a stale comment takes away the buttons that would send it');
     assert.deepEqual(posts(w), []);

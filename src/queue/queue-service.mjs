@@ -152,7 +152,7 @@ async function problemsIn(gh, review, member, comments) {
   const now = await gh.pull(review.repo, member.pull);
   const problems = [];
   if (now.state !== 'open') problems.push(english.queue.pullEnded(member.pull, now.merged_at ? 'merged' : now.state));
-  if (now.head.sha !== member.head) problems.push(english.queue.headMovedFrom(member.head.slice(0, 9), now.head.sha.slice(0, 9)));
+  if (now.head.sha !== member.head) problems.push(english.queue.headMovedFrom(member.head.slice(0, 8), now.head.sha.slice(0, 8)));
   const places = comments.length ? await filePlaces(gh, review.repo, member.pull) : {};
   for (const comment of comments) {
     const where = english.queue.comment(comment.id, comment.path, comment.line);

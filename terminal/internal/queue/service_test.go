@@ -266,7 +266,7 @@ func TestNothingIsPostedToAClosedPullRequestAMovedHeadOrOnesOwnPullRequest(t *te
 		pull["head"].(map[string]any)["sha"] = strings.Repeat("f", 40)
 	})
 	_, err = s.queue.Post(single, 30, "comment", shown["comment"].Set, s.build(single))
-	refusedLike(t, err, `the head moved from [0-9a-f]{9} to fffffffff`)
+	refusedLike(t, err, `the head moved from [0-9a-f]{8} to ffffffff\b`)
 	if len(s.gh.Posts()) != 0 {
 		t.Fatalf("posted %v", s.gh.Posts())
 	}
