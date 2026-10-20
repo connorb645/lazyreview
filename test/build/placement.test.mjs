@@ -44,6 +44,17 @@ test('a folder one subfolder dominates splits into that subfolder\'s parts, with
   assert.deepEqual(groupByFolder(flat, { splitAbove: 8, balanced: true }).map(g => g.folder), [''], 'a dominant folder with nothing to split into stays whole');
 });
 
+test('beside a dominant folder, the small groups and everything else are one Other files component, each file once', () => {
+  const paths = [];
+  for (const part of ['a', 'b', 'c']) for (let i = 0; i < 27; i++) paths.push(`big/${part}/P${i}.swift`);
+  for (let i = 0; i < 3; i++) paths.push(`big/small/S${i}.swift`);
+  for (const side of ['x', 'y', 'z']) for (let i = 0; i < 5; i++) paths.push(`${side}/H${i}.swift`);
+  for (let i = 0; i < 5; i++) paths.push(`T${i}.swift`);
+  const { components, placement } = placeFiles(paths, readConfig(undefined), {});
+  assert.deepEqual(components.map(c => [c.title, c.size]), [['a', 27], ['b', 27], ['c', 27], ['Other files', 23]]);
+  assert.deepEqual(new Set([...placement.values()].map(p => p.component)), new Set(components.map(c => c.id)));
+});
+
 test('a small diff with no config is one component named after the repository', () => {
   const { components } = placeFiles(['Sources/Core/A.swift', 'Tests/CoreTests/ATests.swift'], readConfig(undefined), { rootTitle: 'core' });
   assert.deepEqual(components.map(c => [c.id, c.title]), [['root', 'core']]);

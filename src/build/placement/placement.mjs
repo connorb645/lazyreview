@@ -110,7 +110,7 @@ function mergeSmall(groups) {
   if (groups.length <= 3) return groups;
   const small = groups.filter(g => g.paths.length <= 3 || g.folder === null);
   if (small.length < 2) return groups;
-  return [...groups.filter(g => g.paths.length > 3), { folder: null, paths: small.flatMap(g => g.paths) }];
+  return [...groups.filter(g => g.paths.length > 3 && g.folder !== null), { folder: null, paths: small.flatMap(g => g.paths) }];
 }
 
 function titleFor(folder, groups) {
