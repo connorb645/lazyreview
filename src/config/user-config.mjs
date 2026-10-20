@@ -17,11 +17,12 @@
  * the file replaces the default whole, as lazygit's YAML reader merges.
  *
  * terminalPart(config, env) is what the terminal app is handed: the file's
- * path, the data home, the editor, chosen from LAZYREVIEW_EDITOR, then os.editor, then
- * VISUAL, then EDITOR, then vi, the theme's colours, each as text, how the
- * diff numbers its lines, and the keys of every place, each action's as a list of its key sequences as the
- * terminal app's key reader names them; a numbered list keeps its places,
- * with "" for a place that has no key.
+ * path, the data home, the editor, chosen from LAZYREVIEW_EDITOR, then
+ * os.editor, then VISUAL, then EDITOR, then vi, the Claude Code command and
+ * model it asks, the theme's colours, each as text, how the diff numbers
+ * its lines, and the keys of every place, each action's as a list of its
+ * key sequences as the terminal app's key reader names them; a numbered
+ * list keeps its places, with "" for a place that has no key.
  */
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -56,7 +57,8 @@ export function readUserConfig({ env = process.env, platform = process.platform,
 
 export function terminalPart(config, env) {
   return {
-    path: config.path, dataHome: config.values.dataHome, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi', theme: config.values.gui.theme,
+    path: config.path, dataHome: config.values.dataHome, editor: config.values.os.editor || env.VISUAL || env.EDITOR || 'vi',
+    claude: { command: config.values.claude.command, model: config.values.claude.model }, theme: config.values.gui.theme,
     lineNumbers: config.values.gui.lineNumbers, keybinding: readerNames(config.values.keybinding),
   };
 }

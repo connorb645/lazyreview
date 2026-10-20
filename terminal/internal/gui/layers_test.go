@@ -15,7 +15,7 @@ import (
 const internal = "github.com/connorb645/lazyreview/terminal/internal/"
 
 var mayUse = map[string][]string{
-	"app":          {"gui", "controllers", "helpers", "context", "presentation", "views", "types", "reviews", "logic", "store", "server", "github", "oscommands", "diagram", "shared"},
+	"app":          {"gui", "controllers", "helpers", "context", "presentation", "views", "types", "reviews", "logic", "store", "server", "github", "claude", "git", "oscommands", "diagram", "shared"},
 	"gui":          {"controllers", "helpers", "context", "presentation", "views", "types", "oscommands", "diagram", "shared"},
 	"controllers":  {"helpers", "context", "presentation", "views", "types", "diagram", "shared"},
 	"helpers":      {"context", "presentation", "views", "types", "oscommands", "diagram", "shared"},
@@ -25,10 +25,12 @@ var mayUse = map[string][]string{
 	"types":        {"shared"},
 	"diagram":      {"shared"},
 	"reviews":      {"logic", "store", "server", "github", "shared"},
-	"logic":        {"store", "github", "shared"},
+	"logic":        {"store", "github", "claude", "git", "shared"},
 	"store":        {"shared"},
 	"server":       {"shared"},
 	"github":       {"shared"},
+	"claude":       {"shared"},
+	"git":          {"shared"},
 	"oscommands":   {"shared"},
 	"testsupport":  {"github", "shared"},
 	"shared":       {},
@@ -40,7 +42,7 @@ func layerOf(pkg string) string {
 	switch pkg {
 	case "app", "gui", "diagram", "reviews", "store", "testsupport":
 		return pkg
-	case "queue", "review":
+	case "queue", "review", "ask":
 		return "logic"
 	case "gui/controllers":
 		return "controllers"
@@ -58,6 +60,10 @@ func layerOf(pkg string) string {
 		return "server"
 	case "commands/github":
 		return "github"
+	case "commands/claude":
+		return "claude"
+	case "commands/git":
+		return "git"
 	case "commands/oscommands":
 		return "oscommands"
 	}
@@ -67,9 +73,10 @@ func layerOf(pkg string) string {
 // Each package imports only the layers below its own, as lazygit's
 // dependency rule has them, the shared packages, such as the models, being
 // below all, and only tests use testsupport. The gui reaches reviews only
-// through the Reviews it is given; the reviews reach the queue's and a
-// review's logic, which reach the store and GitHub. Of the server, only the
-// app's start and the reviews hold a client.
+// through the Reviews it is given; the reviews reach the logic of the queue,
+// of a review and of asking Claude, which reach the store, GitHub, git and
+// Claude Code. Of the server, only the app's start and the reviews hold a
+// client.
 func TestEachLayerImportsOnlyTheLayersBelowIt(t *testing.T) {
 	root := ".."
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {

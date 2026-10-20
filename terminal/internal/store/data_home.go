@@ -5,6 +5,7 @@ package store
 
 import (
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/connorb645/lazyreview/terminal/internal/models"
@@ -14,6 +15,11 @@ import (
 //
 //	reviews/<host>/<owner>/<repo>/<pull>/  one folder per pull request review
 //	reviews/local/<repo key>/<branch>/      one folder per branch review
+//	clones/<host>/<owner>/<repo>.git       a bare clone per repository
+//	clones/local/<repo key>.git            a bare clone per repository on
+//	                                       this machine, for Claude's copies
+//	copies/<review id>/<conversation>/     a throwaway copy of the code that
+//	                                       Claude answers a conversation in
 //
 // It only names paths, and reads and writes nothing.
 type DataHome struct {
@@ -28,4 +34,26 @@ func (h DataHome) Reviews() string {
 // Review is the folder of the review a ref names.
 func (h DataHome) Review(ref models.ReviewRef) ReviewFolder {
 	return ReviewFolder{Path: filepath.Join(append([]string{h.Reviews()}, strings.Split(ref.ID(), "/")...)...)}
+}
+
+// Clone is the bare clone of repo, owner/name, on host.
+func (h DataHome) Clone(host, repo string) string {
+	return filepath.Join(h.Root, "clones", host, repo+".git")
+}
+
+// LocalClone is the bare clone of a repository on this machine, by its
+// branch ref's repository key.
+func (h DataHome) LocalClone(repoKey string) string {
+	return filepath.Join(h.Root, "clones", "local", repoKey+".git")
+}
+
+// Copies is the folder holding every throwaway copy of the code.
+func (h DataHome) Copies() string {
+	return filepath.Join(h.Root, "copies")
+}
+
+// Copy is the throwaway copy of the code for conversation n of the review
+// a ref names.
+func (h DataHome) Copy(ref models.ReviewRef, n int) string {
+	return filepath.Join(append(append([]string{h.Copies()}, strings.Split(ref.ID(), "/")...), strconv.Itoa(n))...)
 }

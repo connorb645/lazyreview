@@ -46,7 +46,7 @@ func (s *Service) Where(ref models.ReviewRef, at models.Lines, pull int, build s
 	if drawn != nil {
 		current = drawn.Build
 	}
-	if problem := BuildProblem(s.tr, current, build); problem != "" {
+	if problem := store.BuildProblem(s.tr, current, build); problem != "" {
 		return models.Where{Refused: capital(problem) + "."}, nil
 	}
 	return Target(s.tr, *rev, drawn.Page, at, pull), nil
@@ -242,19 +242,6 @@ func (s *Service) post(rev *models.Review, gh *github.GitHub, pull int, action, 
 	return &Posting{Message: message, Review: posted.HTMLURL}, nil
 }
 
-// BuildProblem says why a window drawn from build given may not change a
-// review whose page is now build current, or "" when it may: its line
-// numbers may name other code now.
-func BuildProblem(tr *i18n.TranslationSet, current, given string) string {
-	if given == "" {
-		return tr.NoBuild
-	}
-	if given != current {
-		return tr.LoadedAgainSince
-	}
-	return ""
-}
-
 func (s *Service) change(ref models.ReviewRef, build, refusedWords string, online bool, work func(*models.Review, *github.GitHub) (*Posting, error)) error {
 	return s.store.Change([]models.ReviewRef{ref}, func() ([]store.FileWrite, error) {
 		rev, err := s.store.Read(ref)
@@ -265,7 +252,7 @@ func (s *Service) change(ref models.ReviewRef, build, refusedWords string, onlin
 		if err != nil {
 			return nil, err
 		}
-		if problem := BuildProblem(s.tr, current, build); problem != "" {
+		if problem := store.BuildProblem(s.tr, current, build); problem != "" {
 			return nil, s.refused(refusedWords, problem)
 		}
 		var gh *github.GitHub

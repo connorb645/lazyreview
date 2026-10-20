@@ -327,7 +327,8 @@ and keeps one Claude Code session, so a follow-up goes on from what Claude
 found. A guard refuses anything that would change something outside the
 copy, or leave the machine as a change, such as a push, a comment on GitHub
 or a request that writes; reading stays allowed. While Claude works, the bar
-says so and the conversation shows its latest steps; `x` stops it. Each
+says so and the conversation shows its latest steps; `x` stops it. An answer
+goes on when the app quits, and shows when the review opens again. Each
 answer keeps the steps Claude took, and a refused step says why.
 
 The review threads already on GitHub, colleagues', bots' and your own, sit
@@ -405,8 +406,9 @@ maps each part to lazygit's own.
   (`vendor/`). `src/queue` holds the queue's rules and the one way a review
   is posted; `src/review` reads a written review and places GitHub's review
   threads; `src/ask` asks Claude; `src/home` lists the open pull requests.
-  The terminal app now queues and posts itself; the server's queue stays as
-  the reference its answers are checked against until the server goes.
+  The terminal app now queues, posts and asks Claude itself; the server's
+  queue and conversations stay as the reference its answers are checked
+  against until the server goes.
 - `src/store` keeps the files on disk, and `src/config` reads the config.
 - `src/server` serves the JSON the terminal app reads and changes reviews
   through. `src/i18n/english.mjs` holds every sentence of the command and
@@ -416,7 +418,8 @@ maps each part to lazygit's own.
   contexts, controllers and presentation, `internal/i18n/english.go` for its
   words and `internal/theme` for its colours. It reads and changes reviews in
   the data home itself, through `internal/store`, `internal/review`,
-  `internal/queue` and `internal/reviews`, and posts through `gh`.
+  `internal/queue` and `internal/reviews`, posts through `gh`, and asks
+  Claude through `internal/ask`.
   `lazyreview terminal` builds it and runs it.
 
 Run the tests with `npm test`, and the terminal app's with `npm run

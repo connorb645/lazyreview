@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync, realpathSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { request } from 'node:http';
@@ -22,6 +22,8 @@ const CONFIG = join(dirname(RECORD), 'config.json');
 // code that answers in the server's place reads them, and gives the same answers.
 const HOME = join(dirname(RECORD), 'home');
 const ROUTES = join(dirname(RECORD), 'github.json');
+const ASKED = join(dirname(RECORD), 'asked.json');
+const STAND_IN_HOME = '/home/reviewer/.lazyreview';
 const STAND_IN_ORIGIN = '/stand-in/origin.git';
 const STACK = 'github.com/octo/widgets/21';
 const SINGLE = 'github.com/octo/widgets/30';
@@ -216,7 +218,13 @@ async function recordAnswers() {
         const [method, path, body] = change;
         answers[key(method, path, body)] = await send(address, method, path, body);
       }
-      return { answers, home: dataHome, routes };
+      // Each question the stand-in Claude was asked, in turn, with the data home it ran under named as the stand-in's.
+      const roots = [realpathSync(w.home.root), w.home.root].sort((a, b) => b.length - a.length);
+      const asked = fake.asked().map(c => ({
+        system: c.args[c.args.indexOf('--append-system-prompt') + 1],
+        prompt: roots.reduce((text, root) => text.replaceAll(root, STAND_IN_HOME), c.prompt),
+      }));
+      return { answers, home: dataHome, routes, asked };
     } finally {
       await server.close();
     }
@@ -250,7 +258,7 @@ function filesUnder(root, folder) {
 }
 
 test('the server answers the terminal app is tested against are the ones it gives now', async () => {
-  const { answers: now, home, routes } = await recordAnswers();
+  const { answers: now, home, routes, asked } = await recordAnswers();
   if (process.env.LAZYREVIEW_RECORD) {
     mkdirSync(dirname(RECORD), { recursive: true });
     writeFileSync(RECORD, JSON.stringify(now, null, 1) + '\n');
@@ -259,6 +267,7 @@ test('the server answers the terminal app is tested against are the ones it give
       writeFileSync(join(HOME, path), text);
     }
     writeFileSync(ROUTES, JSON.stringify(routes, null, 1) + '\n');
+    writeFileSync(ASKED, JSON.stringify(asked, null, 1) + '\n');
     return;
   }
   for (const [path, text] of Object.entries(home)) {
@@ -266,6 +275,7 @@ test('the server answers the terminal app is tested against are the ones it give
       `${relative(dirname(RECORD), join(HOME, path))} is not the data home the answers come from; write it again with LAZYREVIEW_RECORD=1 npm test`);
   }
   assert.deepEqual(JSON.parse(readFileSync(ROUTES, 'utf8')), routes, `${ROUTES} is not the routes the answers come from; write it again with LAZYREVIEW_RECORD=1 npm test`);
+  assert.deepEqual(JSON.parse(readFileSync(ASKED, 'utf8')), asked, `${ASKED} is not the questions Claude was asked; write it again with LAZYREVIEW_RECORD=1 npm test`);
   let recorded;
   try {
     recorded = JSON.parse(readFileSync(RECORD, 'utf8'));

@@ -1,7 +1,7 @@
 // Package reviews is what the terminal app reads and changes reviews
 // through. It reads a review's state, its page and each file from the data
-// home, and keeps its queue, itself; the server still asks Claude, loads
-// reviews and lists the open pull requests.
+// home, keeps its queue and its conversations with Claude, itself; the
+// server still loads reviews and lists the open pull requests.
 package reviews
 
 import (
@@ -9,6 +9,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/connorb645/lazyreview/terminal/internal/ask"
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/models"
@@ -25,13 +26,15 @@ type Reviews struct {
 	tr     *i18n.TranslationSet
 	store  *store.ReviewStore
 	queue  *queue.Service
+	asking *ask.Service
 	server *server.Client
 }
 
-// New returns the reviews kept in store, whose queues queue changes, asking
-// the server for what it still does.
-func New(tr *i18n.TranslationSet, reviews *store.ReviewStore, q *queue.Service, s *server.Client) *Reviews {
-	return &Reviews{tr: tr, store: reviews, queue: q, server: s}
+// New returns the reviews kept in store, whose queues queue changes and
+// whose conversations asking keeps, asking the server for what it still
+// does.
+func New(tr *i18n.TranslationSet, reviews *store.ReviewStore, q *queue.Service, asking *ask.Service, s *server.Client) *Reviews {
+	return &Reviews{tr: tr, store: reviews, queue: q, asking: asking, server: s}
 }
 
 // State reads a review's state: its pull requests, its queue, its
@@ -68,7 +71,7 @@ func (r *Reviews) File(id, path, build string) (models.File, error) {
 	if err != nil {
 		return models.File{}, err
 	}
-	if problem := queue.BuildProblem(r.tr, read.Build, build); problem != "" {
+	if problem := store.BuildProblem(r.tr, read.Build, build); problem != "" {
 		return models.File{}, models.Refused(utils.ResolvePlaceholderString(r.tr.NoFile, map[string]string{"why": problem}))
 	}
 	file, ok := review.FileView(r.tr, read.Page, path)
@@ -124,19 +127,21 @@ func (r *Reviews) Post(id string, pull int, action, set, build string) (string, 
 // Ask starts a conversation with Claude on lines as the app shows them, and
 // returns it once Claude has answered, or said why not.
 func (r *Reviews) Ask(id string, at models.Lines, text, build string) (models.Conversation, error) {
-	return r.server.Ask(id, at, text, build)
+	return r.conversed(id, func(ref models.ReviewRef) (models.Conversation, error) { return r.asking.Start(ref, at, text, build) })
 }
 
 // Reply asks a follow-up in a conversation, and returns it once Claude has
 // answered, or said why not.
 func (r *Reviews) Reply(id string, conversation int, text, build string) (models.Conversation, error) {
-	return r.server.Reply(id, conversation, text, build)
+	return r.conversed(id, func(ref models.ReviewRef) (models.Conversation, error) {
+		return r.asking.Reply(ref, conversation, text, build)
+	})
 }
 
 // Stop stops Claude answering in a conversation, and returns it once it
 // says so.
 func (r *Reviews) Stop(id string, conversation int) (models.Conversation, error) {
-	return r.server.Stop(id, conversation)
+	return r.conversed(id, func(ref models.ReviewRef) (models.Conversation, error) { return r.asking.Stop(ref, conversation) })
 }
 
 // Refresh loads a review again: a pull request's from GitHub, or a branch's
@@ -251,6 +256,15 @@ func (r *Reviews) changed(id string, change func(models.ReviewRef) error) (model
 		return models.State{}, refusal(err)
 	}
 	return r.State(id)
+}
+
+func (r *Reviews) conversed(id string, change func(models.ReviewRef) (models.Conversation, error)) (models.Conversation, error) {
+	ref, err := models.ParseReviewRef(r.tr, id)
+	if err != nil {
+		return models.Conversation{}, refusal(err)
+	}
+	c, err := change(ref)
+	return c, refusal(err)
 }
 
 // refusal is err as the app's refusal: every way a review cannot be read or

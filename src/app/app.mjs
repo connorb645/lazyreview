@@ -13,7 +13,8 @@
  * resolves at once with the line saying where. The server records its
  * address and a token in server.json, which only its owner can read; a
  * client such as the terminal app sends the token with each change. When
- * stopped, it stops Claude on every conversation it is answering first.
+ * stopped, it stops Claude on every conversation it is answering first, and
+ * asks every answer the terminal app runs to end.
  */
 import { mkdirSync, rmSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -25,6 +26,7 @@ import { Loader } from '../loader/loader.mjs';
 import { BranchLoader } from '../loader/branch-loader.mjs';
 import { QueueService } from '../queue/queue-service.mjs';
 import { ThreadService } from '../ask/thread-service.mjs';
+import { stopAnswers } from '../ask/answering.mjs';
 import { OpenPulls } from '../home/open-pulls.mjs';
 import { HiddenRepositories } from '../home/hidden-repositories.mjs';
 import { Claude } from '../commands/claude/claude.mjs';
@@ -79,6 +81,7 @@ export class App {
         console.error(english.cli.failed(error.message));
       } finally {
         await this.threads.stopAll();
+        await stopAnswers(this.home);
         await server.close();
         process.exit(0);
       }

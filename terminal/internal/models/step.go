@@ -4,5 +4,5 @@ package models
 // refused when it was.
 type Step struct {
 	Words   string `json:"words"`
-	Refused string `json:"refused"`
+	Refused string `json:"refused,omitempty"`
 }

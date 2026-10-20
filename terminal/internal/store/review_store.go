@@ -170,14 +170,24 @@ func (s *ReviewStore) Mark(ref models.ReviewRef) string {
 // RecordWrite is the write that puts review in its record, as every
 // lazyreview has written it: two spaces deep, with a final new line.
 func (s *ReviewStore) RecordWrite(ref models.ReviewRef, review models.Review) (FileWrite, error) {
+	text, err := indented(review)
+	return FileWrite{Path: s.home.Review(ref).Record(), Text: text}, err
+}
+
+// ThreadWrite is the write that puts conversation in its file, as every
+// lazyreview has written it: two spaces deep, with a final new line.
+func (s *ReviewStore) ThreadWrite(ref models.ReviewRef, conversation models.Conversation) (FileWrite, error) {
+	text, err := indented(conversation)
+	return FileWrite{Path: s.home.Review(ref).Thread(conversation.ID), Text: text}, err
+}
+
+func indented(v any) (string, error) {
 	var out bytes.Buffer
 	encoder := json.NewEncoder(&out)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(review); err != nil {
-		return FileWrite{}, err
-	}
-	return FileWrite{Path: s.home.Review(ref).Record(), Text: out.String()}, nil
+	err := encoder.Encode(v)
+	return out.String(), err
 }
 
 // Change locks the folders of every review in refs, runs work, and writes

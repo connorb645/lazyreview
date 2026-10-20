@@ -61,12 +61,20 @@ A citation starting `lazygit:` names a file and line of lazygit at
   file's blocks and a written review. `internal/queue` holds the queue's
   rules as pure functions, and the service that queues, changes, drops and
   posts comments.
+- `internal/ask` asks Claude about lines: the guard on each tool call, the
+  question, and the conversations. An answer runs in a process of its own,
+  the same program run as `lazyreview-terminal answer`, so it goes on when
+  the app quits; Claude Code asks `lazyreview-terminal guard` about each
+  tool call.
 - `internal/reviews` is how the gui reads and changes a review. It answers
   from the data home, and hears a change by watching the review's files.
-  Asking Claude, refreshing, the home screen's lists, hiding a repository
-  and loading still go to the server, until they move into Go.
+  Refreshing, the home screen's lists, hiding a repository and loading
+  still go to the server, until they move into Go.
 - `internal/commands/github` runs `gh` for the queue: the account it
   answers as, a pull request, its files and reviews, and sending a review.
+  `internal/commands/claude` runs Claude Code once per question, and
+  `internal/commands/git` makes the throwaway copies of the code it works
+  in.
   `internal/commands/server` is the client of the server for what is still
   there; `internal/commands/oscommands` opens an address in the browser,
   and writes the page of a written review's drawings that it opens.

@@ -7,6 +7,9 @@ package i18n
 type TranslationSet struct {
 	ServerFileFlag       string
 	UserConfigFlag       string
+	DataHomeFlag         string
+	ClaudeFlag           string
+	ModelFlag            string
 	Usage                string
 	TerminalFailed       string
 	UserConfigUnreadable string
@@ -660,6 +663,82 @@ type TranslationSet struct {
 	GitHubUnreachable         string
 	GitHubRefused             string
 	GitHubUnreadable          string
+
+	AskSystem            string
+	AskPull              string
+	AskPullDescription   string
+	AskStack             string
+	AskStackMember       string
+	AskStackOwner        string
+	AskBranch            string
+	AskBranchTitle       string
+	AskCodebase          string
+	AskThisChange        string
+	AskChanges           string
+	AskChangedFile       string
+	AskChangesMore       string
+	AskFile              string
+	AskFileAt            string
+	AskAdded             string
+	AskDeleted           string
+	AskRenamed           string
+	AskChanged           string
+	AskUnchanged         string
+	AskAbout             string
+	AskAboutChangedBy    string
+	AskThere             string
+	AskDiff              string
+	AskHead              string
+	AskHeadOf            string
+	AskHeadWindow        string
+	AskConversation      string
+	AskYouAnswered       string
+	AskTheyAsked         string
+	AskQuestion          string
+	AskFollowUp          string
+	StepRead             string
+	StepSearched         string
+	StepSearchedIn       string
+	StepListed           string
+	StepRan              string
+	StepEdited           string
+	StepWrote            string
+	StepFetched          string
+	StepSearchedWeb      string
+	StepHelper           string
+	StepSkill            string
+	StepPlanned          string
+	StepMcp              string
+	StepUsed             string
+	AskFirst             string
+	AskNeedsLine         string
+	NotAsked             string
+	NoConversation       string
+	NoCodebase           string
+	StillWorking         string
+	AnswerEnded          string
+	ClaudeTooSlow        string
+	ClaudeStopped        string
+	ClaudeNotApproved    string
+	ClaudeSandboxed      string
+	ClaudeNoAnswer       string
+	ClaudeExitCode       string
+	ClaudeNotFound       string
+	ClaudeCouldNotAnswer string
+	ClaudeTooManyTurns   string
+	ClaudeNothing        string
+	GuardMarker          string
+	GuardOutside         string
+	GuardPush            string
+	GuardPost            string
+	GuardPublish         string
+	GuardElsewhere       string
+	GuardGh              string
+	GuardMcp             string
+	GuardTool            string
+	GuardFailed          string
+	GitFailed            string
+	CommitMissing        string
 }
 
 // EnglishTranslationSet is the strings in English.
@@ -667,7 +746,10 @@ func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
 		ServerFileFlag:       "the lazyreview server's own record, server.json, holding its address and token",
 		UserConfigFlag:       "the terminal app's part of lazyreview's config, as JSON: the config file's path and the editor",
-		Usage:                "usage: lazyreview-terminal --server-file <server.json> --user-config <json> [<review id>]",
+		DataHomeFlag:         "the data home that holds the review",
+		ClaudeFlag:           "the Claude Code command to ask",
+		ModelFlag:            "the model Claude answers with, over the user's default",
+		Usage:                "usage: lazyreview-terminal --server-file <server.json> --user-config <json> [<review id>]\n       lazyreview-terminal answer --data-home <folder> [--claude <command>] [--model <model>] <review id> <conversation>\n       lazyreview-terminal guard <copy folder>",
 		TerminalFailed:       "lazyreview terminal",
 		UserConfigUnreadable: "could not read the config handed over by lazyreview",
 		MoreThanOneValue:     "it holds more than one value",
@@ -1320,5 +1402,81 @@ func EnglishTranslationSet() *TranslationSet {
 		GitHubUnreachable:         "could not reach {{.host}}: {{.why}}",
 		GitHubRefused:             "GitHub refused {{.method}} {{.path}}: {{.why}}",
 		GitHubUnreadable:          "could not read GitHub's answer to {{.method}} {{.path}}: {{.why}}",
+
+		AskSystem:            "You help someone review a change to code, from lazyreview. Your working folder is a throwaway copy of the codebase as it stands after the change: a git repository, with a branch for the change and one for its base. Read, search, run and change anything in it, such as tests and builds, to find what the answer needs, such as callers, tests and definitions. Work in the copy itself: nothing you change there leaves it, and it is thrown away after, so there is nothing to clean up. Anything that would change something outside the copy, or leave this machine as a change, such as a push, a comment on GitHub, a message, or a request that writes to a web service, is refused, as nobody is there to approve it. Do not try to get round a refusal; say what you could not do. The message holds the part of the diff around the lines they ask about, the code around those lines, and their question. Answer in plain words and short sentences, and only what they asked. Say so when what you found is not enough to be sure. When they ask you to write a review comment, reply with the comment text alone, as they would write it: short, plain, one point. Never use the em dash; use a plain dash.",
+		AskPull:              "Pull request #{{.pull}}: {{.title}}",
+		AskPullDescription:   "\n\nIts description:\n{{.description}}",
+		AskStack:             "A stack of pull requests, bottom first, reviewed together:\n{{.members}}",
+		AskStackMember:       "#{{.pull}}: {{.title}}",
+		AskStackOwner:        "\n\n{{.owner}}",
+		AskBranch:            "Branch {{.branch}}{{.title}}. It has no pull request yet, and its diff is against {{.base}}.",
+		AskBranchTitle:       ": {{.title}}",
+		AskCodebase:          "The codebase as it stands after {{.after}} is in {{.folder}}, your working folder, with the branch {{.branch}} checked out and the branch {{.base}} at the base of the change.",
+		AskThisChange:        "this change",
+		AskChanges:           "The files this change touches:\n{{.files}}",
+		AskChangedFile:       "{{.path}} ({{.state}})",
+		AskChangesMore:       "\nand {{.more}} more",
+		AskFile:              "File: {{.path}} ({{.state}})",
+		AskFileAt:            ", at {{.at}}",
+		AskAdded:             "new",
+		AskDeleted:           "deleted",
+		AskRenamed:           "renamed from {{.from}}",
+		AskChanged:           "changed",
+		AskUnchanged:         "unchanged by this change",
+		AskAbout:             "They ask about {{.lines}}.",
+		AskAboutChangedBy:    "They ask about {{.lines}}, which #{{.pull}} changed.",
+		AskThere:             "In the codebase, after #{{.pull}}, they are {{.lines}}.",
+		AskDiff:              "The diff of this file around those lines:\n```diff\n{{.hunk}}\n```",
+		AskHead:              "The file at the head{{.of}}{{.window}}:\n```\n{{.text}}\n```",
+		AskHeadOf:            " of #{{.pull}}",
+		AskHeadWindow:        ", lines {{.from}}-{{.to}} of {{.count}}",
+		AskConversation:      "The conversation so far:\n{{.messages}}",
+		AskYouAnswered:       "You answered: {{.text}}",
+		AskTheyAsked:         "They asked: {{.text}}",
+		AskQuestion:          "Their question:\n{{.text}}",
+		AskFollowUp:          "Their follow-up question, on the same lines:\n{{.text}}",
+		StepRead:             "Read {{.path}}",
+		StepSearched:         "Searched for {{.pattern}}",
+		StepSearchedIn:       "Searched for {{.pattern}} in {{.path}}",
+		StepListed:           "Looked for files named {{.pattern}}",
+		StepRan:              "Ran {{.command}}",
+		StepEdited:           "Edited {{.path}}",
+		StepWrote:            "Wrote {{.path}}",
+		StepFetched:          "Read {{.address}}",
+		StepSearchedWeb:      "Searched the web for {{.query}}",
+		StepHelper:           "Asked a helper to {{.what}}",
+		StepSkill:            "Used the skill {{.name}}",
+		StepPlanned:          "Planned its steps",
+		StepMcp:              "Used {{.tool}} on {{.server}}",
+		StepUsed:             "Used {{.tool}}",
+		AskFirst:             "ask something first",
+		AskNeedsLine:         "a conversation needs a file, a side and a line",
+		NotAsked:             "not asked: {{.why}}",
+		NoConversation:       "there is no conversation {{.id}} on {{.review}}",
+		NoCodebase:           "could not make a copy of the code for Claude: {{.why}}",
+		StillWorking:         "Claude is still working on this conversation; wait for its answer, or stop it",
+		AnswerEnded:          "the answer stopped before Claude gave one: {{.why}}",
+		ClaudeTooSlow:        "Claude did not answer within {{.minutes}} minutes",
+		ClaudeStopped:        "you stopped it",
+		ClaudeNotApproved:    "it needed approval, and nobody is there to give it",
+		ClaudeSandboxed:      "the sandbox stopped it: shell commands change only the copy, and reach only the hosts allowed",
+		ClaudeNoAnswer:       "Claude Code did not answer: {{.why}}",
+		ClaudeExitCode:       "it stopped with exit code {{.code}}",
+		ClaudeNotFound:       "{{.command}} was not found",
+		ClaudeCouldNotAnswer: "Claude could not answer: {{.why}}",
+		ClaudeTooManyTurns:   "Claude worked for {{.turns}} turns without answering; ask about less at once",
+		ClaudeNothing:        "no answer",
+		GuardMarker:          "lazyreview refused this",
+		GuardOutside:         "lazyreview refused this: the file is outside the copy of the code, and only the copy may change",
+		GuardPush:            "lazyreview refused this: it would push, and nobody is there to approve it",
+		GuardPost:            "lazyreview refused this: it would send a change to a web service, and nobody is there to approve it",
+		GuardPublish:         "lazyreview refused this: it would publish a package, and nobody is there to approve it",
+		GuardElsewhere:       "lazyreview refused this: it would reach a program or a machine outside the copy, and nobody is there to approve it",
+		GuardGh:              "lazyreview refused this: gh may only read, one command at a time",
+		GuardMcp:             "lazyreview refused this: {{.tool}} on {{.server}} may change something, and only tools that read are allowed",
+		GuardTool:            "lazyreview refused this: {{.tool}} is not allowed while nobody is there to approve it",
+		GuardFailed:          "lazyreview refused this, as its guard could not read the call: {{.why}}",
+		GitFailed:            "git {{.command}} failed: {{.why}}",
+		CommitMissing:        "commit {{.commit}} is no longer in {{.repo}}; load the review again",
 	}
 }

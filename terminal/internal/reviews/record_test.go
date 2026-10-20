@@ -2,15 +2,21 @@ package reviews
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/connorb645/lazyreview/terminal/internal/ask"
+	"github.com/connorb645/lazyreview/terminal/internal/commands/claude"
+	"github.com/connorb645/lazyreview/terminal/internal/commands/git"
 	"github.com/connorb645/lazyreview/terminal/internal/commands/github"
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 	"github.com/connorb645/lazyreview/terminal/internal/models"
@@ -55,13 +61,36 @@ func recordedAnswers(t *testing.T) []recorded {
 	return out
 }
 
-func standInReviews(t *testing.T) (*Reviews, *testsupport.FakeGh) {
+// standInHome is the stand-in data home's place as the record names it.
+const standInHome = "/home/reviewer/.lazyreview"
+
+func TestMain(m *testing.M) {
+	testsupport.ActAsFakeClaude()
+	os.Exit(m.Run())
+}
+
+// madeCopies stands in for the copies of the code, which the stand-in data
+// home has no clone to make from: each is an empty folder.
+type madeCopies struct{}
+
+func (madeCopies) Prepare(_ context.Context, folder string, _ git.CopyOf) (string, error) {
+	return folder, os.MkdirAll(folder, 0o755)
+}
+
+func (madeCopies) Prune(string, time.Duration, string) {}
+
+func standInReviews(t *testing.T) (*Reviews, *testsupport.FakeClaude, string) {
 	tr := i18n.EnglishTranslationSet()
 	gh := testsupport.FakeGhFrom(t, testsupport.Testdata("github.json"))
-	reviews := store.NewReviewStore(tr, store.DataHome{Root: testsupport.StandInHome(t)}, store.NewLocks(tr))
-	q := queue.NewService(tr, reviews, func(host, account string) *github.GitHub { return github.New(tr, host, account, gh.Run) },
-		func() string { return "2026-10-15T13:00:00.000Z" })
-	return New(tr, reviews, q, nil), gh
+	root := testsupport.StandInHome(t)
+	locks := store.NewLocks(tr)
+	reviews := store.NewReviewStore(tr, store.DataHome{Root: root}, locks)
+	now := func() string { return "2026-10-15T13:00:00.000Z" }
+	q := queue.NewService(tr, reviews, func(host, account string) *github.GitHub { return github.New(tr, host, account, gh.Run) }, now)
+	fake := testsupport.NewFakeClaude(t)
+	fake.Knows("00000000-0000-4000-8000-000000000001")
+	asking := ask.NewService(tr, reviews, locks, claude.New(tr, fake.Command, ""), madeCopies{}, nil, nil, now)
+	return New(tr, reviews, q, asking, nil), fake, root
 }
 
 // Each answer the terminal app is tested against, of what the Go code now
@@ -70,9 +99,12 @@ func standInReviews(t *testing.T) (*Reviews, *testsupport.FakeGh) {
 // state's version, a short hash of how the state is written, and when a
 // review was sent may differ.
 func TestTheGoCodeGivesTheAnswersTheServerRecorded(t *testing.T) {
-	r, _ := standInReviews(t)
+	r, fake, root := standInReviews(t)
 	checked := 0
 	for _, answer := range recordedAnswers(t) {
+		if strings.HasPrefix(answer.key, "POST /api/reviews/github.com/octo/widgets/21/threads/9/stop ") {
+			leftWaiting(t, r)
+		}
 		got, ok := r.answer(t, answer.key)
 		if !ok {
 			continue
@@ -100,8 +132,72 @@ func TestTheGoCodeGivesTheAnswersTheServerRecorded(t *testing.T) {
 			t.Errorf("%s answers otherwise:\n%s", answer.key, firstDifference("", a, b))
 		}
 	}
-	if checked != 26 {
-		t.Fatalf("%d of the record's answers are the Go code's, not 26", checked)
+	if checked != 29 {
+		t.Fatalf("%d of the record's answers are the Go code's, not 29", checked)
+	}
+	var recorded []ask.Question
+	text, err := os.ReadFile(testsupport.Testdata("asked.json"))
+	if err == nil {
+		err = json.Unmarshal(text, &recorded)
+	}
+	if err != nil || len(recorded) != 3 {
+		t.Fatalf("could not read the questions Claude was asked: %v", err)
+	}
+	ref, _ := models.ParseReviewRef(r.tr, "github.com/octo/widgets/21")
+	rev, _ := r.store.Read(ref)
+	read, _ := r.store.ReadPage(ref)
+	threads, _ := r.store.Threads(ref)
+	first := threads[0]
+	first.Messages = first.Messages[:1]
+	asked := []ask.Question{ask.QuestionFor(r.tr, *rev, *read.Page, first, r.store.Home().Copy(ref, 1))}
+	for _, call := range fake.Asked() {
+		asked = append(asked, ask.Question{System: call.Args[slices.Index(call.Args, "--append-system-prompt")+1], Prompt: call.Prompt})
+	}
+	for i := range asked {
+		asked[i].Prompt = strings.ReplaceAll(asked[i].Prompt, root, standInHome)
+	}
+	if !reflect.DeepEqual(asked, recorded) {
+		for i := range recorded {
+			if i < len(asked) && asked[i] != recorded[i] {
+				t.Errorf("question %d was asked as:\n%s\nnot as recorded:\n%s", i+1, asked[i].Prompt, recorded[i].Prompt)
+			}
+		}
+		t.Fatalf("Go asked %d questions, the record holds %d", len(asked), len(recorded))
+	}
+}
+
+// leftWaiting is the conversation the recorder leaves waiting, as after the
+// server stopped mid-answer, before it stops it.
+func leftWaiting(t *testing.T, r *Reviews) {
+	t.Helper()
+	ref, _ := models.ParseReviewRef(r.tr, "github.com/octo/widgets/21")
+	left := models.Conversation{ID: 9, Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 3, CreatedAt: "2026-10-15T13:00:08.000Z", Session: "00000000-0000-4000-8000-000000000003",
+		Messages: []models.Message{{From: "you", Text: "Does anything test this?", At: "2026-10-15T13:00:09.000Z"}},
+		Working:  &models.Working{Steps: []models.Step{{Words: "Read Sources/Basket/Basket.swift"}, {Words: "Ran swift test"}}}}
+	write, err := r.store.ThreadWrite(ref, left)
+	if err == nil {
+		err = os.WriteFile(write.Path, []byte(write.Text), 0o644)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Each conversation of the stand-in data home, written back by the Go code,
+// is the file the server wrote, to the byte.
+func TestAConversationIsWrittenBackAsTheServerWroteIt(t *testing.T) {
+	r, _, _ := standInReviews(t)
+	ref, _ := models.ParseReviewRef(r.tr, "github.com/octo/widgets/21")
+	threads, err := r.store.Threads(ref)
+	if err != nil || len(threads) == 0 {
+		t.Fatalf("the stand-in conversations read %v, %v", threads, err)
+	}
+	for _, c := range threads {
+		write, err := r.store.ThreadWrite(ref, c)
+		was, _ := os.ReadFile(write.Path)
+		if err != nil || write.Text != string(was) {
+			t.Errorf("conversation %d is written as:\n%s\nnot as:\n%s", c.ID, write.Text, was)
+		}
 	}
 }
 
@@ -112,6 +208,10 @@ type given struct {
 
 type stateAnswer struct {
 	State models.State `json:"state"`
+}
+
+type threadAnswer struct {
+	Thread models.Conversation `json:"thread"`
 }
 
 type postAnswer struct {
@@ -194,6 +294,17 @@ func (r *Reviews) answer(t *testing.T, key string) (given, bool) {
 		n, _ := strconv.Atoi(comment)
 		v, err := r.Drop(id, n, text("version"), text("build"))
 		return given{&stateAnswer{v}, err}, true
+	case method == "POST" && tail == "threads":
+		v, err := r.Ask(id, lines, text("text"), text("build"))
+		return given{&threadAnswer{v}, err}, true
+	case method == "POST" && strings.HasPrefix(tail, "threads/") && strings.HasSuffix(tail, "/messages"):
+		n, _ := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(tail, "threads/"), "/messages"))
+		v, err := r.Reply(id, n, text("text"), text("build"))
+		return given{&threadAnswer{v}, err}, true
+	case method == "POST" && strings.HasPrefix(tail, "threads/") && strings.HasSuffix(tail, "/stop"):
+		n, _ := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(tail, "threads/"), "/stop"))
+		v, err := r.Stop(id, n)
+		return given{&threadAnswer{v}, err}, true
 	case method == "POST" && tail == "post":
 		message, v, err := r.Post(id, number("pull"), text("action"), text("set"), text("build"))
 		return given{&postAnswer{message, v}, err}, true
@@ -201,8 +312,9 @@ func (r *Reviews) answer(t *testing.T, key string) (given, bool) {
 	return given{}, false
 }
 
-// comparable is an answer as plain values, with its state's version and the
-// times reviews were sent left out, and an empty list the same as none.
+// comparable is an answer as plain values, with its state's version, the
+// times reviews were sent and a conversation's times and session left out,
+// and an empty list the same as none.
 func comparable(t *testing.T, v any) any {
 	t.Helper()
 	text, err := json.Marshal(v)
@@ -213,7 +325,30 @@ func comparable(t *testing.T, v any) any {
 	if err := json.Unmarshal(text, &plain); err != nil {
 		t.Fatal(err)
 	}
+	if m, ok := plain.(map[string]any); ok && m["thread"] != nil {
+		return maskedConversation(plain)
+	}
 	return masked(plain, "")
+}
+
+func maskedConversation(v any) any {
+	switch x := v.(type) {
+	case map[string]any:
+		out := map[string]any{}
+		for k, inner := range x {
+			if k != "at" && k != "created_at" && k != "session" {
+				out[k] = maskedConversation(inner)
+			}
+		}
+		return out
+	case []any:
+		out := make([]any, len(x))
+		for i, inner := range x {
+			out[i] = maskedConversation(inner)
+		}
+		return out
+	}
+	return v
 }
 
 func masked(v any, key string) any {

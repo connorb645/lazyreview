@@ -2,6 +2,10 @@
  "path": "/home/reviewer/Library/Application Support/lazyreview/config.yml",
  "dataHome": "/home/reviewer/.lazyreview",
  "editor": "vi",
+ "claude": {
+  "command": "claude",
+  "model": ""
+ },
  "theme": {
   "dark": {
    "defaultFgColor": "#f1f0fb",

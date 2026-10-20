@@ -4,8 +4,8 @@ package models
 // answer, or why there is none, with the steps Claude took.
 type Message struct {
 	From  string `json:"from"`
-	Text  string `json:"text"`
-	Error string `json:"error"`
+	Text  string `json:"text,omitempty"`
+	Error string `json:"error,omitempty"`
+	Steps []Step `json:"steps,omitempty"`
 	At    string `json:"at"`
-	Steps []Step `json:"steps"`
 }

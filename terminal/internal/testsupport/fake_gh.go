@@ -1,6 +1,6 @@
-// Package testsupport holds what the tests of several packages share: a
-// stand-in for the gh command, and a copy of the stand-in data home the
-// terminal app's recorded answers come from.
+// Package testsupport holds what the tests of several packages share:
+// stand-ins for the gh command and for Claude Code, and a copy of the
+// stand-in data home the terminal app's recorded answers come from.
 package testsupport
 
 import (
