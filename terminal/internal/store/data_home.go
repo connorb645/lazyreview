@@ -20,6 +20,8 @@ import (
 //	                                       this machine, for Claude's copies
 //	copies/<review id>/<conversation>/     a throwaway copy of the code that
 //	                                       Claude answers a conversation in
+//	server.json                            a server an older lazyreview
+//	                                       left running, until stop stops it
 //	settings.json                          an earlier version's settings,
 //	                                       no longer read
 //
@@ -31,6 +33,11 @@ type DataHome struct {
 // Reviews is the folder holding every review.
 func (h DataHome) Reviews() string {
 	return filepath.Join(h.Root, "reviews")
+}
+
+// BranchReviews is the folder holding every branch review.
+func (h DataHome) BranchReviews() string {
+	return filepath.Join(h.Reviews(), "local")
 }
 
 // Review is the folder of the review a ref names.
@@ -63,6 +70,12 @@ func (h DataHome) Copy(ref models.ReviewRef, n int) string {
 // Repository is the folder holding the reviews of repo, owner/name, on host.
 func (h DataHome) Repository(host, repo string) string {
 	return filepath.Join(append([]string{h.Reviews(), host}, strings.Split(repo, "/")...)...)
+}
+
+// ServerFile is server.json, where a server an older lazyreview ran
+// recorded itself as {pid, address, token}.
+func (h DataHome) ServerFile() string {
+	return filepath.Join(h.Root, "server.json")
 }
 
 // SettingsFile is settings.json, which an earlier version read and the

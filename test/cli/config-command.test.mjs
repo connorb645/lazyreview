@@ -9,11 +9,15 @@ import { defaultConfigText } from '../../src/config/config-text.mjs';
 
 const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'lazyreview');
 
+// Runs the command, leaving out a line saying its program is being built,
+// which it is once first, with this machine's own Go cache.
 function run(args, env) {
   return new Promise(resolve => {
-    execFile(BIN, args, { env, timeout: 60_000 }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout, stderr }));
+    execFile(BIN, args, { env, timeout: 600_000 }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout, stderr: stderr.replace(/^building lazyreview…\n/, '') }));
   });
 }
+
+await run(['help'], process.env);
 
 // A stand-in home folder, with its data home and config folder, and the environment that names them and nothing else of lazyreview's.
 function standIn() {

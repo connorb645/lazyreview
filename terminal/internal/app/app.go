@@ -1,18 +1,17 @@
-// Package app starts the terminal app: it builds what every layer shares,
-// the reviews it reads and changes, and the gui, then runs Bubble Tea until
-// the app quits.
+// Package app is lazyreview's command: it does what the command line asks,
+// building what each command uses, and for the terminal app what every
+// layer shares, the reviews it reads and changes, and the gui, then runs
+// Bubble Tea until the app quits.
 package app
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"syscall"
 	"time"
@@ -40,16 +39,10 @@ import (
 )
 
 // Run opens the app on the review id names, or with none on the home
-// screen, with lazyreview's config as it reads now, and returns once the
-// app quits.
-func Run(review string) error {
-	tr := i18n.EnglishTranslationSet()
-	userHome, _ := os.UserHomeDir()
-	readConfig := func() (config.Read, error) { return config.ReadUserConfig(tr, os.Getenv, runtime.GOOS, userHome) }
-	given, err := settings(tr, readConfig)
-	if err != nil {
-		return err
-	}
+// screen, with the settings given, reading the config again with
+// readConfig where the home screen needs it, and returns once the app
+// quits.
+func Run(tr *i18n.TranslationSet, given config.UserConfig, readConfig func() (config.Read, error), review string) error {
 	self, err := os.Executable()
 	if err != nil {
 		return err
@@ -71,32 +64,18 @@ func Run(review string) error {
 }
 
 // Load loads pull requests into a review, or with branch given a branch,
-// in the data home lazyreview's config names, and writes to out, as JSON,
-// the review's id, the review, what it drew and the notes on what it
-// found.
-func Load(out io.Writer, pulls loader.PullsRequest, branch *loader.BranchRequest) error {
-	tr := i18n.EnglishTranslationSet()
-	userHome, _ := os.UserHomeDir()
-	given, err := settings(tr, func() (config.Read, error) { return config.ReadUserConfig(tr, os.Getenv, runtime.GOOS, userHome) })
-	if err != nil {
-		return err
-	}
+// in the data home dataHome, and returns the review it loaded, what it
+// drew and the notes on what it found. A signal to end stops a load of
+// pull requests, all or nothing.
+func Load(tr *i18n.TranslationSet, dataHome string, pulls loader.PullsRequest, branch *loader.BranchRequest) (loader.Loaded, error) {
 	locks := store.NewLocks(tr)
-	reviewStore := store.NewReviewStore(tr, store.DataHome{Root: given.DataHome}, locks)
-	var loaded loader.Loaded
+	reviewStore := store.NewReviewStore(tr, store.DataHome{Root: dataHome}, locks)
 	if branch != nil {
-		loaded, err = loader.NewBranchLoader(tr, reviewStore, isoNow).Load(*branch)
-	} else {
-		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
-		defer stop()
-		loaded, err = loader.NewLoader(tr, reviewStore, locks, git.NewClones(tr, nil), gitHubFor(tr), isoNow).Load(ctx, pulls)
+		return loader.NewBranchLoader(tr, reviewStore, isoNow).Load(*branch)
 	}
-	if err != nil {
-		return err
-	}
-	encoder := json.NewEncoder(out)
-	encoder.SetEscapeHTML(false)
-	return encoder.Encode(map[string]any{"id": loaded.Ref.ID(), "review": loaded.Review, "counts": loaded.Counts, "notes": orNone(loaded.Notes)})
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
+	defer stop()
+	return loader.NewLoader(tr, reviewStore, locks, git.NewClones(tr, nil), gitHubFor(tr), isoNow).Load(ctx, pulls)
 }
 
 // Answer has Claude answer conversation's last question in the review id
@@ -152,12 +131,12 @@ func terminalTheme(colours config.ThemeConfig) theme.Theme {
 	return theme.New(colours.Light, false, lipgloss.ColorProfile())
 }
 
-func settings(tr *i18n.TranslationSet, readConfig func() (config.Read, error)) (config.UserConfig, error) {
+func settings(tr *i18n.TranslationSet, readConfig func() (config.Read, error), getenv func(string) string) (config.UserConfig, error) {
 	read, err := readConfig()
 	if err != nil {
 		return config.UserConfig{}, err
 	}
-	given, err := config.TerminalPart(tr, read, os.Getenv)
+	given, err := config.TerminalPart(tr, read, getenv)
 	if err != nil {
 		return config.UserConfig{}, err
 	}
@@ -169,11 +148,4 @@ func settings(tr *i18n.TranslationSet, readConfig func() (config.Read, error)) (
 
 func gitHubFor(tr *i18n.TranslationSet) func(host, account string) *github.GitHub {
 	return func(host, account string) *github.GitHub { return github.New(tr, host, account, nil) }
-}
-
-func orNone(list []string) []string {
-	if list == nil {
-		return []string{}
-	}
-	return list
 }

@@ -9,7 +9,6 @@ type TranslationSet struct {
 	ClaudeFlag       string
 	ModelFlag        string
 	Usage            string
-	TerminalFailed   string
 	MoreThanOneValue string
 	NoDataHome       string
 
@@ -572,6 +571,8 @@ type TranslationSet struct {
 	WrittenNoSection          string
 	WrittenEmptySection       string
 	WrittenProblems           string
+	WrittenOtherPulls         string
+	WrittenOtherHead          string
 	ProblemNoun               string
 	LineWord                  string
 	RemovedLineWord           string
@@ -787,6 +788,28 @@ type TranslationSet struct {
 	ConfigCannotChange              string
 	ConfigEditFailed                string
 
+	ConfigUnusedLine         string
+	ConfigSourceDefault      string
+	ConfigSourceFile         string
+	ConfigMovedHeader        string
+	ConfigExists             string
+	ConfigMissing            string
+	ConfigChecked            string
+	ConfigUnset              string
+	ConfigMoveWouldWrite     string
+	ConfigMoveFrom           string
+	ConfigMoveWouldRename    string
+	ConfigMoveRefused        string
+	ConfigMoveNothingWritten string
+	ConfigMoveNothing        string
+	ConfigMoveMovedExists    string
+	ConfigMoveNeedsAccounts  string
+	ConfigMoveFailed         string
+	ConfigMoveFailedStuck    string
+	ConfigMoveWrote          string
+	ConfigMoveRenamed        string
+	ConfigMoveStillSet       string
+
 	NotACommit            string
 	LoaderGiveLinks       string
 	LoaderOtherRepository string
@@ -877,14 +900,41 @@ type TranslationSet struct {
 	QueueStaleStart      string
 	QueueMarkedStale     string
 
-	AccountFlag   string
-	ConfigFlag    string
-	RepoFlag      string
-	BaseFlag      string
-	HeadFlag      string
-	TitleFlag     string
-	ContextFlag   string
-	NoContextFlag string
+	CliFailed             string
+	CliUnknownCommand     string
+	CliUnknownOption      string
+	CliNeedsValue         string
+	CliNeedsArguments     string
+	CliTakesArguments     string
+	CliNoArguments        string
+	ArgumentNoun          string
+	CliNeedsRepo          string
+	CliRepoNeeds          string
+	CliLoadNeedsSomething string
+	CliNotBoth            string
+	CliAccountForPulls    string
+	CliLoaded             string
+	CliOpen               string
+	CliNote               string
+	CliNotLoaded          string
+	CliReviewMoved        string
+	CliAttached           string
+	CliNoReviews          string
+	CliListedMoved        string
+	CliListed             string
+	CliBranchName         string
+	CliNoServer           string
+	CliAnswersStopped     string
+	AnswerNoun            string
+	CliOldServerStopped   string
+	CliNothingRunning     string
+	CliLoading            string
+	CliNoReview           string
+	CliNotALink           string
+	CliConfigUnreadable   string
+	CliConfigNeeds        string
+	CliConfigNeedsNot     string
+	CliCheckIsForMove     string
 
 	LoaderNotFetched        string
 	LoaderPullHead          string
@@ -902,8 +952,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DataHomeFlag:     "the data home that holds the review",
 		ClaudeFlag:       "the Claude Code command to ask",
 		ModelFlag:        "the model Claude answers with, over the user's default",
-		Usage:            "usage: lazyreview-terminal [<review id>]\n       lazyreview-terminal load [--account <account>] [--config <file>] [--context | --no-context] <pull request address>...\n       lazyreview-terminal load --repo <folder> --base <base> --head <branch> [--title <title>] [--config <file>] [--context | --no-context]\n       lazyreview-terminal answer --data-home <folder> [--claude <command>] [--model <model>] <review id> <conversation>\n       lazyreview-terminal guard <copy folder>",
-		TerminalFailed:   "lazyreview terminal",
+		Usage:            "usage: lazyreview <command> [options]\n\n  load <pull link>...    load a pull request into the app, or a stack of\n                         them, bottom first, and print where to open it;\n                         loading one again refreshes it\n      --account <login>  act as this GitHub account, not gh's active one\n      --config <file>    JSON naming the components and packages to draw\n      --context          also draw the unchanged code the change touches\n      --no-context       stop drawing it, for a review loaded with it\n  load --repo <folder> --base <ref> --head <branch>\n                         load a branch with no pull request, read only, as\n                         its diff from base would show; loading the same\n                         branch again refreshes it\n      --title <text>     name the review; the branch's name otherwise\n      --config, --context and --no-context work as above\n  attach <pull link> <file>\n                         attach a written review, in Markdown, to the review\n                         holding that pull request\n  list                   list every review, with its address\n  terminal [<address>]   review in this terminal, with Vim keys: the review\n                         at the address load and list print, as\n                         lazyreview://<review id>, or the one holding a\n                         pull request link, which loads it first when no\n                         review holds it yet; with no address, the open\n                         pull requests of the accounts in the config\n  config path            where the config file is, or would be, and whether\n                         it exists\n  config defaults        the default config, saying what each setting does\n  config check           every setting's value, and where it came from: the\n                         default, the config file or a variable\n  config move [--check]  move settings.json and the LAZYREVIEW_ variables\n                         into the config file, once; --check shows what it\n                         would do, and writes nothing\n  start                  say that lazyreview runs no server now\n  stop                   stop every answer Claude is still giving, and a\n                         server an older lazyreview left running\n  help                   show this",
 		MoreThanOneValue: "it holds more than one value",
 		NoDataHome:       "the config names no data home by its full path",
 
@@ -1466,6 +1515,8 @@ func EnglishTranslationSet() *TranslationSet {
 		WrittenNoSection:          "the written review needs at least one ## section",
 		WrittenEmptySection:       "\"## {{.title}}\" is empty; a section with nothing to say says so in one line",
 		WrittenProblems:           "the written review has {{.problems}}",
+		WrittenOtherPulls:         "the written review names {{.written}}, but the review shows {{.shown}}",
+		WrittenOtherHead:          "the written review read {{.read}}, but the review shows head {{.head}}; review the head the app shows",
 		ProblemNoun:               "problem",
 		LineWord:                  "line",
 		RemovedLineWord:           "removed line",
@@ -1681,6 +1732,28 @@ func EnglishTranslationSet() *TranslationSet {
 		ConfigCannotChange:              "{{.key}} is written in a way lazyreview cannot change line by line",
 		ConfigEditFailed:                "{{.path}} was not changed: {{.why}}; change it by hand, as docs/Config.md shows",
 
+		ConfigUnusedLine:         "# {{.key}} does nothing now, so it can go: {{.why}}",
+		ConfigSourceDefault:      "default",
+		ConfigSourceFile:         "the file",
+		ConfigMovedHeader:        "lazyreview's config. docs/Config.md lists every setting and its default.",
+		ConfigExists:             "it exists",
+		ConfigMissing:            "there is no file there yet, so every setting has its default",
+		ConfigChecked:            "the config at {{.path}}, on top of the defaults:",
+		ConfigUnset:              "no config at {{.path}}, so every setting has its default:",
+		ConfigMoveWouldWrite:     "would write {{.path}}:",
+		ConfigMoveFrom:           "{{.key}} from {{.source}}",
+		ConfigMoveWouldRename:    "would rename {{.path}} to {{.name}}",
+		ConfigMoveRefused:        "{{.path}} exists already, and the move never overwrites a config",
+		ConfigMoveNothingWritten: "nothing was written; lazyreview config move makes the move",
+		ConfigMoveNothing:        "there is nothing to move: there is no {{.settings}}, and no LAZYREVIEW_ variable is set",
+		ConfigMoveMovedExists:    "{{.path}} exists already, so settings.json cannot be renamed to it; nothing was written",
+		ConfigMoveNeedsAccounts:  "needs \"accounts\", a list of {\"login\": \"...\"}",
+		ConfigMoveFailed:         "the move failed, and nothing changed: {{.why}}",
+		ConfigMoveFailedStuck:    "the move failed: {{.why}}; and this could not be put back: {{.stuck}}",
+		ConfigMoveWrote:          "wrote {{.path}}:",
+		ConfigMoveRenamed:        "renamed {{.path}} to {{.name}}",
+		ConfigMoveStillSet:       "{{.name}} is still set, and overrides {{.key}} while it is; taking it out of your shell's setup is safe, and not needed",
+
 		NotACommit:            "\"{{.ref}}\" is not a commit in this repository",
 		LoaderGiveLinks:       "give the pull request to load, or every pull request of a stack, bottom first",
 		LoaderOtherRepository: "a stack is in one repository, but {{.other}} is not {{.first}}",
@@ -1771,14 +1844,41 @@ func EnglishTranslationSet() *TranslationSet {
 		QueueStaleStart:      "queued on a removed line, and #{{.pull}}'s diff now starts from {{.now}}, not {{.before}}",
 		QueueMarkedStale:     "#{{.pull}}: {{.count}} marked stale ({{.why}}); queue each again or drop it",
 
-		AccountFlag:   "the GitHub account to act as",
-		ConfigFlag:    "a components config file, as JSON, to draw the change with",
-		RepoFlag:      "the folder of a repository on this machine, to load a branch of",
-		BaseFlag:      "the branch the change is against",
-		HeadFlag:      "the branch to load",
-		TitleFlag:     "the review's title",
-		ContextFlag:   "draw the unchanged code the change touches",
-		NoContextFlag: "draw only the change",
+		CliFailed:             "lazyreview: {{.why}}",
+		CliUnknownCommand:     "unknown command \"{{.command}}\"",
+		CliUnknownOption:      "unknown option {{.option}} for {{.command}}",
+		CliNeedsValue:         "{{.option}} needs a value",
+		CliNeedsArguments:     "{{.command}} needs {{.count}} arguments",
+		CliTakesArguments:     "{{.command}} takes {{.arguments}}",
+		CliNoArguments:        "no arguments",
+		ArgumentNoun:          "argument",
+		CliNeedsRepo:          "{{.option}} needs --repo",
+		CliRepoNeeds:          "--repo needs {{.option}}",
+		CliLoadNeedsSomething: "load needs a pull request, or --repo with --base and --head",
+		CliNotBoth:            "load takes pull requests or --repo, not both",
+		CliAccountForPulls:    "--account is for pull requests; a branch loads from its own repository",
+		CliLoaded:             "loaded {{.name}}: {{.files}} +{{.adds}} -{{.dels}}, {{.components}}, {{.types}}",
+		CliOpen:               "open {{.address}}",
+		CliNote:               "note: {{.note}}",
+		CliNotLoaded:          "{{.link}} is not loaded; load it first",
+		CliReviewMoved:        "that review moved to {{.to}}",
+		CliAttached:           "attached to {{.id}}; open {{.address}}",
+		CliNoReviews:          "no reviews yet; load one with lazyreview load <pull link>",
+		CliListedMoved:        "{{.id}}  moved to {{.to}}",
+		CliListed:             "{{.address}}  {{.name}}  {{.title}}",
+		CliBranchName:         "{{.head}} against {{.base}}",
+		CliNoServer:           "lazyreview runs no server now; lazyreview terminal opens the app",
+		CliAnswersStopped:     "stopped {{.answers}} Claude was still giving",
+		AnswerNoun:            "answer",
+		CliOldServerStopped:   "stopped the server an older lazyreview left running",
+		CliNothingRunning:     "nothing was running",
+		CliLoading:            "loading {{.url}}…",
+		CliNoReview:           "there is no review {{.text}}; lazyreview list shows every review",
+		CliNotALink:           "\"{{.text}}\" is not the address of a review or of a pull request; lazyreview list shows every review",
+		CliConfigUnreadable:   "could not read the config {{.path}}: {{.why}}",
+		CliConfigNeeds:        "config needs one of path, defaults, check or move",
+		CliConfigNeedsNot:     "config needs one of path, defaults, check or move, not \"{{.given}}\"",
+		CliCheckIsForMove:     "--check is for config move",
 
 		LoaderNotFetched:        "could not fetch {{.what}} from {{.repo}}: {{.why}}",
 		LoaderPullHead:          "#{{.pull}}'s head {{.head}}",

@@ -2,6 +2,7 @@ package review
 
 import (
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -127,6 +128,31 @@ func ReadWrittenReview(tr *i18n.TranslationSet, text string) (WrittenRead, error
 		read.Sections = append(read.Sections, models.Section{ID: uniqueID(s.title, ids), Title: s.title, Markdown: strings.TrimSpace(strings.Join(s.lines, "\n"))})
 	}
 	return read, nil
+}
+
+// CheckWrittenReview fails unless the written review names the review's
+// pull requests, in order, and the head of its top one.
+func CheckWrittenReview(tr *i18n.TranslationSet, written WrittenRead, rev models.Review) error {
+	var pulls []int
+	for _, m := range rev.Members {
+		pulls = append(pulls, m.Pull)
+	}
+	if !slices.Equal(written.Pulls, pulls) {
+		return models.Refused(utils.ResolvePlaceholderString(tr.WrittenOtherPulls, map[string]string{"written": pullNumbers(written.Pulls), "shown": pullNumbers(pulls)}))
+	}
+	head := rev.Members[len(rev.Members)-1].Head
+	if !strings.HasPrefix(head, written.Head) {
+		return models.Refused(utils.ResolvePlaceholderString(tr.WrittenOtherHead, map[string]string{"read": written.Head, "head": head[:min(12, len(head))]}))
+	}
+	return nil
+}
+
+func pullNumbers(pulls []int) string {
+	parts := make([]string, len(pulls))
+	for i, p := range pulls {
+		parts[i] = "#" + strconv.Itoa(p)
+	}
+	return strings.Join(parts, ", ")
 }
 
 // Listed is a count of problems, then each on a line of its own.

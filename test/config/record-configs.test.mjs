@@ -1,15 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { configFrom, terminalPart } from '../../src/config/user-config.mjs';
-import { parseYAML } from '../../src/config/yaml.mjs';
+import { configFrom, terminalPart, readUserConfig } from '../../src/config/user-config.mjs';
+import { parseYAML, dumpYAML } from '../../src/config/yaml.mjs';
 import { listEdited } from '../../src/config/list-edit.mjs';
+import { checkedConfigText, movedConfigText } from '../../src/config/config-text.mjs';
+import { planMove, checkLines, move } from '../../src/config/config-move.mjs';
 
 // What the config reader makes of each text, or its refusal, and how YAML's plain scalars read, which the Go reader is
 // tested against.
 const RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal', 'testdata', 'configs.json');
+// What the config commands print and write: each config as checked, YAML as js-yaml writes it, and each move.
+const COMMANDS = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'terminal', 'testdata', 'config-commands.json');
 const PATH = '/home/lee/.config/lazyreview/config.yml';
 const HOME = '/home/lee';
 
@@ -97,11 +102,132 @@ function recorded() {
   return { configs, scalars, edits };
 }
 
+const CHECKED_WITH_VARIABLES = [
+  { text: '', env: { LAZYREVIEW_MODEL: 'claude-sonnet' } },
+  { text: 'github:\n  accounts:\n    - login: lee\n', env: { LAZYREVIEW_HOME: '/srv/reviews', LAZYREVIEW_CLAUDE: '/opt/claude bin/claude', LAZYREVIEW_EDITOR: 'code --wait' } },
+  { text: 'claude:\n  model: claude-opus\nos:\n  editor: nvim\n', env: { LAZYREVIEW_MODEL: "it's #1: fast" } },
+];
+
+const ASCII = Array.from({ length: 95 }, (_, i) => String.fromCharCode(32 + i));
+const STRINGS = [
+  ...ASCII.flatMap(c => [c, `${c}a`, `a${c}b`, `a${c}`, `a${c} b`, `a ${c}b`, `${c}${c}`]),
+  ...SCALARS, 'y', 'Y', 'n', 'N', 'Yes', 'YES', 'On', 'ON', 'No', 'NO', 'Off', 'OFF', 'False', 'FALSE', '<<', '=', '1:20:30', '190:20:30.5', '-1:20',
+  '+1_0:2', '1:2:', '2001-12-14t21:59:43.10-05:00', '2001-12-14 21:59:43.10 -5', '2026-1-1 1:20:30', '2026-10-01T12:00:00Z', '2026-1-1', '2026-10-1',
+  '20261001', '', ' ', '  ', ' a', 'a ', '\ta', 'a\tb', 'é', 'naïve café', '日本語', '😀', 'a😀b', ' ', 'a b', '\u0085', ' ', 'a b',
+  '﻿', 'a﻿b', '\u007f', '\u0001', 'a\u001bb', '\u0000', '', '�', '￿', 'a\nb', 'a\n', 'a\n\n', '\n', '\n\n', '\na', ' a\nb',
+  '\n a', 'a\r\nb', 'a\rb', 'line one\nline two\n', '  lead\n', 'a\n b\n', 'a\n\nb', 'a😀\nb', 'a\n\u0001', '- a', '? a', ': a', 'a: b', 'a:b', 'a #b',
+  'a# b', '#a', 'http://x.y/z?a=b#c', '~/reviews', '/srv/my reviews', 'code --wait', 'claude-sonnet', 'example-org/mobile', "it's", '"q"', 'a\\b',
+  'long '.repeat(40).trim(),
+];
+const VALUES = [
+  {}, [], [[]], [{}], { a: {} }, { a: [] }, { a: [[]] }, [[1, 2], [3]], [[{ a: 1 }]], { a: [{ b: [{ c: 'd' }] }] },
+  [{ a: 1, b: [1, 2] }, { c: { d: [{ e: null }] } }],
+  { a: null, b: true, c: false, d: 1, e: -1, f: 1.5, g: 0.1, h: 1e21, i: 1.5e-7, j: 1e-7, k: 123456789012345678901234, l: 2.5e300, m: 0 },
+  { 'a b': 1, '': 2, true: 3, 1: 4, 'a:b': 5, '-x': 6, '0x1F': 8, null: 9, '~': 10, 'multi\nline': 11, "it's": 12 },
+  { dataHome: '/srv/reviews', claude: { command: 'claude', model: 'claude-sonnet' }, os: { editor: 'code --wait' },
+    github: { accounts: [{ login: 'lee' }, { login: 'lee-at-work', teams: [{ name: 'example-org/mobile', since: '2026-10-01' }, { name: 'example-org/web' }] }] } },
+  [{ login: 'lee', teams: [] }, { login: 'lee-at-work', teams: [{ name: 'example-org/mobile', since: '2026-10-01' }, { name: 'example-org/web', since: null }] }],
+  { a: 'multi\nline' }, ['multi\nline', '  lead\nx\n'], { a: { b: '  lead\nx' } }, [['a\nb']], 'top\nlevel', null, true, 7, -0.5,
+];
+
+const SETTINGS = '{"accounts": [\n  {"login": "lee"},\n  {"login": "lee-at-work", "teams": [{"name": "example-org/mobile", "since": "2026-10-01"}, {"name": "example-org/web"}]}\n]}\n';
+const DATA = `${HOME}/.lazyreview`;
+const IN_DATA = name => `${DATA}/${name}`;
+const MAC_CONFIG = `${HOME}/Library/Application Support/lazyreview/config.yml`;
+const MOVES = [
+  { platform: 'linux', env: {}, files: {} },
+  { platform: 'darwin', env: { LAZYREVIEW_MODEL: 'claude-sonnet', LAZYREVIEW_CLAUDE: 'claude' }, files: { [IN_DATA('settings.json')]: SETTINGS } },
+  { platform: 'linux', env: { LAZYREVIEW_HOME: '/srv/reviews', LAZYREVIEW_EDITOR: 'code --wait', LAZYREVIEW_MODEL: 'claude: fast' }, files: { '/srv/reviews/settings.json': SETTINGS } },
+  { platform: 'linux', env: { LAZYREVIEW_CLAUDE: '/opt/claude bin/claude', LAZYREVIEW_EDITOR: "it's #1" }, files: {} },
+  { platform: 'linux', env: { LAZYREVIEW_HOME: '/srv/r' }, files: {} },
+  { platform: 'linux', env: { LAZYREVIEW_CLAUDE: 'claude' }, files: {} },
+  { platform: 'darwin', env: {}, files: { [IN_DATA('settings.json')]: SETTINGS, [MAC_CONFIG]: 'server:\n  port: 4750\n' } },
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: SETTINGS, [IN_DATA('settings.json.moved')]: 'kept' } },
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: '{"accounts": []}' } },
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: '{"accounts": [{"login": "lee", "teams": []}], "other": 1}' } },
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: '{"accounts": [{"login": "b", "teams": [{"name": "a/b"}]}, {"teams": [], "login": "a"}]}' } },
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: 'not json' } },
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: '' } },
+  ...['null', '[]', '{"accounts": {}}', '{}', '3', '"x"'].map(text => ({ platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: text } })),
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: '{"accounts": [{"login": "lee author:alex"}]}' } },
+  { platform: 'linux', env: {}, files: { [IN_DATA('settings.json')]: '{"accounts": [{"email": "x", "login": 7}, {"login": "lee", "teams": [{"name": "a/b", "since": 3, "x": 1}, "c/d"]}, {"login": "lee"}]}' } },
+  { platform: 'linux', env: { XDG_CONFIG_HOME: `${HOME}/xdg` }, files: { [IN_DATA('settings.json')]: SETTINGS } },
+  { platform: 'linux', env: { LAZYREVIEW_CONFIG_DIR: '/etc/lr', LAZYREVIEW_MODEL: 'm' }, files: {} },
+  { platform: 'linux', env: { LAZYREVIEW_CONFIG_FILE: '/etc/lr/mine.yml', LAZYREVIEW_MODEL: 'm' }, files: {} },
+  { platform: 'linux', env: { LAZYREVIEW_CONFIG_FILE: '/etc/lr/mine.yml', LAZYREVIEW_MODEL: 'm' }, files: { '/etc/lr/mine.yml': 'a: 1\n' } },
+  ...[{ write: [1] }, { folder: [1] }, { rename: [1] }, { rename: [2] }, { rename: [2], remove: [1] }, { rename: [2, 3] }, { rename: [2, 3], remove: [1] }]
+    .map(failures => ({ platform: 'linux', env: { LAZYREVIEW_MODEL: 'm' }, files: { [IN_DATA('settings.json')]: SETTINGS }, failures })),
+  { platform: 'linux', env: { LAZYREVIEW_MODEL: 'm' }, files: {}, failures: { rename: [1], remove: [1] } },
+];
+
+// Files in memory, each step of a move failing on the calls `failures` names, in the words the Go stand-in uses too.
+function memoryFiles(initial, failures = {}) {
+  const files = new Map(Object.entries(initial));
+  const calls = {};
+  const step = name => {
+    calls[name] = (calls[name] || 0) + 1;
+    if ((failures[name] || []).includes(calls[name])) throw new Error(`the disk refused the ${name}`);
+  };
+  return {
+    files,
+    exists: path => files.has(path),
+    read: path => files.get(path),
+    write: (path, text) => { step('write'); if (files.has(path)) throw new Error(`${path} exists`); files.set(path, text); },
+    rename: (from, to) => { step('rename'); files.set(to, files.get(from)); files.delete(from); },
+    remove: path => { step('remove'); files.delete(path); },
+    folder: () => step('folder'),
+  };
+}
+
+const attempt = work => {
+  try {
+    return { out: work() };
+  } catch (error) {
+    return { error: error.message };
+  }
+};
+
+function commands() {
+  const checked = TEXTS.map(text => attempt(() => checkedConfigText(configFrom(text, PATH, HOME))))
+    .map((got, i) => ({ text: TEXTS[i], checked: got.out })).filter(c => c.checked !== undefined);
+  const folder = mkdtempSync(join(tmpdir(), 'lazyreview-record-'));
+  try {
+    for (const c of CHECKED_WITH_VARIABLES) {
+      writeFileSync(join(folder, 'config.yml'), c.text);
+      checked.push({ ...c, checked: checkedConfigText(readUserConfig({ env: { ...c.env, LAZYREVIEW_CONFIG_DIR: folder }, platform: 'linux', home: HOME })) });
+    }
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
+  const long = 'x'.repeat(1100);
+  const dumps = [
+    ...STRINGS.flatMap(s => [s, { k: s }, [s], { [s]: 1 }]),
+    ...STRINGS.filter(s => !ASCII.some(c => s.includes(c)) || /[\s:#'"]/.test(s)).flatMap(s => [{ a: { b: s } }, [[s]], [{ a: s, b: s }]]),
+    long, { [long]: 1 }, ...VALUES,
+  ].map(value => [value, dumpYAML(value)]);
+  const moved = [{}, { claude: { model: 'm' } }, { dataHome: '/srv/my reviews', github: { accounts: [{ login: 'lee' }] } }].map(values => ({ values, text: movedConfigText(values) }));
+  const pid = `.${process.pid}.moving`;
+  const moves = MOVES.map(c => {
+    const files = memoryFiles(c.files, c.failures);
+    const where = { env: c.env, platform: c.platform, home: HOME, files };
+    const planned = attempt(() => planMove(where));
+    if (planned.error) return { ...c, error: planned.error };
+    const plan = planned.out;
+    const done = attempt(() => move(plan, { files }));
+    const after = Object.fromEntries([...files.files].sort(([a], [b]) => (a < b ? -1 : 1)).map(([path, text]) => [path.replace(pid, '.<pid>.moving'), text]));
+    return { ...c, plan: { ...plan }, check: checkLines(plan), moved: done.out, moveError: done.error, after };
+  });
+  return { checked, dumps, moved, moves };
+}
+
 test('the config readings the Go reader is tested against are the ones Node gives now', () => {
   const now = recorded();
+  const said = commands();
   if (process.env.LAZYREVIEW_RECORD) {
     writeFileSync(RECORD, JSON.stringify(now, null, 1) + '\n');
+    writeFileSync(COMMANDS, JSON.stringify(said, null, 1) + '\n');
     return;
   }
   assert.deepEqual(JSON.parse(readFileSync(RECORD, 'utf8')), now, `${RECORD} is not what Node reads now; write it again with LAZYREVIEW_RECORD=1 npm test, then run the Go tests`);
+  assert.deepEqual(JSON.parse(readFileSync(COMMANDS, 'utf8')), JSON.parse(JSON.stringify(said)), `${COMMANDS} is not what Node prints now; write it again with LAZYREVIEW_RECORD=1 npm test, then run the Go tests`);
 });

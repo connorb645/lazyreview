@@ -62,3 +62,24 @@ func TestAWrittenReviewLinksEachFileLineInInlineCodeToTheOneFileWhosePathEndsWit
 		t.Errorf("no text has links")
 	}
 }
+
+func TestAWrittenReviewMustMatchTheReviewItIsAttachedTo(t *testing.T) {
+	tr := i18n.EnglishTranslationSet()
+	rev := models.Review{Members: []models.ReviewMember{{Pull: 12, Head: "3f2a9c1d0e77"}, {Pull: 13, Head: "9d01c2aa45bb"}}}
+	read := func(text string) WrittenRead {
+		written, err := ReadWrittenReview(tr, text)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return written
+	}
+	if err := CheckWrittenReview(tr, read("---\nstack: 12, 13\nhead: 9d01c2aa\n---\n## Notes\nx\n"), rev); err != nil {
+		t.Fatalf("a written review of the stack's top head is refused: %v", err)
+	}
+	if err := CheckWrittenReview(tr, read("---\npull: 12\nhead: abcdef1\n---\n## Notes\nx\n"), rev); err == nil || err.Error() != "the written review names #12, but the review shows #12, #13" {
+		t.Fatalf("a written review of other pull requests says %v", err)
+	}
+	if err := CheckWrittenReview(tr, read("---\nstack: 12, 13\nhead: 1111111\n---\n## Notes\nx\n"), rev); err == nil || err.Error() != "the written review read 1111111, but the review shows head 9d01c2aa45bb; review the head the app shows" {
+		t.Fatalf("a written review of an older head says %v", err)
+	}
+}

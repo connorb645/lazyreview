@@ -72,8 +72,7 @@ func layerOf(pkg string) string {
 // below all, and only tests use testsupport. The gui reaches reviews only
 // through the Reviews it is given; the reviews reach the logic of the queue,
 // of a review, of asking Claude and of loading a review and building its
-// page, which reach the store, GitHub, git and Claude Code. Of the server, only the app's start and the reviews hold a
-// client.
+// page, which reach the store, GitHub, git and Claude Code.
 func TestEachLayerImportsOnlyTheLayersBelowIt(t *testing.T) {
 	root := ".."
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {

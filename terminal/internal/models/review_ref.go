@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
@@ -18,12 +19,13 @@ type ReviewRef interface {
 }
 
 // ParseReviewRef reads a review id, local/<repository key>/<branch> or
-// <host>/<owner>/<repo>/<number>, each part percent-encoded or not.
+// <host>/<owner>/<repo>/<number>, each part percent-encoded or not, as
+// text: a part that decodes to no text names no review.
 func ParseReviewRef(tr *i18n.TranslationSet, id string) (ReviewRef, error) {
 	parts := strings.Split(id, "/")
 	for i, p := range parts {
 		decoded, err := url.PathUnescape(p)
-		if err != nil {
+		if err != nil || !utf8.ValidString(decoded) {
 			return nil, refError(tr.NotAReviewID, map[string]string{"id": id})
 		}
 		parts[i] = decoded

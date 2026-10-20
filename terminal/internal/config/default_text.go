@@ -3,6 +3,7 @@ package config
 import (
 	"regexp"
 	"strings"
+	"unicode/utf16"
 
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
@@ -75,7 +76,7 @@ func defaultLines(section *Section, indent string) []string {
 }
 
 func padded(text string, width int) string {
-	if n := len([]rune(text)); n < width {
+	if n := len(utf16.Encode([]rune(text))); n < width {
 		return text + strings.Repeat(" ", width-n)
 	}
 	return text

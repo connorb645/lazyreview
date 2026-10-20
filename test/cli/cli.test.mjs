@@ -7,20 +7,20 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { workbench } from '../support/workbench.mjs';
 import { fakeGh } from '../support/fake-gh.mjs';
-import { run as command } from '../../src/cli/main.mjs';
-import { TerminalApp } from '../../src/commands/os/terminal-app.mjs';
 import { PullRef } from '../../src/models/pull-ref.mjs';
 
 const BIN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', 'lazyreview');
 
-// Runs the command; whether the terminal app's program must be built first
-// depends on this machine, not on the command, so a line saying it is
-// building is left out.
+// Runs the command; whether its program must be built first depends on
+// this machine, not on the command, so a line saying it is building is left
+// out. The program is built once first, with this machine's own Go cache.
 function run(args, env) {
   return new Promise(resolve => {
-    execFile(BIN, args, { env, timeout: 600_000 }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout: stdout.replace(/^building the terminal app…\n/, ''), stderr }));
+    execFile(BIN, args, { env, timeout: 600_000 }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout, stderr: stderr.replace(/^building lazyreview…\n/, '') }));
   });
 }
+
+await run(['help'], process.env);
 
 function alive(pid) {
   try {
@@ -65,30 +65,6 @@ test('one command loads a pull request and prints its address, with no server', 
     const stale = await run(['attach', w.link(30), file], env);
     assert.equal(stale.code, 1);
     assert.match(stale.stderr, /lazyreview: the written review read 1111111, but the review shows head/);
-  } finally {
-    w.done();
-  }
-});
-
-test('the terminal app opens on the review an address names, loading a pull request no review holds yet, and with none on the home screen', async () => {
-  const w = workbench();
-  const env = w.env;
-  const said = [];
-  const opened = [];
-  const program = new TerminalApp();
-  const terminal = { launch: async ({ review }) => { opened.push(review); }, load: (args, options) => program.load(args, options) };
-  const open = link => command(['terminal', link], { env, say: line => said.push(line), terminal });
-  try {
-    await assert.rejects(open('http://127.0.0.1:4747/'), /is not the address of a review or of a pull request/);
-    await open(w.link(30));
-    assert.deepEqual(said, ['loading https://github.com/octo/widgets/pull/30…']);
-    await open('lazyreview://github.com/octo/widgets/30');
-    await open('http://127.0.0.1:4747/review/github.com/octo/widgets/30#review');
-    await open(w.link(30));
-    assert.equal(said.length, 1, 'a review already loaded opens as it is');
-    assert.deepEqual(opened, Array(4).fill('github.com/octo/widgets/30'), 'an address an older lazyreview printed still opens');
-    await command(['terminal'], { env, say: line => said.push(line), terminal });
-    assert.equal(opened.at(-1), null, 'with no address, the app opens on the home screen');
   } finally {
     w.done();
   }
@@ -145,13 +121,13 @@ test('a file that is not JSON fails the command, naming the file', async () => {
     writeFileSync(join(root, 'server.json'), '');
     const stopped = await run(['stop'], env);
     assert.equal(stopped.code, 1);
-    assert.equal(stopped.stderr, `lazyreview: could not read ${join(root, 'server.json')}: Unexpected end of JSON input\n`);
+    assert.equal(stopped.stderr, `lazyreview: could not read ${join(root, 'server.json')}: unexpected end of JSON input\n`);
 
     const config = join(root, 'components.json');
     writeFileSync(config, '{"components": [');
     const loaded = await run(['load', 'https://github.com/octo/widgets/pull/1', '--config', config], env);
     assert.equal(loaded.code, 1);
-    assert.equal(loaded.stderr, `lazyreview: could not read the config ${config}: Unexpected end of JSON input\n`);
+    assert.equal(loaded.stderr, `lazyreview: could not read the config ${config}: unexpected end of JSON input\n`);
     assert.deepEqual(gh.calls(), []);
   } finally {
     rmSync(root, { recursive: true, force: true });

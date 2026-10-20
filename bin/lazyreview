@@ -1,13 +1,44 @@
-#!/usr/bin/env node
-// lazyreview: loads pull requests into the lazyreview app, and runs the app.
-// Run `lazyreview help` for the commands.
-import { run } from '../src/cli/main.mjs';
-import { english } from '../src/i18n/english.mjs';
+#!/bin/sh
+# lazyreview: builds the Go program in ../terminal the first time it runs,
+# and again whenever its code changes, then runs it with the same
+# arguments, in this process. Its code is the module's own Go files, and
+# what pins its libraries. Run `lazyreview help` for the commands.
 
-try {
-  const lines = await run(process.argv.slice(2), { env: process.env, say: line => console.log(line) });
-  for (const line of lines) console.log(line);
-} catch (error) {
-  console.error(english.cli.failed(error.message));
-  process.exitCode = 1;
+self=$0
+while [ -L "$self" ]; do
+  link=$(readlink "$self")
+  case $link in
+    /*) self=$link ;;
+    *) self=$(dirname "$self")/$link ;;
+  esac
+done
+module=$(cd "$(dirname "$self")/../terminal" && pwd -P) || exit 1
+program=$module/bin/lazyreview
+
+stale() {
+  [ -x "$program" ] || return 0
+  newer=$({
+    find "$module" \( -name bin -o -name vendor -o -name testdata \) -prune \
+      -o -type f -name '*.go' ! -name '*_test.go' -newer "$program" -print
+    for pin in "$module/go.mod" "$module/go.sum" "$module/vendor/modules.txt"; do
+      [ -f "$pin" ] && find "$pin" -newer "$program" -print
+    done
+  } | head -n 1)
+  [ -n "$newer" ]
 }
+
+if stale; then
+  if ! command -v go >/dev/null 2>&1; then
+    echo "lazyreview: lazyreview is built with Go 1.24 or later, and go is not on the PATH; install it from https://go.dev/dl" >&2
+    exit 1
+  fi
+  echo "building lazyreview…" >&2
+  building=$program.$$.building
+  if ! said=$(cd "$module" && go build -mod=vendor -o "$building" . 2>&1); then
+    rm -f "$building"
+    echo "lazyreview: could not build lazyreview: $said" >&2
+    exit 1
+  fi
+  mv -f "$building" "$program" || exit 1
+fi
+exec "$program" "$@"

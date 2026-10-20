@@ -55,15 +55,8 @@ func ConfigFrom(tr *i18n.TranslationSet, text, path, home string) (Read, error) 
 		}
 		var problems []string
 		merge(tr, schema, top, read.Values, read.Sources, "", &problems, &read.Unused)
-		switch {
-		case len(problems) == 1:
-			return Read{}, errors.New(utils.ResolvePlaceholderString(tr.ConfigProblem, map[string]string{"path": path, "problem": problems[0]}))
-		case len(problems) > 1:
-			listed := make([]string, len(problems))
-			for i, p := range problems {
-				listed[i] = utils.ResolvePlaceholderString(tr.ConfigListedProblem, map[string]string{"problem": p})
-			}
-			return Read{}, errors.New(utils.ResolvePlaceholderString(tr.ConfigProblems, map[string]string{"path": path, "count": strconv.Itoa(len(problems)), "problems": strings.Join(listed, "\n")}))
+		if len(problems) > 0 {
+			return Read{}, refusedFor(tr, path, problems)
 		}
 	}
 	data := read.Values["dataHome"].(string)
@@ -74,6 +67,17 @@ func ConfigFrom(tr *i18n.TranslationSet, text, path, home string) (Read, error) 
 		read.Values["dataHome"] = filepath.Join(home, data[2:])
 	}
 	return read, nil
+}
+
+func refusedFor(tr *i18n.TranslationSet, path string, problems []string) error {
+	if len(problems) == 1 {
+		return errors.New(utils.ResolvePlaceholderString(tr.ConfigProblem, map[string]string{"path": path, "problem": problems[0]}))
+	}
+	listed := make([]string, len(problems))
+	for i, p := range problems {
+		listed[i] = utils.ResolvePlaceholderString(tr.ConfigListedProblem, map[string]string{"problem": p})
+	}
+	return errors.New(utils.ResolvePlaceholderString(tr.ConfigProblems, map[string]string{"path": path, "count": strconv.Itoa(len(problems)), "problems": strings.Join(listed, "\n")}))
 }
 
 func merge(tr *i18n.TranslationSet, section *Section, given YAMLMap, values map[string]any, sources map[string]string, prefix string, problems, unused *[]string) {
