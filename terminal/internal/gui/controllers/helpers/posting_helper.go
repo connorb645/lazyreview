@@ -74,7 +74,7 @@ func (self *PostingHelper) Post(s context.ContextTree) (context.ContextTree, tea
 	client, id, build, set := self.c.Reviews, s.Review.ID, s.Review.Page.Build, m.Sets[action].Set
 	return s.Said(self.c.Tr.CheckingThenSending, false), func() tea.Msg {
 		message, state, err := client.Post(id, pn.Pull, action, set, build)
-		return types.Posted{Message: message, State: state, Err: err}
+		return types.Posted{Pull: pn.Pull, Message: message, State: state, Err: err}
 	}
 }
 
@@ -84,11 +84,12 @@ func (self *PostingHelper) AfterPost(s context.ContextTree, msg types.Posted) co
 	tr := self.c.Tr
 	title, words, notice := tr.SentToGitHub, msg.Message, tr.SentHowToClose
 	if msg.Err != nil {
-		title, words, notice = tr.NothingPosted, msg.Err.Error(), tr.NothingPostedHowToClose
+		title = utils.ResolvePlaceholderString(tr.PostTo, map[string]string{"repo": s.Review.State.Repo, "pull": utils.Itoa(msg.Pull)})
+		words, notice = msg.Err.Error(), tr.NothingPostedHowToClose
 	} else {
 		s = self.c.Helpers.Refresh.WithState(s, msg.State)
 	}
 	pn := context.MenuContext{Menu: presentation.Menu{Title: title, Rows: []presentation.MenuRow{{Right: strings.ToUpper(words[:1]) + words[1:]}}}}
-	closing := map[string]string{"close": self.c.KeyLabels(context.MenuKey).Nth("close", 1)}
+	closing := map[string]string{"close": self.c.KeyLabels(context.MenuKey).Of("close")}
 	return s.WithMenu(pn).Said(utils.ResolvePlaceholderString(notice, closing), msg.Err != nil)
 }

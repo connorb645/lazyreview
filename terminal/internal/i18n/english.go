@@ -468,7 +468,6 @@ type TranslationSet struct {
 	CheckingThenSending     string
 	SentToGitHub            string
 	SentHowToClose          string
-	NothingPosted           string
 	NothingPostedHowToClose string
 	PostTo                  string
 	YesAction               string
@@ -1129,7 +1128,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckingThenSending:     "Checking the pull request with GitHub, then sending…",
 		SentToGitHub:            "Sent to GitHub",
 		SentHowToClose:          "Sent; {{.close}} closes GitHub's answer.",
-		NothingPosted:           "Nothing was posted",
 		NothingPostedHowToClose: "Nothing was posted; {{.close}} closes why.",
 		PostTo:                  "Post to {{.repo}}#{{.pull}}",
 		YesAction:               "Yes, {{.action}}",

@@ -27,4 +27,4 @@
 │                               ││                                                                 │
 │                               ││                                                                 │
 ╰────────────────────────1 of 1─╯╰─────────────────────────────────────────────────────────────────╯
- Close: Esc                                                         Sent; q closes GitHub's answer.
+ Close: Esc                                                       Sent; Esc closes GitHub's answer.

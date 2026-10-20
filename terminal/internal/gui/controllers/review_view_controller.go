@@ -158,6 +158,9 @@ func (self *ReviewViewController) Hints(s context.ContextTree, labels presentati
 		tr := self.c.Tr
 		move, open, sections, list := [2]string{labels.Of("down", "up"), tr.Move}, [2]string{labels.Of("open"), tr.Open}, [2]string{labels.Of("next section", "previous section"), tr.Sections}, [2]string{labels.Nth("close", 1), tr.List}
 		if v := s.ReviewView.View; v.Cursor < len(v.Items) && v.Items[v.Cursor].Pull != 0 {
+			if !canPost(s) {
+				return [][2]string{move, open, sections, list}
+			}
 			return [][2]string{move, open, {labels.Of("post"), tr.Post}, {labels.Of("edit", "drop"), tr.EditDrop}, sections, list}
 		}
 		return [][2]string{move, open, sections, {labels.Of("fold"), tr.Fold}, list}

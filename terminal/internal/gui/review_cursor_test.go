@@ -9,6 +9,7 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
+	"github.com/connorb645/lazyreview/terminal/internal/models"
 )
 
 func litKeys(a App) string {
@@ -230,6 +231,37 @@ func TestTheBarOffersOnAllOnlyWhatWorksThere(t *testing.T) {
 	}
 	if got := words(press(t, a, "j")); got != "Review: Enter | Highlight: v | All: Esc | Post: P | GitHub: gx | Panels: h l | Keys: Space ?" {
 		t.Fatalf("on a pull request the bar says %q", got)
+	}
+}
+
+func TestTheBarOffersPostingAndGitHubOnlyWhereTheyWork(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
+	words := func(a App) string {
+		var out []string
+		for _, h := range a.controllers.Hints(a.ContextTree) {
+			out = append(out, h[1]+": "+h[0])
+		}
+		return strings.Join(out, " | ")
+	}
+	if got := words(a); got != "Review: Enter | Post: P | GitHub: gx | Panels: h l | Keys: Space ?" {
+		t.Fatalf("on a pull request's review the bar says %q", got)
+	}
+	s := a.ContextTree
+	moved, branch := *s.Review, *s.Review
+	queue := *moved.State.Queue
+	queue.Moved = &models.Moved{To: stack, Stack: []int{21, 30}}
+	moved.State.Queue = &queue
+	s.Review = &moved
+	if got := words(a.with(s)); got != "Review: Enter | GitHub: gx | Panels: h l | Keys: Space ?" {
+		t.Fatalf("on a review that moved the bar says %q", got)
+	}
+	branch.State.Kind, branch.State.Members, branch.State.Queue = "branch", nil, nil
+	s.Review = &branch
+	if got := words(a.with(s)); got != "Review: Enter | Panels: h l | Keys: Space ?" {
+		t.Fatalf("on a branch's review the bar says %q", got)
+	}
+	if got := words(press(t, a.with(s), "3")); got != "Open: Enter | Panels: h l | Keys: Space ?" {
+		t.Fatalf("on a branch's review the Notes panel's bar says %q", got)
 	}
 }
 

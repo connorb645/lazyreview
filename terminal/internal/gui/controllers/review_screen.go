@@ -80,6 +80,14 @@ func reviewScreenHints(c *helpers.HelperCommon, s context.ContextTree, labels pr
 	return append(hints(), [2]string{labels.Of("keys"), tr.Keys})
 }
 
+func canPost(s context.ContextTree) bool {
+	return s.Review != nil && s.Review.State.Queue != nil && s.Review.State.Queue.Moved == nil
+}
+
+func onGitHub(s context.ContextTree) bool {
+	return s.Review != nil && len(s.Review.State.Members) > 0
+}
+
 func refreshKeys(c *helpers.HelperCommon, labels presentation.KeyLabels) string {
 	return utils.ResolvePlaceholderString(c.Tr.HelpRefreshKeys, map[string]string{"refresh": labels.Of("refresh"), "command": labels.Of("command")})
 }

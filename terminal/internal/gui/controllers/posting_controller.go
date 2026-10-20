@@ -69,8 +69,17 @@ func (self *PostingController) Unbound(s context.ContextTree, _ string, _ tea.Ke
 	return s, nil, false
 }
 
-// Hints are what the bar shows of posting's keys.
+// Hints are what the bar shows of posting's keys: choosing only among
+// more than one action, by the numbers there are.
 func (self *PostingController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	tr := self.c.Tr
-	return [][2]string{{labels.Of("down", "up", "choose 1", "choose 2", "choose 3"), tr.Choose}, {labels.Of("open"), tr.ShowWhatItSends}, {labels.Of("close"), tr.Cancel}}
+	hints := [][2]string{{labels.Of("open"), tr.ShowWhatItSends}, {labels.Of("close"), tr.Cancel}}
+	if len(s.Posting.Actions) < 2 {
+		return hints
+	}
+	choose := []string{"down", "up"}
+	for n := 1; n <= min(len(s.Posting.Actions), 3); n++ {
+		choose = append(choose, "choose "+utils.Itoa(n))
+	}
+	return append([][2]string{{labels.Of(choose...), tr.Choose}}, hints...)
 }

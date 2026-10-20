@@ -58,21 +58,30 @@ func (self *ReviewPanelController) Help(labels presentation.KeyLabels) []HelpSec
 }
 
 // Hints are what the bar shows of the Review panel's keys: growing the
-// highlight while it grows, and on a stack's All row only what works there.
+// highlight while it grows, on a stack's All row only what works there,
+// and posting and GitHub only where there is a queue to post and a pull
+// request to open.
 func (self *ReviewPanelController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
-		panels := panelsHint(self.c, labels)
-		open, all, post, github := [2]string{labels.Of("open"), tr.Review}, [2]string{labels.Nth("close", 1), tr.All}, [2]string{labels.Of("post"), tr.Post}, [2]string{labels.Of("github"), tr.GitHub}
-		highlight := [2]string{labels.Of("highlight"), tr.Highlight}
+		open, all := [2]string{labels.Of("open"), tr.Review}, [2]string{labels.Nth("close", 1), tr.All}
+		var hints [][2]string
 		switch {
 		case s.GrowFrom != 0:
-			return [][2]string{{labels.Of("down", "up"), tr.GrowShrink}, all, panels}
+			return [][2]string{{labels.Of("down", "up"), tr.GrowShrink}, all, panelsHint(self.c, labels)}
 		case s.Review.Page.Stack == nil:
-			return [][2]string{open, post, github, panels}
+			hints = [][2]string{open}
 		case len(s.Filter) > 0:
-			return [][2]string{open, highlight, all, post, github, panels}
+			hints = [][2]string{open, {labels.Of("highlight"), tr.Highlight}, all}
+		default:
+			return [][2]string{open, panelsHint(self.c, labels)}
 		}
-		return [][2]string{open, panels}
+		if canPost(s) {
+			hints = append(hints, [2]string{labels.Of("post"), tr.Post})
+		}
+		if onGitHub(s) {
+			hints = append(hints, [2]string{labels.Of("github"), tr.GitHub})
+		}
+		return append(hints, panelsHint(self.c, labels))
 	})
 }

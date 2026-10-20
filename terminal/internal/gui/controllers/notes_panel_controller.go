@@ -56,10 +56,14 @@ func (self *NotesPanelController) Help(labels presentation.KeyLabels) []HelpSect
 	return reviewScreenHelp(self.c, presentation.PanelNames(tr)[context.NotesPanel], rows, labels)
 }
 
-// Hints are what the bar shows of the Notes panel's keys.
+// Hints are what the bar shows of the Notes panel's keys: the queue's only
+// where there is a queue to post.
 func (self *NotesPanelController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
+		if !canPost(s) {
+			return [][2]string{{labels.Of("open"), tr.Open}, panelsHint(self.c, labels)}
+		}
 		return [][2]string{{labels.Of("open"), tr.Open}, {labels.Of("edit"), tr.Edit}, {labels.Of("drop"), tr.Drop}, {labels.Of("post"), tr.Post}, panelsHint(self.c, labels)}
 	})
 }

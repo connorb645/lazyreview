@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
@@ -31,7 +32,7 @@ func TestPostingShowsWhatItSendsThenSendsIt(t *testing.T) {
 	}
 }
 
-func TestAPostTheServerRefusesSaysWhy(t *testing.T) {
+func TestARefusedPostSaysWhy(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
 	state := a.Review.State
 	queue := *state.Queue
@@ -45,8 +46,31 @@ func TestAPostTheServerRefusesSaysWhy(t *testing.T) {
 	state.Queue = &queue
 	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
 	a = press(t, a, "P", "1", "enter", "y")
-	if !a.Bad || !a.MenuOpen() || a.Menu.Title != "Nothing was posted" || a.Menu.Rows[0].Right != `The page showed set stale0000000, but "comment" now gives set 43028caa56d9; nothing was posted` {
+	if !a.Bad || !a.MenuOpen() || a.Menu.Title != "Post to octo/widgets#30" || a.Menu.Rows[0].Right != `The page showed set stale0000000, but "comment" now gives set 43028caa56d9; nothing was posted` {
 		t.Fatalf("the answer: %q %+v", a.Notice, a.Menu)
+	}
+}
+
+func TestThePostingBarOffersOnlyTheChoicesThereAre(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
+	words := func(a App) string {
+		var out []string
+		for _, h := range a.controllers.Hints(a.ContextTree) {
+			out = append(out, h[1]+": "+h[0])
+		}
+		return strings.Join(out, " | ")
+	}
+	if got := words(press(t, a, "P")); got != "Choose: j k 1 2 3 | Show what it sends: Enter | Cancel: Esc" {
+		t.Fatalf("with three actions the bar says %q", got)
+	}
+	state := a.Review.State
+	queue := *state.Queue
+	queue.Members = append([]models.QueueMember{}, queue.Members...)
+	queue.Members[0].Sets = map[string]models.Set{"approve": queue.Members[0].Sets["approve"]}
+	state.Queue = &queue
+	a = a.with(a.helpers.Refresh.WithState(a.ContextTree, state))
+	if got := words(press(t, a, "P")); got != "Show what it sends: Enter | Cancel: Esc" {
+		t.Fatalf("with one action the bar says %q", got)
 	}
 }
 
