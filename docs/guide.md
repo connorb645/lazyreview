@@ -332,9 +332,10 @@ answer keeps the steps Claude took, and a refused step says why.
 
 The review threads already on GitHub, colleagues', bots' and your own, sit
 under their lines, marked resolved or outdated. A thread on no line shown
-sits at the top of its file. Each thread and each conversation folds to one
-line with `za`, and resolved and outdated threads start folded. `R` reads
-them again.
+sits at the top of its file. Each thread and each conversation starts
+folded to one line that says who wrote, how many comments there are, and
+whether it is resolved, outdated or waiting for Claude; `za` opens it. `R`
+reads them again.
 
 The server writes a token into `server.json` at each start, which only its
 owner can read, and the terminal app sends it with each change.
