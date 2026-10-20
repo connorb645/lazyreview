@@ -72,7 +72,7 @@ func (self *DiffController) Bindings() []Binding {
 		{Action: "ask", Keys: kb.Diff.Ask, Handler: uncounted(h.Editing.Ask), Description: tr.AskClaude},
 		{Action: "stop", Keys: kb.Diff.Stop, Handler: uncounted(h.Editing.Stop), Description: tr.StopClaude},
 		{Action: "edit", Keys: kb.Diff.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
-		{Action: "drop", Keys: kb.Diff.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
+		{Action: "drop", Keys: kb.Diff.Drop, Handler: stateOnly(h.Editing.DropAtCursor), Description: tr.Drop},
 	}
 	return join(reviewScreenBindings(self.c), withReviewAll(own))
 }
@@ -340,11 +340,11 @@ func (self *DiffController) noteHints(s context.ContextTree, labels presentation
 		case n.Kind == "queued":
 			return [][2]string{{labels.Of("edit"), tr.Edit}, {labels.Of("drop"), tr.Drop}, fold, notes, back}
 		case n.Kind == "conversation" && presentation.Waiting(*n.Conversation):
-			return [][2]string{{labels.Of("stop"), tr.StopClaude}, fold, notes, back}
+			return [][2]string{{labels.Of("stop"), tr.StopClaude}, {labels.Of("drop"), tr.Delete}, fold, notes, back}
 		case n.Kind == "conversation" && r.Part == "claude":
-			return [][2]string{{labels.Of("comment"), tr.CommentWithAnswer}, {labels.Of("ask"), tr.FollowUp}, fold, notes}
+			return [][2]string{{labels.Of("comment"), tr.CommentWithAnswer}, {labels.Of("ask"), tr.FollowUp}, {labels.Of("drop"), tr.Delete}, fold, notes}
 		case n.Kind == "conversation":
-			return [][2]string{{labels.Of("ask"), tr.FollowUp}, fold, notes, back}
+			return [][2]string{{labels.Of("ask"), tr.FollowUp}, {labels.Of("drop"), tr.Delete}, fold, notes, back}
 		}
 		return [][2]string{fold, {labels.Of("github"), tr.OnGitHub}, notes, back}
 	}

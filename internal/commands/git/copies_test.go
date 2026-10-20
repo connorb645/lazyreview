@@ -2,6 +2,7 @@ package git
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -131,6 +132,61 @@ func TestPruningRemovesEachCopyNotUsedNeverTheOneKeptAndTheFoldersLeftEmpty(t *t
 	}
 	if _, err := os.Stat(filepath.Join(home, "local")); err == nil {
 		t.Error("a folder left empty stayed")
+	}
+}
+
+func TestACopyIsRemovedWithWhatGoesAlongOrPutBackWhenThatFails(t *testing.T) {
+	home := t.TempDir()
+	parent := filepath.Join(home, "github.com", "octo", "widgets", "7")
+	folder := filepath.Join(parent, "1")
+	made := func() {
+		if err := os.MkdirAll(filepath.Join(folder, ".git"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(folder, "a.txt"), []byte("changed by Claude\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	names := func() []string {
+		entries, _ := os.ReadDir(parent)
+		var out []string
+		for _, e := range entries {
+			out = append(out, e.Name())
+		}
+		return out
+	}
+	copies := NewCopies(i18n.EnglishTranslationSet(), nil, nil)
+	made()
+	refused := errors.New("the record could not be removed")
+	ran := false
+	err := copies.Remove(folder, func() error {
+		ran = true
+		if _, err := os.Stat(folder); err == nil {
+			t.Error("the copy was still in place while what goes along with it went")
+		}
+		return refused
+	})
+	if err != refused || !ran || read(t, filepath.Join(folder, "a.txt")) != "changed by Claude\n" || !reflect.DeepEqual(names(), []string{"1"}) {
+		t.Errorf("a failure along the way gave %v, and left %v", err, names())
+	}
+	if err := copies.Remove(folder, func() error { return nil }); err != nil || len(names()) != 0 {
+		t.Errorf("the removal gave %v, and left %v", err, names())
+	}
+	ran = false
+	if err := copies.Remove(folder, func() error { ran = true; return nil }); err != nil || !ran {
+		t.Errorf("with no copy, what goes along ran %v, and gave %v", ran, err)
+	}
+	made()
+	if err := os.Chmod(parent, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(parent, 0o755)
+	ran = false
+	if err := copies.Remove(folder, func() error { ran = true; return nil }); err == nil || ran {
+		t.Errorf("a copy that cannot move aside ran what goes along %v, and gave %v", ran, err)
+	}
+	if read(t, filepath.Join(folder, "a.txt")) != "changed by Claude\n" {
+		t.Error("a copy that could not move aside changed")
 	}
 }
 

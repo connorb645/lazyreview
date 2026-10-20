@@ -22,6 +22,7 @@ type Reviews interface {
 	Ask(id string, at models.Lines, text, build string) (models.Conversation, error)
 	Reply(id string, conversation int, text, build string) (models.Conversation, error)
 	Stop(id string, conversation int) (models.Conversation, error)
+	Delete(id string, conversation int) (models.State, error)
 	Refresh(id string) ([]string, error)
 	Pulls() (models.Pulls, error)
 	ChangeHidden(hide string, show, repos []string) (models.Hidden, error)

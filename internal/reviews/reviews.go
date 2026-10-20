@@ -149,6 +149,12 @@ func (r *Reviews) Stop(id string, conversation int) (models.Conversation, error)
 	return r.conversed(id, func(ref models.ReviewRef) (models.Conversation, error) { return r.asking.Stop(ref, conversation) })
 }
 
+// Delete deletes a conversation with Claude for good, stopping Claude
+// first when it is answering it, and returns the state as it then stands.
+func (r *Reviews) Delete(id string, conversation int) (models.State, error) {
+	return r.changed(id, func(ref models.ReviewRef) error { return r.asking.Delete(ref, conversation) })
+}
+
 // Refresh loads a review again: a pull request's from GitHub, or a branch's
 // from its repository, and returns the notes on what it found.
 func (r *Reviews) Refresh(id string) ([]string, error) {

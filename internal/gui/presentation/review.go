@@ -329,7 +329,7 @@ func conversationLines(b *builder, t models.Conversation, loc *time.Location) {
 		}
 	}
 	place := models.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
-	b.add(Item{Kind: "conversation", Section: "conversations", Place: &place}, texts...)
+	b.add(Item{Kind: "conversation", Section: "conversations", Thread: t.ID, Place: &place}, texts...)
 }
 
 func changeTotals(tr *i18n.TranslationSet, th theme.Theme, files []models.FileEntry) string {

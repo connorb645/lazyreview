@@ -6,6 +6,7 @@ import (
 	"github.com/connorb645/lazyreview/internal/gui/context"
 	"github.com/connorb645/lazyreview/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/internal/gui/presentation"
+	"github.com/connorb645/lazyreview/internal/utils"
 )
 
 // NotesPanelController binds the keys of the Notes panel, which lists the
@@ -31,7 +32,7 @@ func (self *NotesPanelController) Bindings() []Binding {
 	tr, h, kb := self.c.Tr, self.c.Helpers, self.c.Config.Keybinding
 	own := withReviewAll([]Binding{
 		{Action: "edit", Keys: kb.NotesPanel.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
-		{Action: "drop", Keys: kb.NotesPanel.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
+		{Action: "drop", Keys: kb.NotesPanel.Drop, Handler: stateOnly(h.Editing.DropAtCursor), Description: tr.Drop},
 		{Action: "post", Keys: kb.NotesPanel.Post, Handler: selectedRow(func(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 			return h.Posting.Open(s, row.Item.Pull), nil
 		}), Description: tr.Post},
@@ -43,13 +44,15 @@ func (self *NotesPanelController) Bindings() []Binding {
 // Help is the Notes panel's keys, then those of every panel.
 func (self *NotesPanelController) Help(labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
+	dropping := utils.ResolvePlaceholderString(tr.HelpDropAtCursor, map[string]string{"confirm": labels.Of("confirm")})
 	rows := []presentation.HelpRow{
 		{Keys: sideMoveKeys(labels), Words: tr.HelpNotesMove},
 		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
 		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("previous panel", "next panel"), Words: tr.HelpPanels},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenNote},
-		{Keys: labels.Of("edit", "drop"), Words: tr.HelpEditDrop},
+		{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor},
+		{Keys: labels.Of("drop"), Words: dropping},
 		{Keys: labels.Of("post"), Words: tr.HelpPostComment},
 		{Keys: labels.Of("stop"), Words: tr.HelpStop},
 	}
@@ -57,14 +60,18 @@ func (self *NotesPanelController) Help(labels presentation.KeyLabels) []HelpSect
 }
 
 // Hints are what the bar shows of the Notes panel's keys, by the row
-// selected: a queued comment's, and posting on a row of a pull request,
-// only where there is a queue to post.
+// selected: a conversation's, a queued comment's, and posting on a row of a
+// pull request, only where there is a queue to post.
 func (self *NotesPanelController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
 		open, post, panels := [2]string{labels.Of("open"), tr.Open}, [2]string{labels.Of("post"), tr.Post}, panelsHint(self.c, labels)
 		row, _ := s.Side(context.NotesPanel).Selected()
-		switch {
+		switch c, ok := self.c.Helpers.Editing.ConversationAt(s); {
+		case ok && presentation.Waiting(c):
+			return [][2]string{open, {labels.Of("stop"), tr.StopClaude}, {labels.Of("drop"), tr.Delete}, panels}
+		case ok:
+			return [][2]string{open, {labels.Of("drop"), tr.Delete}, panels}
 		case !canPost(s):
 			return [][2]string{open, panels}
 		case row.Item.Kind == "comment":

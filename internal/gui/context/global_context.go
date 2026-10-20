@@ -17,8 +17,8 @@ import (
 // filter and its highlight, the jumps, the notice in the bar, the keys typed
 // toward a sequence, the last click, the drafts and the editing under way,
 // the questions sent to Claude and not yet answered, the conversation last
-// stopped here, the spinner's frame and whether its next tick is due, and
-// the stream of the review's changes.
+// stopped here, the conversations deleted here, the spinner's frame and
+// whether its next tick is due, and the stream of the review's changes.
 type GlobalContext struct {
 	Width      int
 	Height     int
@@ -45,6 +45,7 @@ type GlobalContext struct {
 	EditingNow bool
 	Asking     int
 	Stopped    int
+	Deleted    []models.Conversation
 	Spin       int
 	Spinning   bool
 	Live       <-chan tea.Msg

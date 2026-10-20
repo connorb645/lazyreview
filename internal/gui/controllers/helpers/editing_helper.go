@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
+	"slices"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,8 +21,8 @@ import (
 
 const cutLine = "# ------------------------ >8 ------------------------"
 
-// EditingHelper writes comments, questions and answers in the editor, and
-// queues, edits and drops comments.
+// EditingHelper writes comments, questions and answers in the editor,
+// queues, edits and drops comments, and deletes conversations with Claude.
 type EditingHelper struct {
 	c *HelperCommon
 }
@@ -162,7 +164,7 @@ func (self *EditingHelper) Ask(s context.ContextTree) (context.ContextTree, tea.
 // asks.
 func (self *EditingHelper) Stop(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 	tr := self.c.Tr
-	c, ok := self.conversationAt(s)
+	c, ok := self.ConversationAt(s)
 	if !ok {
 		return s.Said(self.keyed(s, tr.StopsClaude, "stop"), true), nil
 	}
@@ -178,14 +180,22 @@ func (self *EditingHelper) Stop(s context.ContextTree) (context.ContextTree, tea
 	}
 }
 
-func (self *EditingHelper) conversationAt(s context.ContextTree) (models.Conversation, bool) {
+// ConversationAt is the conversation with Claude at the cursor: on a
+// note in the diff, a row of the Notes panel or an item of the Review
+// view.
+func (self *EditingHelper) ConversationAt(s context.ContextTree) (models.Conversation, bool) {
 	id := 0
 	if n, _, ok := self.NoteAt(s); ok && n.Kind == "conversation" {
 		id = n.Conversation.ID
 	}
-	if s.Focus() == context.NotesPanel {
+	switch {
+	case s.Focus() == context.NotesPanel:
 		if row, ok := s.Side(context.NotesPanel).Selected(); ok && row.Item.Kind == "conversation" {
 			id = row.Item.Thread
+		}
+	case s.Focus() == context.MainPanel && s.Screen() == context.ScreenReview && s.ReviewView.View.Cursor < len(s.ReviewView.View.Items):
+		if it := s.ReviewView.View.Items[s.ReviewView.View.Cursor]; it.Kind == "conversation" {
+			id = it.Thread
 		}
 	}
 	for _, c := range s.Review.State.Threads {
@@ -210,23 +220,30 @@ func (self *EditingHelper) EditQueued(s context.ContextTree) (context.ContextTre
 	return self.edit(s, types.Editing{Purpose: "edit", Comment: c.ID, Version: c.Version, At: at, Pull: pull, Text: c.Body, Key: fmt.Sprintf("edit %d", c.ID), About: about})
 }
 
-// DropQueued is the state asking whether to drop the queued comment at the
-// cursor.
-func (self *EditingHelper) DropQueued(s context.ContextTree) context.ContextTree {
-	c, pull, ok := self.queuedAt(s)
-	if !ok {
-		return s.Said(self.keyed(s, self.c.Tr.DropsQueuedAtCursor, "drop"), true)
+// DropAtCursor is the state asking whether to drop the queued comment at
+// the cursor, or to delete the conversation with Claude there.
+func (self *EditingHelper) DropAtCursor(s context.ContextTree) context.ContextTree {
+	if c, pull, ok := self.queuedAt(s); ok {
+		s = s.Opened(context.ConfirmationKey)
+		s.Confirmation = context.ConfirmationContext{Comment: c.ID, Pull: pull, Version: c.Version}
+		return s
 	}
-	s = s.Opened(context.ConfirmationKey)
-	s.Confirmation = context.ConfirmationContext{Comment: c.ID, Pull: pull, Version: c.Version}
-	return s
+	if c, ok := self.ConversationAt(s); ok {
+		s = s.Opened(context.ConfirmationKey)
+		s.Confirmation = context.ConfirmationContext{Conversation: &c}
+		return s
+	}
+	return s.Said(self.keyed(s, self.c.Tr.DropsAtCursor, "drop"), true)
 }
 
-// Dropped is the state dropping the comment the confirmation asked about,
-// and the command that drops it.
+// Dropped is the state dropping the comment, or deleting the
+// conversation, the confirmation asked about, and the command that does it.
 func (self *EditingHelper) Dropped(s context.ContextTree) (context.ContextTree, tea.Cmd) {
 	c := s.Confirmation
 	s = s.Closed(context.ConfirmationKey)
+	if c.Conversation != nil {
+		return self.deleting(s, *c.Conversation)
+	}
 	client, id, build := self.c.Reviews, s.Review.ID, s.Review.Page.Build
 	e := types.Editing{Purpose: "drop", Comment: c.Comment, Pull: c.Pull}
 	return s.Said(self.c.Tr.Dropping, false), func() tea.Msg {
@@ -235,11 +252,29 @@ func (self *EditingHelper) Dropped(s context.ContextTree) (context.ContextTree, 
 	}
 }
 
-// Kept is the state keeping the comment the confirmation asked about.
+// Kept is the state keeping the comment, or the conversation, the
+// confirmation asked about.
 func (self *EditingHelper) Kept(s context.ContextTree) context.ContextTree {
 	c := s.Confirmation
 	s = s.Closed(context.ConfirmationKey)
+	if c.Conversation != nil {
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.KeptConversation, map[string]string{"on": fileLineWords(self.c.Tr, linesOf(*c.Conversation))}), false)
+	}
 	return s.Said(utils.ResolvePlaceholderString(self.c.Tr.KeptQueued, map[string]string{"comment": utils.Itoa(c.Comment)}), false)
+}
+
+func (self *EditingHelper) deleting(s context.ContextTree, c models.Conversation) (context.ContextTree, tea.Cmd) {
+	client, id := self.c.Reviews, s.Review.ID
+	e := types.Editing{Purpose: "delete", Conversation: c.ID, At: linesOf(c)}
+	s.Deleted = append(slices.Clone(s.Deleted), c)
+	words := self.c.Tr.Deleting
+	if presentation.Waiting(c) {
+		words = self.c.Tr.StoppingThenDeleting
+	}
+	return s.Said(words, false), func() tea.Msg {
+		state, err := client.Delete(id, c.ID)
+		return types.Changed{E: e, State: &state, Err: err}
+	}
 }
 
 // AfterEditing is the state once the editor closes: what was written
@@ -300,8 +335,15 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 	if e.Purpose == "ask" || e.Purpose == "reply" {
 		s.Asking = max(0, s.Asking-1)
 	}
+	if msg.Conversation != nil && deletedHere(s, *msg.Conversation) {
+		return s, nil
+	}
 	if msg.Err != nil {
 		var refusal models.Refusal
+		if e.Purpose == "delete" {
+			s.Deleted = slices.DeleteFunc(slices.Clone(s.Deleted), func(c models.Conversation) bool { return c.ID == e.Conversation })
+			return s.Said(msg.Err.Error(), true), h.Review.LoadState(s.Review.ID)
+		}
 		if (e.Purpose == "edit" || e.Purpose == "drop") && errors.As(msg.Err, &refusal) {
 			return s.Said(msg.Err.Error(), true), h.Review.LoadState(s.Review.ID)
 		}
@@ -323,9 +365,14 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 		}
 		return s.Said(self.c.Tr.ClaudeAnswered, false), nil
 	}
+	if e.Purpose == "delete" {
+		s = forgotten(s, e.Conversation)
+	}
 	s = h.Refresh.WithState(s, *msg.State)
 	comment := map[string]string{"comment": utils.Itoa(e.Comment)}
 	switch e.Purpose {
+	case "delete":
+		return self.followed(s.Said(utils.ResolvePlaceholderString(self.c.Tr.DeletedConversation, map[string]string{"on": fileLineWords(self.c.Tr, e.At)}), false))
 	case "edit":
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.SavedQueued, comment), false), nil
 	case "drop":
@@ -493,6 +540,10 @@ func onWords(tr *i18n.TranslationSet, at models.Lines) string {
 	return at.Path + ", " + presentation.LinesWords(tr, at.Side, at.Line, at.StartLine, at.StartSide)
 }
 
+func fileLineWords(tr *i18n.TranslationSet, at models.Lines) string {
+	return path.Base(at.Path) + ", " + presentation.LinesWords(tr, at.Side, at.Line, at.StartLine, at.StartSide)
+}
+
 func codeAbout(code []string) []string {
 	if len(code) == 0 {
 		return nil
@@ -529,6 +580,24 @@ func withDraft(drafts map[string]string, key, text string) map[string]string {
 		out[key] = text
 	}
 	return out
+}
+
+func linesOf(c models.Conversation) models.Lines {
+	return models.Lines{Path: c.Path, Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide}
+}
+
+func deletedHere(s context.ContextTree, c models.Conversation) bool {
+	return slices.ContainsFunc(s.Deleted, func(d models.Conversation) bool { return d.ID == c.ID && d.CreatedAt == c.CreatedAt })
+}
+
+func forgotten(s context.ContextTree, conversation int) context.ContextTree {
+	s.Diff.Notes = utils.CopyBools(s.Diff.Notes)
+	delete(s.Diff.Notes, fmt.Sprintf("conversation:%d", conversation))
+	s.Drafts = withDraft(s.Drafts, fmt.Sprintf("reply %d", conversation), "")
+	if s.Stopped == conversation {
+		s.Stopped = 0
+	}
+	return s
 }
 
 func withConversation(st models.State, c models.Conversation) models.State {

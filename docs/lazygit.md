@@ -62,9 +62,10 @@ A citation starting `lazygit:` names a file and line of lazygit at
   rules as pure functions, and the service that queues, changes, drops and
   posts comments.
 - `internal/ask` asks Claude about lines: the guard on each tool call, the
-  question, and the conversations. An answer runs in a process of its own,
-  the same program run as `lazyreview answer`, so it goes on when the app
-  quits; Claude Code asks `lazyreview guard` about each tool call.
+  question, and the conversations, which it keeps, stops and deletes. An
+  answer runs in a process of its own, the same program run as
+  `lazyreview answer`, so it goes on when the app quits; Claude Code asks
+  `lazyreview guard` about each tool call.
 - `internal/reviews` is how the gui reads and changes a review. It answers
   from the data home, loads and refreshes reviews, and hears a change by
   watching the review's files.

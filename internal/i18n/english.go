@@ -79,7 +79,6 @@ type TranslationSet struct {
 	HelpFoldTree       string
 	HelpNotesMove      string
 	HelpOpenNote       string
-	HelpEditDrop       string
 	HelpPostComment    string
 	HelpBoxesMove      string
 	HelpPanelsToReview string
@@ -183,6 +182,12 @@ type TranslationSet struct {
 	DropTitle          string
 	DropFooter         string
 	Drop               string
+	DeleteQuestion     string
+	DeleteTitle        string
+	DeleteFooter       string
+	DeleteStopsClaude  string
+	DeleteGone         string
+	Delete             string
 	AnyOtherKey        string
 	Keep               string
 	TypeKey            string
@@ -413,9 +418,12 @@ type TranslationSet struct {
 	EditsQueuedAtCursor     string
 	QueuedCommentOn         string
 	SavingReplaces          string
-	DropsQueuedAtCursor     string
+	DropsAtCursor           string
 	KeptQueued              string
+	KeptConversation        string
 	Dropping                string
+	Deleting                string
+	StoppingThenDeleting    string
 	CouldNotMakeFile        string
 	NothingBelowLine        string
 	CouldNotWrite           string
@@ -441,6 +449,7 @@ type TranslationSet struct {
 	ClaudeAnswered          string
 	SavedQueued             string
 	DroppedQueued           string
+	DeletedConversation     string
 	QueuedAbout             string
 
 	AddComments             string
@@ -699,6 +708,8 @@ type TranslationSet struct {
 	NoConversation       string
 	NoCodebase           string
 	StillWorking         string
+	NotDeleted           string
+	DidNotStop           string
 	AnswerEnded          string
 	ClaudeTooSlow        string
 	ClaudeStopped        string
@@ -1023,7 +1034,6 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpFoldTree:       "folds or unfolds a component or a folder",
 		HelpNotesMove:      "the next, previous, first or last note; the main panel shows it in its diff",
 		HelpOpenNote:       "the note in its diff, in the main panel",
-		HelpEditDrop:       "edit or drop the queued comment",
 		HelpPostComment:    "post: the actions offered for the comment's pull request",
 		HelpBoxesMove:      "the next, previous, first or last box, in reading order",
 		HelpPanelsToReview: "the panel above or below; {{.nextPanel}} goes round to Review",
@@ -1061,7 +1071,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpComment:        "comments on the line or the selection; on Claude's answer, uses it as the comment",
 		HelpAsk:            "asks Claude about the line or the selection; in a conversation, asks a follow-up",
 		HelpEditAtCursor:   "edits the queued comment at the cursor",
-		HelpDropAtCursor:   "drops the queued comment at the cursor, after {{.confirm}} confirms",
+		HelpDropAtCursor:   "drops the queued comment, or deletes the conversation with Claude, at the cursor, after {{.confirm}} confirms",
 		HelpShowType:       "shows the type at the cursor on the diagram; on a file's header, lists its types",
 		HelpBack:           "goes back to the diagram or the Review view",
 		HelpSplit:          "split or unified",
@@ -1127,6 +1137,12 @@ func EnglishTranslationSet() *TranslationSet {
 		DropTitle:          "Drop comment {{.comment}}",
 		DropFooter:         "{{.confirm}} drop · any other key keeps it",
 		Drop:               "Drop",
+		DeleteQuestion:     "Delete the conversation with Claude on {{.on}}?",
+		DeleteTitle:        "Delete conversation",
+		DeleteFooter:       "{{.confirm}} delete · any other key keeps it",
+		DeleteStopsClaude:  "Claude is still answering; deleting stops it first.",
+		DeleteGone:         "It is gone for good once deleted.",
+		Delete:             "Delete",
 		AnyOtherKey:        "any other key",
 		Keep:               "Keep",
 		TypeKey:            "type",
@@ -1357,9 +1373,12 @@ func EnglishTranslationSet() *TranslationSet {
 		EditsQueuedAtCursor:     "{{.edit}} edits the queued comment at the cursor",
 		QueuedCommentOn:         "Queued comment {{.comment}} on {{.on}}, for #{{.pull}}.",
 		SavingReplaces:          "Saving replaces it.",
-		DropsQueuedAtCursor:     "{{.drop}} drops the queued comment at the cursor",
+		DropsAtCursor:           "{{.drop}} drops the queued comment, or deletes the conversation with Claude, at the cursor",
 		KeptQueued:              "Kept queued comment {{.comment}}.",
+		KeptConversation:        "Kept the conversation on {{.on}}.",
 		Dropping:                "Dropping…",
+		Deleting:                "Deleting…",
+		StoppingThenDeleting:    "Stopping Claude, then deleting…",
 		CouldNotMakeFile:        "could not make a file to write in",
 		NothingBelowLine:        "Nothing below the line above is sent. Saving with no text sends nothing.",
 		CouldNotWrite:           "could not write {{.path}}",
@@ -1385,6 +1404,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ClaudeAnswered:          "Claude answered.",
 		SavedQueued:             "Saved queued comment {{.comment}}.",
 		DroppedQueued:           "Dropped queued comment {{.comment}}.",
+		DeletedConversation:     "Deleted the conversation on {{.on}}.",
 		QueuedAbout:             "Queued: {{.about}}",
 
 		AddComments:             "Add Comments",
@@ -1643,6 +1663,8 @@ func EnglishTranslationSet() *TranslationSet {
 		NoConversation:       "there is no conversation {{.id}} on {{.review}}",
 		NoCodebase:           "could not make a copy of the code for Claude: {{.why}}",
 		StillWorking:         "Claude is still working on this conversation; wait for its answer, or stop it",
+		NotDeleted:           "not deleted: {{.why}}",
+		DidNotStop:           "Claude is still answering it and did not stop",
 		AnswerEnded:          "the answer stopped before Claude gave one: {{.why}}",
 		ClaudeTooSlow:        "Claude did not answer within {{.minutes}} minutes",
 		ClaudeStopped:        "you stopped it",

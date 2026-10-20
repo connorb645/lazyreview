@@ -91,6 +91,11 @@ func (s standInReviews) Stop(id string, conversation int) (models.Conversation, 
 	return answer.Thread, s.call(http.MethodPost, reviewPath(id, fmt.Sprintf("/threads/%d/stop", conversation)), nil, map[string]any{}, &answer)
 }
 
+func (s standInReviews) Delete(id string, conversation int) (models.State, error) {
+	var answer struct{ State models.State }
+	return answer.State, s.call(http.MethodDelete, reviewPath(id, fmt.Sprintf("/threads/%d", conversation)), nil, nil, &answer)
+}
+
 func (s standInReviews) Post(id string, pull int, action, set, build string) (string, models.State, error) {
 	var answer struct {
 		Message string

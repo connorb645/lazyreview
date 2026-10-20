@@ -2,6 +2,8 @@ package git
 
 import (
 	"context"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -83,6 +85,35 @@ func (c *Copies) Prune(parent string, unused time.Duration, keep string) {
 		}
 	}
 	walk(parent)
+}
+
+// Remove takes the copy in folder away together with what along takes
+// away, all or nothing: it moves the copy aside, runs along, then removes
+// the copy once along succeeds, or puts it back when along fails. With no
+// copy in folder it only runs along. A copy that cannot be removed whole,
+// or put back, stays aside in a hidden folder beside it, which Prune
+// removes.
+func (c *Copies) Remove(folder string, along func() error) error {
+	if _, err := os.Lstat(folder); errors.Is(err, fs.ErrNotExist) {
+		return along()
+	}
+	aside, err := os.MkdirTemp(filepath.Dir(folder), "."+filepath.Base(folder)+"-")
+	if err != nil {
+		return err
+	}
+	moved := filepath.Join(aside, filepath.Base(folder))
+	if err := os.Rename(folder, moved); err != nil {
+		_ = os.Remove(aside)
+		return err
+	}
+	if err := along(); err != nil {
+		if os.Rename(moved, folder) == nil {
+			_ = os.Remove(aside)
+		}
+		return err
+	}
+	_ = os.RemoveAll(aside)
+	return nil
 }
 
 func (c *Copies) make(ctx context.Context, folder string, of CopyOf) error {

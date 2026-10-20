@@ -1,0 +1,30 @@
+╭─[1]─Review────────────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift────────────────╮
+│┃All                           ││  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1             │
+│ #21 Add search to the catalog ││   @@ -1,11 +1,13 @@                                             │
+│ #22 Add a basket that uses se…││     1    1   final class Basket {                               │
+╰────────────────────────1 of 3─╯│     2    2       let catalog: Catalog                           │
+╭─[2]─Files─────────────────────╮│ ▎        3 +     let search: Search                             │
+│ ▾ ■ widgets            +15 −1 ││              ▸ Claude · 1 message · line 3 · waiting for Claude │
+│   ▾ Sources/Basket            ││     3    4                                                      │
+│┃    M Basket.swift          ● ││     4    5       init(catalog: Catalog) {                       │
+│   ▾ Sources/Catalog           ││     5    6           self.catalog = catalog                     │
+│     M MemoryCatalog.swift   ● ││ ▎        7 +         self.search = Search(catalog: catalog)     │
+│     A Search.swift  ╭─Delete conversation──────────────────────────────────╮           a ask  za │
+│   ▾ web/src         │ Delete the conversation with Claude on               │       gx GitHub  za │
+│     M cart.ts       │ Sources/Basket/Basket.swift, line 3?                 │                     │
+│ ▾ ■ Unchanged code  │   “Does anything test this?”                         │                     │
+╰─────────────────────│ Claude is still answering; deleting stops it first.  │                     │
+╭─[3]─Notes───────────│ It is gone for good once deleted.                    │                     │
+│ Queued              ╰────────────────────y delete · any other key keeps it─╯                     │
+│ 1 MemoryCatalog.swift:8-… #21 ││              ▾ Queued 2 → #22 · removed line 9 to line 11       │
+│ 2 Basket.swift:9-11       #22 ││                Why one?                                         │
+│ Claude                      2 ││    10   12       }                                              │
+│ Basket.swift:7 Could this be …││    11   13   }                                                  │
+│ Basket.swift:3 Does … waiting ││                                                                 │
+╰────────────────────────4 of 6─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││                                                                 │
+╰────────────────────────1 of 2─╯╰─────────────────────────────a conversation with Claude · line 3─╯
+ Delete: y | Keep: any other key                                Claude is working: Ran swift test |

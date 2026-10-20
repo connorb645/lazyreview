@@ -93,6 +93,13 @@ func (madeCopies) Prepare(_ context.Context, folder string, _ git.CopyOf) (strin
 
 func (madeCopies) Prune(string, time.Duration, string) {}
 
+func (madeCopies) Remove(folder string, along func() error) error {
+	if err := along(); err != nil {
+		return err
+	}
+	return os.RemoveAll(folder)
+}
+
 func standInReviews(t *testing.T) (*Reviews, *testsupport.FakeClaude, string) {
 	tr := i18n.EnglishTranslationSet()
 	gh := testsupport.FakeGhFrom(t, testsupport.Testdata("github.json"))
@@ -396,6 +403,8 @@ func record(t *testing.T) recording {
 		{key: answerKey("POST", base+"/threads/1/messages", nil, map[string]any{"text": "Could it be passed in?", "build": build})},
 		{do: leftWaiting},
 		{key: answerKey("POST", base+"/threads/9/stop", nil, map[string]any{})},
+		{key: answerKey("DELETE", base+"/threads/1", nil, nil)},
+		{key: answerKey("DELETE", base+"/threads/7", nil, nil)},
 	}
 	oneState, err := r.State(singleID)
 	if err != nil {
@@ -554,6 +563,10 @@ func (r *Reviews) answer(t *testing.T, key string) (given, bool) {
 		n, _ := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(tail, "threads/"), "/messages"))
 		v, err := r.Reply(id, n, text("text"), text("build"))
 		return given{&threadAnswer{v}, err}, true
+	case method == "DELETE" && strings.HasPrefix(tail, "threads/"):
+		n, _ := strconv.Atoi(strings.TrimPrefix(tail, "threads/"))
+		v, err := r.Delete(id, n)
+		return given{&stateAnswer{v}, err}, true
 	case method == "POST" && strings.HasPrefix(tail, "threads/") && strings.HasSuffix(tail, "/stop"):
 		n, _ := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(tail, "threads/"), "/stop"))
 		v, err := r.Stop(id, n)

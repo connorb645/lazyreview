@@ -53,6 +53,7 @@ type Service struct {
 	hook     func(folder string) string
 	session  func() string
 	now      func() string
+	stopping time.Duration
 }
 
 // NewService keeps the conversations of the reviews in reviews, asking asker,
@@ -61,7 +62,7 @@ type Service struct {
 // conversation's Claude Code session is named by session, a new random one
 // when it is nil. A question and an answer are stamped with now.
 func NewService(tr *i18n.TranslationSet, reviews *store.ReviewStore, locks *store.Locks, asker *claude.Claude, copies CodeCopies, clones *git.Clones, answerer Answerer, session func() string, now func() string) *Service {
-	s := &Service{tr: tr, store: reviews, locks: locks, claude: asker, copies: copies, clones: clones, answerer: answerer, hook: guardCommand, session: session, now: now}
+	s := &Service{tr: tr, store: reviews, locks: locks, claude: asker, copies: copies, clones: clones, answerer: answerer, hook: guardCommand, session: session, now: now, stopping: stopWait}
 	if s.session == nil {
 		s.session = newSession
 	}
@@ -78,9 +79,10 @@ func NewService(tr *i18n.TranslationSet, reviews *store.ReviewStore, locks *stor
 }
 
 // Start opens a conversation on lines as the app shows them, with the
-// question text, and returns it once Claude answered. build is the build id
-// of the page the window was drawn from; the question is refused once the
-// review was loaded again since.
+// question text, and returns it once Claude answered, or as it was asked,
+// with why, when it was deleted meanwhile. build is the build id of the
+// page the window was drawn from; the question is refused once the review
+// was loaded again since.
 func (s *Service) Start(ref models.ReviewRef, at models.Lines, text, build string) (models.Conversation, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
@@ -89,7 +91,7 @@ func (s *Service) Start(ref models.ReviewRef, at models.Lines, text, build strin
 	if at.Path == "" || (at.Side != "RIGHT" && at.Side != "LEFT") || at.Line < 1 {
 		return models.Conversation{}, models.Refused(s.tr.AskNeedsLine)
 	}
-	var id int
+	var asked models.Conversation
 	err := s.store.Change([]models.ReviewRef{ref}, func() ([]store.FileWrite, error) {
 		if err := s.askable(ref, build); err != nil {
 			return nil, err
@@ -98,24 +100,24 @@ func (s *Service) Start(ref models.ReviewRef, at models.Lines, text, build strin
 		if err != nil {
 			return nil, err
 		}
+		id := 0
 		for _, t := range threads {
 			id = max(id, t.ID)
 		}
-		id++
-		fresh := models.Conversation{ID: id, Path: at.Path, Side: at.Side, Line: at.Line, CreatedAt: s.now(), Messages: []models.Message{{From: "you", Text: text, At: s.now()}}}
+		asked = models.Conversation{ID: id + 1, Path: at.Path, Side: at.Side, Line: at.Line, CreatedAt: s.now(), Messages: []models.Message{{From: "you", Text: text, At: s.now()}}}
 		if at.StartLine != 0 {
-			fresh.StartLine, fresh.StartSide = at.StartLine, at.StartSide
-			if fresh.StartSide == "" {
-				fresh.StartSide = at.Side
+			asked.StartLine, asked.StartSide = at.StartLine, at.StartSide
+			if asked.StartSide == "" {
+				asked.StartSide = at.Side
 			}
 		}
-		write, err := s.store.ThreadWrite(ref, fresh)
+		write, err := s.store.ThreadWrite(ref, asked)
 		return []store.FileWrite{write}, err
 	})
 	if err != nil {
 		return models.Conversation{}, err
 	}
-	return s.answered(ref, id)
+	return s.answered(ref, asked)
 }
 
 // Reply adds the question text to conversation id, and returns it once
@@ -125,6 +127,7 @@ func (s *Service) Reply(ref models.ReviewRef, id int, text, build string) (model
 	if text == "" {
 		return models.Conversation{}, models.Refused(s.tr.AskFirst)
 	}
+	var asked models.Conversation
 	err := s.store.Change([]models.ReviewRef{ref}, func() ([]store.FileWrite, error) {
 		if err := s.askable(ref, build); err != nil {
 			return nil, err
@@ -137,30 +140,30 @@ func (s *Service) Reply(ref models.ReviewRef, id int, text, build string) (model
 			return nil, models.Refused(s.tr.StillWorking)
 		}
 		c.Messages = append(c.Messages, models.Message{From: "you", Text: text, At: s.now()})
+		asked = c
 		write, err := s.store.ThreadWrite(ref, c)
 		return []store.FileWrite{write}, err
 	})
 	if err != nil {
 		return models.Conversation{}, err
 	}
-	return s.answered(ref, id)
+	return s.answered(ref, asked)
 }
 
 // Stop stops Claude working on conversation id, wherever it works, and
-// returns the conversation once it says so. When nothing works on it, as
-// after an answer stopped partway, a conversation still waiting is told it
-// was stopped, so it waits no longer.
+// returns the conversation once it says so, or as it was with why, when it
+// is gone. When nothing works on it, as after an answer stopped partway, a
+// conversation still waiting is told it was stopped, so it waits no
+// longer.
 func (s *Service) Stop(ref models.ReviewRef, id int) (models.Conversation, error) {
-	answering := s.store.Home().Review(ref).Answering(id)
-	if store.LockHeld(answering) {
-		_ = os.WriteFile(filepath.Join(answering, stopFile), nil, 0o644)
-		for deadline := time.Now().Add(stopWait); store.LockHeld(answering) && time.Now().Before(deadline); {
-			time.Sleep(stopPoll)
-		}
-	}
+	was, _ := s.thread(ref, id)
+	s.stopAnswering(ref, id)
 	c, err := s.thread(ref, id)
-	if err != nil || (!waiting(c) && c.Working == nil) {
-		return c, err
+	if err != nil {
+		return was, err
+	}
+	if !waiting(c) && c.Working == nil {
+		return c, nil
 	}
 	return s.change(ref, id, func(c *models.Conversation) {
 		if waiting(*c) {
@@ -168,6 +171,32 @@ func (s *Service) Stop(ref models.ReviewRef, id int) (models.Conversation, error
 		}
 		c.Working = nil
 	})
+}
+
+// Delete takes conversation id away for good: its file and its copy of
+// the code, all or nothing. When Claude is answering it, Delete stops
+// Claude first, as Stop does; when Claude does not stop, nothing is taken
+// away and the refusal says so. A comment queued from one of its answers
+// stays queued.
+func (s *Service) Delete(ref models.ReviewRef, id int) error {
+	if _, err := s.thread(ref, id); err != nil {
+		return s.notDeleted(err)
+	}
+	s.stopAnswering(ref, id)
+	folder := s.store.Home().Review(ref)
+	if store.LockHeld(folder.Answering(id)) {
+		return s.notDeleted(models.Refused(s.tr.DidNotStop))
+	}
+	return s.notDeleted(s.locks.With([]string{folder.Answering(id)}, 0, func() error {
+		return s.copies.Remove(s.store.Home().Copy(ref, id), func() error {
+			return s.store.Change([]models.ReviewRef{ref}, func() ([]store.FileWrite, error) {
+				if _, err := s.thread(ref, id); err != nil {
+					return nil, err
+				}
+				return []store.FileWrite{{Path: folder.Thread(id), Remove: true}}, nil
+			})
+		})
+	}))
 }
 
 // Answer has Claude answer conversation id's last question, and keeps the
@@ -272,20 +301,23 @@ func (s *Service) answer(ctx context.Context, ref models.ReviewRef, id int) mode
 	return message
 }
 
-func (s *Service) answered(ref models.ReviewRef, id int) (models.Conversation, error) {
-	ran := s.answerer(ref, id)
-	c, err := s.thread(ref, id)
-	if err != nil || !waiting(c) {
-		return c, err
+func (s *Service) answered(ref models.ReviewRef, asked models.Conversation) (models.Conversation, error) {
+	ran := s.answerer(ref, asked.ID)
+	c, err := s.thread(ref, asked.ID)
+	if err != nil {
+		return asked, err
 	}
-	if store.LockHeld(s.store.Home().Review(ref).Answering(id)) {
+	if !waiting(c) {
+		return c, nil
+	}
+	if store.LockHeld(s.store.Home().Review(ref).Answering(asked.ID)) {
 		return c, models.Refused(s.tr.StillWorking)
 	}
 	why := s.tr.ClaudeNothing
 	if ran != nil {
 		why = ran.Error()
 	}
-	return s.change(ref, id, func(c *models.Conversation) {
+	return s.change(ref, asked.ID, func(c *models.Conversation) {
 		if waiting(*c) {
 			c.Messages = append(c.Messages, models.Message{From: "claude", Error: utils.ResolvePlaceholderString(s.tr.AnswerEnded, map[string]string{"why": why}), At: s.now()})
 		}
@@ -398,6 +430,24 @@ func (s *Service) thread(ref models.ReviewRef, id int) (models.Conversation, err
 		}
 	}
 	return models.Conversation{}, models.Refused(utils.ResolvePlaceholderString(s.tr.NoConversation, map[string]string{"id": strconv.Itoa(id), "review": ref.ID()}))
+}
+
+func (s *Service) stopAnswering(ref models.ReviewRef, id int) {
+	answering := s.store.Home().Review(ref).Answering(id)
+	if !store.LockHeld(answering) {
+		return
+	}
+	_ = os.WriteFile(filepath.Join(answering, stopFile), nil, 0o644)
+	for deadline := time.Now().Add(s.stopping); store.LockHeld(answering) && time.Now().Before(deadline); {
+		time.Sleep(stopPoll)
+	}
+}
+
+func (s *Service) notDeleted(err error) error {
+	if err == nil {
+		return nil
+	}
+	return models.Refused(utils.ResolvePlaceholderString(s.tr.NotDeleted, map[string]string{"why": err.Error()}))
 }
 
 func waiting(c models.Conversation) bool {

@@ -116,7 +116,7 @@ func TestTheNotesPanelBarOffersTheKeysOfTheRowChosen(t *testing.T) {
 	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
 	for key, want := range map[string]string{
 		"queued:1":       "Open: Enter | Edit: e | Drop: dd | Post: P | Panels: h l | Keys: Space ?",
-		"conversation:1": "Open: Enter | Panels: h l | Keys: Space ?",
+		"conversation:1": "Open: Enter | Delete: dd | Panels: h l | Keys: Space ?",
 		"thread:T1":      "Open: Enter | Post: P | Panels: h l | Keys: Space ?",
 	} {
 		a = press(t, a, "3", "g", "g")

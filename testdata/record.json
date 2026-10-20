@@ -4505,6 +4505,328 @@
    }
   }
  },
+ "DELETE /api/reviews/github.com/octo/widgets/21/threads/1": {
+  "status": 200,
+  "body": {
+   "state": {
+    "id": "github.com/octo/widgets/21",
+    "kind": "",
+    "host": "github.com",
+    "repo": "octo/widgets",
+    "title": "Stack #21 to #22",
+    "me": "reviewer",
+    "account": null,
+    "base": {
+     "ref": "main",
+     "sha": "ec30a03f5f35ca87815c1688954702bbe71b7d44"
+    },
+    "head": {
+     "ref": "",
+     "sha": ""
+    },
+    "loaded_at": "2026-10-15T12:00:00.000Z",
+    "notes": [],
+    "moved": null,
+    "members": [
+     {
+      "pull": 21,
+      "head": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+      "title": "Add search to the catalog",
+      "url": "https://github.com/octo/widgets/pull/21",
+      "author": "sam",
+      "base": "main",
+      "state": "open",
+      "ended_at": null,
+      "color": 1
+     },
+     {
+      "pull": 22,
+      "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+      "title": "Add a basket that uses search",
+      "url": "https://github.com/octo/widgets/pull/22",
+      "author": "sam",
+      "base": "feature/search",
+      "state": "open",
+      "ended_at": null,
+      "color": 2
+     }
+    ],
+    "earlier": [],
+    "queue": {
+     "repo": "octo/widgets",
+     "members": [
+      {
+       "pull": 21,
+       "head": "ec6fb42d53810243d9b14431738a09f21bc7277a",
+       "title": "Add search to the catalog",
+       "url": "https://github.com/octo/widgets/pull/21",
+       "author": "sam",
+       "state": "open",
+       "ended_at": null,
+       "sets": {
+        "approve": {
+         "set": "220a7e960264",
+         "words": "You approve octo/widgets#21 with no comments. The queued 2 comments stay queued, unposted."
+        },
+        "approve-with-comments": {
+         "set": "e6962794f0ca",
+         "words": "You approve octo/widgets#21, and these 2 comments go with the approval under your name, exactly as shown."
+        },
+        "comment": {
+         "set": "ba956ec761ec",
+         "words": "These 2 comments go on octo/widgets#21 under your name, exactly as shown."
+        }
+       },
+       "comments": [
+        {
+         "id": 1,
+         "path": "Sources/Catalog/MemoryCatalog.swift",
+         "line": 10,
+         "side": "RIGHT",
+         "body": "Keep the order the items came in.",
+         "code": "    func add(_ item: Item) {\n        stored.append(item)\n    }",
+         "start_line": 8,
+         "start_side": "RIGHT",
+         "shown": {
+          "path": "Sources/Catalog/MemoryCatalog.swift",
+          "side": "RIGHT",
+          "line": 10,
+          "start_line": 8,
+          "start_side": "RIGHT"
+         },
+         "version": "a7d138f1d1a2"
+        },
+        {
+         "id": 4,
+         "path": "Sources/Catalog/MemoryCatalog.swift",
+         "line": 9,
+         "side": "RIGHT",
+         "body": "One add is enough.",
+         "code": "\n    func add(_ item: Item) {\n        stored.append(item)",
+         "start_line": 7,
+         "start_side": "RIGHT",
+         "shown": {
+          "path": "Sources/Catalog/MemoryCatalog.swift",
+          "side": "RIGHT",
+          "line": 9,
+          "start_line": 7,
+          "start_side": "RIGHT"
+         },
+         "version": "686f64b49d1b"
+        }
+       ],
+       "posted": []
+      },
+      {
+       "pull": 22,
+       "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+       "title": "Add a basket that uses search",
+       "url": "https://github.com/octo/widgets/pull/22",
+       "author": "sam",
+       "state": "open",
+       "ended_at": null,
+       "sets": {
+        "approve": {
+         "set": "d7ddf77b8a01",
+         "words": "You approve octo/widgets#22 with no comments. The queued 2 comments stay queued, unposted."
+        },
+        "approve-with-comments": {
+         "set": "5eb01a5e2863",
+         "words": "You approve octo/widgets#22, and these 2 comments go with the approval under your name, exactly as shown."
+        },
+        "comment": {
+         "set": "56650ca298a8",
+         "words": "These 2 comments go on octo/widgets#22 under your name, exactly as shown."
+        }
+       },
+       "comments": [
+        {
+         "id": 3,
+         "path": "Sources/Basket/Basket.swift",
+         "line": 3,
+         "side": "RIGHT",
+         "body": "Name the search for what it finds.",
+         "code": "    let search: Search",
+         "shown": {
+          "path": "Sources/Basket/Basket.swift",
+          "side": "RIGHT",
+          "line": 3
+         },
+         "version": "0ccb519e4c16"
+        },
+        {
+         "id": 5,
+         "path": "Sources/Basket/Basket.swift",
+         "line": 7,
+         "side": "RIGHT",
+         "body": "It could: the basket only reads from it.",
+         "code": "        self.search = Search(catalog: catalog)",
+         "shown": {
+          "path": "Sources/Basket/Basket.swift",
+          "side": "RIGHT",
+          "line": 7
+         },
+         "version": "3be883e3e52a"
+        }
+       ],
+       "posted": []
+      }
+     ],
+     "earlier": [],
+     "moved": null
+    },
+    "threads": [
+     {
+      "id": 2,
+      "path": "Sources/Basket/Basket.swift",
+      "side": "RIGHT",
+      "line": 3,
+      "created_at": "2026-10-15T13:00:03.000Z",
+      "messages": [
+       {
+        "from": "you",
+        "text": "Why keep a search here?",
+        "at": "2026-10-15T13:00:04.000Z"
+       },
+       {
+        "from": "claude",
+        "text": "It returns early when the list is empty.",
+        "at": "2026-10-15T13:00:05.000Z"
+       }
+      ],
+      "session": "00000000-0000-4000-8000-000000000002"
+     },
+     {
+      "id": 9,
+      "path": "Sources/Basket/Basket.swift",
+      "side": "RIGHT",
+      "line": 3,
+      "created_at": "2026-10-15T13:00:08.000Z",
+      "messages": [
+       {
+        "from": "you",
+        "text": "Does anything test this?",
+        "at": "2026-10-15T13:00:09.000Z"
+       },
+       {
+        "from": "claude",
+        "error": "you stopped it",
+        "at": "2026-10-15T13:00:10.000Z"
+       }
+      ],
+      "session": "00000000-0000-4000-8000-000000000003"
+     }
+    ],
+    "github": [
+     {
+      "id": "T1",
+      "pull": 21,
+      "path": "Sources/Catalog/MemoryCatalog.swift",
+      "side": "RIGHT",
+      "line": 9,
+      "start_line": null,
+      "start_side": null,
+      "original_line": 9,
+      "resolved": false,
+      "resolved_by": null,
+      "outdated": false,
+      "file": false,
+      "comments": [
+       {
+        "id": 1,
+        "author": "sam",
+        "bot": false,
+        "body": "Should this keep the order items were added in?",
+        "at": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/21#discussion_r1"
+       }
+      ],
+      "more": 0,
+      "hunk": "",
+      "at": {
+       "path": "Sources/Catalog/MemoryCatalog.swift",
+       "side": "RIGHT",
+       "line": 9
+      }
+     },
+     {
+      "id": "T2",
+      "pull": 22,
+      "path": "Sources/Basket/Basket.swift",
+      "side": "RIGHT",
+      "line": 7,
+      "start_line": null,
+      "start_side": null,
+      "original_line": 7,
+      "resolved": true,
+      "resolved_by": "sam",
+      "outdated": false,
+      "file": false,
+      "comments": [
+       {
+        "id": 2,
+        "author": "sam",
+        "bot": false,
+        "body": "Could the search be passed in?",
+        "at": "2026-10-15T10:00:00Z",
+        "url": "https://github.com/octo/widgets/pull/21#discussion_r2"
+       }
+      ],
+      "more": 0,
+      "hunk": "",
+      "at": {
+       "path": "Sources/Basket/Basket.swift",
+       "side": "RIGHT",
+       "line": 7
+      }
+     }
+    ],
+    "written": {
+     "title": "Search, then a basket",
+     "head": "cd3c70277eb3b388699274ec861c66932edb9348",
+     "sections": [
+      {
+       "id": "what-this-changes",
+       "title": "What this changes",
+       "markdown": "#21 adds a search over the catalog in `Search.swift:4`. #22 gives the basket a search of its own, in `Basket.swift:7`. [Likely]",
+       "links": [
+        {
+         "text": "Search.swift:4",
+         "path": "Sources/Catalog/Search.swift",
+         "line": 4
+        },
+        {
+         "text": "Basket.swift:7",
+         "path": "Sources/Basket/Basket.swift",
+         "line": 7
+        }
+       ]
+      },
+      {
+       "id": "risks",
+       "title": "Risks",
+       "markdown": "`MemoryCatalog.swift:9` appends without checking for duplicates. [Guessing]",
+       "links": [
+        {
+         "text": "MemoryCatalog.swift:9",
+         "path": "Sources/Catalog/MemoryCatalog.swift",
+         "line": 9
+        }
+       ]
+      }
+     ],
+     "stale": false
+    },
+    "version": "a738ccaed126"
+   }
+  }
+ },
+ "DELETE /api/reviews/github.com/octo/widgets/21/threads/7": {
+  "status": 422,
+  "body": {
+   "error": "not deleted: there is no conversation 7 on github.com/octo/widgets/21"
+  }
+ },
  "POST /api/reviews/github.com/octo/widgets/30/post {\"action\":\"comment\",\"build\":\"96fd6925d395\",\"pull\":30,\"set\":\"stale0000000\"}": {
   "status": 422,
   "body": {

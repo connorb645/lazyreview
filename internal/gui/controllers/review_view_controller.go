@@ -58,7 +58,7 @@ func (self *ReviewViewController) Bindings() []Binding {
 		{Action: "fold", Keys: kb.ReviewView.Fold, Handler: stateOnly(self.fold), Description: tr.Fold},
 		{Action: "open", Keys: kb.ReviewView.Open, Handler: uncounted(self.open), Description: tr.Open},
 		{Action: "edit", Keys: kb.ReviewView.Edit, Handler: uncounted(h.Editing.EditQueued), Description: tr.Edit},
-		{Action: "drop", Keys: kb.ReviewView.Drop, Handler: stateOnly(h.Editing.DropQueued), Description: tr.Drop},
+		{Action: "drop", Keys: kb.ReviewView.Drop, Handler: stateOnly(h.Editing.DropAtCursor), Description: tr.Drop},
 		{Action: "post", Keys: kb.ReviewView.Post, Handler: stateOnly(self.post), Description: tr.Post},
 		{Action: "drawings", Keys: kb.ReviewView.Drawings, Handler: uncounted(h.Browser.OpenDrawings), Description: tr.Drawings},
 	}
@@ -144,7 +144,8 @@ func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSect
 		{Keys: utils.ResolvePlaceholderString(tr.HelpLineEndsKeys, map[string]string{"top": labels.Of("top"), "bottom": labels.Of("bottom")}), Words: tr.HelpItemsEnds},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenItem},
 		{Keys: labels.Of("fold"), Words: tr.HelpFoldSection},
-		{Keys: labels.Of("edit", "drop"), Words: tr.HelpEditDrop},
+		{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor},
+		{Keys: labels.Of("drop"), Words: utils.ResolvePlaceholderString(tr.HelpDropAtCursor, map[string]string{"confirm": labels.Of("confirm")})},
 		{Keys: labels.Of("post"), Words: tr.HelpPostAtCursor},
 		{Keys: labels.Of("drawings"), Words: tr.HelpDrawings},
 	}
@@ -152,7 +153,8 @@ func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSect
 }
 
 // Hints are what the bar shows of the Review view's keys: posting and the
-// queued comment's keys on a pull request's item, folding on others.
+// queued comment's keys on a pull request's item, deleting on a
+// conversation, folding on others.
 func (self *ReviewViewController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
@@ -162,6 +164,9 @@ func (self *ReviewViewController) Hints(s context.ContextTree, labels presentati
 				return [][2]string{move, open, sections, list}
 			}
 			return [][2]string{move, open, {labels.Of("post"), tr.Post}, {labels.Of("edit", "drop"), tr.EditDrop}, sections, list}
+		}
+		if _, ok := self.c.Helpers.Editing.ConversationAt(s); ok {
+			return [][2]string{move, open, {labels.Of("drop"), tr.Delete}, sections, list}
 		}
 		return [][2]string{move, open, sections, {labels.Of("fold"), tr.Fold}, list}
 	})

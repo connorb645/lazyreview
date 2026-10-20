@@ -242,7 +242,7 @@ The panels on the left:
 | `v` | in Review, on a stack, highlights the pull request selected; in Files, selects the row selected, and the diff shows every file the selection holds; `j` `k` grow or shrink either, and in Files `v` stops it |
 | `Esc` | in Review, goes to All, to show the whole stack; in Files, stops the selection |
 | `P` | in Review and Notes, posts for the pull request selected |
-| `e` `dd` | in Notes, edits or drops the queued comment |
+| `e` `dd` | in Notes, edits or drops the queued comment; on a conversation with Claude, `dd` deletes it; `dd` asks first |
 | `za` | in Files, folds a component or a folder |
 | `-` and the diagram's other keys | in Diagram, as in the diagram below; `j` `k` go through the boxes in reading order |
 
@@ -255,7 +255,7 @@ The Review view, in the main panel:
 | `Enter` | opens the item at the cursor in its diff |
 | `]]` `[[` | the next or previous section |
 | `za` | folds or unfolds a section |
-| `e` `dd` | edits or drops the queued comment at the cursor |
+| `e` `dd` | edits or drops the queued comment at the cursor; on a conversation with Claude, `dd` deletes it; `dd` asks first |
 | `P` | posts: the actions offered for the pull request at the cursor, then exactly what one sends, then `y` |
 | `gX` | opens the written review's drawings in the browser, from a page lazyreview writes that runs no script |
 
@@ -304,7 +304,7 @@ each its own number, or how far each is from the cursor, as Vim's
 | `V` | selects lines; `o` goes to the other end, `Esc` stops |
 | `c` | comments on the line or the selection; on Claude's answer, uses it |
 | `a` | asks Claude about the line or the selection; in a conversation, asks a follow-up |
-| `e` `dd` | edits or drops the queued comment at the cursor; `dd` asks first |
+| `e` `dd` | edits or drops the queued comment at the cursor; on a conversation with Claude, on its header or its messages, `dd` deletes it; `dd` asks first |
 | `gd` | shows the type at the cursor on the diagram |
 | `Space s` `Space w` `Space o` | split or unified, wrap, the whole file |
 | `Space r` | a Markdown file rendered, block by block, or back to its diff; `V`, `c` and `a` work on whole blocks |
@@ -332,6 +332,13 @@ or a request that writes; reading stays allowed. While Claude works, the bar
 says so and the conversation shows its latest steps; `x` stops it. An answer
 goes on when the app quits, and shows when the review opens again. Each
 answer keeps the steps Claude took, and a refused step says why.
+
+`dd` on a conversation, in the diff, in Notes or in the Review view,
+deletes it for good once `y` confirms: its file and its copy of the code
+go, and it stays gone when the review is loaded again. When Claude is still
+answering it, the answer stops first; when Claude does not stop, nothing is
+deleted and the bar says why. A comment made from one of its answers stays
+queued.
 
 The review threads already on GitHub, colleagues', bots' and your own, sit
 under their lines, marked resolved or outdated. A thread on no line shown
