@@ -7,8 +7,16 @@ import (
 )
 
 // CardDetail is a card's second line under a filter: a component's or a
-// package's count of what the filter shows, or the card's own detail.
+// package's count of what the filter shows, a file's lines that the filter
+// counts, or the card's own detail.
 func CardDetail(tr *i18n.TranslationSet, d types.ReviewData, l diagram.Level, card diagram.Card, filter types.PullFilter) string {
+	if card.Kind == "file" {
+		for _, n := range d.Page.Model.Nodes {
+			if n.ID == card.ID {
+				return diagram.FileDetail(d.Page, n.File, filter.Lines)
+			}
+		}
+	}
 	for _, c := range d.Page.Model.Components {
 		switch {
 		case card.Kind == "component" && c.ID == card.ID:

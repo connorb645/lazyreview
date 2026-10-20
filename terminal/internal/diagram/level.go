@@ -123,7 +123,11 @@ func Types(tr *i18n.TranslationSet, page server.Page, component, pkg string) Lev
 			continue
 		}
 		cardOf[n.ID] = n.ID
-		l.Cards = append(l.Cards, nodeCard(n, page.Layout.Boxes[n.ID]))
+		card := nodeCard(n, page.Layout.Boxes[n.ID])
+		if card.Kind == "file" {
+			card.Detail = FileDetail(page, n.File, wholeLines)
+		}
+		l.Cards = append(l.Cards, card)
 	}
 	nodes := map[string]server.Node{}
 	for _, n := range page.Model.Nodes {
@@ -260,6 +264,19 @@ func PackageDetail(tr *i18n.TranslationSet, page server.Page, c server.Component
 		return count(files, tr.FileNoun)
 	}
 	return count(types, tr.TypeNoun)
+}
+
+// FileDetail is a file card's second line: the lines that lines counts of
+// the changed file the card stands for, or nothing for a file of unchanged
+// code, whose state says so.
+func FileDetail(page server.Page, file string, lines func(f server.FileEntry) (int, int)) string {
+	for _, f := range page.Model.Files {
+		if f.Path == file {
+			adds, dels := lines(f)
+			return fmt.Sprintf("+%d −%d", adds, dels)
+		}
+	}
+	return ""
 }
 
 func everything([]int) bool { return true }

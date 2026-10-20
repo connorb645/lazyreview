@@ -10,6 +10,7 @@ import (
 
 	"github.com/connorb645/lazyreview/terminal/internal/commands/server"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation/diagram"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 )
@@ -461,5 +462,32 @@ func TestTheKeysListSaysHowTheBoxesMove(t *testing.T) {
 	}
 	if help["h l"] != tr.HelpBoxesAlong || help["j k"] != tr.HelpBoxesDown {
 		t.Fatalf("Space ? lists h l as %q and j k as %q", help["h l"], help["j k"])
+	}
+}
+
+// A file box says what changed in its file, not its own name again; under
+// a pull request filter, what the chosen pull requests changed.
+func TestAFileBoxSaysItsLinesNotItsNameAgain(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/30", 100, 30)
+	a = showBox(a, types.DiagramPlace{Level: "types", Component: "docs", Package: "top"})
+	details := map[string]string{}
+	for _, card := range a.Diagram.Level.Cards {
+		details[card.Title] = presentation.CardDetail(a.c.Tr, *a.Review, a.Diagram.Level, card, nil)
+	}
+	if details["guide.md"] != "+12 −1" || details["basket.md"] != "+6 −0" {
+		t.Fatalf("the file boxes read %v", details)
+	}
+	screenIs(t, a, "file-boxes")
+
+	a, _ = opened(t, "github.com/octo/widgets/21", 100, 30)
+	a = showBox(a, types.DiagramPlace{Level: "types", Component: "root", Package: "web-src"})
+	card := a.Diagram.Level.Cards[a.Diagram.Level.Index("file:web/src/cart.ts")]
+	for _, c := range []struct {
+		filter types.PullFilter
+		want   string
+	}{{nil, "+1 −0"}, {types.PullFilter{22}, "+1 −0"}, {types.PullFilter{21}, "+0 −0"}} {
+		if got := presentation.CardDetail(a.c.Tr, *a.Review, a.Diagram.Level, card, c.filter); got != c.want {
+			t.Errorf("under %v, cart.ts's box reads %q, not %q", c.filter, got, c.want)
+		}
 	}
 }
