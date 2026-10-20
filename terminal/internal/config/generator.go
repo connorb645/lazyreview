@@ -1,8 +1,8 @@
 //go:build ignore
 
 // Writes the config's documentation from its schema: the generated parts of
-// docs/Config.md, and schema/config.json. npm run docs runs it, through go
-// generate, after a change to the schema.
+// docs/Config.md, and schema/config.json. go generate ./internal/config
+// runs it, after a change to the schema.
 package main
 
 import (

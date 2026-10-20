@@ -22,13 +22,13 @@ var (
 	fakeHunk        = regexp.MustCompile(`^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@`)
 )
 
-// FakeGh answers gh's calls from routes, as the Node tests' fake gh does:
-// "GET <path>" or "POST <path>", or a GraphQL query by its variables, as
-// "POST graphql <owner>/<name>#<number>", with " after <cursor>" for a
-// later page, each led by "token-<login> " for one account's calls; an
-// answer {"$fail": text} fails. Like GitHub, it refuses a review
-// whose comment is not on a line of its pull request's diff, as the files
-// route gives it, or whose range leaves one hunk or ends before it starts.
+// FakeGh answers gh's calls from routes: "GET <path>" or "POST <path>", or
+// a GraphQL query by its variables, as "POST graphql <owner>/<name>#<number>",
+// with " after <cursor>" for a later page, each led by "token-<login> " for
+// one account's calls; an answer {"$fail": text} fails. Like GitHub, it
+// refuses a review whose comment is not on a line of its pull request's
+// diff, as the files route gives it, or whose range leaves one hunk or ends
+// before it starts.
 type FakeGh struct {
 	Routes map[string]json.RawMessage
 	Calls  []Call

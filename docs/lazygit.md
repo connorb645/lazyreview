@@ -1,9 +1,8 @@
 # lazyreview and lazygit
 
 lazyreview takes lazygit's way of laying out a program: its folders, its
-layers, its strings, its theme and its config. Each part takes it in its
-own language. The terminal app is Go, as lazygit is; the command stays
-JavaScript until it moves into Go.
+layers, its strings, its theme and its config. It is one Go program, as
+lazygit is.
 
 A citation starting `lazygit:` names a file and line of lazygit at
 `v0.63.0`. Every other path is in this repository.
@@ -39,8 +38,9 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 ### What lazyreview adopts, and where
 
-- `terminal/main.go` reads the flags, and `internal/app` builds `Common`,
-  the reviews and the gui, then runs Bubble Tea.
+- `terminal/main.go` hands the command line to `internal/app`, which runs
+  one command; for `terminal` it builds `Common`, the reviews and the gui,
+  then runs Bubble Tea.
 - `internal/common` holds `Common`: the strings, the terminal app's part
   of the config and the theme. `internal/i18n/english.go` holds `TranslationSet` and
   `EnglishTranslationSet()`, every string the terminal app shows, with
@@ -63,9 +63,8 @@ A citation starting `lazygit:` names a file and line of lazygit at
   posts comments.
 - `internal/ask` asks Claude about lines: the guard on each tool call, the
   question, and the conversations. An answer runs in a process of its own,
-  the same program run as `lazyreview-terminal answer`, so it goes on when
-  the app quits; Claude Code asks `lazyreview-terminal guard` about each
-  tool call.
+  the same program run as `lazyreview answer`, so it goes on when the app
+  quits; Claude Code asks `lazyreview guard` about each tool call.
 - `internal/reviews` is how the gui reads and changes a review. It answers
   from the data home, loads and refreshes reviews, and hears a change by
   watching the review's files.
@@ -77,15 +76,16 @@ A citation starting `lazygit:` names a file and line of lazygit at
   each file, `model` the diagram's types and links, `unchanged` the
   unchanged code around the change, `stack` where a comment on each line
   of a stack goes, `layout` where each card sits, and `page` puts them
-  together. `lazyreview-terminal load` is the same loader, for the command.
+  together. `lazyreview load` runs the same loader.
 - `internal/commands/github` runs `gh`: the account it answers as, a pull
   request, its files, reviews and review threads, sending a review, and
   the home screen's searches. `internal/commands/claude` runs Claude Code
   once per question, and `internal/commands/git` reads a repository,
   fetches into the bare clones and makes the throwaway copies of the code
   Claude works in. `internal/commands/oscommands` opens an address in the
-  browser, and writes the page of a written review's drawings that it
-  opens.
+  browser, writes the page of a written review's drawings that it opens,
+  runs an answer in a process of its own, and stops a server an older
+  lazyreview left running.
 - `internal/gui` is the app: `views` draw framed rectangles and the canvas;
   `context` holds one context per view, of lazygit's kinds, in a
   `ContextTree` with a focus stack whose top takes keys first;
@@ -130,25 +130,24 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 ### What lazyreview adopts, and where
 
-- `src/commands` runs every other program: the terminal app's program, and
-  a stop to a server an older lazyreview left running. Nothing else does,
-  and `test/layers.test.mjs` checks it.
-- `src/models` holds the refs that name a pull request, a branch or a
-  review, as plain values.
-- `src/app` reads the config and builds what a command uses once; `src/cli`
-  reads the arguments and runs one command.
-- `src/i18n/english.mjs` holds every sentence of the command, as one
-  frozen object by area; a sentence with values is a function. A test fails when an error is made from written words anywhere
-  else.
-- `test/layers.test.mjs` checks the direction of every import: the commands
-  use only Node, the models and the strings; the logic and the store never
-  reach the command line or the start.
+- `bin/lazyreview` builds the program when its code changed, then runs it
+  in its own process, so a signal to the command reaches the program.
+- `internal/cli` reads the command line: the command, its options and
+  arguments, the address `terminal` opens, and a review's address. It is
+  pure, and its refusals end with the usage.
+- `internal/app`'s `CommandLine` runs one command, building what it uses
+  once: the store, a load, the stop of every answer, or the terminal app.
+  Its sentences are in `internal/i18n/english.go` with the app's.
+- Every other program runs through `internal/commands`, as the app's do,
+  and `internal/gui/layers_test.go` checks the direction of every import.
 
 ### What it leaves out, and why
 
-- Views, contexts and controllers. The command has no screen: what it
-  presents is its lines, which keep their place and take their words from
-  the strings.
+- A library for flags. A few commands, each with a few options, read in
+  one small function, which keeps the usage and its refusals in lazyreview's
+  own words.
+- Views, contexts and controllers for the command. It has no screen: what
+  it presents is its lines, which take their words from the strings.
 
 ## The config
 
@@ -176,27 +175,23 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 - `config.yml` in lazygit's place: on macOS
   `~/Library/Application Support/lazyreview/config.yml`, by the same order
-  of folders. `terminal/internal/config/find_config_file.go` finds it, and
-  `src/config/config-file.mjs` for the command.
+  of folders. `terminal/internal/config/find_config_file.go` finds it.
 - `terminal/internal/config/schema.go` holds every setting once: its
   default, its check, the variable that overrides it and the words that
   describe it. The reader, `docs/Config.md` and `schema/config.json` are
-  made from it; `npm run docs` writes the docs through `go generate`, as
+  made from it; `go generate ./internal/config` writes the docs, as
   lazygit writes its own, and a test fails when they are out of date.
-  `src/config/schema.mjs` is the command's copy, and a test fails when it
-  would write the docs otherwise.
 - `terminal/internal/config` reads the file onto the defaults with YAML's
-  core schema, as `src/config/user-config.mjs` does for the command with
-  js-yaml (`vendor/js-yaml-4.3.2.min.js`), merging maps key by key and
-  replacing lists whole, and checks every setting. A Go test holds the two
-  to the same values and the same words for each of a set of configs.
+  core schema, through goccy/go-yaml, merging maps key by key and replacing
+  lists whole, and checks every setting. A test holds it to the values and
+  words recorded in `terminal/testdata/configs.json`. `config check` and
+  `config move` write YAML as `terminal/testdata/config-commands.json`
+  records it.
 - `gui.theme` with lazygit's colour names where the role is the same, and
   `keybinding` with lazygit's way of writing keys.
 - `lazyreview config path`, `defaults`, `check` and `move`, for
   lazygit's `--print-config-dir` and `--config`
   (lazygit:`pkg/app/entry_point.go:204-208`), and the one-time move.
-- The terminal app reads the config itself, with goccy/go-yaml for the
-  YAML, as lazygit reads its own in Go.
 
 ### What it leaves out, and why
 
@@ -217,7 +212,7 @@ A citation starting `lazygit:` names a file and line of lazygit at
 
 - A module that runs programs must not touch files on disk: the clones'
   lock lives in the loader, and an older server's record is read in
-  `src/app`, so the commands run programs and nothing else.
+  `internal/app`, so the commands run programs and nothing else.
 - The menu and the finder share one popup, so opening one closes the
   other, as before. Popups sit on the focus stack in a fixed order.
 - A place's keys are the universal ones, then its own, its own winning a

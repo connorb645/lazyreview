@@ -17,6 +17,24 @@ func TestABranchReviewIDNamesTheRepositoryAndTheBranchAndReadsBack(t *testing.T)
 	if err != nil || back != ref {
 		t.Fatalf("the id reads back as %+v, %v", back, err)
 	}
+	of, err := BranchRefOf(tr, "/work/widgets/.git", "feature/search")
+	if err != nil || !strings.HasPrefix(of.ID(), "local/widgets-") || !strings.HasSuffix(of.ID(), "/feature~search") {
+		t.Fatalf("a repository's branch is %q, %v", of.ID(), err)
+	}
+	if again, _ := BranchRefOf(tr, "/work/widgets/.git", "feature/search"); again != of {
+		t.Fatal("the same repository and branch gave another id")
+	}
+	if elsewhere, _ := BranchRefOf(tr, "/elsewhere/widgets/.git", "feature/search"); elsewhere.ID() == of.ID() {
+		t.Fatal("a repository of the same name elsewhere is the same repository")
+	}
+}
+
+func TestARepositoryIsNamedForItsFolderOrABareOneForItselfAsANameAnAddressCanHold(t *testing.T) {
+	for folder, name := range map[string]string{"/work/widgets/.git": "widgets", "/remotes/widgets.git": "widgets", "/work/.dot files/.git": "dot-files"} {
+		if got := RepositoryName(folder); got != name {
+			t.Errorf("%s is named %q, want %q", folder, got, name)
+		}
+	}
 }
 
 func TestOnlyABranchNameAndAKeyAReviewFolderCanSafelyHoldAreTaken(t *testing.T) {

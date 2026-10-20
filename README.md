@@ -12,14 +12,13 @@ it.
 
 ## What you need
 
-- Node.js 22 or later
+- Go 1.24 or later
 - git, and the GitHub command line `gh`, signed in
-- Go 1.24 or later, for the terminal app
 - Claude Code (`claude`), signed in, only to ask about a line
 
-lazyreview has no packages to install. Its few libraries are in the
-repository, so it reaches no network except through `gh`, git and Claude
-Code. It is tested on macOS.
+lazyreview is one Go program. It has no packages to install: its few
+libraries are in the repository, so it reaches no network except through
+`gh`, git and Claude Code. It is tested on macOS.
 
 ## Start
 
@@ -27,9 +26,10 @@ Code. It is tested on macOS.
     cd lazyreview
     bin/lazyreview load https://github.com/owner/repo/pull/12
 
-`load` prints the review's address, such as
+`bin/lazyreview` builds the program the first time it runs, and again
+whenever its code changes. `load` prints the review's address, such as
 `lazyreview://github.com/owner/repo/12`. lazyreview runs no server: the
-terminal app reads and writes the data home itself.
+program reads and writes the data home itself.
 
 To load a stack, name each pull request, bottom first. To load a branch with
 no pull request, name the folder, the base and the branch:
@@ -58,8 +58,8 @@ says where it is.
 terminal app, components and packages, and where the data is kept.
 [Config](docs/Config.md) lists every setting of the config.
 
-Run the tests with `npm test`, and the terminal app's tests with
-`npm run test:terminal`. The tests reach no network.
+Run the tests with `go test ./...` in `terminal/`. The tests reach no
+network.
 
 In a clone, `make run` opens the terminal app on the home screen, and
 `make run URL=<address>` opens the review at an address `load` or `list`
@@ -72,5 +72,4 @@ is still giving.
 
 ## Licence
 
-MIT. The libraries in `vendor/` and `terminal/vendor/` keep their own
-licences.
+MIT. The libraries in `terminal/vendor/` keep their own licences.

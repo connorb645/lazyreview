@@ -8,8 +8,8 @@ import (
 	"github.com/connorb645/lazyreview/terminal/internal/i18n"
 )
 
-// docs/Config.md and schema/config.json say what the schema says, as the
-// Go code writes them; npm run docs writes them again.
+// docs/Config.md and schema/config.json say what the schema says; go
+// generate ./internal/config writes them again.
 func TestTheConfigDocsAreWrittenFromTheSchema(t *testing.T) {
 	tr := i18n.EnglishTranslationSet()
 	root := filepath.Join("..", "..", "..")
@@ -19,11 +19,11 @@ func TestTheConfigDocsAreWrittenFromTheSchema(t *testing.T) {
 	}
 	written, err := Documented(tr, string(docs))
 	if err != nil || written != string(docs) {
-		t.Errorf("docs/Config.md is out of date with the schema, %v; run npm run docs", err)
+		t.Errorf("docs/Config.md is out of date with the schema, %v; run go generate ./internal/config", err)
 	}
 	schema, err := os.ReadFile(filepath.Join(root, "schema", "config.json"))
 	if err != nil || string(schema) != ConfigSchema(tr) {
-		t.Errorf("schema/config.json is out of date with the schema, %v; run npm run docs", err)
+		t.Errorf("schema/config.json is out of date with the schema, %v; run go generate ./internal/config", err)
 	}
 }
 

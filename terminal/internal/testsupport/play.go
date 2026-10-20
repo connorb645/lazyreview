@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 )
 
-// Play makes the repository by each step of a recorded script in turn, as
-// test/support/throwaway-repo.mjs does, so it makes the same commits.
+// Play makes the repository by each step of a recorded script in turn,
+// each commit at the one fixed time, so it makes the commits the script was
+// recorded with.
 func (r *ThrowawayRepo) Play(steps []ScriptStep) {
 	r.t.Helper()
 	for _, step := range steps {
