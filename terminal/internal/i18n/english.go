@@ -469,7 +469,6 @@ type TranslationSet struct {
 	ReadingAlready          string
 	CouldNotReadGitHubAgain string
 	OneLoadAtATime          string
-	CouldNotLoad            string
 	LoadedOpenFromHome      string
 	DraftNotSent            string
 	LoadAndOpen             string
@@ -889,6 +888,13 @@ type TranslationSet struct {
 	TitleFlag     string
 	ContextFlag   string
 	NoContextFlag string
+
+	LoaderNotFetched        string
+	LoaderPullHead          string
+	LoaderBaseAt            string
+	NothingLoadedHowToClose string
+	LoadAgainTitle          string
+	LoadTitle               string
 }
 
 // EnglishTranslationSet is the strings in English.
@@ -1358,7 +1364,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ReadingAlready:          "Reading GitHub already",
 		CouldNotReadGitHubAgain: "Could not read GitHub again",
 		OneLoadAtATime:          "One load at a time: {{.name}} is loading",
-		CouldNotLoad:            "Could not load {{.name}}",
 		LoadedOpenFromHome:      "Loaded {{.name}}; {{.open}} on the home screen opens it",
 		DraftNotSent:            "Your draft in {{.title}} is not sent yet: {{.review}} goes back to it",
 		LoadAndOpen:             "Load and open",
@@ -1778,5 +1783,12 @@ func EnglishTranslationSet() *TranslationSet {
 		TitleFlag:     "the review's title",
 		ContextFlag:   "draw the unchanged code the change touches",
 		NoContextFlag: "draw only the change",
+
+		LoaderNotFetched:        "could not fetch {{.what}} from {{.repo}}: {{.why}}",
+		LoaderPullHead:          "#{{.pull}}'s head {{.head}}",
+		LoaderBaseAt:            "the base {{.base}} at {{.sha}}",
+		NothingLoadedHowToClose: "Nothing was loaded; {{.close}} closes why.",
+		LoadAgainTitle:          "Load the review again",
+		LoadTitle:               "Load {{.name}}",
 	}
 }

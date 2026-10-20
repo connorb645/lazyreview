@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Review─────────────────────────────────────────╮
+│┃All                    ││ A stack of 2 pull requests, each built on the one  ▐
+│ #21 Add search to the …││ before, reviewed together                          ▐
+│ #22 Add a basket that …││ Search, then a basket                              ▐
+╰─────────────────1 of 3─╯│  #21  Add search to the catalog                    ▐
+╭─[2]─Files──────────────╮│       by sam · on main · head ec6fb42d             ▐
+│ ▾ ■ widgets     +15 −1 ││       2 files +11 −0                               ▐
+│   ▾ Sources/Basket     ││  #22  Add a basket that uses search                ▐
+│     M Basket.swift   ● ││       by sam · on feature/search · head cd3c7027   ▐
+│   ▾ Sour╭─Load the review again────────────────────────────────────╮         │
+│     M Me│ Could not fetch #22's head ffffffff from octo/widgets:   │         │
+╰─────────│ git fetch failed: fatal: git upload-pack: not our ref    │         │
+╭─[3]─Note│ ffffffffffffffffffffffffffffffffffffffff                 │         │
+│ Queued  ╰──────────────────────────────────────────────────────────╯         │
+│ 1 MemoryCatalog.s… #21 ││   #21 adds a search over the catalog in            │
+│ 2 Basket.swift:9-… #22 ││   Search.swift:4. #22 gives the basket a search    │
+│ Claude               1 ││   of its own, in Basket.swift:7. [Likely]          │
+╰─────────────────1 of 5─╯│   → Search.swift:4  Sources/Catalog/Search.swift l…│
+╭─[4]─Diagram────────────╮│   → Basket.swift:7  Sources/Basket/Basket.swift li…│
+│ Components             ││                                                    │
+│ ■ widgets              ││ ▾ Risks                                            │
+│ ■ Unchanged code       ││   MemoryCatalog.swift:9 appends without checking   │
+╰─────────────────1 of 2─╯╰────────────────────────────────────────────────────╯
+ Close: Esc                                 Nothing was loaded; Esc closes why.

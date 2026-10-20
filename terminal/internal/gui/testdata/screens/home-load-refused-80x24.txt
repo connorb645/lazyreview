@@ -1,0 +1,24 @@
+╭─[1]─octo/gadgets ● 1─────────────────╮╭─[0]─octo/gadgets #7──────────────────╮
+│ ●    #7 Count the gadgets in st… kim ││ Count the gadgets in stock           │
+│      #9 Sort the gadgets by pri… kim ││ #7 by kim · kim/stock → main         │
+│                                      ││                                      │
+│                                      ││ ● Waiting on your review, asked of   │
+│                                      ││   octo/reviewers.                    │
+╰───────────────────────────────1 of 2─╯│   Not loaded in lazyreview yet.      │
+╭─[2]─octo/widgets ● 1─────────────────╮│                                      │
+│  ◆ ┌ #21 Add search to the cata… sam ││ Enter loads it as reviewer, then     │
+│ ●◆ └ #22╭─Load octo/gadgets #7─────────────────────────────────────╮         │
+│      #30│ GitHub refused GET repos/octo/gadgets/pulls/7: HTTP 404: │         │
+│         │ Not Found (fake gh has no GET                            │         │
+│         │ repos/octo/gadgets/pulls/7)                              │         │
+│         ╰──────────────────────────────────────────────────────────╯         │
+╰───────────────────────────────1 of 3─╯│ • Shows it on the shelf              │
+╭─[3]─reviewer-home/notes──────────────╮│                                      │
+│    ┌ #3 Keep the note… reviewer-home ││                                      │
+│    └ #4 Tag the notes  reviewer-home ││                                      │
+│                                      ││                                      │
+│                                      ││                                      │
+│                                      ││                                      │
+│                                      ││                                      │
+╰───────────────────────────────1 of 2─╯╰──────────────────────────────────────╯
+ Close: Esc                                 Nothing was loaded; Esc closes why.

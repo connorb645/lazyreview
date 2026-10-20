@@ -7,13 +7,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/terminal/internal/gui/context"
+	"github.com/connorb645/lazyreview/terminal/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/terminal/internal/gui/types"
 	"github.com/connorb645/lazyreview/terminal/internal/models"
 	"github.com/connorb645/lazyreview/terminal/internal/utils"
 )
 
-// ReviewHelper loads a review from the server, and loads it again when it
-// changes.
+// ReviewHelper loads a review, and loads it again when it changes.
 type ReviewHelper struct {
 	c *HelperCommon
 }
@@ -35,8 +35,9 @@ func (self *ReviewHelper) Load(id string) tea.Cmd {
 	}
 }
 
-// Reload is the command that loads the review open again, after the
-// server refreshes it from GitHub when refresh is set.
+// Reload is the command that loads the review open again, after loading
+// it again from GitHub, or a branch from its repository, when refresh is
+// set.
 func (self *ReviewHelper) Reload(id string, refresh bool) tea.Cmd {
 	c, load := self.c.Reviews, self.Load(id)
 	return func() tea.Msg {
@@ -126,7 +127,7 @@ func (self *ReviewHelper) AfterLoaded(s context.ContextTree, msg types.ReviewLoa
 // keeping its place, or why it could not be.
 func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewReloaded) (context.ContextTree, tea.Cmd) {
 	if msg.Err != nil {
-		return s.Said(msg.Err.Error(), true), nil
+		return self.Refused(s, self.c.Tr.LoadAgainTitle, msg.Err), nil
 	}
 	if s.Review == nil || msg.Data.ID != s.Review.ID {
 		return s, nil
@@ -152,6 +153,15 @@ func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewRel
 		return h.Refresh.Mirrored(s).Said(words, false), nil
 	}
 	return h.Refresh.Relaid(s).Said(words, false), nil
+}
+
+// Refused is the state saying a load was refused, with why in a popup
+// titled title, where the whole of it can be read.
+func (self *ReviewHelper) Refused(s context.ContextTree, title string, err error) context.ContextTree {
+	words := err.Error()
+	pn := context.MenuContext{Menu: presentation.Menu{Title: title, Rows: []presentation.MenuRow{{Right: strings.ToUpper(words[:1]) + words[1:]}}}}
+	closing := map[string]string{"close": self.c.KeyLabels(context.MenuKey).Of("close")}
+	return s.WithMenu(pn).Said(utils.ResolvePlaceholderString(self.c.Tr.NothingLoadedHowToClose, closing), true)
 }
 
 // AfterState is the state with the review's state loaded again, or why it

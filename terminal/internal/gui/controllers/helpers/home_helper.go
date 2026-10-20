@@ -96,7 +96,7 @@ func (self *HomeHelper) AfterLoaded(s context.ContextTree, msg types.PullsLoaded
 	name := s.Home.LoadingName
 	s.Home.Loading, s.Home.LoadingName = "", ""
 	if msg.Err != nil {
-		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.CouldNotLoad, map[string]string{"name": name})+": "+msg.Err.Error(), true), nil
+		return self.c.Helpers.Review.Refused(s, utils.ResolvePlaceholderString(self.c.Tr.LoadTitle, map[string]string{"name": name}), msg.Err), nil
 	}
 	s.Home = s.Home.WithReview(msg.Unit, msg.ID).Rebuilt(self.c.Tr, self.c.Theme)
 	if s.Screen() != context.ScreenHome {

@@ -54,7 +54,7 @@ func (c *Clones) Prepare(ctx context.Context, path, url, base string, pulls []in
 	if err := c.git(ctx, path, append(append([]string{}, fetch...), refspecs...), env); err != nil {
 		return "", err
 	}
-	if missing := c.missing(ctx, path, commits); len(missing) > 0 {
+	if missing := c.Missing(ctx, path, commits); len(missing) > 0 {
 		if err := c.git(ctx, path, append(append([]string{}, fetch...), missing...), env); err != nil {
 			return "", err
 		}
@@ -73,7 +73,7 @@ func (c *Clones) CopyFrom(ctx context.Context, path, from string, commits []stri
 		}
 	}
 	var refspecs []string
-	for _, commit := range c.missing(ctx, path, commits) {
+	for _, commit := range c.Missing(ctx, path, commits) {
 		refspecs = append(refspecs, commit+":refs/commits/"+commit)
 	}
 	if len(refspecs) > 0 {
@@ -84,7 +84,8 @@ func (c *Clones) CopyFrom(ctx context.Context, path, from string, commits []stri
 	return path, nil
 }
 
-func (c *Clones) missing(ctx context.Context, path string, commits []string) []string {
+// Missing is each of commits the clone at path does not hold.
+func (c *Clones) Missing(ctx context.Context, path string, commits []string) []string {
 	var missing []string
 	for _, commit := range commits {
 		if c.run(ctx, path, []string{"cat-file", "-e", commit + "^{commit}"}, nil, nil).Code != 0 {

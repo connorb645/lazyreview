@@ -141,13 +141,10 @@ func (l *Loader) Load(ctx context.Context, r PullsRequest) (Loaded, error) {
 	if err != nil {
 		return loaded, err
 	}
-	commits := []string{bottom.Base.Sha}
-	for _, f := range found {
-		commits = append(commits, f.Head.Sha)
-	}
+	commits := append([]string{bottom.Base.Sha}, heads(found)...)
 	clone, err := l.clone(ctx, host, repo, repository.CloneURL, bottom.Base.Ref, pulls, commits, env)
 	if err != nil {
-		return loaded, err
+		return loaded, l.notFetched(ctx, host, repo, found, err)
 	}
 	members := make([]page.Member, len(found))
 	for i, f := range found {
@@ -326,6 +323,33 @@ func (l *Loader) place(host, repo string, pulls []int) (models.PullRef, []models
 		absorbed = append(absorbed, e.Ref)
 	}
 	return anchor, absorbed, nil
+}
+
+func (l *Loader) notFetched(ctx context.Context, host, repo string, found []models.GitHubPull, err error) error {
+	missing := l.clones.Missing(ctx, l.store.Home().Clone(host, repo), append([]string{found[0].Base.Sha}, heads(found)...))
+	var what []string
+	for _, commit := range missing {
+		if commit == found[0].Base.Sha {
+			what = append(what, utils.ResolvePlaceholderString(l.tr.LoaderBaseAt, map[string]string{"base": found[0].Base.Ref, "sha": utils.Short(commit)}))
+		}
+		for _, f := range found {
+			if f.Head.Sha == commit {
+				what = append(what, utils.ResolvePlaceholderString(l.tr.LoaderPullHead, map[string]string{"pull": strconv.Itoa(f.Number), "head": utils.Short(commit)}))
+			}
+		}
+	}
+	if len(what) == 0 {
+		what = []string{repo}
+	}
+	return models.Refused(utils.ResolvePlaceholderString(l.tr.LoaderNotFetched, map[string]string{"what": strings.Join(what, ", "), "repo": repo, "why": err.Error()}))
+}
+
+func heads(found []models.GitHubPull) []string {
+	out := make([]string, len(found))
+	for i, f := range found {
+		out[i] = f.Head.Sha
+	}
+	return out
 }
 
 func (l *Loader) readLinks(links []string) ([]models.PullRef, error) {

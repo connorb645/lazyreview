@@ -153,15 +153,6 @@ func TestEnterLoadsAPullRequestNoReviewHoldsThenOpensIt(t *testing.T) {
 	}
 }
 
-func TestALoadThatFailsSaysWhyAndStaysHome(t *testing.T) {
-	a, _, _ := homeOn(t, "", 100, 30)
-	a = press(t, a, "enter")
-	if a.Screen() != context.ScreenHome || a.Home.Loading != "" || !a.Bad ||
-		a.Notice != "Could not load octo/gadgets #7: GitHub refused GET repos/octo/gadgets/pulls/7: HTTP 404: Not Found (fake gh has no GET repos/octo/gadgets/pulls/7)" {
-		t.Fatalf("a failed load: screen %d, %q", a.Screen(), a.Notice)
-	}
-}
-
 func TestADraftInTheReviewOpenKeepsAnotherFromOpening(t *testing.T) {
 	a, _, _ := homeOn(t, "", 100, 30)
 	a = press(t, a, "2", "enter")
