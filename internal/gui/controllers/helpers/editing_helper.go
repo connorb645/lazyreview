@@ -316,6 +316,7 @@ func (self *EditingHelper) AfterEditing(s context.ContextTree, msg types.Edited)
 		}
 	}
 	s.Asking++
+	s.Drafts, e.Text = withDraft(s.Drafts, e.Key, ""), text
 	if e.Purpose == "reply" {
 		return s.Said("", false), func() tea.Msg {
 			c, err := client.Reply(id, e.Conversation, text, build)
@@ -346,6 +347,9 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 		}
 		if (e.Purpose == "edit" || e.Purpose == "drop") && errors.As(msg.Err, &refusal) {
 			return s.Said(msg.Err.Error(), true), h.Review.LoadState(s.Review.ID)
+		}
+		if e.Purpose == "ask" || e.Purpose == "reply" {
+			s.Drafts = withDraft(s.Drafts, e.Key, e.Text)
 		}
 		return s.Said(msg.Err.Error(), true), nil
 	}

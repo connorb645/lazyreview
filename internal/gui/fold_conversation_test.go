@@ -2,12 +2,15 @@ package gui
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/internal/gui/context"
+	"github.com/connorb645/lazyreview/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/internal/gui/types"
 	"github.com/connorb645/lazyreview/internal/models"
@@ -264,5 +267,28 @@ func TestAConversationsHeadInTheReviewViewReadsWholeAt80Columns(t *testing.T) {
 		if head != want {
 			t.Errorf("at 80 columns, conversation %d's head reads %q", id, head)
 		}
+	}
+}
+
+func TestAQuestionSentToClaudeIsNoDraftOfTheNextOnItsLine(t *testing.T) {
+	editor, seen := writer(t, "Who else reads the search?")
+	a := typed(t, press(t, onBasket(t, editor), ":"), "7")
+	question := filepath.Join(t.TempDir(), "question.md")
+	if err := os.WriteFile(question, []byte("Why keep a search here?\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	at := models.Lines{Path: "Sources/Basket/Basket.swift", Side: "RIGHT", Line: 7}
+	key := "ask " + helpers.LinesKey(at)
+	next, _ := a.Update(types.Edited{E: types.Editing{Purpose: "ask", At: at, Key: key}, File: question})
+	a = next.(App)
+	if draft, ok := a.Drafts[key]; ok {
+		t.Fatalf("while Claude answers, the question sent is kept as a draft: %q", draft)
+	}
+	a = press(t, a, "a")
+	if opened, err := os.ReadFile(seen); err != nil || strings.Contains(string(opened), "Why keep a search here?") {
+		t.Fatalf("a second question on the line opens with the first in it: %q, %v", opened, err)
+	}
+	if got := a.Drafts[key]; got != "Who else reads the search?" || !a.Bad {
+		t.Fatalf("a question that was refused keeps %q as its draft, and the bar says %q", got, a.Notice)
 	}
 }
