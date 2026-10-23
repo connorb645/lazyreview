@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift───╮
+│┃All                    ││  ▾ Sources/Basket/Basket.swift  changed  #22  +3 −1│
+│ #21 Add search to the …││   @@ -1,11 +1,13 @@                                │
+│ #22 Add a basket that …││     1    1   final class Basket {                  │
+╰─────────────────1 of 3─╯│     2    2       let catalog: Catalog              │
+╭─[2]─Files──────────────╮│ ▎        3 +     let search: Search                │
+│ ▾ ■ widgets     +15 −1 ││     3    4                                         │
+│   ▾ Sources/Basket     ││     4    5       init(catalog: Catalog) {          │
+│┃    M Basket.swift   ● ││     5    6           self.catalog = catalog        │
+│   ▾ Sources/Catalog    ││ ▎        7 +         self.search = Search(catalog:…│
+│     M MemoryCatalog… ● ││▌             ▸ Claude · 2 messages · Could this b… │
+╰────────────────3 of 10─╯│              ▸ Claude · 2 messages · Who else rea… │
+╭─[3]─Notes──────────────╮│              ▸ Claude · 2 messages · Could the ba… │
+│ 1 MemoryCatalog.s… #21 ││              ▸ sam · 1 comment · resolved          │
+│ 2 Basket.swift:9-… #22 ││     6    8       }                                 │
+│ Claude               3 ││     7    9                                         │
+│ Basket.swift:7 Could t…││     8   10       func total() -> Int {             │
+╰─────────────────3 of 7─╯│ ▎   9      -         0                             │
+╭─[4]─Diagram────────────╮│ ▎       11 +         1                             │
+│ Components             ││              ▸ Queued 2 → #22                      │
+│ ■ widgets              ││    10   12       }                                 │
+│ ■ Unchanged code       ││    11   13   }                                     │
+╰─────────────────1 of 2─╯╰────────────────a conversation with Claude · line 7─╯
+ Follow-up: a | Delete: dd | Fold: za | Notes: ]n [n | Back: - | Keys: Space ?

@@ -391,12 +391,13 @@ The review threads already on GitHub, colleagues', bots' and your own, sit
 under their lines, marked resolved or outdated. A thread on no line shown
 sits at the top of its file. Each thread and each conversation starts
 folded to one line that says who wrote, how many comments there are, and
-whether it is resolved, outdated or waiting for Claude; `za` opens it. `R`
-reads them again. In the Review view, a conversation shows its first
-question and its latest answer, and `za` there shows every message. A
-conversation on a file the page does not hold, such as one a later push
-took out of a pull request, shows only there: Notes opens it in the
-Review view.
+whether it is resolved, outdated or waiting for Claude; `za` opens it. A
+folded conversation also shows the start of its first question, so several
+on one line tell apart. `R` reads them again. In the Review view, a
+conversation shows its first question and its latest answer, and `za`
+there shows every message. A conversation on a file the page does not
+hold, such as one a later push took out of a pull request, shows only
+there: Notes opens it in the Review view.
 
 ## Components and packages
 

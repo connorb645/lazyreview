@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -172,5 +173,26 @@ func TestTheBarOffersDeleteAndFoldOnEveryRowOfAConversationAt80Columns(t *testin
 			t.Errorf("on the conversation's %s %s row, the bar says %q", r.Kind, r.Part, got)
 		}
 		a = press(t, a, "j")
+	}
+}
+
+func TestEachFoldedConversationOfALineShowsTheStartOfItsQuestion(t *testing.T) {
+	for _, size := range [][2]int{{80, 24}, {161, 48}} {
+		a := press(t, withThreeOnALine(t, onBasketAt(t, size[0], size[1])), "z", "M", "z", "o", "]", "n")
+		var heads []string
+		for _, l := range strings.Split(ansi.Strip(a.View()), "\n") {
+			if strings.Contains(l, "▸ Claude") {
+				heads = append(heads, l)
+			}
+		}
+		if len(heads) != 3 {
+			t.Fatalf("at %d columns, %d folded conversations show:\n%s", size[0], len(heads), a.View())
+		}
+		for i, start := range []string{"· Could this", "· Who else", "· Could the b"} {
+			if !strings.Contains(heads[i], start) {
+				t.Errorf("at %d columns, folded conversation %d reads %q", size[0], i+1, heads[i])
+			}
+		}
+		screenIs(t, a, fmt.Sprintf("conversations-folded-%dx%d", size[0], size[1]))
 	}
 }

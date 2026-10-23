@@ -135,8 +135,25 @@ func noteLine(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v D
 		if n.Kind == "queued" {
 			style = th.PullRequest(MemberColor(d.State, n.Pull))
 		}
-		width := v.Width - 1
-		if full, keyed := indent+style.Render(heads[0]), th.Key.Render(keys)+" "; ansi.StringWidth(full)+1+ansi.StringWidth(keyed) <= width {
+		width, keyed := v.Width-1, th.Key.Render(keys)+" "
+		if words := noteTopic(n, v.NoteOpen(n)); words != "" {
+			topic := func(head string, room int) (string, bool) {
+				room -= ansi.StringWidth(indent + head + " · ")
+				return indent + style.Render(head) + th.Muted.Render(" · "+ansi.Truncate(words, room, "…")), room >= shortestTopic
+			}
+			inFull := heads[:min(2, len(heads))]
+			for _, head := range inFull {
+				if line, ok := topic(head, width-1-ansi.StringWidth(keyed)); ok {
+					return utils.Spread(line, keyed, width)
+				}
+			}
+			for _, head := range inFull {
+				if line, ok := topic(head, width-1); ok {
+					return line
+				}
+			}
+		}
+		if full := indent + style.Render(heads[0]); ansi.StringWidth(full)+1+ansi.StringWidth(keyed) <= width {
 			return utils.Spread(full, keyed, width)
 		}
 		for _, head := range heads {

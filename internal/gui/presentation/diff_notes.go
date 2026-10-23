@@ -289,6 +289,18 @@ func NoteHead(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, n N
 	return []string{headOf(lead, count, resolved, outdated, whole), headOf(lead, count, resolved, outdated), headOf(lead, resolved, outdated)}, utils.ResolvePlaceholderString(tr.ThreadNoteKeys, keys)
 }
 
+// shortestTopic is the fewest columns a folded conversation's question is
+// cut to on its head. It goes only on the head's two fullest forms, which
+// word its state in full; with less room, the head leaves it out.
+const shortestTopic = 10
+
+func noteTopic(n Note, open bool) string {
+	if open || n.Kind != "conversation" || len(n.Conversation.Messages) == 0 {
+		return ""
+	}
+	return strings.Join(strings.Fields(utils.PlainText(n.Conversation.Messages[0].Text)), " ")
+}
+
 func headOf(parts ...string) string {
 	return strings.Join(slices.DeleteFunc(parts, func(p string) bool { return p == "" }), " · ")
 }

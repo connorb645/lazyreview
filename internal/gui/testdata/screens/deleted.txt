@@ -6,8 +6,8 @@
 ╭─[2]─Files─────────────────────╮│ ▎        3 +     let search: Search                             │
 │ ▾ ■ widgets            +15 −1 ││              ▾ Queued 3 → #22 · line 3          e edit  dd drop │
 │   ▾ Sources/Basket            ││                Name the search for what it finds.               │
-│┃    M Basket.swift          ● ││              ▸ Claude · 2 messages · line 3           a ask  za │
-│   ▾ Sources/Catalog           ││              ▸ Claude · 2 messages · line 3           a ask  za │
+│┃    M Basket.swift          ● ││              ▸ Claude · 2 messages · Why keep a sear… a ask  za │
+│   ▾ Sources/Catalog           ││              ▸ Claude · 2 messages · Does anything t… a ask  za │
 │     M MemoryCatalog.swift   ● ││     3    4                                                      │
 │     A Search.swift          ● ││     4    5       init(catalog: Catalog) {                       │
 │   ▾ web/src                   ││     5    6           self.catalog = catalog                     │

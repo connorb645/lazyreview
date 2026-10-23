@@ -8,7 +8,7 @@
 │     4    5       init(catalog: Catalog) {                                                        │
 │     5    6           self.catalog = catalog                                                      │
 │ ▎        7 +         self.search = Search(catalog: catalog)                                      │
-│              ▸ Claude · 2 messages · line 7                                            a ask  za │
+│              ▸ Claude · 2 messages · line 7 · Could this be passed in?                 a ask  za │
 │              ▸ sam · 1 comment · resolved                                          gx GitHub  za │
 │     6    8       }                                                                               │
 │     7    9                                                                                       │
