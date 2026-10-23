@@ -162,3 +162,15 @@ func TestZaInTheNotesPanelFoldsAndUnfoldsTheConversationWhereItShows(t *testing.
 		t.Fatal("za again does not open the conversation off the diff")
 	}
 }
+
+func TestTheBarOffersDeleteAndFoldOnEveryRowOfAConversationAt80Columns(t *testing.T) {
+	a := toNote(t, onBasketAt(t, 80, 24), "conversation:1")
+	a = press(t, a, "z", "o")
+	for a.Diff.Rows[a.Diff.Cursor].Key == "conversation:1" {
+		r := a.Diff.Rows[a.Diff.Cursor]
+		if got := barSays(a); !strings.Contains(got, "Delete: dd") || !strings.Contains(got, "Fold: za") {
+			t.Errorf("on the conversation's %s %s row, the bar says %q", r.Kind, r.Part, got)
+		}
+		a = press(t, a, "j")
+	}
+}

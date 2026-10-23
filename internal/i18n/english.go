@@ -1200,7 +1200,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SelectionInOneFile: "a selection stays in one file",
 		Notes:              "Notes",
 		Back:               "Back",
-		CommentWithAnswer:  "Comment with this answer",
+		CommentWithAnswer:  "Comment with answer",
 		FollowUp:           "Follow-up",
 		OnGitHub:           "On GitHub",
 		Hunks:              "Hunks",
