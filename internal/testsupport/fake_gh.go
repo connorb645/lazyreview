@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/connorb645/lazyreview/internal/commands/github"
@@ -32,6 +33,7 @@ var (
 type FakeGh struct {
 	Routes map[string]json.RawMessage
 	Calls  []Call
+	mu     sync.Mutex
 }
 
 // FakeGhFrom answers from the routes in the file at path.
@@ -71,6 +73,8 @@ func (f *FakeGh) Change(t *testing.T, key string, change func(map[string]any)) {
 
 // Posts are the reviews gh was asked to create.
 func (f *FakeGh) Posts() []Call {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	var out []Call
 	for _, c := range f.Calls {
 		if c.Method == "POST" && strings.HasSuffix(c.Path, "/reviews") {
@@ -126,7 +130,9 @@ func (f *FakeGh) Run(args []string, input []byte, env []string) github.Ran {
 			key += " after " + *v.After
 		}
 	}
+	f.mu.Lock()
 	f.Calls = append(f.Calls, Call{Method: method, Path: path, Body: input, Token: token})
+	f.mu.Unlock()
 	if m := fakeReviewRoute.FindStringSubmatch(path); method == "POST" && m != nil {
 		if why := f.refusal(m[1], m[2], input); why != "" {
 			return github.Ran{Code: 1, Stderr: "gh: Unprocessable Entity (HTTP 422)\n" + why + "\n"}
