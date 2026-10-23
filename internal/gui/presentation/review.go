@@ -353,7 +353,13 @@ func conversationLines(b *builder, t models.Conversation, loc *time.Location, op
 	if open {
 		fold = "▾ "
 	}
-	texts := []string{"   " + th.Muted.Render(fold) + th.Accent.Render(t.Path+":"+lines) + "  " + th.Muted.Render(utils.When(t.CreatedAt, loc)+" · "+utils.Plural(len(t.Messages), tr.MessageNoun))}
+	where, count := t.Path+":"+lines, utils.Plural(len(t.Messages), tr.MessageNoun)
+	head := "   " + th.Muted.Render(fold) + th.Accent.Render(where) + "  " + th.Muted.Render(utils.When(t.CreatedAt, loc)+" · "+count)
+	if ansi.StringWidth(head) > b.width-1 {
+		room := b.width - 1 - ansi.StringWidth("   "+fold+"  "+count)
+		head = "   " + th.Muted.Render(fold) + th.Accent.Render(utils.FitTitle(where, room)) + "  " + th.Muted.Render(count)
+	}
+	texts := []string{head}
 	if open {
 		for _, p := range conversationParts(tr, t) {
 			for _, l := range utils.Wrap(p.words, b.width-6) {

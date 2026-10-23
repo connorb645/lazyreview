@@ -14,7 +14,7 @@
 ╰────────────────1 of 10─╯│ from a branch.                                     ▐
 ╭─[3]─Notes──────────────╮│                                                    ▐
 │ Claude               1 ││▌▾ Conversations                                    ▐
-│ Basket.swift:7 Could t…││   ▸ Sources/Basket/Basket.swift:7  15 Oct, 13:00 ·…▐
+│ Basket.swift:7 Could t…││   ▸ Sources/Basket/Basket.swift:7  2 messages      ▐
 ╰─────────────────1 of 1─╯│     Could this be passed in?                       ▐
 ╭─[4]─Diagram────────────╮│     It could: the basket only reads from it.       ▐
 │ Components             ││                                                    ▐

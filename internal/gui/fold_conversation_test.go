@@ -245,3 +245,24 @@ func TestTheKeysListOfEachPlaceAConversationShowsSaysHowToFoldAndDeleteIt(t *tes
 		}
 	}
 }
+
+func TestAConversationsHeadInTheReviewViewReadsWholeAt80Columns(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 80, 24)
+	st := withOneOffTheDiff(t, a).Review.State
+	st.Threads = append(st.Threads, models.Conversation{ID: 5, Path: "Sources/Basket/Checkout/Pricing/Rounding.swift", Side: "RIGHT", Line: 120, CreatedAt: "2026-10-15T13:00:05.000Z",
+		Messages: []models.Message{{From: "you", Text: "Why round here?"}, {From: "claude", Text: "The total is shown to the penny."}}})
+	a = press(t, send(t, a, types.StateLoaded{State: st}), "0")
+	for id, want := range map[int]string{4: "▸ Sources/Basket/Pricing.swift:12  2 messages", 5: "▸ …/Pricing/Rounding.swift:120  2 messages"} {
+		a = toReviewItem(t, a, id)
+		head := ""
+		for _, l := range a.ReviewView.View.Lines {
+			if l.Item == a.ReviewView.View.Cursor {
+				head = strings.TrimSpace(ansi.Strip(l.Text))
+				break
+			}
+		}
+		if head != want {
+			t.Errorf("at 80 columns, conversation %d's head reads %q", id, head)
+		}
+	}
+}
