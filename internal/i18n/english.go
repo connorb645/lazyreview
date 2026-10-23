@@ -545,8 +545,11 @@ type TranslationSet struct {
 	StackBottomFirst     string
 	NoDescription        string
 
-	LoadedElsewhere string
-	LoadedAgain     string
+	LoadedElsewhere   string
+	LoadedAgain       string
+	LoadedAgainNoting string
+	LoadedNoting      string
+	NoteNoun          string
 
 	NotAPull                  string
 	NotAPullAddress           string
@@ -1515,8 +1518,11 @@ func EnglishTranslationSet() *TranslationSet {
 		StackBottomFirst:     "The stack, bottom first:",
 		NoDescription:        "No description.",
 
-		LoadedElsewhere: "This review was loaded again. {{.refresh}} loads it here; your drafts stay.",
-		LoadedAgain:     "Loaded again.",
+		LoadedElsewhere:   "This review was loaded again. {{.refresh}} loads it here; your drafts stay.",
+		LoadedAgain:       "Loaded again.",
+		LoadedAgainNoting: "Loaded again, with {{.notes}}, shown in the Review view.",
+		LoadedNoting:      "Loaded, with {{.notes}}, shown in the Review view.",
+		NoteNoun:          "note",
 
 		NotAPull:                  "not a pull request: {{.host}}/{{.repo}}#{{.pull}}",
 		NotAPullAddress:           "\"{{.text}}\" is not a pull request's address, such as https://github.com/owner/repo/pull/12",

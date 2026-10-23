@@ -104,7 +104,7 @@ func (self *HomeHelper) AfterLoaded(s context.ContextTree, msg types.PullsLoaded
 	}
 	next, cmd := self.OpenReview(self.c.Helpers.Refresh.HomeRelaid(s), msg.ID)
 	if len(msg.Notes) > 0 {
-		next = next.Said(strings.Join(msg.Notes, " "), false)
+		next = next.Said(utils.ResolvePlaceholderString(self.c.Tr.LoadedNoting, map[string]string{"notes": utils.Plural(len(msg.Notes), self.c.Tr.NoteNoun)}), false)
 	}
 	return next, cmd
 }

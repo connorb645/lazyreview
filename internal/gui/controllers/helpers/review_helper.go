@@ -124,7 +124,8 @@ func (self *ReviewHelper) AfterLoaded(s context.ContextTree, msg types.ReviewLoa
 }
 
 // AfterReload is the state with the review loaded again, the main panel
-// keeping its place, or why it could not be.
+// keeping its place, or why it could not be. Its notice counts the load's
+// notes, which the Review view shows in full.
 func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewReloaded) (context.ContextTree, tea.Cmd) {
 	if msg.Err != nil {
 		return self.Refused(s, self.c.Tr.LoadAgainTitle, msg.Err), nil
@@ -134,7 +135,7 @@ func (self *ReviewHelper) AfterReload(s context.ContextTree, msg types.ReviewRel
 	}
 	words := self.c.Tr.LoadedAgain
 	if len(msg.Notes) > 0 {
-		words += " " + strings.Join(msg.Notes, " ")
+		words = utils.ResolvePlaceholderString(self.c.Tr.LoadedAgainNoting, map[string]string{"notes": utils.Plural(len(msg.Notes), self.c.Tr.NoteNoun)})
 	}
 	h := self.c.Helpers
 	s.Review = &msg.Data

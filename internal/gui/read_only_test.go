@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -28,4 +29,23 @@ func TestTheDiffOfAReviewThatTakesNoCommentsOffersNoCommentKey(t *testing.T) {
 func lastLine(a App) string {
 	lines := strings.Split(ansi.Strip(a.View()), "\n")
 	return lines[len(lines)-1]
+}
+
+func TestALoadWithNotesSaysHowManyInANoticeWholeAtEightyColumns(t *testing.T) {
+	notes := `["#22 is not built on #21's head: #21 has commits #22 does not hold. Until #22 is rebased, its own diff also shows the older #21 it holds; a comment on a line #21's head still holds goes to #21.", "whole text left out for 1 large file, which show their diff only: big.json"]`
+	a, _, changed := openedWith(t, "github.com/octo/widgets/21", 80, 24)
+	changed.set("POST /api/reviews/github.com/octo/widgets/21/refresh {}", answer{Status: 200, Body: json.RawMessage(`{"id": "github.com/octo/widgets/21", "notes": ` + notes + `}`)})
+	a = press(t, a, "R")
+	if want := "Loaded again, with 2 notes, shown in the Review view."; a.Notice != want || !strings.Contains(lastLine(a), want) {
+		t.Errorf("after R the bar reads %q, its notice %q", lastLine(a), a.Notice)
+	}
+
+	h, _, home := homeOn(t, "", 80, 24)
+	home.set(`POST /api/load {"account":"reviewer","links":["https://github.com/octo/widgets/pull/30"]}`, answer{Status: 200, Body: json.RawMessage(`{"id": "github.com/octo/widgets/30", "notes": ` + notes + `}`)})
+	h = press(t, h, "2", "j", "j")
+	next, cmd := h.Update(keyMsg("enter"))
+	h = drive(t, next.(App), cmd)
+	if want := "Loaded, with 2 notes, shown in the Review view."; h.Notice != want || !strings.Contains(lastLine(h), want) {
+		t.Errorf("after a load from home the bar reads %q, its notice %q", lastLine(h), h.Notice)
+	}
 }
