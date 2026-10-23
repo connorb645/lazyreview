@@ -217,7 +217,7 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 }
 
 func fits(b *builder, head string, parts []string) bool {
-	return ansi.StringWidth(head)+2+ansi.StringWidth(strings.Join(parts, " · ")) <= b.width
+	return ansi.StringWidth(head)+2+ansi.StringWidth(strings.Join(parts, " · ")) <= b.width-1
 }
 
 func queueLines(b *builder, d types.ReviewData, filter types.PullFilter, loc *time.Location) {

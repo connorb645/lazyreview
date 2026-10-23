@@ -146,6 +146,9 @@ func TestAStackOfBranchesPutsEveryBranchOnOneLineOrWrapsThemAll(t *testing.T) {
 			switch {
 			case strings.Contains(line, "  catalogue-search/part-0") && strings.Contains(line, "head "):
 				whole++
+				if end := []rune(strings.TrimRight(line, " ")); end[len(end)-2] != ' ' {
+					t.Errorf("at %d columns a branch's line reaches the border: %q", width, line)
+				}
 			case strings.Contains(line, "  catalogue-search/part-0"):
 				alone++
 			}
