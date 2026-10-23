@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Review─────────────────────────────────────────╮
+│┃All                    ││   2 → #22 Sources/Basket/Basket.swift, removed lin…│
+│ #21 Add search to the …││     │         0                                    │
+│ #22 Add a basket that …││     │         1                                    │
+╰─────────────────1 of 3─╯│     Why one?                                       │
+╭─[2]─Files──────────────╮│                                                    │
+│   ▾ Sources/Basket     ││ ▾ On GitHub                                        │
+│     M Basket.swift   ● ││ 2 review threads, 1 unresolved, as GitHub had them │
+│   ▾ Sources/Catalog    ││ when this review was loaded.                       │
+│     M MemoryCatalog… ● ││   Sources/Catalog/MemoryCatalog.swift:9  #21 sam ·…│
+╰────────────────3 of 10─╯│     Should this keep the order items were added    │
+╭─[3]─Notes──────────────╮│     in?                                            │
+│ 1 MemoryCatalog.s… #21 ││   Sources/Basket/Basket.swift:7  #22 sam · 1 comme…│
+│ 2 Basket.swift:9-… #22 ││     Could the search be passed in?                 ▐
+│ Claude               2 ││                                                    ▐
+│ Basket.swift:7 Could t…││ ▾ Conversations                                    ▐
+│▌Pricing.swift:12 Does …││   ▸ Sources/Basket/Basket.swift:7  15 Oct, 13:00 ·…▐
+╰─────────────────4 of 6─╯│     Could this be passed in?                       ▐
+╭─[4]─Diagram────────────╮│     It could: the basket only reads from it.       ▐
+│ Components             ││   ▾ Sources/Basket/Pricing.swift:12  15 Oct, 13:00…▐
+│ ■ widgets              ││     You: Does the basket round its total?          │
+│ ■ Unchanged code       ││     Claude: Yes, to the penny, in Pricing.swift.   │
+╰─────────────────1 of 2─╯╰────────────────────────────────────────────────────╯
+ Open: Enter | Delete: dd | Panels: h l | Keys: Space ?

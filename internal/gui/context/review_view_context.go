@@ -47,6 +47,17 @@ func (v ReviewViewContext) Opening(key string, open bool) ReviewViewContext {
 	return v
 }
 
+// OnConversation is the view with its selection on a conversation's item,
+// by its number, shown in a height, or as it was with no such item.
+func (v ReviewViewContext) OnConversation(id, height int) ReviewViewContext {
+	for i, it := range v.View.Items {
+		if it.Kind == "conversation" && it.Thread == id {
+			v.View = v.View.To(i, height)
+		}
+	}
+	return v
+}
+
 // SectionAt is the id of the section the selection is in.
 func (v ReviewViewContext) SectionAt() string {
 	if v.View.Cursor < len(v.View.Items) {

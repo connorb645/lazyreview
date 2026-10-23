@@ -18,6 +18,10 @@ import (
 
 const preview = 220
 
+// ConversationsSection is the id of the Review view's section of
+// conversations with Claude.
+const ConversationsSection = "conversations"
+
 // BuildReview draws the Review view: the review's header, its written
 // sections and their links, the queued comments, the threads on GitHub, the
 // conversations with Claude and the change's components, each section folded
@@ -101,7 +105,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels K
 		}
 	}
 	if len(asked) > 0 {
-		section("conversations", tr.Conversations, utils.Plural(len(asked), tr.ConversationNoun), func() {
+		section(ConversationsSection, tr.Conversations, utils.Plural(len(asked), tr.ConversationNoun), func() {
 			for _, t := range asked {
 				conversationLines(b, t, loc, opened[ConversationKey(t.ID)])
 			}
@@ -373,7 +377,7 @@ func conversationLines(b *builder, t models.Conversation, loc *time.Location, op
 		}
 	}
 	place := models.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
-	b.add(Item{Kind: "conversation", Section: "conversations", Thread: t.ID, Place: &place}, texts...)
+	b.add(Item{Kind: "conversation", Section: ConversationsSection, Thread: t.ID, Place: &place}, texts...)
 }
 
 func changeTotals(tr *i18n.TranslationSet, th theme.Theme, files []models.FileEntry) string {

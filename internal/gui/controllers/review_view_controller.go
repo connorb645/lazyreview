@@ -92,7 +92,7 @@ func (self *ReviewViewController) open(s context.ContextTree) (context.ContextTr
 	}
 	it := v.Items[v.Cursor]
 	switch {
-	case it.Kind == "section":
+	case it.Kind == "section" || it.Kind == "conversation" && h.Diff.ComponentOf(s, it.Place.Path) == "":
 		return self.fold(s), nil
 	case it.Kind == "component":
 		s = h.Jump.Leave(s)

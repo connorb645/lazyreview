@@ -299,7 +299,7 @@ The Review view, in the main panel:
 | --- | --- |
 | `j` `k` `gg` `G` | move |
 | `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` `{n}G` | half a page or a page down or up, or item n |
-| `Enter` | opens the item at the cursor in its diff |
+| `Enter` | opens the item at the cursor in its diff; a conversation on a file the diff does not hold folds or unfolds |
 | `]]` `[[` | the next or previous section |
 | `za` | folds or unfolds the conversation at the cursor, or else its section |
 | `e` `dd` | edits or drops the queued comment at the cursor; on a conversation with Claude, `dd` deletes it; `dd` asks first |
@@ -393,7 +393,10 @@ sits at the top of its file. Each thread and each conversation starts
 folded to one line that says who wrote, how many comments there are, and
 whether it is resolved, outdated or waiting for Claude; `za` opens it. `R`
 reads them again. In the Review view, a conversation shows its first
-question and its latest answer, and `za` there shows every message.
+question and its latest answer, and `za` there shows every message. A
+conversation on a file the page does not hold, such as one a later push
+took out of a pull request, shows only there: Notes opens it in the
+Review view.
 
 ## Components and packages
 

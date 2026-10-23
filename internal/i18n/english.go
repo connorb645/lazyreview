@@ -1072,7 +1072,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpItemsMove:      "the next or previous item: a section, a queued comment, a conversation or a link",
 		HelpSections:       "the next or previous section",
 		HelpItemsEnds:      "the first or last item, or item n",
-		HelpOpenItem:       "opens the item in its diff; a component opens its diff",
+		HelpOpenItem:       "opens the item in its diff; a component opens its diff; a conversation on a file the diff does not hold folds or unfolds",
 		HelpFoldItem:       "folds or unfolds the conversation at the cursor, or else its section",
 		HelpPostAtCursor:   "post: the actions offered for the pull request at the cursor",
 		HelpLinesMove:      "the next or previous line",

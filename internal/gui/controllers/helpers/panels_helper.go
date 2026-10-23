@@ -83,7 +83,10 @@ func (self *PanelsHelper) Name(s context.ContextTree) string {
 func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
 	h := self.c.Helpers
 	place := row.Item.Place
-	if h.Diff.ComponentOf(s, place.Path) == "" {
+	switch {
+	case h.Diff.ComponentOf(s, place.Path) == "" && row.Item.Kind == "conversation":
+		return self.toConversationItem(s, row.Item.Thread), nil
+	case h.Diff.ComponentOf(s, place.Path) == "":
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NotInDiff, map[string]string{"path": place.Path}), true), nil
 	}
 	s, cmd := h.Diff.OpenFile(s, place.Path, place)
@@ -97,4 +100,15 @@ func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow
 		s.Diff = s.Diff.To(i, h.Window.MainHeight(s)).Placed(h.Window.MainHeight(s))
 	}
 	return h.Refresh.Mirrored(s), nil
+}
+
+func (self *PanelsHelper) toConversationItem(s context.ContextTree, id int) context.ContextTree {
+	h := self.c.Helpers
+	s = s.Showing(context.ScreenReview)
+	s.ReviewView.Folded = utils.CopyBools(s.ReviewView.Folded)
+	s.ReviewView.Folded[presentation.ConversationsSection] = false
+	s.ReviewView = s.ReviewView.Opening(presentation.ConversationKey(id), true)
+	s = h.Refresh.Relaid(s)
+	s.ReviewView = s.ReviewView.OnConversation(id, h.Window.MainHeight(s))
+	return s
 }
