@@ -1,0 +1,30 @@
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│┃All                           ││   1 → #21 Sources/Catalog/MemoryCatalog.swift, lines 8-10       │
+│ #21 Add search to the catalog ││     │     func add(_ item: Item) {                              │
+│ #22 Add a basket that uses se…││     │         stored.append(item)                               │
+╰────────────────────────1 of 3─╯│     │     }                                                     │
+╭─[2]─Files─────────────────────╮│     Keep the order items came in.                               │
+│ ▾ ■ widgets            +15 −1 ││                                                                 │
+│   ▾ Sources/Basket            ││  #22  Add a basket that uses search                             │
+│     M Basket.swift          ● ││   2 → #22 Sources/Basket/Basket.swift, removed line 9 to line 11│
+│   ▾ Sources/Catalog           ││     │         0                                                 │
+│     M MemoryCatalog.swift   ● ││     │         1                                                 │
+│     A Search.swift          ● ││     Why one?                                                    │
+│   ▾ web/src                   ││                                                                 │
+│     M cart.ts               ● ││ ▾ On GitHub                                                     ▐
+│ ▾ ■ Unchanged code  unchanged ││ 2 review threads, 1 unresolved, as GitHub had them when this    ▐
+╰───────────────────────1 of 10─╯│ review was loaded.                                              ▐
+╭─[3]─Notes─────────────────────╮│   Sources/Catalog/MemoryCatalog.swift:9  #21 sam · 1 comment    ▐
+│ Queued                      2 ││     Should this keep the order items were added in?             ▐
+│ 1 MemoryCatalog.swift:8-… #21 ││   Sources/Basket/Basket.swift:7  #22 sam · 1 comment · resolved ▐
+│ 2 Basket.swift:9-11       #22 ││     Could the search be passed in?                              ▐
+│ Claude                      3 ││                                                                 ▐
+│ Basket.swift:7 Could this be …││ ▾ Conversations                                                 ▐
+│ Basket.swift:7 Who else reads…││   ▸ Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages   ▐
+╰────────────────────────1 of 7─╯│     Could this be passed in?                                    ▐
+╭─[4]─Diagram───────────────────╮│     It could: the basket only reads from it.                    ▐
+│ Components                    ││▌  ▾ Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages   │
+│ ■ widgets                     ││▌    You: Who else reads the search?                             │
+│ ■ Unchanged code              ││▌    Claude: Only the basket does.                               │
+╰────────────────────────1 of 2─╯╰──────────────────────────────Sources/Basket/Basket.swift line 7─╯
+ Move: j k | Open: Enter | Delete: dd | Fold: za | Sections: ]] [[ | List: Esc | Keys: Space ?

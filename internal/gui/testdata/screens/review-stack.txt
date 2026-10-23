@@ -47,7 +47,7 @@
 │ Components                    ││     Could the search be passed in?                              │
 │ ■ widgets                     ││                                                                 │
 │ ■ Unchanged code              ││ ▾ Conversations                                                 │
-│                               ││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
+│                               ││   ▸ Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages   │
 │                               ││     Could this be passed in?                                    │
 │                               ││     It could: the basket only reads from it.                    │
 │                               ││                                                                 │

@@ -98,7 +98,7 @@ type TranslationSet struct {
 	HelpSections       string
 	HelpItemsEnds      string
 	HelpOpenItem       string
-	HelpFoldSection    string
+	HelpFoldItem       string
 	HelpPostAtCursor   string
 	HelpLinesMove      string
 	HelpHalfPages      string
@@ -1073,7 +1073,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpSections:       "the next or previous section",
 		HelpItemsEnds:      "the first or last item, or item n",
 		HelpOpenItem:       "opens the item in its diff; a component opens its diff",
-		HelpFoldSection:    "folds or unfolds a section",
+		HelpFoldItem:       "folds or unfolds the conversation at the cursor, or else its section",
 		HelpPostAtCursor:   "post: the actions offered for the pull request at the cursor",
 		HelpLinesMove:      "the next or previous line",
 		HelpHalfPages:      "half a page down or up",

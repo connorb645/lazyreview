@@ -114,7 +114,7 @@ func TestDeletingAConversationFromTheReviewView(t *testing.T) {
 	for a.ReviewView.View.Items[a.ReviewView.View.Cursor].Kind != "conversation" {
 		a = press(t, a, "j")
 	}
-	if got := barSays(a); got != "Move: j k | Open: Enter | Delete: dd | Sections: ]] [[ | List: Esc | Keys: Space ?" {
+	if got := barSays(a); got != "Move: j k | Open: Enter | Delete: dd | Fold: za | Sections: ]] [[ | List: Esc | Keys: Space ?" {
 		t.Fatalf("on a conversation, the bar says %q", got)
 	}
 	a = press(t, a, "d", "d")

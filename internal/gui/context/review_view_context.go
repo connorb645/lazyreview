@@ -7,19 +7,21 @@ import (
 	"github.com/connorb645/lazyreview/internal/gui/types"
 	"github.com/connorb645/lazyreview/internal/i18n"
 	"github.com/connorb645/lazyreview/internal/theme"
+	"github.com/connorb645/lazyreview/internal/utils"
 )
 
-// ReviewViewContext is the Review view in the main panel: its lines and
-// the sections folded.
+// ReviewViewContext is the Review view in the main panel: its lines, the
+// sections folded and the conversations opened, by their keys.
 type ReviewViewContext struct {
 	View   Scroller
 	Folded map[string]bool
+	Opened map[string]bool
 }
 
 // Rebuilt is the view drawn again from the review in a width, its words
 // naming keys as labels label them, its selection kept, shown in a height.
 func (v ReviewViewContext) Rebuilt(tr *i18n.TranslationSet, th theme.Theme, md *presentation.Markdown, labels presentation.KeyLabels, loc *time.Location, d types.ReviewData, filter types.PullFilter, width, height int) ReviewViewContext {
-	lines, items := presentation.BuildReview(tr, th, md, labels, loc, d, filter, v.Folded, width)
+	lines, items := presentation.BuildReview(tr, th, md, labels, loc, d, filter, v.Folded, v.Opened, width)
 	v.View = v.View.Reset(lines, items, sameItem, height)
 	return v
 }
@@ -35,6 +37,13 @@ func (v ReviewViewContext) Section(back bool, count, height int) ReviewViewConte
 			}
 		}
 	}
+	return v
+}
+
+// Opening is the view with a conversation, by its key, opened or folded.
+func (v ReviewViewContext) Opening(key string, open bool) ReviewViewContext {
+	v.Opened = utils.CopyBools(v.Opened)
+	v.Opened[key] = open
 	return v
 }
 

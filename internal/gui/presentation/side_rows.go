@@ -28,6 +28,10 @@ func ComponentKey(component string) string { return "component:" + component }
 // FileKey is the key of a file's row in the Files panel.
 func FileKey(file string) string { return "file:" + file }
 
+// ConversationKey is the key of a conversation with Claude: of its row in
+// the Notes panel, its note in a diff and its fold in the Review view.
+func ConversationKey(id int) string { return fmt.Sprintf("conversation:%d", id) }
+
 // BoxKey is the key of a box's row in the Diagram panel.
 func BoxKey(box string) string { return "box:" + box }
 
@@ -201,7 +205,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 			if len(t.Messages) > 0 {
 				first = " " + th.Muted.Render(utils.PlainText(t.Messages[0].Text))
 			}
-			rows = append(rows, SideRow{Key: fmt.Sprintf("conversation:%d", t.ID), Text: th.Text.Render(lineName(at)) + first, Right: right,
+			rows = append(rows, SideRow{Key: ConversationKey(t.ID), Text: th.Text.Render(lineName(at)) + first, Right: right,
 				Item: Item{Kind: "conversation", Place: &at, Thread: t.ID}})
 		}
 	}

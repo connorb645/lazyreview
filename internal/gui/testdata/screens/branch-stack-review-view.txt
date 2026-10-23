@@ -9,7 +9,7 @@
 │     M Basket.swift          ● ││ This review is read only: nothing can be posted from a branch.  │
 │   ▾ Sources/Catalog           ││                                                                 │
 │     M MemoryCatalog.swift   ● ││▌▾ Conversations                                                 │
-│     A Search.swift          ● ││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
+│     A Search.swift          ● ││   ▸ Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages   │
 │   ▾ web/src                   ││     Could this be passed in?                                    │
 │     M cart.ts               ● ││     It could: the basket only reads from it.                    │
 │ ▾ ■ Unchanged code  unchanged ││                                                                 │

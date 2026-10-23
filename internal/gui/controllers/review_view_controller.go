@@ -110,6 +110,11 @@ func (self *ReviewViewController) open(s context.ContextTree) (context.ContextTr
 }
 
 func (self *ReviewViewController) fold(s context.ContextTree) context.ContextTree {
+	if v := s.ReviewView.View; v.Cursor < len(v.Items) && v.Items[v.Cursor].Kind == "conversation" {
+		key := presentation.ConversationKey(v.Items[v.Cursor].Thread)
+		s.ReviewView = s.ReviewView.Opening(key, !s.ReviewView.Opened[key])
+		return self.c.Helpers.Refresh.Relaid(s)
+	}
 	id := s.ReviewView.SectionAt()
 	if id == "" {
 		return s
@@ -143,7 +148,7 @@ func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSect
 		{Keys: labels.Of("next section", "previous section"), Words: tr.HelpSections},
 		{Keys: utils.ResolvePlaceholderString(tr.HelpLineEndsKeys, map[string]string{"top": labels.Of("top"), "bottom": labels.Of("bottom")}), Words: tr.HelpItemsEnds},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenItem},
-		{Keys: labels.Of("fold"), Words: tr.HelpFoldSection},
+		{Keys: labels.Of("fold"), Words: tr.HelpFoldItem},
 		{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor},
 		{Keys: labels.Of("drop"), Words: utils.ResolvePlaceholderString(tr.HelpDropAtCursor, map[string]string{"confirm": labels.Of("confirm")})},
 		{Keys: labels.Of("post"), Words: tr.HelpPostAtCursor},
@@ -153,7 +158,7 @@ func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSect
 }
 
 // Hints are what the bar shows of the Review view's keys: posting and the
-// queued comment's keys on a pull request's item, deleting on a
+// queued comment's keys on a pull request's item, deleting and folding on a
 // conversation, folding on others.
 func (self *ReviewViewController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
@@ -166,7 +171,7 @@ func (self *ReviewViewController) Hints(s context.ContextTree, labels presentati
 			return [][2]string{move, open, {labels.Of("post"), tr.Post}, {labels.Of("edit", "drop"), tr.EditDrop}, sections, list}
 		}
 		if _, ok := self.c.Helpers.Editing.ConversationAt(s); ok {
-			return [][2]string{move, open, {labels.Of("drop"), tr.Delete}, sections, list}
+			return [][2]string{move, open, {labels.Of("drop"), tr.Delete}, {labels.Of("fold"), tr.Fold}, sections, list}
 		}
 		return [][2]string{move, open, sections, {labels.Of("fold"), tr.Fold}, list}
 	})

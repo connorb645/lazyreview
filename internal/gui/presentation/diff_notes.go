@@ -6,9 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
+
 	"github.com/connorb645/lazyreview/internal/gui/types"
 	"github.com/connorb645/lazyreview/internal/i18n"
 	"github.com/connorb645/lazyreview/internal/models"
+	"github.com/connorb645/lazyreview/internal/theme"
 	"github.com/connorb645/lazyreview/internal/utils"
 )
 
@@ -34,7 +37,7 @@ func NotesOf(d types.ReviewData, path string) []Note {
 		t := &d.State.Threads[i]
 		if t.Path == path {
 			at := models.Lines{Path: t.Path, Side: t.Side, Line: t.Line, StartLine: t.StartLine, StartSide: t.StartSide}
-			out = append(out, Note{Kind: "conversation", Key: fmt.Sprintf("conversation:%d", t.ID), At: &at, Conversation: t})
+			out = append(out, Note{Kind: "conversation", Key: ConversationKey(t.ID), At: &at, Conversation: t})
 		}
 	}
 	for i := range d.State.GitHub {
@@ -160,35 +163,8 @@ func noteRows(tr *i18n.TranslationSet, loc *time.Location, d types.ReviewData, v
 			text("stale", utils.ResolvePlaceholderString(tr.MayHaveMoved, map[string]string{"reason": n.Comment.Stale}), -1)
 		}
 	case "conversation":
-		for i, m := range n.Conversation.Messages {
-			switch {
-			case m.From == "you":
-				text("you", utils.ResolvePlaceholderString(tr.YouSaid, map[string]string{"text": m.Text}), i)
-			case m.Error != "":
-				text("error", tr.ClaudeDidNotAnswer+": "+m.Error, i)
-			default:
-				text("claude", utils.ResolvePlaceholderString(tr.ClaudeSaid, map[string]string{"text": m.Text}), i)
-			}
-			if len(m.Steps) > 0 {
-				text("step", tookWords(tr, m.Steps), i)
-				for _, st := range m.Steps {
-					if st.Refused != "" {
-						text("refused", refusedWords(tr, st), i)
-					}
-				}
-			}
-		}
-		if Waiting(*n.Conversation) {
-			text("waiting", tr.WaitingForClaude, -1)
-			if w := n.Conversation.Working; w != nil {
-				for _, st := range w.Steps[max(0, len(w.Steps)-shownSteps):] {
-					if st.Refused != "" {
-						text("refused", refusedWords(tr, st), -1)
-					} else {
-						text("step", st.Words, -1)
-					}
-				}
-			}
+		for _, p := range conversationParts(tr, *n.Conversation) {
+			text(p.part, p.words, p.message)
 		}
 	case "thread":
 		for _, c := range n.Thread.Comments {
@@ -200,6 +176,53 @@ func noteRows(tr *i18n.TranslationSet, loc *time.Location, d types.ReviewData, v
 		}
 	}
 	return rows
+}
+
+type conversationPart struct {
+	part, words string
+	message     int
+}
+
+func conversationParts(tr *i18n.TranslationSet, c models.Conversation) []conversationPart {
+	var out []conversationPart
+	add := func(part, words string, message int) {
+		out = append(out, conversationPart{part: part, words: words, message: message})
+	}
+	for i, m := range c.Messages {
+		switch {
+		case m.From == "you":
+			add("you", utils.ResolvePlaceholderString(tr.YouSaid, map[string]string{"text": m.Text}), i)
+		case m.Error != "":
+			add("error", tr.ClaudeDidNotAnswer+": "+m.Error, i)
+		default:
+			add("claude", utils.ResolvePlaceholderString(tr.ClaudeSaid, map[string]string{"text": m.Text}), i)
+		}
+		if len(m.Steps) > 0 {
+			add("step", tookWords(tr, m.Steps), i)
+			for _, st := range m.Steps {
+				if st.Refused != "" {
+					add("refused", refusedWords(tr, st), i)
+				}
+			}
+		}
+	}
+	if Waiting(c) {
+		add("waiting", tr.WaitingForClaude, -1)
+		if w := c.Working; w != nil {
+			for _, st := range w.Steps[max(0, len(w.Steps)-shownSteps):] {
+				if st.Refused != "" {
+					add("refused", refusedWords(tr, st), -1)
+				} else {
+					add("step", st.Words, -1)
+				}
+			}
+		}
+	}
+	return out
+}
+
+func partStyle(th theme.Theme, part string) lipgloss.Style {
+	return map[string]lipgloss.Style{"body": th.Text, "you": th.Bold, "claude": th.Text, "error": th.Bad, "stale": th.Warning, "author": th.Muted, "waiting": th.Muted, "step": th.Muted, "refused": th.Bad}[part]
 }
 
 // NoteWords say what a note is and where, for the main panel's foot.

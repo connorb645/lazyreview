@@ -1,7 +1,10 @@
 package gui
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/internal/gui/types"
 	"github.com/connorb645/lazyreview/internal/models"
@@ -49,5 +52,26 @@ func TestTheReviewViewKeepsItsCursorOnTheConversationItWasOn(t *testing.T) {
 	a = send(t, a, types.StateLoaded{State: a.Review.State})
 	if got := reviewItemThread(a); got != 3 {
 		t.Fatalf("after the review changed, the cursor is on conversation %d, not 3, on the same line", got)
+	}
+}
+
+func TestZaFoldsAndUnfoldsEachConversationOfALineInTheReviewView(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	a = toReviewItem(t, press(t, withThreeOnALine(t, a), "0"), 2)
+	if got := barSays(a); got != "Move: j k | Open: Enter | Delete: dd | Fold: za | Sections: ]] [[ | List: Esc | Keys: Space ?" {
+		t.Fatalf("on a conversation, the bar says %q", got)
+	}
+	a = press(t, a, "z", "a")
+	if got := reviewItemThread(a); got != 2 || !a.ReviewView.Opened["conversation:2"] || a.ReviewView.Folded["conversations"] {
+		t.Fatalf("za on conversation 2 left the cursor on %d, opened %v and folded %v", got, a.ReviewView.Opened, a.ReviewView.Folded)
+	}
+	shown := ansi.Strip(a.View())
+	if !strings.Contains(shown, "▾ Sources/Basket/Basket.swift:7") || !strings.Contains(shown, "You: Who else reads the search?") || !strings.Contains(shown, "Claude: Only the basket does.") {
+		t.Fatalf("an open conversation does not show every message:\n%s", shown)
+	}
+	screenIs(t, a, "review-conversation-open")
+	a = press(t, a, "j", "z", "a", "k", "z", "a")
+	if got := reviewItemThread(a); got != 2 || a.ReviewView.Opened["conversation:2"] || !a.ReviewView.Opened["conversation:3"] {
+		t.Fatalf("after unfolding 3 and folding 2, the cursor is on %d and %v are open", got, a.ReviewView.Opened)
 	}
 }

@@ -21,9 +21,10 @@ const preview = 220
 // BuildReview draws the Review view: the review's header, its written
 // sections and their links, the queued comments, the threads on GitHub, the
 // conversations with Claude and the change's components, each section folded
-// or not, its words naming keys as labels label them. It gives the lines
-// and the items they stand for.
-func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels KeyLabels, loc *time.Location, d types.ReviewData, filter types.PullFilter, folded map[string]bool, width int) ([]Line, []Item) {
+// or not, each conversation open, by its key, or folded to its first question
+// and latest answer, its words naming keys as labels label them. It gives the
+// lines and the items they stand for.
+func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels KeyLabels, loc *time.Location, d types.ReviewData, filter types.PullFilter, folded, opened map[string]bool, width int) ([]Line, []Item) {
 	b := &builder{width: width, tr: tr, th: th, labels: labels}
 	reviewHeader(b, d, filter)
 	section := func(id, title, summary string, body func()) {
@@ -102,7 +103,7 @@ func BuildReview(tr *i18n.TranslationSet, th theme.Theme, md *Markdown, labels K
 	if len(asked) > 0 {
 		section("conversations", tr.Conversations, utils.Plural(len(asked), tr.ConversationNoun), func() {
 			for _, t := range asked {
-				conversationLines(b, t, loc)
+				conversationLines(b, t, loc, opened[ConversationKey(t.ID)])
 			}
 		})
 	}
@@ -338,14 +339,24 @@ func githubLines(b *builder, d types.ReviewData, t models.GitHubThread) {
 	b.add(it, texts...)
 }
 
-func conversationLines(b *builder, t models.Conversation, loc *time.Location) {
+func conversationLines(b *builder, t models.Conversation, loc *time.Location, open bool) {
 	th, tr := b.th, b.tr
 	lines := fmt.Sprint(t.Line)
 	if t.StartLine > 0 {
 		lines = fmt.Sprintf("%d-%d", t.StartLine, t.Line)
 	}
-	texts := []string{"   " + th.Accent.Render(t.Path+":"+lines) + "  " + th.Muted.Render(utils.When(t.CreatedAt, loc)+" · "+utils.Plural(len(t.Messages), tr.MessageNoun))}
-	if len(t.Messages) > 0 {
+	fold := "▸ "
+	if open {
+		fold = "▾ "
+	}
+	texts := []string{"   " + th.Muted.Render(fold) + th.Accent.Render(t.Path+":"+lines) + "  " + th.Muted.Render(utils.When(t.CreatedAt, loc)+" · "+utils.Plural(len(t.Messages), tr.MessageNoun))}
+	if open {
+		for _, p := range conversationParts(tr, t) {
+			for _, l := range utils.Wrap(p.words, b.width-6) {
+				texts = append(texts, "     "+partStyle(th, p.part).Render(l))
+			}
+		}
+	} else if len(t.Messages) > 0 {
 		for _, l := range clipped(t.Messages[0].Text, b.width-6, 2) {
 			texts = append(texts, "     "+th.Bold.Render(l))
 		}

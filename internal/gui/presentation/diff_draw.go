@@ -146,8 +146,7 @@ func noteLine(tr *i18n.TranslationSet, labels KeyLabels, d types.ReviewData, v D
 		}
 		return utils.Fit(indent+style.Render(heads[len(heads)-1]), width)
 	}
-	style := map[string]lipgloss.Style{"body": th.Text, "you": th.Bold, "claude": th.Text, "error": th.Bad, "stale": th.Warning, "author": th.Muted, "waiting": th.Muted, "step": th.Muted, "refused": th.Bad}[r.Part]
-	return indent + "  " + style.Render(r.Text)
+	return indent + "  " + partStyle(th, r.Part).Render(r.Text)
 }
 
 func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffRow, filter types.PullFilter, th theme.Theme) string {
