@@ -147,29 +147,43 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 		for _, m := range s.Members {
 			widest = max(widest, ansi.StringWidth(m.Branch))
 		}
+		type memberLine struct {
+			head, indent string
+			parts        []string
+		}
+		var lines []memberLine
+		allFit := true
 		for _, m := range s.Members {
 			own := StackMember(d.Page.Stack, m.Pull)
 			number, name, added, removed := th.PullRequest(m.Color), th.Text, th.Added, th.Removed
 			if !filter.Shows(m.Pull) {
 				number, name, added, removed = th.Faint, th.Faint, th.DimAdded, th.DimRemoved
 			}
-			parts := []string{th.Muted.Render(utils.ResolvePlaceholderString(tr.MemberHead, map[string]string{"sha": utils.Short(m.Head)})),
-				th.Muted.Render(utils.Plural(own.Files, tr.FileNoun)+" ") + added.Render(fmt.Sprintf("+%d", own.Adds)) + " " + removed.Render(fmt.Sprintf("−%d", own.Dels))}
-			head, indent := "  "+number.Render(MemberName(d, m.Pull))+strings.Repeat(" ", widest-ansi.StringWidth(m.Branch)), "    "
+			line := memberLine{head: "  " + number.Render(MemberName(d, m.Pull)) + strings.Repeat(" ", widest-ansi.StringWidth(m.Branch)), indent: "    ",
+				parts: []string{th.Muted.Render(utils.ResolvePlaceholderString(tr.MemberHead, map[string]string{"sha": utils.Short(m.Head)})),
+					th.Muted.Render(utils.Plural(own.Files, tr.FileNoun)+" ") + added.Render(fmt.Sprintf("+%d", own.Adds)) + " " + removed.Render(fmt.Sprintf("−%d", own.Dels))}}
 			if m.Branch == "" {
-				parts = append([]string{th.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author})),
-					th.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base}))}, parts...)
-				head, indent = head+"  "+name.Render(m.Title), "       "
+				line.parts = append([]string{th.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author})),
+					th.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base}))}, line.parts...)
+				line.head, line.indent = line.head+"  "+name.Render(m.Title), "       "
 			}
 			if m.State != "" && m.State != "open" {
-				parts = append(parts, th.Removed.Render(m.State))
+				line.parts = append(line.parts, th.Removed.Render(m.State))
 			}
-			if tail := strings.Join(parts, th.Muted.Render(" · ")); ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {
-				b.text(head + "  " + tail)
+			allFit = allFit && fits(b, line.head, line.parts)
+			lines = append(lines, line)
+		}
+		for i, line := range lines {
+			oneLine := fits(b, line.head, line.parts)
+			if s.Members[i].Branch != "" {
+				oneLine = allFit
+			}
+			if oneLine {
+				b.text(line.head + "  " + strings.Join(line.parts, th.Muted.Render(" · ")))
 				continue
 			}
-			b.text(head)
-			b.parts(indent, parts...)
+			b.text(line.head)
+			b.parts(line.indent, line.parts...)
 		}
 		top := s.Members[len(s.Members)-1]
 		b.parts(" ", th.Muted.Render(base(s.Base.Ref)), th.Muted.Render(head(top.Head)), th.Muted.Render(tr.Combined+" ")+totals)
@@ -200,6 +214,10 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 			b.text(" " + th.Warning.Render(l))
 		}
 	}
+}
+
+func fits(b *builder, head string, parts []string) bool {
+	return ansi.StringWidth(head)+2+ansi.StringWidth(strings.Join(parts, " · ")) <= b.width
 }
 
 func queueLines(b *builder, d types.ReviewData, filter types.PullFilter, loc *time.Location) {

@@ -137,3 +137,42 @@ func TestAStackOfLongBranchNamesWrapsEachBranchUnderItsName(t *testing.T) {
 		t.Errorf("the diff's header does not keep the file and its counts:\n%s", words)
 	}
 }
+
+func TestAStackOfBranchesPutsEveryBranchOnOneLineOrWrapsThemAll(t *testing.T) {
+	for width := 70; width <= 130; width++ {
+		a := press(t, onBranchStackNamed(t, width, 30, "catalogue-search/part-01", "catalogue-search/part-02"), "0")
+		alone, whole := 0, 0
+		for _, line := range strings.Split(viewWords(a), "\n") {
+			switch {
+			case strings.Contains(line, "  catalogue-search/part-0") && strings.Contains(line, "head "):
+				whole++
+			case strings.Contains(line, "  catalogue-search/part-0"):
+				alone++
+			}
+		}
+		if alone+whole != 2 || alone != 0 && whole != 0 {
+			t.Errorf("at %d columns, %d branches wrap and %d do not:\n%s", width, alone, whole, viewWords(a))
+		}
+	}
+}
+
+func TestEveryFileHeaderOfADiffNamesTheBranchesAlike(t *testing.T) {
+	for width := 70; width <= 161; width++ {
+		a := press(t, onBranchStackNamed(t, width, 60, "catalogue-search/part-01", "catalogue-search/part-02"), "2")
+		full, cut := 0, 0
+		for _, line := range strings.Split(viewWords(a), "\n") {
+			if !strings.Contains(line, " changed ") && !strings.Contains(line, " new ") {
+				continue
+			}
+			if strings.Contains(line, "catalogue-search/part-0") {
+				full++
+			}
+			if strings.Contains(line, "  …/part-0") {
+				cut++
+			}
+		}
+		if full+cut < 3 || full != 0 && cut != 0 {
+			t.Errorf("at %d columns %d file headers name a branch in full and %d by its last part:\n%s", width, full, cut, viewWords(a))
+		}
+	}
+}

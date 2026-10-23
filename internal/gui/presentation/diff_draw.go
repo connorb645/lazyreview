@@ -157,18 +157,15 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 	}
 	entry := FileEntry(d, r.Path)
 	head, status := " "+th.Muted.Render(fold)+" ", "  "+th.Muted.Render(badges(tr)[entry.Status])
-	members := func(short bool) string {
-		out := ""
-		for _, pull := range entry.Pulls {
-			name := MemberName(d, pull)
-			if short {
-				name = utils.FitTitle(name, ansi.StringWidth(name[strings.LastIndex(name, "/")+1:])+2)
-			}
-			out += "  " + th.PullRequest(MemberColor(d.State, pull)).Render(name)
-		}
-		return out
-	}
+	short := shortBranchNames(tr, d, v.Width)
 	tail := ""
+	for _, pull := range entry.Pulls {
+		name := MemberName(d, pull)
+		if short {
+			name = utils.FitTitle(name, ansi.StringWidth(lastPart(name))+2)
+		}
+		tail += "  " + th.PullRequest(MemberColor(d.State, pull)).Render(name)
+	}
 	if v.Whole[r.Path] {
 		tail += "  " + th.Accent.Render(tr.WholeBadge)
 	}
@@ -181,15 +178,36 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 		adds, dels := filter.Lines(entry)
 		tail += "  " + th.Added.Render(fmt.Sprintf("+%d", adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", dels))
 	}
-	full := status + members(false) + tail
-	if v.Width-1-ansi.StringWidth(head+full) < ansi.StringWidth(r.Path[strings.LastIndex(r.Path, "/")+1:]) {
-		full = status + members(true) + tail
-	}
+	tail = status + tail
 	path := r.Path
-	if room := v.Width - 1 - ansi.StringWidth(head+full); room > 0 {
+	if room := v.Width - 1 - ansi.StringWidth(head+tail); room > 0 {
 		path = utils.FitTitle(path, room)
 	}
-	return head + th.Bold.Render(path) + full
+	return head + th.Bold.Render(path) + tail
+}
+
+// shortBranchNames says whether a diff's file headers name a stack's
+// branches by their last part: when, at the diff's width, their full names
+// leave some changed file's header too little room for the file's own
+// name. One answer holds for every header, so they read alike.
+func shortBranchNames(tr *i18n.TranslationSet, d types.ReviewData, width int) bool {
+	if d.State.Kind != "branch" || d.Page.Stack == nil {
+		return false
+	}
+	for _, f := range d.Page.Model.Files {
+		need := 3 + ansi.StringWidth(lastPart(f.Path)) + 2 + ansi.StringWidth(badges(tr)[f.Status]) + 2 + ansi.StringWidth(fmt.Sprintf("+%d −%d", f.Adds, f.Dels))
+		for _, pull := range f.Pulls {
+			need += 2 + ansi.StringWidth(MemberName(d, pull))
+		}
+		if need > width-1 {
+			return true
+		}
+	}
+	return false
+}
+
+func lastPart(name string) string {
+	return name[strings.LastIndex(name, "/")+1:]
 }
 
 func unifiedRow(d types.ReviewData, v DiffView, i int, mark string, filter types.PullFilter, th theme.Theme) []string {
