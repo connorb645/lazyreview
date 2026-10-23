@@ -67,12 +67,12 @@ func ReviewRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, fil
 		if m.State != "" && m.State != "open" {
 			right = th.Muted.Render(m.State)
 		}
-		text, named := number.Render(MemberName(d, m.Pull))+" "+title.Render(m.Title), m.Title
+		row := SideRow{Key: PullKey(m.Pull), Text: number.Render(MemberName(d, m.Pull)) + " " + title.Render(m.Title), Right: right,
+			Lit: slices.Contains(filter, m.Pull), Out: !shown.Shows(m.Pull), Item: Item{Kind: "pull", Pull: m.Pull, URL: m.URL, Title: m.Title}}
 		if m.Branch != "" {
-			text, named = number.Render(m.Branch), m.Branch
+			row.Text, row.Title, row.TitleStyle, row.Item.Title = "", m.Branch, number, m.Branch
 		}
-		rows = append(rows, SideRow{Key: PullKey(m.Pull), Text: text, Right: right,
-			Lit: slices.Contains(filter, m.Pull), Out: !shown.Shows(m.Pull), Item: Item{Kind: "pull", Pull: m.Pull, URL: m.URL, Title: named}})
+		rows = append(rows, row)
 	}
 	return rows
 }

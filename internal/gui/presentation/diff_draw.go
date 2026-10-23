@@ -156,10 +156,19 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 		fold = "▸"
 	}
 	entry := FileEntry(d, r.Path)
-	head, tail := " "+th.Muted.Render(fold)+" ", "  "+th.Muted.Render(badges(tr)[entry.Status])
-	for _, pull := range entry.Pulls {
-		tail += "  " + th.PullRequest(MemberColor(d.State, pull)).Render(MemberName(d, pull))
+	head, status := " "+th.Muted.Render(fold)+" ", "  "+th.Muted.Render(badges(tr)[entry.Status])
+	members := func(short bool) string {
+		out := ""
+		for _, pull := range entry.Pulls {
+			name := MemberName(d, pull)
+			if short {
+				name = utils.FitTitle(name, ansi.StringWidth(name[strings.LastIndex(name, "/")+1:])+2)
+			}
+			out += "  " + th.PullRequest(MemberColor(d.State, pull)).Render(name)
+		}
+		return out
 	}
+	tail := ""
 	if v.Whole[r.Path] {
 		tail += "  " + th.Accent.Render(tr.WholeBadge)
 	}
@@ -172,11 +181,15 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 		adds, dels := filter.Lines(entry)
 		tail += "  " + th.Added.Render(fmt.Sprintf("+%d", adds)) + " " + th.Removed.Render(fmt.Sprintf("−%d", dels))
 	}
+	full := status + members(false) + tail
+	if v.Width-1-ansi.StringWidth(head+full) < ansi.StringWidth(r.Path[strings.LastIndex(r.Path, "/")+1:]) {
+		full = status + members(true) + tail
+	}
 	path := r.Path
-	if room := v.Width - 1 - ansi.StringWidth(head+tail); room > 0 {
+	if room := v.Width - 1 - ansi.StringWidth(head+full); room > 0 {
 		path = utils.FitTitle(path, room)
 	}
-	return head + th.Bold.Render(path) + tail
+	return head + th.Bold.Render(path) + full
 }
 
 func unifiedRow(d types.ReviewData, v DiffView, i int, mark string, filter types.PullFilter, th theme.Theme) []string {

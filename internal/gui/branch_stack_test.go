@@ -16,9 +16,16 @@ import (
 // which has no pull request, no queue and nothing on GitHub.
 func onBranchStack(t *testing.T, width, height int) App {
 	t.Helper()
+	return onBranchStackNamed(t, width, height, "feature/search", "feature/cart")
+}
+
+// onBranchStackNamed is onBranchStack with its two branches named bottom
+// and top.
+func onBranchStackNamed(t *testing.T, width, height int, bottom, top string) App {
+	t.Helper()
 	a, _ := opened(t, stack, width, height)
 	d := *a.Review
-	names := map[int]string{21: "feature/search", 22: "feature/cart"}
+	names := map[int]string{21: bottom, 22: top}
 	stacked := *d.Page.Stack
 	stacked.Members = slices.Clone(stacked.Members)
 	for i := range stacked.Members {
@@ -34,9 +41,9 @@ func onBranchStack(t *testing.T, width, height int) App {
 		}
 		members[i] = models.Member{Pull: m.Pull, Branch: names[m.Pull], Head: m.Head, Base: base, Color: m.Color}
 	}
-	st.Kind, st.Repo, st.Title, st.Members, st.Earlier, st.Queue, st.GitHub, st.Written = "branch", "widgets", "Stack feature/search to feature/cart", members, nil, nil, nil, nil
+	st.Kind, st.Repo, st.Title, st.Members, st.Earlier, st.Queue, st.GitHub, st.Written = "branch", "widgets", "Stack "+bottom+" to "+top, members, nil, nil, nil, nil
 	st.Host, st.Me, st.Account, st.Moved = "", "", nil, nil
-	st.Base, st.Head = models.Ref{Ref: "main", Sha: st.Base.Sha}, models.Ref{Ref: "feature/cart", Sha: members[1].Head}
+	st.Base, st.Head = models.Ref{Ref: "main", Sha: st.Base.Sha}, models.Ref{Ref: top, Sha: members[1].Head}
 	d.State = st
 	a.Review = &d
 	return relaid(a)
@@ -113,5 +120,20 @@ func TestAPullRequestTheStackDoesNotHoldIsNamedOnce(t *testing.T) {
 	a = typed(t, a, "pull #99")
 	if a.Notice != "no pull request #99 in this stack" {
 		t.Errorf(":pull #99 says %q", a.Notice)
+	}
+}
+
+func TestAStackOfLongBranchNamesWrapsEachBranchUnderItsName(t *testing.T) {
+	a := onBranchStackNamed(t, 80, 24, "catalogue-search/part-01", "catalogue-search/part-02")
+	a = press(t, a, "0")
+	screenIs(t, a, "branch-stack-long-names")
+	words := viewWords(a)
+	if !strings.Contains(words, "…/part-01") || !strings.Contains(words, "…/part-02") {
+		t.Errorf("the Review panel does not tell the branches apart:\n%s", words)
+	}
+	a = press(t, a, "esc", "2", "j", "j", "enter")
+	screenIs(t, a, "branch-stack-long-names-diff")
+	if words := viewWords(a); !strings.Contains(words, "Basket.swift  changed  …/part-02  +3 −1") {
+		t.Errorf("the diff's header does not keep the file and its counts:\n%s", words)
 	}
 }

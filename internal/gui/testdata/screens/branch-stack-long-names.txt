@@ -1,0 +1,24 @@
+╭─[1]─Review─────────────╮╭─[0]─Review─────────────────────────────────────────╮
+│┃All                    ││ A stack of 2 branches in widgets, each built on    ▐
+│ …/part-01              ││ the one before, with no pull request yet           ▐
+│ …/part-02              ││ Stack catalogue-search/part-01 to                  ▐
+╰─────────────────1 of 3─╯│ catalogue-search/part-02                           ▐
+╭─[2]─Files──────────────╮│  catalogue-search/part-01                          ▐
+│ ▾ ■ widgets     +15 −1 ││    head ec6fb42d · 2 files +11 −0                  ▐
+│   ▾ Sources/Basket     ││  catalogue-search/part-02                          ▐
+│     M Basket.swift   ● ││    head cd3c7027 · 2 files +4 −1                   ▐
+│   ▾ Sources/Catalog    ││ Base main · Head cd3c7027                          ▐
+│     M MemoryCatalog… ● ││ Combined: 4 files +15 −1                           ▐
+│     A Search.swift   ● ││                                                    ▐
+│   ▾ web/src            ││ This review is read only: nothing can be posted    ▐
+╰────────────────1 of 10─╯│ from a branch.                                     ▐
+╭─[3]─Notes──────────────╮│                                                    ▐
+│ Claude               1 ││▌▾ Conversations                                    ▐
+│ Basket.swift:7 Could t…││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2…▐
+╰─────────────────1 of 1─╯│     Could this be passed in?                       ▐
+╭─[4]─Diagram────────────╮│     It could: the basket only reads from it.       ▐
+│ Components             ││                                                    ▐
+│ ■ widgets              ││ ▾ The change                                       ▐
+│ ■ Unchanged code       ││   ■ widgets  4 files +15 −1                        │
+╰─────────────────1 of 2─╯╰──────────────────────────────────────Conversations─╯
+ Move: j k | Open: Enter | Sections: ]] [[ | Fold: za | Keys: Space ?
