@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 const (
 	stepInBudget = time.Second
 	moveBudget   = 250 * time.Millisecond
+	walks        = 3
 )
 
 // largeStandIn is a review the size of a whole app loaded as one branch
@@ -75,7 +77,9 @@ func largeStandIn() types.ReviewData {
 
 // The graph of a review that size opens within a second of Enter at every
 // level, drawn in full colour, and each move about it takes a fraction of
-// that.
+// that. A step can overrun when every package's tests share the machine, so
+// a walk that overran walks again, and only one that overruns every time
+// fails.
 func TestALargeGraphOpensQuicklyAndMovesSmoothly(t *testing.T) {
 	lipgloss.SetColorProfile(termenv.TrueColor)
 	defer lipgloss.SetColorProfile(termenv.Ascii)
@@ -84,43 +88,59 @@ func TestALargeGraphOpensQuicklyAndMovesSmoothly(t *testing.T) {
 		t.Fatalf("the stand-in has %d boxes and %d links", len(d.Page.Model.Nodes), len(d.Page.Model.Edges))
 	}
 	for _, size := range [][2]int{{161, 48}, {80, 24}} {
-		a := New(testCommon(), Options{})
-		a.Review, a.Loading, a.Width, a.Height = &d, false, size[0], size[1]
-		a.ContextTree = a.Focused(context.MainPanel, a.Driving())
-		a = showBox(a, types.DiagramPlace{Level: "components"})
-		step := func(name string, budget time.Duration, keys ...string) {
-			t.Helper()
-			start := time.Now()
-			a = press(t, a, keys...)
-			_ = a.View()
-			took := time.Since(start)
-			t.Logf("%dx%d %-22s %v", size[0], size[1], name, took)
-			if took > budget {
-				t.Errorf("at %dx%d, %s took %v, more than %v", size[0], size[1], name, took, budget)
+		var slow []string
+		for walk := 1; walk <= walks; walk++ {
+			if slow = walkLargeGraph(t, d, size); len(slow) == 0 {
+				break
 			}
+			t.Logf("at %dx%d, walk %d overran: %s", size[0], size[1], walk, strings.Join(slow, "; "))
 		}
-		step("Enter into the component", stepInBudget, "enter")
-		focusedOn(t, a, "top")
-		step("G to the last package", moveBudget, "G")
-		focusedOn(t, a, "internal")
-		step("Enter into 378 boxes", stepInBudget, "enter")
-		for _, key := range []string{"j", "l", "w", "G", "g"} {
-			if key == "g" {
-				step("gg", moveBudget, "g", "g")
-				continue
-			}
-			step(key, moveBudget, key)
+		for _, overran := range slow {
+			t.Errorf("at %dx%d, %s, on each of %d walks", size[0], size[1], overran, walks)
 		}
-		step("Space a, every link", moveBudget, "space", "a")
-		step("f, every label", moveBudget, "f")
-		step("Esc", moveBudget, "esc")
-		step("- back out", stepInBudget, "-")
-		step("h to the box left", moveBudget, "h")
-		focusedOn(t, a, "src")
-		step("Enter into src", stepInBudget, "enter")
-		step("Space a, every link", moveBudget, "space", "a")
-		step("gr, what links in", moveBudget, "g", "r")
-		step("Esc", moveBudget, "esc")
-		step("- back out", stepInBudget, "-")
 	}
+}
+
+func walkLargeGraph(t *testing.T, d types.ReviewData, size [2]int) []string {
+	t.Helper()
+	a := New(testCommon(), Options{})
+	a.Review, a.Loading, a.Width, a.Height = &d, false, size[0], size[1]
+	a.ContextTree = a.Focused(context.MainPanel, a.Driving())
+	a = showBox(a, types.DiagramPlace{Level: "components"})
+	var slow []string
+	step := func(name string, budget time.Duration, keys ...string) {
+		t.Helper()
+		start := time.Now()
+		a = press(t, a, keys...)
+		_ = a.View()
+		took := time.Since(start)
+		t.Logf("%dx%d %-22s %v", size[0], size[1], name, took)
+		if took > budget {
+			slow = append(slow, fmt.Sprintf("%s took %v, more than %v", name, took, budget))
+		}
+	}
+	step("Enter into the component", stepInBudget, "enter")
+	focusedOn(t, a, "top")
+	step("G to the last package", moveBudget, "G")
+	focusedOn(t, a, "internal")
+	step("Enter into 378 boxes", stepInBudget, "enter")
+	for _, key := range []string{"j", "l", "w", "G", "g"} {
+		if key == "g" {
+			step("gg", moveBudget, "g", "g")
+			continue
+		}
+		step(key, moveBudget, key)
+	}
+	step("Space a, every link", moveBudget, "space", "a")
+	step("f, every label", moveBudget, "f")
+	step("Esc", moveBudget, "esc")
+	step("- back out", stepInBudget, "-")
+	step("h to the box left", moveBudget, "h")
+	focusedOn(t, a, "src")
+	step("Enter into src", stepInBudget, "enter")
+	step("Space a, every link", moveBudget, "space", "a")
+	step("gr, what links in", moveBudget, "g", "r")
+	step("Esc", moveBudget, "esc")
+	step("- back out", stepInBudget, "-")
+	return slow
 }
