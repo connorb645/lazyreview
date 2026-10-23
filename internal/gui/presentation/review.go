@@ -191,6 +191,9 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 		b.prose(" ", th.Warning, utils.ResolvePlaceholderString(tr.ReviewMoved, map[string]string{"to": s.Moved.To}))
 	}
 	for _, n := range s.Notes {
+		if d.Page.Stack != nil && slices.Contains(d.Page.Stack.Warnings, n) {
+			continue
+		}
 		for _, l := range utils.Wrap(n, b.width-2) {
 			b.text(" " + th.Warning.Render(l))
 		}

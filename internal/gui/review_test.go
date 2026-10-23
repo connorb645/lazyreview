@@ -66,3 +66,18 @@ func TestTheReviewViewOfAPullRequestScrollsToTheCursor(t *testing.T) {
 		t.Fatalf("the wheel did not scroll up from %d", bottom)
 	}
 }
+
+func TestAStackWarnsOfAMemberOutOfStepOnce(t *testing.T) {
+	a, _ := opened(t, stack, 100, 40)
+	warning := "#22 is not built on #21's head."
+	d := *a.Review
+	stacked := *d.Page.Stack
+	stacked.Warnings = []string{warning}
+	d.Page.Stack = &stacked
+	d.State.Notes = []string{warning}
+	a.Review = &d
+	a = press(t, relaid(a), "0")
+	if said := strings.Count(ansi.Strip(a.View()), "is not built on"); said != 1 {
+		t.Errorf("the Review view warns %d times:\n%s", said, ansi.Strip(a.View()))
+	}
+}
