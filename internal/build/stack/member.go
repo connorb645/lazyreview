@@ -1,7 +1,10 @@
 package stack
 
-// Member is one pull request of a stack to read: its number and its head.
+// Member is one member of a stack to read: a pull request, by its number,
+// or a branch, numbered by its place in the stack and named in Branch; and
+// its head.
 type Member struct {
-	Pull int
-	Head string
+	Pull   int
+	Branch string
+	Head   string
 }

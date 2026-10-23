@@ -158,7 +158,7 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 	entry := FileEntry(d, r.Path)
 	head, tail := " "+th.Muted.Render(fold)+" ", "  "+th.Muted.Render(badges(tr)[entry.Status])
 	for _, pull := range entry.Pulls {
-		tail += "  " + th.PullRequest(MemberColor(d.State, pull)).Render(fmt.Sprintf("#%d", pull))
+		tail += "  " + th.PullRequest(MemberColor(d.State, pull)).Render(MemberName(d, pull))
 	}
 	if v.Whole[r.Path] {
 		tail += "  " + th.Accent.Render(tr.WholeBadge)

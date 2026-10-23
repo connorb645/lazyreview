@@ -114,7 +114,7 @@ func (o *Options) setValue(option, value string) {
 	case "--base":
 		o.Base = given
 	case "--head":
-		o.Head = given
+		o.Heads = append(o.Heads, value)
 	case "--title":
 		o.Title = given
 	}
@@ -124,9 +124,9 @@ func checkLoad(tr *i18n.TranslationSet, o Options) string {
 	if o.Repo == nil {
 		for _, stray := range []struct {
 			option string
-			value  *string
-		}{{"--base", o.Base}, {"--head", o.Head}, {"--title", o.Title}} {
-			if stray.value != nil {
+			given  bool
+		}{{"--base", o.Base != nil}, {"--head", len(o.Heads) > 0}, {"--title", o.Title != nil}} {
+			if stray.given {
 				return utils.ResolvePlaceholderString(tr.CliNeedsRepo, map[string]string{"option": stray.option})
 			}
 		}
@@ -144,7 +144,7 @@ func checkLoad(tr *i18n.TranslationSet, o Options) string {
 	if o.Base == nil {
 		return utils.ResolvePlaceholderString(tr.CliRepoNeeds, map[string]string{"option": "--base"})
 	}
-	if o.Head == nil {
+	if len(o.Heads) == 0 {
 		return utils.ResolvePlaceholderString(tr.CliRepoNeeds, map[string]string{"option": "--head"})
 	}
 	return ""

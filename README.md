@@ -2,8 +2,8 @@
 
 Review GitHub pull requests on your own machine, in a terminal.
 
-One command loads a pull request, a stack of pull requests, or a branch with
-no pull request yet. lazyreview then shows a class diagram of the change,
+One command loads a pull request, a stack of pull requests, or a branch, or
+a stack of branches, with no pull request yet. lazyreview then shows a class diagram of the change,
 every diff, the threads already on GitHub and the comments you queue. One
 press posts your review. Ask Claude about a line, and the answer stays beside
 it.
@@ -36,6 +36,12 @@ To load a stack, name each pull request, bottom first. To load a branch with
 no pull request, name the folder, the base and the branch:
 
     bin/lazyreview load --repo ~/code/widgets --base main --head feature/search
+
+To load a stack of branches, give `--head` once for each branch, bottom
+first. The stack opens at the address its bottom branch alone has:
+
+    bin/lazyreview load --repo ~/code/widgets --base main \
+      --head feature/search --head feature/basket
 
 To open a review in the terminal app, give it the address, or the same
 link:

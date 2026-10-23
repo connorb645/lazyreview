@@ -41,11 +41,12 @@ func heading(text, right string, th theme.Theme) SideRow {
 }
 
 // ReviewRows are the Review panel's rows: on a stack All, then its pull
-// requests, those the filter holds lit and those it leaves out dimmed, All
-// lit while the whole stack shows; or the pull request, or the branch.
+// requests or its branches, those the filter holds lit and those it leaves
+// out dimmed, All lit while the whole stack shows; or the pull request, or
+// the branch.
 func ReviewRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, filter types.PullFilter) []SideRow {
 	s := d.State
-	if s.Kind == "branch" {
+	if s.Kind == "branch" && (d.Page.Stack == nil || len(s.Members) == 0) {
 		return []SideRow{{Key: "branch", Text: th.Text.Render(s.Head.Ref) + th.Muted.Render(" → "+s.Base.Ref), Item: Item{Kind: "branch"}}}
 	}
 	var rows []SideRow
@@ -66,8 +67,12 @@ func ReviewRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, fil
 		if m.State != "" && m.State != "open" {
 			right = th.Muted.Render(m.State)
 		}
-		rows = append(rows, SideRow{Key: PullKey(m.Pull), Text: number.Render(fmt.Sprintf("#%d", m.Pull)) + " " + title.Render(m.Title), Right: right,
-			Lit: slices.Contains(filter, m.Pull), Out: !shown.Shows(m.Pull), Item: Item{Kind: "pull", Pull: m.Pull, URL: m.URL, Title: m.Title}})
+		text, named := number.Render(MemberName(d, m.Pull))+" "+title.Render(m.Title), m.Title
+		if m.Branch != "" {
+			text, named = number.Render(m.Branch), m.Branch
+		}
+		rows = append(rows, SideRow{Key: PullKey(m.Pull), Text: text, Right: right,
+			Lit: slices.Contains(filter, m.Pull), Out: !shown.Shows(m.Pull), Item: Item{Kind: "pull", Pull: m.Pull, URL: m.URL, Title: named}})
 	}
 	return rows
 }
@@ -231,7 +236,7 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 		}
 	}
 	if len(rows) == 0 && len(filter) > 0 {
-		rows = append(rows, heading(utils.ResolvePlaceholderString(tr.NothingOnYet, map[string]string{"pulls": FilterWords(tr, filter)}), "", th))
+		rows = append(rows, heading(utils.ResolvePlaceholderString(tr.NothingOnYet, map[string]string{"pulls": FilterWords(tr, d, filter)}), "", th))
 	}
 	if len(rows) == 0 {
 		rows = append(rows, heading(tr.NothingQueuedYet, "", th))

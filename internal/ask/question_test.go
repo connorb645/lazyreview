@@ -132,3 +132,32 @@ func TestOnAStackTheCodeReadIsTheHeadOfThePullRequestThatChangedTheLines(t *test
 	}
 	matches(t, atTop, `The file at the head, lines`, "a line at the top's head")
 }
+
+func TestOnAStackOfBranchesTheCodeReadIsTheHeadOfTheBranchThatChangedTheLines(t *testing.T) {
+	tr := i18n.EnglishTranslationSet()
+	low, top, base := strings.Repeat("a", 40), strings.Repeat("b", 40), strings.Repeat("c", 40)
+	stack := models.Review{Kind: "branch", Title: "Stack stack/search to stack/basket", Base: models.Ref{Ref: "main", Sha: base}, Head: models.Ref{Ref: "stack/basket", Sha: top},
+		Branches: []models.BranchMember{{Branch: "stack/search", Head: low, Color: 1}, {Branch: "stack/basket", Head: top, Color: 2}}}
+	stacked := standInPage()
+	stacked.Stack = &models.StackRecord{Lines: map[string]map[string]models.LineMap{"src/a.ts": {
+		"RIGHT": {"11": {Owner: &models.LinePlace{Pull: 1, Line: 9}}, "13": {Candidates: []models.LinePlace{{Pull: 1, Line: 11}, {Pull: 2, Line: 13}}}},
+	}}}
+	if got := HeadAsked(tr, stack, stacked, asked("src/a.ts", "RIGHT", 11, 0)); !reflect.DeepEqual(got, Head{Commit: low, Pull: 1, Path: "src/a.ts", Lines: &[2]int{9, 9}}) {
+		t.Errorf("a line the bottom branch changed is read at %+v", got)
+	}
+	if got := HeadAsked(tr, stack, stacked, asked("src/a.ts", "RIGHT", 13, 0)); got.Commit != top || got.Pull != 2 {
+		t.Errorf("a line no one branch changed is read at %+v", got)
+	}
+	want := CopyPlan{Branches: map[string]string{"main": base, "stack/search": low, "stack/basket": top}, Branch: "stack/search", Base: "main"}
+	if got := CopyBranches(tr, stack, stacked, asked("src/a.ts", "RIGHT", 11, 0)); !reflect.DeepEqual(got, want) {
+		t.Errorf("the stack's copy holds %+v", got)
+	}
+	p := QuestionFor(tr, stack, stacked, asked("src/a.ts", "RIGHT", 11, 0), "/code").Prompt
+	matches(t, p, `^A stack of branches, bottom first, reviewed together\. None has a pull request yet, and the stack's diff is against main:\nstack/search\nstack/basket\n\n`, "the start")
+	matches(t, p, `The codebase as it stands after stack/search is in /code, your working folder, with the branch stack/search checked out and the branch main at the base of the change\.`, "the codebase")
+	matches(t, p, `They ask about line 11, which stack/search changed\.\n\nIn the codebase, after stack/search, they are line 9\.`, "where the lines are")
+	matches(t, p, `The file at the head of stack/basket, lines 1-91 of 900:`, "the head of the top")
+	if strings.Contains(p, "#") {
+		t.Errorf("the question names a pull request: %q", p)
+	}
+}

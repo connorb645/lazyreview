@@ -54,11 +54,11 @@ func ShowsFile(filter types.PullFilter, d types.ReviewData, path string) bool {
 	return filter.ShowsAny(FileEntry(d, path).Pulls)
 }
 
-// FilterWords names the filter's pull requests, such as "#21 and #22".
-func FilterWords(tr *i18n.TranslationSet, f types.PullFilter) string {
+// FilterWords names the filter's members, such as "#21 and #22".
+func FilterWords(tr *i18n.TranslationSet, d types.ReviewData, f types.PullFilter) string {
 	names := make([]string, len(f))
 	for i, pull := range f {
-		names[i] = fmt.Sprintf("#%d", pull)
+		names[i] = MemberName(d, pull)
 	}
 	if len(names) < 2 {
 		return strings.Join(names, "")
@@ -77,6 +77,35 @@ func StackPulls(d types.ReviewData) []int {
 		pulls = append(pulls, m.Pull)
 	}
 	return pulls
+}
+
+// MemberName names a member of the review's stack, or its one pull
+// request: a pull request by its number, such as #21, and a branch by its
+// name.
+func MemberName(d types.ReviewData, pull int) string {
+	if d.Page.Stack != nil {
+		for _, m := range d.Page.Stack.Members {
+			if m.Pull == pull && m.Branch != "" {
+				return m.Branch
+			}
+		}
+	}
+	return fmt.Sprintf("#%d", pull)
+}
+
+// MemberNamed is the member of the review's stack that name names: a pull
+// request by its number, with or without its #, or a branch by its name;
+// and false when none does.
+func MemberNamed(d types.ReviewData, name string) (int, bool) {
+	if d.Page.Stack == nil {
+		return 0, false
+	}
+	for _, m := range d.Page.Stack.Members {
+		if own := MemberName(d, m.Pull); own == name || own == "#"+name {
+			return m.Pull, true
+		}
+	}
+	return 0, false
 }
 
 // StackMember is a pull request's own part of a stack.

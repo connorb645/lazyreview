@@ -379,7 +379,11 @@ func (s *Service) localClone(ctx context.Context, rev models.Review) (string, er
 	}
 	var clone string
 	err = s.locks.With([]string{path + ".lock"}, copyWait, func() error {
-		made, err := s.clones.CopyFrom(ctx, path, rev.Path, []string{rev.Head.Sha, rev.Base.Sha})
+		commits := []string{rev.Head.Sha, rev.Base.Sha}
+		for _, b := range rev.Branches {
+			commits = append(commits, b.Head)
+		}
+		made, err := s.clones.CopyFrom(ctx, path, rev.Path, commits)
 		clone = made
 		return err
 	})

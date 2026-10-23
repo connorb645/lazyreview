@@ -18,8 +18,9 @@ import (
 // Build reads the change from the merge base of the request's base and its
 // top member's head to that head, as a pull request shows it, and builds
 // its page. One member is a single pull request or a branch; more are a
-// stack of pull requests, each based on the one below, and the page also
-// says where a comment on each line goes. It only reads the repository.
+// stack of pull requests or of branches, each based on the one below, and
+// the page also says which member changed each line and, for pull
+// requests, where a comment on it goes. It only reads the repository.
 func Build(tr *i18n.TranslationSet, repo *git.Repository, r Request) (Built, error) {
 	var built Built
 	pulls := make([]int, len(r.Members))
@@ -36,7 +37,7 @@ func Build(tr *i18n.TranslationSet, repo *git.Repository, r Request) (Built, err
 	if stacked {
 		members := make([]stack.Member, len(r.Members))
 		for i, m := range r.Members {
-			members[i] = stack.Member{Pull: m.Pull, Head: m.Head}
+			members[i] = stack.Member{Pull: m.Pull, Branch: m.Branch, Head: m.Head}
 		}
 		if steps, err = stack.ReadSteps(tr, repo, read.MergeBase, read.BaseCommit, read.HeadCommit, members); err != nil {
 			return built, err
@@ -120,7 +121,7 @@ func Build(tr *i18n.TranslationSet, repo *git.Repository, r Request) (Built, err
 		built.Starts = nil
 		for i, s := range steps.Steps {
 			c := steps.Counts[i]
-			record.Members = append(record.Members, models.StackMember{Pull: s.Pull, Head: steps.Heads[i], Files: c.Files, Adds: c.Adds, Dels: c.Dels})
+			record.Members = append(record.Members, models.StackMember{Pull: s.Pull, Branch: s.Branch, Head: steps.Heads[i], Files: c.Files, Adds: c.Adds, Dels: c.Dels})
 			built.Starts = append(built.Starts, s.Start)
 		}
 		built.Page.Stack = record

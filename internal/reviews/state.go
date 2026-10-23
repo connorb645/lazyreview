@@ -19,7 +19,10 @@ import (
 // ref. A written review is marked stale when it read another head than the
 // review now shows, and each of its sections carries its file:line links.
 // A branch review gives its branch, its base and its conversations, with no
-// queue: it takes no comments and sends nothing. Each state carries its
+// queue: it takes no comments and sends nothing. A stack of branches also
+// gives its branches as its members, each numbered by its place in the
+// stack and based on the branch below, the bottom on the stack's base.
+// Each state carries its
 // version, a short hash of the rest of it, which the change notices name.
 func State(tr *i18n.TranslationSet, reviews *store.ReviewStore, ref models.ReviewRef) (*models.State, error) {
 	rev, err := reviews.Read(ref)
@@ -33,6 +36,7 @@ func State(tr *i18n.TranslationSet, reviews *store.ReviewStore, ref models.Revie
 	state := models.State{ID: rev.ID, Kind: rev.Kind, Repo: rev.Repo, Title: rev.Title, Base: rev.Base, Head: rev.Head, LoadedAt: rev.LoadedAt,
 		Notes: orEmpty(rev.Notes), Threads: threads, GitHub: []models.GitHubThread{}}
 	if rev.IsBranch() {
+		state.Members = branchSummaries(*rev)
 		return versioned(state), nil
 	}
 	state.Host, state.Me, state.Account, state.Moved = rev.Host, rev.Me, rev.Account, rev.Moved
@@ -85,6 +89,21 @@ func summaries(members []models.ReviewMember) []models.Member {
 	out := []models.Member{}
 	for _, m := range members {
 		out = append(out, models.Member{Pull: m.Pull, Head: m.Head, Title: m.Title, URL: m.URL, Author: m.Author, Base: m.Base, State: m.State, EndedAt: m.EndedAt, Color: m.Color})
+	}
+	return out
+}
+
+func branchSummaries(rev models.Review) []models.Member {
+	if len(rev.Branches) == 0 {
+		return nil
+	}
+	out := make([]models.Member, len(rev.Branches))
+	for i, b := range rev.Branches {
+		base := rev.Base.Ref
+		if i > 0 {
+			base = rev.Branches[i-1].Branch
+		}
+		out[i] = models.Member{Pull: i + 1, Branch: b.Branch, Head: b.Head, Base: base, Color: b.Color}
 	}
 	return out
 }

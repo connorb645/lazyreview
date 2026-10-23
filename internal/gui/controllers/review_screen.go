@@ -85,7 +85,7 @@ func canPost(s context.ContextTree) bool {
 }
 
 func onGitHub(s context.ContextTree) bool {
-	return s.Review != nil && len(s.Review.State.Members) > 0
+	return s.Review != nil && s.Review.State.Kind != "branch" && len(s.Review.State.Members) > 0
 }
 
 func refreshKeys(c *helpers.HelperCommon, labels presentation.KeyLabels) string {

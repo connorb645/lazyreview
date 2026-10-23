@@ -38,7 +38,14 @@ func PullsSubject(tr *i18n.TranslationSet, pulls []int) []models.HeadingPart {
 	}
 }
 
-// BranchSubject is the subject of a branch with no pull request.
-func BranchSubject(tr *i18n.TranslationSet, branch string) []models.HeadingPart {
-	return []models.HeadingPart{{Text: tr.SubjectBranch}, {Text: branch, Bold: true}}
+// BranchSubject is the subject of a branch with no pull request, or of a
+// stack of them, bottom first, naming its bottom and top.
+func BranchSubject(tr *i18n.TranslationSet, branches []string) []models.HeadingPart {
+	if len(branches) == 1 {
+		return []models.HeadingPart{{Text: tr.SubjectBranch}, {Text: branches[0], Bold: true}}
+	}
+	return []models.HeadingPart{
+		{Text: tr.SubjectStack}, {Text: branches[0], Bold: true},
+		{Text: tr.SubjectTo}, {Text: branches[len(branches)-1], Bold: true},
+	}
 }

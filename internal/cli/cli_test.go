@@ -89,8 +89,12 @@ func TestTheCommandLineIsReadOptionsInAnyOrder(t *testing.T) {
 		t.Fatalf("load reads as %+v, %v", o, err)
 	}
 	o, err = ParseArguments(tr, []string{"load", "--repo", ".", "--base", "main", "--head", "fix/x", "--title", "Fix", "--no-context"})
-	if err != nil || *o.Repo != "." || *o.Base != "main" || *o.Head != "fix/x" || *o.Title != "Fix" || !o.NoContext {
+	if err != nil || *o.Repo != "." || *o.Base != "main" || strings.Join(o.Heads, " ") != "fix/x" || *o.Title != "Fix" || !o.NoContext {
 		t.Fatalf("a branch's load reads as %+v, %v", o, err)
+	}
+	o, err = ParseArguments(tr, []string{"load", "--head", "stack/a", "--repo", ".", "--head", "stack/b", "--base", "main", "--head", "stack/c"})
+	if err != nil || strings.Join(o.Heads, " ") != "stack/a stack/b stack/c" {
+		t.Fatalf("a stack of branches reads as %+v, %v; want each --head, in order", o, err)
 	}
 	for _, argv := range [][]string{nil, {"help"}, {"--help"}, {"-h"}, {"load", "x", "--help"}, {"list", "-h"}} {
 		if o, err := ParseArguments(tr, argv); err != nil || o.Command != "help" {

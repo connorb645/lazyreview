@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/connorb645/lazyreview/internal/gui/context"
@@ -52,7 +51,8 @@ func (self *FilterHelper) SetFilter(s context.ContextTree, f types.PullFilter) c
 }
 
 // PullCommand is the state with the filter that :pull names: all, or a
-// pull request of the stack.
+// member of the stack, a pull request by its number or a branch by its
+// name.
 func (self *FilterHelper) PullCommand(s context.ContextTree, arg string) context.ContextTree {
 	if s.Review == nil || s.Review.Page.Stack == nil {
 		return s.Said(self.c.Tr.OnlyStackFilters, true)
@@ -60,11 +60,14 @@ func (self *FilterHelper) PullCommand(s context.ContextTree, arg string) context
 	if arg == "all" {
 		return self.SetFilter(s, nil)
 	}
-	n, err := strconv.Atoi(strings.TrimPrefix(arg, "#"))
-	if err != nil || presentation.StackMember(s.Review.Page.Stack, n).Head == "" {
-		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoPullInStack, map[string]string{"pull": arg}), true)
+	pull, found := presentation.MemberNamed(*s.Review, arg)
+	switch {
+	case !found && s.Review.State.Kind == "branch":
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoBranchInStack, map[string]string{"branch": arg}), true)
+	case !found:
+		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NoPullInStack, map[string]string{"pull": strings.TrimPrefix(arg, "#")}), true)
 	}
-	return self.SetFilter(s, types.PullFilter{n})
+	return self.SetFilter(s, types.PullFilter{pull})
 }
 
 // Highlight is the state with a highlight started on a pull request row of

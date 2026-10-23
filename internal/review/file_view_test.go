@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/connorb645/lazyreview/internal/i18n"
@@ -68,6 +69,34 @@ func TestAFileOfAStackIsDrawnRowByRowEachRowWithThePullRequestThatChangedIt(t *t
 	view := PageView("abc", page)
 	if view.Build != "abc" || view.Stack == nil || len(view.Stack.Members) != 2 {
 		t.Errorf("the page view is %+v", view.Stack)
+	}
+}
+
+func TestAFileOfAStackOfBranchesSaysWhichBranchChangedEachRowAndNothingOfComments(t *testing.T) {
+	tr := i18n.EnglishTranslationSet()
+	page := standInPage(t, "21")
+	page.Stack.Members[0].Branch, page.Stack.Members[1].Branch = "feature/search", "feature/basket"
+	words := map[string]bool{}
+	for _, path := range []string{"Sources/Basket/Basket.swift", "Sources/Catalog/MemoryCatalog.swift", "Sources/Catalog/Search.swift"} {
+		file, _ := FileView(tr, page, path)
+		for _, h := range file.Hunks {
+			for _, r := range h.Rows {
+				if r.Kind == "add" && r.New == 3 && path == "Sources/Basket/Basket.swift" && (r.Owner != 22 || r.Words != "Changed in feature/basket.") {
+					t.Errorf("the added line reads %+v", r)
+				}
+				words[r.Words] = true
+			}
+		}
+	}
+	for said := range words {
+		if strings.Contains(said, "comment") || strings.Contains(said, "#") {
+			t.Errorf("a row of a stack of branches says %q", said)
+		}
+	}
+	for _, want := range []string{"Changed in feature/search.", "Changed in feature/basket.", "Unchanged."} {
+		if !words[want] {
+			t.Errorf("no row says %q, only %v", want, words)
+		}
 	}
 }
 

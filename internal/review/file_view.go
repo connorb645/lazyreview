@@ -13,8 +13,8 @@ var markdownPath = regexp.MustCompile(`(?i)\.(md|markdown)$`)
 
 // FileView is one file of a review's page, ready to draw, and false for a
 // path the page does not draw: its diff hunk by hunk, each row on a stack
-// with the pull request that changed it and the words saying where a comment
-// on it goes; the runs of unchanged lines between the hunks, for a changed
+// with the member that changed it and the words saying so and, on a stack
+// of pull requests, where a comment on it goes; the runs of unchanged lines between the hunks, for a changed
 // file whose whole text the page kept; its whole text at the head; and for a
 // Markdown file with a diff, its Rendered view, each block with the pull
 // requests that changed its lines. An unchanged file of the context has
@@ -63,7 +63,28 @@ func mark(tr *i18n.TranslationSet, stack *models.StackRecord, path string, row m
 	if changed && entry.Pull != 0 {
 		owner = entry.Pull
 	}
+	if len(stack.Members) > 0 && stack.Members[0].Branch != "" {
+		return owner, branchWords(tr, stack, entry, changed)
+	}
 	return owner, placeWords(tr, entry, changed, path)
+}
+
+func branchWords(tr *i18n.TranslationSet, stack *models.StackRecord, entry StackPlace, changed bool) string {
+	branch := ""
+	for _, m := range stack.Members {
+		if m.Pull == entry.Pull {
+			branch = m.Branch
+		}
+	}
+	switch {
+	case branch != "" && changed:
+		return utils.ResolvePlaceholderString(tr.BranchChangedIn, map[string]string{"branch": branch})
+	case branch != "":
+		return utils.ResolvePlaceholderString(tr.BranchLastChanged, map[string]string{"branch": branch})
+	case entry.None != "" && changed:
+		return utils.ResolvePlaceholderString(tr.BranchNotTraced, map[string]string{"why": entry.None})
+	}
+	return tr.BranchUnchanged
 }
 
 func placeWords(tr *i18n.TranslationSet, entry StackPlace, changed bool, path string) string {

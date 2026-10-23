@@ -17,13 +17,20 @@ type CopyPlan struct {
 }
 
 // CopyBranches is the plan for a conversation's copy: the base branch, and
-// each pull request's head as pull/<number>, or the branch.
+// each pull request's head as pull/<number>, or each branch, checked out at
+// the head Claude reads.
 func CopyBranches(tr *i18n.TranslationSet, rev models.Review, page models.PageRecord, c models.Conversation) CopyPlan {
-	if rev.IsBranch() {
+	if rev.IsBranch() && len(rev.Branches) == 0 {
 		return CopyPlan{Branches: map[string]string{rev.Base.Ref: rev.Base.Sha, rev.Head.Ref: rev.Head.Sha}, Branch: rev.Head.Ref, Base: rev.Base.Ref}
 	}
 	head := HeadAsked(tr, rev, page, c)
 	branches := map[string]string{rev.Base.Ref: rev.Base.Sha}
+	if rev.IsBranch() {
+		for _, b := range rev.Branches {
+			branches[b.Branch] = b.Head
+		}
+		return CopyPlan{Branches: branches, Branch: memberName(rev, head.Pull), Base: rev.Base.Ref}
+	}
 	for _, m := range rev.Members {
 		branches["pull/"+strconv.Itoa(m.Pull)] = m.Head
 	}

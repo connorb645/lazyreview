@@ -160,6 +160,26 @@ func TestOneCommandLoadsABranchWithNoPullRequestAndPrintsTheAddressThatOpensIt(t
 	}
 }
 
+func TestOneCommandLoadsAStackOfBranchesWhereItsBottomBranchAloneLoadedAndAsksGitHubNothing(t *testing.T) {
+	w := newWorkbench(t)
+	alone := lazyreview(t, w.env, "load", "--repo", w.repo.Work, "--base", "main", "--head", "feature/search")
+	stacked := lazyreview(t, w.env, "load", "--repo", w.repo.Work, "--base", "main", "--head", "feature/search", "--head", "feature/basket")
+	lines := strings.Split(stacked.stdout, "\n")
+	if stacked.code != 0 || len(lines) != 3 || !strings.HasPrefix(lines[0], "loaded feature/search, feature/basket against main: 4 files ") || lines[2] != "" {
+		t.Fatalf("a stack of branches' load says %+v", stacked)
+	}
+	if open := strings.Split(alone.stdout, "\n")[1]; lines[1] != open || !strings.HasSuffix(open, "/feature~search") {
+		t.Fatalf("the stack opens at %q, not where its bottom branch alone did, %q", lines[1], open)
+	}
+	address := strings.TrimPrefix(lines[1], "open ")
+	if listed := lazyreview(t, w.env, "list"); listed.stdout != address+"  feature/search, feature/basket against main  Stack feature/search to feature/basket\n" {
+		t.Fatalf("list says %+v", listed)
+	}
+	if calls := w.gh.Calls(); len(calls) != 0 {
+		t.Fatalf("gh was called %v", calls)
+	}
+}
+
 func TestStartSaysNoServerRunsAndStopEndsAServerAnOlderLazyreviewLeftRunning(t *testing.T) {
 	root := t.TempDir()
 	env := standInEnv(root, "LAZYREVIEW_HOME="+root, "LAZYREVIEW_CONFIG_DIR="+root)

@@ -1,0 +1,30 @@
+╭─[1]─Review───────────────────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift─────────────────────────────╮
+│┃All                                  ││▌ ▾ Sources/Basket/Basket.swift  changed  feature/basket  +3 −1               │
+│ feature/search                       ││   @@ -1,11 +1,13 @@                                                          │
+│ feature/basket                       ││     1    1   final class Basket {                                            │
+╰───────────────────────────────1 of 3─╯│     2    2       let catalog: Catalog                                        │
+╭─[2]─Files────────────────────────────╮│ ▎        3 +     let search: Search                                          │
+│ ▾ ■ widgets                   +15 −1 ││     3    4                                                                   │
+│   ▾ Sources/Basket                   ││     4    5       init(catalog: Catalog) {                                    │
+│┃    M Basket.swift                 ● ││     5    6           self.catalog = catalog                                  │
+│   ▾ Sources/Catalog                  ││ ▎        7 +         self.search = Search(catalog: catalog)                  │
+│     M MemoryCatalog.swift          ● ││              ▸ Claude · 2 messages · line 7                        a ask  za │
+│     A Search.swift                 ● ││     6    8       }                                                           │
+│   ▾ web/src                          ││     7    9                                                                   │
+│     M cart.ts                      ● ││     8   10       func total() -> Int {                                       │
+│ ▾ ■ Unchanged code         unchanged ││ ▎   9      -         0                                                       │
+│   · Catalog.swift                    ││ ▎       11 +         1                                                       │
+│                                      ││    10   12       }                                                           │
+╰──────────────────────────────3 of 10─╯│    11   13   }                                                               │
+╭─[3]─Notes────────────────────────────╮│                                                                              │
+│ Claude                             1 ││                                                                              │
+│ Basket.swift:7 Could this be passed …││                                                                              │
+│                                      ││                                                                              │
+╰───────────────────────────────1 of 1─╯│                                                                              │
+╭─[4]─Diagram──────────────────────────╮│                                                                              │
+│ Components                           ││                                                                              │
+│ ■ widgets                            ││                                                                              │
+│ ■ Unchanged code                     ││                                                                              │
+│                                      ││                                                                              │
+╰───────────────────────────────1 of 2─╯╰──────────────────────────────────────────────────────────────────file header─╯
+ Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Search: / | Back: - | List: Esc | Keys: Space ?

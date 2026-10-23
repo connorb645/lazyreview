@@ -1,0 +1,30 @@
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│┃All                           ││ A stack of 2 branches in widgets, each built on the one before, │
+│ feature/search                ││ with no pull request yet                                        │
+│ feature/basket                ││ Stack feature/search to feature/basket                          │
+╰────────────────────────1 of 3─╯│  feature/search  on main · head ec6fb42d · 2 files +11 −0       │
+╭─[2]─Files─────────────────────╮│  feature/basket                                                 │
+│ ▾ ■ widgets            +15 −1 ││       on feature/search · head cd3c7027 · 2 files +4 −1         │
+│   ▾ Sources/Basket            ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
+│     M Basket.swift          ● ││                                                                 │
+│   ▾ Sources/Catalog           ││ This review is read only: nothing can be posted from a branch.  │
+│     M MemoryCatalog.swift   ● ││                                                                 │
+│     A Search.swift          ● ││▌▾ Conversations                                                 │
+│   ▾ web/src                   ││   Sources/Basket/Basket.swift:7  15 Oct, 13:00 · 2 messages     │
+│     M cart.ts               ● ││     Could this be passed in?                                    │
+│ ▾ ■ Unchanged code  unchanged ││     It could: the basket only reads from it.                    │
+│   · Catalog.swift             ││                                                                 │
+│                               ││ ▾ The change                                                    │
+╰───────────────────────1 of 10─╯│   ■ widgets  4 files +15 −1                                     │
+╭─[3]─Notes─────────────────────╮│   ■ Unchanged code  1 file · unchanged                          │
+│ Claude                      1 ││                                                                 │
+│ Basket.swift:7 Could this be …││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 1─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 2─╯╰───────────────────────────────────────────────────Conversations─╯
+ Move: j k | Open: Enter | Sections: ]] [[ | Fold: za | List: Esc | Keys: Space ?

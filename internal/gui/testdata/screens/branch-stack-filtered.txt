@@ -1,0 +1,30 @@
+╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
+│·All                           ││ A stack of 2 branches in widgets, each built on the one before, │
+│▌feature/search                ││ with no pull request yet                                        │
+│·feature/basket                ││ Stack feature/search to feature/basket                          │
+╰────────────────────────2 of 3─╯│  feature/search  on main · head ec6fb42d · 2 files +11 −0       │
+╭─[2]─Files─────────────────────╮│  feature/basket                                                 │
+│ ▾ ■ widgets            +11 −0 ││       on feature/search · head cd3c7027 · 2 files +4 −1         │
+│   M MemoryCatalog.swift     ● ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
+│   A Search.swift            ● ││ Showing feature/search only. Esc in the Review panel shows the  │
+│ ▾ ■ Unchanged code  unchanged ││ whole stack.                                                    │
+│   · Catalog.swift             ││                                                                 │
+│                               ││ This review is read only: nothing can be posted from a branch.  │
+│                               ││                                                                 │
+│                               ││ ▾ The change                                                    │
+╰────────────────────────1 of 5─╯│   ■ widgets  2 files +11 −0                                     │
+╭─[3]─Notes─────────────────────╮│   ■ Unchanged code  1 file · unchanged                          │
+│ Nothing on feature/search yet ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────0 of 0─╯│                                                                 │
+╭─[4]─Diagram───────────────────╮│                                                                 │
+│ Components                    ││                                                                 │
+│ ■ widgets                     ││                                                                 │
+│ ■ Unchanged code              ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+│                               ││                                                                 │
+╰────────────────────────1 of 2─╯╰─────────────────────────────────────────────────────────────────╯
+ Review: Enter | Highlight: v | All: Esc | Panels: h l | Keys: Space ?

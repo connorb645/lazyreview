@@ -51,9 +51,10 @@ address it prints:
     bin/lazyreview load <pull request address>...
 
 That is the whole job. Comments, questions and the review itself happen in the
-app. A change with no pull request yet is one command too:
+app. A change with no pull request yet is one command too, with a `--head`
+for each branch of a stack, bottom first:
 
-    bin/lazyreview load --repo <folder> --base <ref> --head <branch>
+    bin/lazyreview load --repo <folder> --base <ref> --head <branch>...
 
 An agent that has written a review of a pull request can attach it, and the
 app then opens on it:
@@ -96,6 +97,40 @@ queue and no buttons, since there is no pull request to post to. `--title
 <text>` names it, where the branch's name is the default; `--config`,
 `--context` and `--no-context` work as for a pull request. The review keeps
 each of them.
+
+### A stack of branches
+
+Branches built on each other, before any has a pull request, load as one
+stack. Give `--head` once for each branch, bottom first; the bottom is
+read from the base and each branch above from the branch below it:
+
+    bin/lazyreview load --repo ~/code/widgets --base main \
+      --head feature/search --head feature/basket --head feature/total
+
+    loaded feature/search, feature/basket, feature/total against main: 9 files +311 -20, 3 components, 8 types
+    open lazyreview://local/widgets-1a2b3c4d/feature~search
+
+It shows and works as a stack of pull requests does, each branch in place
+of a pull request: each branch's own diff, its colour and the filter. It
+reads only the repository, so it asks GitHub nothing, and like one branch
+it is read only, with Ask Claude and no queue.
+
+The stack lives with its bottom branch's review. Loading the same branches
+again refreshes it in place, as does `R`, and a branch loaded alone grows
+into the stack of it and the branches above it, at the same address. A
+branch keeps its colour from one load to the next.
+
+- Leave out a branch in the middle, and the stack stays at the same
+  address. The branch above it then reads from the branch below, so its
+  own diff also shows the change of the branch left out.
+- Load the branches in another order, and the stack lives with the new
+  bottom branch's review. The review of the old order stays as it was last
+  loaded.
+- A branch that is not built on the head of the branch below it still
+  loads, with a warning: until it is rebased, its own diff also shows the
+  older part of the branch below that it holds.
+- One `--head` loads that branch alone. Loading the bottom branch alone
+  turns its stack back into a review of that branch.
 
 ## Review in the terminal app
 
@@ -194,8 +229,9 @@ them. In `Space ?` and every list that pops up, `j` `k` `gg` `G` and
 `Ctrl-d` `Ctrl-u` `Ctrl-f` `Ctrl-b` move the list, after a count too; any
 other key closes it and goes on to the panel under it.
 
-On a stack, the Review panel lists All, then each pull request, and its cursor
-chooses what the other panels show. On All they show the whole stack. On a
+On a stack, the Review panel lists All, then each pull request, or each
+branch of a stack of branches, and its cursor chooses what the other panels
+show. On All they show the whole stack. On a
 pull request, Files, Notes, Diagram and the main panel show only what it
 changed, at once. Each count of files, lines and links counts only that: an
 arrow between components or packages counts the links whose two ends the
@@ -395,7 +431,8 @@ the queue and the reviews sent), the drawn page (`page.json`), the review
 threads GitHub had when it was loaded (`github.json`), any config and written
 review, and one file per conversation. A branch's review lives under
 `reviews/local/`, its record holding the branch, its base and the folder it
-was read from; it is read from the repository itself, with no clone.
+was read from, and a stack's, each of its branches; it is read from the
+repository itself, with no clone.
 
 Every setting is in the config, `config.yml`: the data home itself, the
 Claude Code command and model, the editor and the accounts the home screen

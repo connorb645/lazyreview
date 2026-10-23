@@ -132,12 +132,16 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 		return utils.ResolvePlaceholderString(tr.Head, map[string]string{"sha": utils.Short(sha)})
 	}
 	switch {
-	case s.Kind == "branch":
+	case s.Kind == "branch" && (d.Page.Stack == nil || len(s.Members) == 0):
 		b.prose(" ", th.Muted, utils.ResolvePlaceholderString(tr.BranchHeader, map[string]string{"branch": s.Head.Ref, "repo": s.Repo}))
 		b.prose(" ", th.Bold, title)
 		b.parts(" ", th.Muted.Render(base(s.Base.Ref)), th.Muted.Render(head(s.Head.Sha)), totals)
 	case d.Page.Stack != nil:
-		b.prose(" ", th.Muted, utils.ResolvePlaceholderString(tr.StackHeader, map[string]string{"count": utils.Itoa(len(s.Members))}))
+		words := utils.ResolvePlaceholderString(tr.StackHeader, map[string]string{"count": utils.Itoa(len(s.Members))})
+		if s.Kind == "branch" {
+			words = utils.ResolvePlaceholderString(tr.BranchStackHeader, map[string]string{"count": utils.Itoa(len(s.Members)), "repo": s.Repo})
+		}
+		b.prose(" ", th.Muted, words)
 		b.prose(" ", th.Bold, title)
 		for _, m := range s.Members {
 			own := StackMember(d.Page.Stack, m.Pull)
@@ -145,13 +149,19 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 			if !filter.Shows(m.Pull) {
 				number, name, added, removed = th.Faint, th.Faint, th.DimAdded, th.DimRemoved
 			}
-			parts := []string{th.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author})), th.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base})),
+			parts := []string{th.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base})),
 				th.Muted.Render(utils.ResolvePlaceholderString(tr.MemberHead, map[string]string{"sha": utils.Short(m.Head)})),
 				th.Muted.Render(utils.Plural(own.Files, tr.FileNoun)+" ") + added.Render(fmt.Sprintf("+%d", own.Adds)) + " " + removed.Render(fmt.Sprintf("−%d", own.Dels))}
+			if m.Branch == "" {
+				parts = append([]string{th.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author}))}, parts...)
+			}
 			if m.State != "" && m.State != "open" {
 				parts = append(parts, th.Removed.Render(m.State))
 			}
-			head := "  " + number.Render(fmt.Sprintf("#%d", m.Pull)) + "  " + name.Render(m.Title)
+			head := "  " + number.Render(MemberName(d, m.Pull))
+			if m.Branch == "" {
+				head += "  " + name.Render(m.Title)
+			}
 			if tail := strings.Join(parts, th.Muted.Render(" · ")); ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {
 				b.text(head + "  " + tail)
 				continue
@@ -165,7 +175,7 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 			b.prose(" ", th.Warning, w)
 		}
 		if len(filter) > 0 {
-			b.prose(" ", th.Accent, utils.ResolvePlaceholderString(tr.ShowingOnly, map[string]string{"pulls": FilterWords(tr, filter), "close": b.labels.Nth("close", 1)}))
+			b.prose(" ", th.Accent, utils.ResolvePlaceholderString(tr.ShowingOnly, map[string]string{"pulls": FilterWords(tr, d, filter), "close": b.labels.Nth("close", 1)}))
 		}
 	default:
 		m := s.Members[0]

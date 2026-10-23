@@ -123,7 +123,7 @@ func request(t *testing.T, tr *i18n.TranslationSet, c recordedPage) Request {
 		r.Members = append(r.Members, Member{Pull: m.Pull, Head: m.Head})
 	}
 	if c.Request.Subject.Branch != "" {
-		r.Subject = BranchSubject(tr, c.Request.Subject.Branch)
+		r.Subject = BranchSubject(tr, []string{c.Request.Subject.Branch})
 	} else {
 		r.Subject = PullsSubject(tr, c.Request.Subject.Pulls)
 	}

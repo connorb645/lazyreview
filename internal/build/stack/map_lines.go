@@ -14,6 +14,10 @@ import (
 // pure rename, is owned by every member whose own diff touches it.
 func MapLines(tr *i18n.TranslationSet, steps []Step, chunks []diff.Chunk, pulls []int) Mapped {
 	mapped := Mapped{Lines: map[string]map[string]models.LineMap{}, Files: map[string]FilePulls{}}
+	notAdded, notRemoved := tr.StackNotAdded, tr.StackNotRemoved
+	if len(steps) > 0 && steps[0].Branch != "" {
+		notAdded, notRemoved = tr.StackBranchNotAdded, tr.StackBranchNotRemoved
+	}
 	for _, chunk := range chunks {
 		right, left := models.LineMap{}, models.LineMap{}
 		byPull := map[int][2]int{}
@@ -26,7 +30,7 @@ func MapLines(tr *i18n.TranslationSet, steps []Step, chunks []diff.Chunk, pulls 
 			for n := range h.Added {
 				found := traceNew(steps, chunk.Path, n)
 				if found.owner == nil {
-					right[itoa(n)] = models.LineEntry{None: tr.StackNotAdded}
+					right[itoa(n)] = models.LineEntry{None: notAdded}
 					continue
 				}
 				right[itoa(n)] = owned(*found.owner, chunk.Path)
@@ -35,7 +39,7 @@ func MapLines(tr *i18n.TranslationSet, steps []Step, chunks []diff.Chunk, pulls 
 			for o := range h.Removed {
 				found := traceOld(steps, chunk.OldPath, o)
 				if found.owner == nil {
-					left[itoa(o)] = models.LineEntry{None: tr.StackNotRemoved}
+					left[itoa(o)] = models.LineEntry{None: notRemoved}
 					continue
 				}
 				left[itoa(o)] = owned(*found.owner, chunk.Path)

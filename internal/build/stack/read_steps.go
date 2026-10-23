@@ -12,7 +12,7 @@ import (
 // first, to the stack's combined diff, from combinedBase to top. The bottom
 // member starts where its head leaves baseCommit; each one above, where its
 // head leaves the head of the one below, with a warning when that is not
-// the head below.
+// the head below, naming pull requests by number and branches by name.
 func ReadSteps(tr *i18n.TranslationSet, repo *git.Repository, combinedBase, baseCommit, top string, members []Member) (Steps, error) {
 	read := Steps{Warnings: []string{}}
 	for _, m := range members {
@@ -32,9 +32,9 @@ func ReadSteps(tr *i18n.TranslationSet, repo *git.Repository, combinedBase, base
 			return Steps{}, err
 		}
 		if i > 0 && start != read.Heads[i-1] {
-			read.Warnings = append(read.Warnings, utils.ResolvePlaceholderString(tr.StackNotBuiltOn, map[string]string{"pull": itoa(m.Pull), "below": itoa(members[i-1].Pull)}))
+			read.Warnings = append(read.Warnings, notBuiltOn(tr, m, members[i-1]))
 		}
-		step := Step{Pull: m.Pull, Start: start}
+		step := Step{Pull: m.Pull, Branch: m.Branch, Start: start}
 		for _, d := range []struct {
 			into     *StepDiff
 			from, to string
@@ -62,6 +62,13 @@ func ReadSteps(tr *i18n.TranslationSet, repo *git.Repository, combinedBase, base
 		read.Counts = append(read.Counts, count)
 	}
 	return read, nil
+}
+
+func notBuiltOn(tr *i18n.TranslationSet, m, below Member) string {
+	if m.Branch != "" {
+		return utils.ResolvePlaceholderString(tr.StackBranchNotBuiltOn, map[string]string{"branch": m.Branch, "below": below.Branch})
+	}
+	return utils.ResolvePlaceholderString(tr.StackNotBuiltOn, map[string]string{"pull": itoa(m.Pull), "below": itoa(below.Pull)})
 }
 
 func indexed(repo *git.Repository, from, to string) (StepDiff, error) {

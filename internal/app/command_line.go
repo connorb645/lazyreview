@@ -101,7 +101,7 @@ func (c *CommandLine) loadReview(given config.UserConfig, o cli.Options) error {
 	}
 	var branch *loader.BranchRequest
 	if o.Repo != nil {
-		branch = &loader.BranchRequest{Repo: *o.Repo, Base: *o.Base, Head: *o.Head, Title: o.Title, Config: pulls.Config, Context: pulls.Context}
+		branch = &loader.BranchRequest{Repo: *o.Repo, Base: *o.Base, Heads: o.Heads, Title: o.Title, Config: pulls.Config, Context: pulls.Context}
 	}
 	loaded, err := c.load(c.tr, given.DataHome, pulls, branch)
 	if err != nil {
@@ -295,7 +295,7 @@ func (c *CommandLine) readConfig() (config.Read, error) {
 
 func (c *CommandLine) changeName(r models.Review) string {
 	if r.IsBranch() {
-		return utils.ResolvePlaceholderString(c.tr.CliBranchName, map[string]string{"head": r.Head.Ref, "base": r.Base.Ref})
+		return utils.ResolvePlaceholderString(c.tr.CliBranchName, map[string]string{"head": strings.Join(r.BranchNames(), ", "), "base": r.Base.Ref})
 	}
 	pulls := make([]string, len(r.Members))
 	for i, m := range r.Members {

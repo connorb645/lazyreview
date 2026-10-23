@@ -29,7 +29,8 @@ type Question struct {
 
 // QuestionFor is the question of a conversation whose last message is the
 // question, for the copy of the code in folder. The message holds the pull
-// request's title and description, or a branch's name and its base, where
+// request's title and description, or a branch's name, or a stack of
+// branches' names, and its base, where
 // the copy is and its branches, the files the change touches, the file
 // asked about and where the lines are, the file's part of the diff around
 // them, the file's text around them, all of it when the file is short, and
@@ -38,16 +39,17 @@ func QuestionFor(tr *i18n.TranslationSet, rev models.Review, page models.PageRec
 	file := fileOf(page, c.Path)
 	owner := ownerOf(tr, rev, page, c)
 	head := HeadAsked(tr, rev, page, c)
+	members := stackOf(rev)
 	top := 0
-	if !rev.IsBranch() && len(rev.Members) > 1 {
-		top = rev.Members[len(rev.Members)-1].Pull
+	if len(members) > 1 {
+		top = members[len(members)-1].Pull
 	}
 	say := utils.ResolvePlaceholderString
 	parts := []string{about(tr, rev, owner)}
 	plan := CopyBranches(tr, rev, page, c)
 	after := tr.AskThisChange
 	if head.Pull != 0 {
-		after = "#" + strconv.Itoa(head.Pull)
+		after = memberName(rev, head.Pull)
 	}
 	parts = append(parts, say(tr.AskCodebase, map[string]string{"after": after, "folder": folder, "branch": plan.Branch, "base": plan.Base}))
 	var files []string
@@ -65,8 +67,8 @@ func QuestionFor(tr *i18n.TranslationSet, rev models.Review, page models.PageRec
 	}
 	parts = append(parts, asked)
 	lines := queue.LinesWords(tr, models.Target{Side: c.Side, Line: c.Line, StartLine: c.StartLine, StartSide: c.StartSide})
-	if owner != nil && len(rev.Members) > 1 {
-		parts = append(parts, say(tr.AskAboutChangedBy, map[string]string{"lines": lines, "pull": strconv.Itoa(owner.Pull)}))
+	if owner != nil && len(members) > 1 {
+		parts = append(parts, say(tr.AskAboutChangedBy, map[string]string{"lines": lines, "member": memberName(rev, owner.Pull)}))
 	} else {
 		parts = append(parts, say(tr.AskAbout, map[string]string{"lines": lines}))
 	}
@@ -75,7 +77,7 @@ func QuestionFor(tr *i18n.TranslationSet, rev models.Review, page models.PageRec
 		if h[0] != h[1] {
 			there.StartLine = h[0]
 		}
-		parts = append(parts, say(tr.AskThere, map[string]string{"pull": strconv.Itoa(head.Pull), "lines": queue.LinesWords(tr, there)}))
+		parts = append(parts, say(tr.AskThere, map[string]string{"member": memberName(rev, head.Pull), "lines": queue.LinesWords(tr, there)}))
 	}
 	if file != nil {
 		if hunk := hunkAround(page.Diff[c.Path], c); hunk != "" {
@@ -85,7 +87,7 @@ func QuestionFor(tr *i18n.TranslationSet, rev models.Review, page models.PageRec
 	if text := headText(page, c, file); len(text) > 0 {
 		of := ""
 		if top != head.Pull {
-			of = say(tr.AskHeadOf, map[string]string{"pull": strconv.Itoa(top)})
+			of = say(tr.AskHeadOf, map[string]string{"member": memberName(rev, top)})
 		}
 		window := ""
 		if from, to := lineRange(len(text), c); from != 1 || to != len(text) {
@@ -120,12 +122,14 @@ func FollowUpFor(tr *i18n.TranslationSet, c models.Conversation) Question {
 func about(tr *i18n.TranslationSet, rev models.Review, owner *models.ReviewMember) string {
 	say := utils.ResolvePlaceholderString
 	switch {
-	case rev.IsBranch():
+	case rev.IsBranch() && len(rev.Branches) == 0:
 		title := ""
 		if rev.Title != rev.Head.Ref {
 			title = say(tr.AskBranchTitle, map[string]string{"title": rev.Title})
 		}
 		return say(tr.AskBranch, map[string]string{"branch": rev.Head.Ref, "title": title, "base": rev.Base.Ref})
+	case rev.IsBranch():
+		return say(tr.AskBranchStack, map[string]string{"base": rev.Base.Ref, "branches": strings.Join(rev.BranchNames(), "\n")})
 	case len(rev.Members) == 1:
 		return describe(tr, rev.Members[0])
 	}

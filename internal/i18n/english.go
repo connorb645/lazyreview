@@ -322,6 +322,7 @@ type TranslationSet struct {
 	Head                string
 	BranchHeader        string
 	StackHeader         string
+	BranchStackHeader   string
 	ByAuthor            string
 	OnBase              string
 	MemberHead          string
@@ -474,6 +475,7 @@ type TranslationSet struct {
 	NothingMatches   string
 	OnlyStackFilters string
 	NoPullInStack    string
+	NoBranchInStack  string
 
 	ReadingAlready          string
 	CouldNotReadGitHubAgain string
@@ -565,6 +567,10 @@ type TranslationSet struct {
 	StackPlaceOf              string
 	ChangedIn                 string
 	LastChanged               string
+	BranchChangedIn           string
+	BranchLastChanged         string
+	BranchNotTraced           string
+	BranchUnchanged           string
 	NoPullTakes               string
 	NoneShows                 string
 	OneShows                  string
@@ -665,6 +671,7 @@ type TranslationSet struct {
 	AskStackOwner        string
 	AskBranch            string
 	AskBranchTitle       string
+	AskBranchStack       string
 	AskCodebase          string
 	AskThisChange        string
 	AskChanges           string
@@ -833,13 +840,19 @@ type TranslationSet struct {
 	LoaderStackTitle      string
 	LoaderMovedLoadThat   string
 	LoaderNotABranch      string
+	LoaderGiveHead        string
+	LoaderBranchTwice     string
+	LoaderBranchesTitle   string
 	LoaderNoDifference    string
 	LoaderLeftOut         string
 	LoaderLargeFile       string
 	StackHeadMissing      string
 	StackNotBuiltOn       string
+	StackBranchNotBuiltOn string
 	StackNotAdded         string
 	StackNotRemoved       string
+	StackBranchNotAdded   string
+	StackBranchNotRemoved string
 
 	CommitNoun                string
 	ChangeOn                  string
@@ -964,7 +977,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DataHomeFlag:     "the data home that holds the review",
 		ClaudeFlag:       "the Claude Code command to ask",
 		ModelFlag:        "the model Claude answers with, over the user's default",
-		Usage:            "usage: lazyreview <command> [options]\n\n  load <pull link>...    load a pull request into the app, or a stack of\n                         them, bottom first, and print where to open it;\n                         loading one again refreshes it\n      --account <login>  act as this GitHub account, not gh's active one\n      --config <file>    JSON naming the components and packages to draw\n      --context          also draw the unchanged code the change touches\n      --no-context       stop drawing it, for a review loaded with it\n  load --repo <folder> --base <ref> --head <branch>\n                         load a branch with no pull request, read only, as\n                         its diff from base would show; loading the same\n                         branch again refreshes it\n      --title <text>     name the review; the branch's name otherwise\n      --config, --context and --no-context work as above\n  attach <pull link> <file>\n                         attach a written review, in Markdown, to the review\n                         holding that pull request\n  list                   list every review, with its address\n  terminal [<address>]   review in this terminal, with Vim keys: the review\n                         at the address load and list print, as\n                         lazyreview://<review id>, or the one holding a\n                         pull request link, which loads it first when no\n                         review holds it yet; with no address, the open\n                         pull requests of the accounts in the config\n  config path            where the config file is, or would be, and whether\n                         it exists\n  config defaults        the default config, saying what each setting does\n  config check           every setting's value, and where it came from: the\n                         default, the config file or a variable\n  config move [--check]  move settings.json and the LAZYREVIEW_ variables\n                         into the config file, once; --check shows what it\n                         would do, and writes nothing\n  start                  say that lazyreview runs no server now\n  stop                   stop every answer Claude is still giving, and a\n                         server an older lazyreview left running\n  help                   show this",
+		Usage:            "usage: lazyreview <command> [options]\n\n  load <pull link>...    load a pull request into the app, or a stack of\n                         them, bottom first, and print where to open it;\n                         loading one again refreshes it\n      --account <login>  act as this GitHub account, not gh's active one\n      --config <file>    JSON naming the components and packages to draw\n      --context          also draw the unchanged code the change touches\n      --no-context       stop drawing it, for a review loaded with it\n  load --repo <folder> --base <ref> --head <branch>...\n                         load a branch with no pull request, read only, as\n                         its diff from base would show, or a stack of them,\n                         a --head for each, bottom first; loading the same\n                         branches again refreshes the review\n      --title <text>     name the review; the branch's name, or the stack's\n                         bottom and top, otherwise\n      --config, --context and --no-context work as above\n  attach <pull link> <file>\n                         attach a written review, in Markdown, to the review\n                         holding that pull request\n  list                   list every review, with its address\n  terminal [<address>]   review in this terminal, with Vim keys: the review\n                         at the address load and list print, as\n                         lazyreview://<review id>, or the one holding a\n                         pull request link, which loads it first when no\n                         review holds it yet; with no address, the open\n                         pull requests of the accounts in the config\n  config path            where the config file is, or would be, and whether\n                         it exists\n  config defaults        the default config, saying what each setting does\n  config check           every setting's value, and where it came from: the\n                         default, the config file or a variable\n  config move [--check]  move settings.json and the LAZYREVIEW_ variables\n                         into the config file, once; --check shows what it\n                         would do, and writes nothing\n  start                  say that lazyreview runs no server now\n  stop                   stop every answer Claude is still giving, and a\n                         server an older lazyreview left running\n  help                   show this",
 		MoreThanOneValue: "it holds more than one value",
 		NoDataHome:       "the config names no data home by its full path",
 
@@ -1278,6 +1291,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Head:                "Head {{.sha}}",
 		BranchHeader:        "Branch {{.branch}} in {{.repo}}, with no pull request yet",
 		StackHeader:         "A stack of {{.count}} pull requests, each built on the one before, reviewed together",
+		BranchStackHeader:   "A stack of {{.count}} branches in {{.repo}}, each built on the one before, with no pull request yet",
 		ByAuthor:            "by {{.author}}",
 		OnBase:              "on {{.base}}",
 		MemberHead:          "head {{.sha}}",
@@ -1430,6 +1444,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NothingMatches:   "nothing matches",
 		OnlyStackFilters: "only a stack has pull requests to filter by",
 		NoPullInStack:    "no pull request #{{.pull}} in this stack",
+		NoBranchInStack:  "no branch {{.branch}} in this stack",
 
 		ReadingAlready:          "Reading GitHub already",
 		CouldNotReadGitHubAgain: "Could not read GitHub again",
@@ -1521,6 +1536,10 @@ func EnglishTranslationSet() *TranslationSet {
 		StackPlaceOf:              "#{{.pull}}, line {{.line}} of {{.path}}",
 		ChangedIn:                 "Changed in #{{.pull}}. A comment here goes on {{.place}}.",
 		LastChanged:               "Unchanged here; #{{.pull}} last changed it. A comment here goes on {{.place}}.",
+		BranchChangedIn:           "Changed in {{.branch}}.",
+		BranchLastChanged:         "Unchanged here; {{.branch}} last changed it.",
+		BranchNotTraced:           "Not traced to a branch: {{.why}}.",
+		BranchUnchanged:           "Unchanged.",
 		NoPullTakes:               "No pull request in the stack can take a comment here: {{.why}}.",
 		NoneShows:                 "Unchanged, and no pull request in the stack shows this line, so it takes no comment.",
 		OneShows:                  "Unchanged. A comment here goes on {{.place}}.",
@@ -1621,6 +1640,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AskStackOwner:        "\n\n{{.owner}}",
 		AskBranch:            "Branch {{.branch}}{{.title}}. It has no pull request yet, and its diff is against {{.base}}.",
 		AskBranchTitle:       ": {{.title}}",
+		AskBranchStack:       "A stack of branches, bottom first, reviewed together. None has a pull request yet, and the stack's diff is against {{.base}}:\n{{.branches}}",
 		AskCodebase:          "The codebase as it stands after {{.after}} is in {{.folder}}, your working folder, with the branch {{.branch}} checked out and the branch {{.base}} at the base of the change.",
 		AskThisChange:        "this change",
 		AskChanges:           "The files this change touches:\n{{.files}}",
@@ -1634,11 +1654,11 @@ func EnglishTranslationSet() *TranslationSet {
 		AskChanged:           "changed",
 		AskUnchanged:         "unchanged by this change",
 		AskAbout:             "They ask about {{.lines}}.",
-		AskAboutChangedBy:    "They ask about {{.lines}}, which #{{.pull}} changed.",
-		AskThere:             "In the codebase, after #{{.pull}}, they are {{.lines}}.",
+		AskAboutChangedBy:    "They ask about {{.lines}}, which {{.member}} changed.",
+		AskThere:             "In the codebase, after {{.member}}, they are {{.lines}}.",
 		AskDiff:              "The diff of this file around those lines:\n```diff\n{{.hunk}}\n```",
 		AskHead:              "The file at the head{{.of}}{{.window}}:\n```\n{{.text}}\n```",
-		AskHeadOf:            " of #{{.pull}}",
+		AskHeadOf:            " of {{.member}}",
 		AskHeadWindow:        ", lines {{.from}}-{{.to}} of {{.count}}",
 		AskConversation:      "The conversation so far:\n{{.messages}}",
 		AskYouAnswered:       "You answered: {{.text}}",
@@ -1789,13 +1809,19 @@ func EnglishTranslationSet() *TranslationSet {
 		LoaderStackTitle:      "Stack #{{.first}} to #{{.last}}",
 		LoaderMovedLoadThat:   "this review moved to {{.to}}; load that one",
 		LoaderNotABranch:      "\"{{.head}}\" is not a branch of {{.path}}; give a branch, so loading it again updates the same review",
+		LoaderGiveHead:        "give the branch to load, or every branch of a stack, bottom first",
+		LoaderBranchTwice:     "{{.branch}} is named twice; name each branch of a stack once, bottom first",
+		LoaderBranchesTitle:   "Stack {{.first}} to {{.last}}",
 		LoaderNoDifference:    "there is no difference between {{.base}} and {{.head}}",
 		LoaderLeftOut:         "whole text left out for {{.files}}, which show their diff only: {{.paths}}",
 		LoaderLargeFile:       "large file",
 		StackHeadMissing:      "#{{.pull}}'s head {{.head}} is not a commit in this repository; fetch it with git fetch origin pull/{{.pull}}/head",
 		StackNotBuiltOn:       "#{{.pull}} is not built on #{{.below}}'s head: #{{.below}} has commits #{{.pull}} does not hold. Until #{{.pull}} is rebased, its own diff also shows the older #{{.below}} it holds; a comment on a line #{{.below}}'s head still holds goes to #{{.below}}.",
+		StackBranchNotBuiltOn: "{{.branch}} is not built on {{.below}}'s head: {{.below}} has commits {{.branch}} does not hold. Until {{.branch}} is rebased, its own diff also shows the older {{.below}} it holds.",
 		StackNotAdded:         "no pull request's own diff adds this line as it reads here",
 		StackNotRemoved:       "no pull request's own diff removes this line as it reads here",
+		StackBranchNotAdded:   "no branch's own diff adds this line as it reads here",
+		StackBranchNotRemoved: "no branch's own diff removes this line as it reads here",
 
 		CommitNoun:                "commit",
 		ChangeOn:                  " on ",

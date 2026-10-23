@@ -1,7 +1,6 @@
 package presentation
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/connorb645/lazyreview/internal/diagram"
@@ -54,8 +53,8 @@ func DiffRowWords(tr *i18n.TranslationSet, d types.ReviewData, r DiffRow) string
 }
 
 // BoxWords say what a box of the diagram is, for the main panel's foot: its
-// kind and details under the filter, or a type's file, state and pull
-// requests.
+// kind and details under the filter, or a type's file, state and the
+// members of a stack that changed it.
 func BoxWords(tr *i18n.TranslationSet, d types.ReviewData, l diagram.Level, card diagram.Card, filter types.PullFilter, width int) string {
 	switch card.Kind {
 	case "component":
@@ -76,7 +75,7 @@ func BoxWords(tr *i18n.TranslationSet, d types.ReviewData, l diagram.Level, card
 		if len(n.Pulls) > 0 && d.Page.Stack != nil {
 			pulls := make([]string, len(n.Pulls))
 			for i, p := range n.Pulls {
-				pulls[i] = fmt.Sprintf("#%d", p)
+				pulls[i] = MemberName(d, p)
 			}
 			tail += " " + utils.ResolvePlaceholderString(tr.InPulls, map[string]string{"pulls": strings.Join(pulls, ", ")})
 		}
