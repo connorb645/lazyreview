@@ -98,6 +98,12 @@ queue and no buttons, since there is no pull request to post to. `--title
 `--context` and `--no-context` work as for a pull request. The review keeps
 each of them.
 
+Each conversation with Claude stays on its code when the branch moves and
+the review loads again: its line moves with what the new commits add and
+remove above it. A file that holds a conversation stays on the page, drawn
+whole as unchanged code once the change no longer touches it, so the
+conversation still opens and goes on.
+
 ### A stack of branches
 
 Branches built on each other, before any has a pull request, load as one
@@ -130,6 +136,8 @@ load to the next.
 - A branch that is not built on the head of the branch below it still
   loads, with a warning: until it is rebased, its own diff also shows the
   older part of the branch below that it holds.
+- Conversations with Claude on a branch stay on their code as it grows
+  into a stack, though a branch above adds lines over them.
 - One `--head` on the stack's bottom branch loads the whole stack again.
   A stack shrinks only when two or more of its branches are loaded again.
   One `--head` on any other branch loads that branch alone, at its own

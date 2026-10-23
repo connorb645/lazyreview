@@ -76,7 +76,11 @@ func Build(tr *i18n.TranslationSet, repo *git.Repository, r Request) (Built, err
 			return built, err
 		}
 	}
-	drawn := slices.Concat(changed.Nodes, same, context, extended.Nodes)
+	kept, err := keptFiles(repo, read.HeadCommit, r.Keep, paths, slices.Concat(changed.Nodes, same, context, extended.Nodes))
+	if err != nil {
+		return built, err
+	}
+	drawn := slices.Concat(changed.Nodes, same, context, extended.Nodes, kept.Nodes)
 	if stacked {
 		drawn = withPulls(drawn, read.Chunks, mapped, pulls)
 	}
@@ -104,6 +108,9 @@ func Build(tr *i18n.TranslationSet, repo *git.Repository, r Request) (Built, err
 		text := found.Texts[f.Path]
 		if text == nil || *text == "" {
 			text = extended.Texts[f.Path]
+		}
+		if text == nil || *text == "" {
+			text = kept.Texts[f.Path]
 		}
 		built.Page.Context[f.Path] = []string{}
 		if text != nil && *text != "" {
@@ -138,6 +145,32 @@ func Build(tr *i18n.TranslationSet, repo *git.Repository, r Request) (Built, err
 		}
 	}
 	return built, nil
+}
+
+func keptFiles(repo *git.Repository, head string, keep, changed []string, drawn []*model.Node) (unchanged.Found, error) {
+	kept := unchanged.Found{Texts: map[string]*string{}}
+	var missing []string
+	for _, path := range keep {
+		drawnAlready := slices.Contains(changed, path) || slices.ContainsFunc(drawn, func(n *model.Node) bool { return n.File == path })
+		if !drawnAlready && !slices.Contains(missing, path) {
+			missing = append(missing, path)
+		}
+	}
+	texts, err := repo.Read(head, missing)
+	if err != nil {
+		return kept, err
+	}
+	for _, path := range missing {
+		if texts[path] == nil {
+			continue
+		}
+		kept.Texts[path] = texts[path]
+		kept.Nodes = append(kept.Nodes, &model.Node{
+			Name: path[strings.LastIndex(path, "/")+1:], Kind: "artifact", File: path, Line: 1, State: "context",
+			Inherits: []string{}, Properties: []models.Property{}, Nested: []string{}, ExtFiles: []string{}, Extends: []string{},
+		})
+	}
+	return kept, nil
 }
 
 func withPulls(drawn []*model.Node, chunks []diff.Chunk, mapped stack.Mapped, pulls []int) []*model.Node {

@@ -41,7 +41,9 @@ func NewBranchLoader(tr *i18n.TranslationSet, reviews *store.ReviewStore, now fu
 // heads are a stack: each branch's own diff is read from the branch below
 // it, the bottom's from the base, and each branch keeps its colour from one
 // load to the next. One head that is the bottom of the stack its review
-// holds loads that whole stack again.
+// holds loads that whole stack again. Each conversation with Claude moves
+// with the code it is on, and a file holding one stays on the page, drawn
+// whole as unchanged code when the change leaves it out.
 func (l *BranchLoader) Load(r BranchRequest) (Loaded, error) {
 	var loaded Loaded
 	path, err := filepath.Abs(r.Repo)
@@ -108,10 +110,15 @@ func (l *BranchLoader) Load(r BranchRequest) (Loaded, error) {
 			members[i].Pull, members[i].Branch = i+1, branch
 		}
 	}
+	threads, err := l.store.Threads(ref)
+	if err != nil {
+		return loaded, err
+	}
 	name := models.RepositoryName(shared)
 	built, err := page.Build(l.tr, repo, page.Request{
 		Base: r.Base, Members: members, BaseBranch: r.Base, Title: shown,
 		Subject: page.BranchSubject(l.tr, branches), Config: checked, Context: withContext, RootTitle: name,
+		Keep: conversationPaths(threads),
 	})
 	if err != nil {
 		return loaded, err
@@ -151,9 +158,34 @@ func (l *BranchLoader) Load(r BranchRequest) (Loaded, error) {
 			}
 			files = append(files, store.FileWrite{Path: folder.Config(), Text: text})
 		}
-		return files, nil
+		moves, err := l.conversationMoves(ref, repo, built.Page)
+		return append(files, moves...), err
 	})
 	return loaded, err
+}
+
+func (l *BranchLoader) conversationMoves(ref models.ReviewRef, repo *git.Repository, after models.PageRecord) ([]store.FileWrite, error) {
+	drawn, err := l.store.ReadPage(ref)
+	if err != nil || drawn == nil {
+		return nil, err
+	}
+	threads, err := l.store.Threads(ref)
+	if err != nil {
+		return nil, err
+	}
+	moved, err := movedConversations(repo, drawn.Page, after, threads)
+	if err != nil {
+		return nil, err
+	}
+	var writes []store.FileWrite
+	for _, c := range moved {
+		write, err := l.store.ThreadWrite(ref, c)
+		if err != nil {
+			return nil, err
+		}
+		writes = append(writes, write)
+	}
+	return writes, nil
 }
 
 // Refresh loads a branch review again, from the folder, the base and the
