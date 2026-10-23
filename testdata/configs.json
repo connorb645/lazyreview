@@ -190,6 +190,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -492,6 +493,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -871,6 +873,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -1450,6 +1455,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -1752,6 +1758,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -2131,6 +2138,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -2740,6 +2750,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -3042,6 +3053,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -3423,6 +3435,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -4002,6 +4017,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -4304,6 +4320,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -4683,6 +4700,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -5266,6 +5286,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -5568,6 +5589,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -5947,6 +5969,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -6530,6 +6555,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -6832,6 +6858,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -7211,6 +7238,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -7790,6 +7820,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -8092,6 +8123,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -8471,6 +8503,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -9050,6 +9085,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -9352,6 +9388,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -9731,6 +9768,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -10322,6 +10362,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -10624,6 +10665,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -11005,6 +11047,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -11584,6 +11629,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -11886,6 +11932,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -12267,6 +12314,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -12846,6 +12896,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -13148,6 +13199,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -13529,6 +13581,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -14108,6 +14163,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -14410,6 +14466,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -14791,6 +14848,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -15382,6 +15442,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -15684,6 +15745,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -16063,6 +16125,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -16675,6 +16740,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -16977,6 +17043,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -17356,6 +17423,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -17963,6 +18033,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -18265,6 +18336,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -18644,6 +18716,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -19239,6 +19314,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -19541,6 +19617,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -19920,6 +19997,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -20499,6 +20579,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -20801,6 +20882,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -21180,6 +21262,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -21779,6 +21864,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -22078,6 +22164,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -22457,6 +22544,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -23035,6 +23125,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -23337,6 +23428,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -23718,6 +23810,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -24297,6 +24392,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -24599,6 +24695,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -24977,6 +25074,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -25556,6 +25656,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -25858,6 +25959,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -26237,6 +26339,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -26852,6 +26957,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -27154,6 +27260,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -27535,6 +27642,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -28114,6 +28224,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -28416,6 +28527,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -28797,6 +28909,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -29376,6 +29491,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -29678,6 +29794,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -30059,6 +30176,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -30638,6 +30758,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -30940,6 +31061,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -31321,6 +31443,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -31900,6 +32025,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -32202,6 +32328,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -32583,6 +32710,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -33162,6 +33292,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -33464,6 +33595,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -33845,6 +33977,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -34424,6 +34559,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -34726,6 +34862,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -35107,6 +35244,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -35686,6 +35826,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -35988,6 +36129,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -36369,6 +36511,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"
@@ -36980,6 +37125,7 @@
      "notesPanel": {
       "edit": "e",
       "drop": "dd",
+      "toggleFold": "za",
       "post": "P",
       "stop": "x"
      },
@@ -37282,6 +37428,7 @@
     "keybinding.filesPanel.select": "default",
     "keybinding.notesPanel.edit": "default",
     "keybinding.notesPanel.drop": "default",
+    "keybinding.notesPanel.toggleFold": "default",
     "keybinding.notesPanel.post": "default",
     "keybinding.notesPanel.stop": "default",
     "keybinding.diagramPanel.nextBox": "default",
@@ -37663,6 +37810,9 @@
       ],
       "drop": [
        "d d"
+      ],
+      "toggleFold": [
+       "z a"
       ],
       "post": [
        "P"

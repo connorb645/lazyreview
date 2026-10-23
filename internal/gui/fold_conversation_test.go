@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/connorb645/lazyreview/internal/gui/context"
+	"github.com/connorb645/lazyreview/internal/gui/presentation"
 	"github.com/connorb645/lazyreview/internal/gui/types"
 	"github.com/connorb645/lazyreview/internal/models"
 )
@@ -99,7 +100,7 @@ func TestNotesShowsAConversationOffTheDiffOpenInTheReviewView(t *testing.T) {
 	if a.Screen() != context.ScreenReview || reviewItemThread(a) != 4 || !a.ReviewView.Opened["conversation:4"] || a.Notice != "" {
 		t.Fatalf("on a conversation off the diff, the main panel shows %v on conversation %d, opened %v, and says %q", a.Screen(), reviewItemThread(a), a.ReviewView.Opened, a.Notice)
 	}
-	if got := barSays(a); got != "Open: Enter | Delete: dd | Panels: h l | Keys: Space ?" {
+	if got := barSays(a); got != "Open: Enter | Delete: dd | Fold: za | Panels: h l | Keys: Space ?" {
 		t.Fatalf("at 80 columns, the bar says %q", got)
 	}
 	screenIs(t, a, "notes-conversation-off-the-diff")
@@ -114,5 +115,50 @@ func TestNotesShowsAConversationOffTheDiffOpenInTheReviewView(t *testing.T) {
 	a = press(t, a, "enter")
 	if !a.ReviewView.Opened["conversation:4"] {
 		t.Fatal("Enter again does not open the conversation off the diff")
+	}
+}
+
+func toNotesRow(t *testing.T, a App, key string) App {
+	t.Helper()
+	a = press(t, a, "3", "g", "g")
+	for range len(a.Side(context.NotesPanel).Rows) {
+		if selectedKey(a, context.NotesPanel) == key {
+			return a
+		}
+		a = press(t, a, "j")
+	}
+	t.Fatalf("no row %s in the Notes panel", key)
+	return a
+}
+
+func TestZaInTheNotesPanelFoldsAndUnfoldsTheConversationWhereItShows(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 80, 24)
+	a = toNotesRow(t, withThreeOnALine(t, a), "conversation:2")
+	open := func(a App, key string) bool {
+		n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", key)
+		return a.Diff.NoteOpen(n)
+	}
+	if a.Screen() != context.ScreenDiff || !open(a, "conversation:2") {
+		t.Fatalf("the main panel shows %v, conversation 2 open: %v", a.Screen(), open(a, "conversation:2"))
+	}
+	if got := barSays(a); got != "Open: Enter | Delete: dd | Fold: za | Panels: h l | Keys: Space ?" {
+		t.Fatalf("at 80 columns, on a conversation, the bar says %q", got)
+	}
+	a = press(t, a, "z", "a")
+	if open(a, "conversation:2") || a.Focus() != context.NotesPanel || selectedKey(a, context.NotesPanel) != "conversation:2" || noteKeyAt(a) != "notehead conversation:2" {
+		t.Fatalf("za left conversation 2 open: %v, the keys in panel %d on %s, the diff on %s", open(a, "conversation:2"), a.Focus(), selectedKey(a, context.NotesPanel), noteKeyAt(a))
+	}
+	a = press(t, a, "z", "a")
+	if !open(a, "conversation:2") || open(a, "conversation:3") {
+		t.Fatal("za again does not unfold conversation 2 alone")
+	}
+	a = toNotesRow(t, withOneOffTheDiff(t, a), "conversation:4")
+	a = press(t, a, "z", "a")
+	if a.Screen() != context.ScreenReview || a.ReviewView.Opened["conversation:4"] || reviewItemThread(a) != 4 {
+		t.Fatalf("za on a conversation off the diff shows %v, opened %v, on conversation %d", a.Screen(), a.ReviewView.Opened, reviewItemThread(a))
+	}
+	a = press(t, a, "z", "a")
+	if !a.ReviewView.Opened["conversation:4"] {
+		t.Fatal("za again does not open the conversation off the diff")
 	}
 }

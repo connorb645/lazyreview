@@ -21,4 +21,4 @@
 │ ■ widgets              ││     You: Does the basket round its total?          │
 │ ■ Unchanged code       ││     Claude: Yes, to the penny, in Pricing.swift.   │
 ╰─────────────────1 of 2─╯╰────────────────────────────────────────────────────╯
- Open: Enter | Delete: dd | Panels: h l | Keys: Space ?
+ Open: Enter | Delete: dd | Fold: za | Panels: h l | Keys: Space ?

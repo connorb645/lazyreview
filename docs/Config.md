@@ -197,6 +197,7 @@ keybinding:
   notesPanel:
     edit: 'e'
     drop: 'dd'
+    toggleFold: 'za'
     post: 'P'
     stop: 'x'
   diagramPanel:

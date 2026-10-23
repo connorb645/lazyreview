@@ -1736,6 +1736,23 @@
               ],
               "default": "dd"
             },
+            "toggleFold": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              ],
+              "default": "za"
+            },
             "post": {
               "oneOf": [
                 {

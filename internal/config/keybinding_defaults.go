@@ -54,7 +54,7 @@ func keybindings(tr *i18n.TranslationSet) *Section {
 		})...)},
 		{Name: "reviewPanel", Section: keys("", keyDefault{"post", "P"}, keyDefault{"highlight", "v"})},
 		{Name: "filesPanel", Section: keys("", keyDefault{"toggleFold", "za"}, keyDefault{"select", "v"})},
-		{Name: "notesPanel", Section: keys("", keyDefault{"edit", "e"}, keyDefault{"drop", "dd"}, keyDefault{"post", "P"}, keyDefault{"stop", "x"})},
+		{Name: "notesPanel", Section: keys("", keyDefault{"edit", "e"}, keyDefault{"drop", "dd"}, keyDefault{"toggleFold", "za"}, keyDefault{"post", "P"}, keyDefault{"stop", "x"})},
 		{Name: "diagramPanel", Section: keys("", panelBoxes...)},
 		{Name: "reviewView", Section: keys(tr.ConfigKeysReviewView, joined(moves(), pages(), []keyDefault{
 			{"nextSection", "]]"}, {"previousSection", "[["}, {"fold", "za"}, {"open", "<enter>"}, {"edit", "e"}, {"drop", "dd"}, {"post", "P"}, {"drawings", "gX"},

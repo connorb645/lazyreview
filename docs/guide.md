@@ -290,7 +290,7 @@ The panels on the left:
 | `Esc` | in Review, goes to All, to show the whole stack; in Files, stops the selection |
 | `P` | in Review and Notes, posts for the pull request selected |
 | `e` `dd` | in Notes, edits or drops the queued comment; on a conversation with Claude, `dd` deletes it; `dd` asks first |
-| `za` | in Files, folds a component or a folder |
+| `za` | in Files, folds a component or a folder; in Notes, folds or unfolds the note where the main panel shows it |
 | `-` and the diagram's other keys | in Diagram, as in the diagram below; `j` `k` go through the boxes in reading order |
 
 The Review view, in the main panel:

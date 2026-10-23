@@ -79,6 +79,7 @@ type TranslationSet struct {
 	HelpFoldTree       string
 	HelpNotesMove      string
 	HelpOpenNote       string
+	HelpFoldNote       string
 	HelpPostComment    string
 	HelpBoxesMove      string
 	HelpPanelsToReview string
@@ -1053,7 +1054,8 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpStopSelection:  "stops the selection, so the main panel shows the row the cursor is on",
 		HelpFoldTree:       "folds or unfolds a component or a folder",
 		HelpNotesMove:      "the next, previous, first or last note; the main panel shows it in its diff",
-		HelpOpenNote:       "the note in its diff, in the main panel",
+		HelpOpenNote:       "the note in the main panel: in its diff, or in the Review view when the diff does not hold its file",
+		HelpFoldNote:       "folds or unfolds the note where the main panel shows it",
 		HelpPostComment:    "post: the actions offered for the comment's pull request",
 		HelpBoxesMove:      "the next, previous, first or last box, in reading order",
 		HelpPanelsToReview: "the panel above or below; {{.nextPanel}} goes round to Review",

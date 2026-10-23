@@ -71,6 +71,33 @@ func (self *PanelsHelper) TreeFolded(s context.ContextTree, row presentation.Sid
 	return self.c.Helpers.Refresh.Relaid(s), nil
 }
 
+// NoteFolded is the state with the note a row of the Notes panel stands
+// for folded or unfolded where the main panel shows it: in the diff, or,
+// for a conversation on a file the diff does not hold, in the Review view.
+func (self *PanelsHelper) NoteFolded(s context.ContextTree, row presentation.SideRow) (context.ContextTree, tea.Cmd) {
+	h := self.c.Helpers
+	place := row.Item.Place
+	switch {
+	case place == nil:
+		return s, nil
+	case row.Item.Kind == "conversation" && h.Diff.ComponentOf(s, place.Path) == "":
+		return self.conversationItem(s, row.Item.Thread, !s.ReviewView.Opened[row.Key]), nil
+	case s.Screen() != context.ScreenDiff:
+		return s, nil
+	}
+	n, ok := presentation.NoteOf(*s.Review, place.Path, row.Key)
+	if !ok {
+		return s, nil
+	}
+	v := s.Diff.Copied()
+	v.Notes[row.Key] = !v.NoteOpen(n)
+	s.Diff = h.Diff.Rebuilt(s, v)
+	if i := s.Diff.First(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
+		s.Diff = s.Diff.To(i, h.Window.MainHeight(s)).Placed(h.Window.MainHeight(s))
+	}
+	return h.Refresh.Mirrored(s), nil
+}
+
 // Name is the name of the place with the keys, as the keys popup heads it.
 func (self *PanelsHelper) Name(s context.ContextTree) string {
 	tr := self.c.Tr
@@ -85,7 +112,7 @@ func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow
 	place := row.Item.Place
 	switch {
 	case h.Diff.ComponentOf(s, place.Path) == "" && row.Item.Kind == "conversation":
-		return self.toConversationItem(s, row.Item.Thread), nil
+		return self.conversationItem(s, row.Item.Thread, true), nil
 	case h.Diff.ComponentOf(s, place.Path) == "":
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NotInDiff, map[string]string{"path": place.Path}), true), nil
 	}
@@ -102,12 +129,12 @@ func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow
 	return h.Refresh.Mirrored(s), nil
 }
 
-func (self *PanelsHelper) toConversationItem(s context.ContextTree, id int) context.ContextTree {
+func (self *PanelsHelper) conversationItem(s context.ContextTree, id int, open bool) context.ContextTree {
 	h := self.c.Helpers
 	s = s.Showing(context.ScreenReview)
 	s.ReviewView.Folded = utils.CopyBools(s.ReviewView.Folded)
 	s.ReviewView.Folded[presentation.ConversationsSection] = false
-	s.ReviewView = s.ReviewView.Opening(presentation.ConversationKey(id), true)
+	s.ReviewView = s.ReviewView.Opening(presentation.ConversationKey(id), open)
 	s = h.Refresh.Relaid(s)
 	s.ReviewView = s.ReviewView.OnConversation(id, h.Window.MainHeight(s))
 	return s
