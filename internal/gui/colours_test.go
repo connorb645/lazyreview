@@ -70,11 +70,12 @@ func TestTheColourScreens(t *testing.T) {
 	}
 }
 
-// A row of a panel on the left with nothing on its right, such as the
-// Notes panel's line when nothing is queued, is cut where it is cut with
-// no colour: an empty right side takes no room.
+// A row of a panel on the left with nothing on its right, such as a file's
+// row of a review of one pull request, is cut where it is cut with no
+// colour: an empty right side takes no room. The Notes panel's line when
+// nothing is queued reads whole at 80 columns, alike in colour.
 func TestARowWithNothingOnItsRightIsCutAlikeInColour(t *testing.T) {
-	notesLine := func(profile termenv.Profile) string {
+	lineWith := func(profile termenv.Profile, words string) string {
 		lipgloss.SetColorProfile(profile)
 		defer lipgloss.SetColorProfile(termenv.Ascii)
 		a := pathsStandInApp(80, 24)
@@ -82,15 +83,17 @@ func TestARowWithNothingOnItsRightIsCutAlikeInColour(t *testing.T) {
 		d.State.Kind, d.State.Queue, d.State.Members = "", &models.Queue{}, []models.Member{{Pull: 7, Title: "Price the basket"}}
 		a.Review = &d
 		for _, line := range strings.Split(ansi.Strip(relaid(showBox(a, types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"})).View()), "\n") {
-			if at := strings.Index(line, "Nothing queued"); at >= 0 {
+			if at := strings.Index(line, words); at >= 0 {
 				return line[:at+strings.Index(line[at:], "│")]
 			}
 		}
 		return ""
 	}
-	plain, coloured := notesLine(termenv.Ascii), notesLine(termenv.TrueColor)
-	if plain != "│ Nothing queued or aske…" || coloured != plain {
-		t.Errorf("the Notes panel's line is %q with no colour and %q in colour", plain, coloured)
+	for words, want := range map[string]string{"CheckoutFlow": "│     A CheckoutFlow.swi…", "queued": "│ None queued or asked   "} {
+		plain, coloured := lineWith(termenv.Ascii, words), lineWith(termenv.TrueColor, words)
+		if plain != want || coloured != plain {
+			t.Errorf("the line with %s is %q with no colour and %q in colour", words, plain, coloured)
+		}
 	}
 }
 

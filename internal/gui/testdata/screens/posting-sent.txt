@@ -11,7 +11,7 @@
 │                               ││   Approved with 1 comment, 15 Oct, 12:00:                       │
 ╰────────────────────────1 of 3─╯│   https://github.com/octo/widgets/pull/30#pullrequestreview-8   │
 ╭─[3]─Notes─────────╭─Sent to GitHub───────────────────────────────────────────╮                   │
-│ Nothing queued or │ Approved with 1 comment:                                 │                   │
+│ None queued or ask│ Approved with 1 comment:                                 │                   │
 │                   │ https://github.com/octo/widgets/pull/30#pullrequestrevie │                   │
 │                   │ w-8                                                      │                   │
 │                   ╰──────────────────────────────────────────────────────────╯                   │

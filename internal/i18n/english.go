@@ -1275,7 +1275,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Resolved:         "resolved",
 		Outdated:         "outdated",
 		NothingOnYet:     "Nothing on {{.pulls}} yet",
-		NothingQueuedYet: "Nothing queued or asked yet",
+		NothingQueuedYet: "None queued or asked",
 		NothingAskedYet:  "Nothing asked yet",
 		NothingAskedHere: "Nothing asked here yet",
 		Components:       "Components",
