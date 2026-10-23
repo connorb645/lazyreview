@@ -54,7 +54,7 @@ func step(back bool) int {
 }
 
 func sameItem(a, b presentation.Item) bool {
-	return a.Kind == b.Kind && a.Section == b.Section && a.Component == b.Component && a.Pull == b.Pull && a.Comment == b.Comment && a.URL == b.URL && samePlace(a, b)
+	return a.Kind == b.Kind && a.Section == b.Section && a.Component == b.Component && a.Pull == b.Pull && a.Comment == b.Comment && a.Thread == b.Thread && a.URL == b.URL && samePlace(a, b)
 }
 
 func samePlace(a, b presentation.Item) bool {
