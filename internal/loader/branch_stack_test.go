@@ -118,10 +118,49 @@ func TestABranchGrowsIntoAStackOfTheBranchesAboveItAtTheSameAddress(t *testing.T
 	}
 }
 
-func TestOneBranchReadsAndIsWrittenAsItAlwaysWasEvenAfterAStack(t *testing.T) {
+func TestTheBottomBranchLoadedAloneLoadsItsWholeStackAgain(t *testing.T) {
 	r, reviews, branches := stackBench(t)
-	stackLoad(t, branches, r, "stack/search", "stack/basket")
+	whole := stackLoad(t, branches, r, "stack/search", "stack/basket", "stack/total")
+	r.Commit("stack/total", map[string]string{"src/total.ts": "export function total() {\n  return 1;\n}\n"}, "Count one")
+	r.Checkout("main")
 	alone := stackLoad(t, branches, r, "stack/search")
+	if alone.Ref.ID() != whole.Ref.ID() {
+		t.Fatalf("the bottom branch alone loaded %s, not its stack at %s", alone.Ref.ID(), whole.Ref.ID())
+	}
+	rev, err := reviews.Read(alone.Ref)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := branchesOf(rev); got != "stack/search:1 stack/basket:2 stack/total:3" || rev.Head.Sha != r.Git("rev-parse", "stack/total") {
+		t.Errorf("the whole stack is loaded again, as its branches now stand: %s at %s", got, rev.Head.Sha)
+	}
+	r.Checkout("stack/search")
+	if again := stackLoad(t, branches, r, "HEAD"); len(again.Review.Branches) != 3 {
+		t.Errorf("HEAD on the bottom branch loads the stack too: %+v", again.Review.Branches)
+	}
+	r.Checkout("main")
+
+	r.Git("branch", "-q", "-m", "stack/total", "stack/sum")
+	if _, err := branches.Load(BranchRequest{Repo: r.Work, Base: "main", Heads: []string{"stack/search"}}); err == nil || !strings.HasPrefix(err.Error(), `"stack/total" is not a branch of `) {
+		t.Errorf("a stack whose top branch is gone loads with the error %v", err)
+	}
+	if kept, _ := reviews.Read(whole.Ref); len(kept.Branches) != 3 {
+		t.Errorf("and stays as it was: %+v", kept.Branches)
+	}
+
+	shrunk := stackLoad(t, branches, r, "stack/search", "stack/basket")
+	if rev, _ := reviews.Read(shrunk.Ref); shrunk.Ref.ID() != whole.Ref.ID() || branchesOf(rev) != "stack/search:1 stack/basket:2" {
+		t.Errorf("two branches loaded again shrink the stack: %s %+v", shrunk.Ref.ID(), rev)
+	}
+}
+
+func TestOneBranchThatIsNoStacksBottomLoadsAndIsWrittenAsItAlwaysWas(t *testing.T) {
+	r, reviews, branches := stackBench(t)
+	stack := stackLoad(t, branches, r, "stack/search", "stack/basket")
+	alone := stackLoad(t, branches, r, "stack/basket")
+	if alone.Ref.ID() == stack.Ref.ID() || !strings.HasSuffix(alone.Ref.ID(), "/stack~basket") {
+		t.Fatalf("a branch above a stack's bottom loaded at %s", alone.Ref.ID())
+	}
 	text, err := os.ReadFile(reviews.Home().Review(alone.Ref).Record())
 	if err != nil {
 		t.Fatal(err)
@@ -133,15 +172,18 @@ func TestOneBranchReadsAndIsWrittenAsItAlwaysWasEvenAfterAStack(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if rev.Title != "stack/search" || rev.Head.Ref != "stack/search" || len(rev.Branches) != 0 {
-		t.Errorf("loading the bottom branch alone again reviews it alone: %+v", rev)
+	if rev.Title != "stack/basket" || rev.Head.Ref != "stack/basket" || len(rev.Branches) != 0 {
+		t.Errorf("it is reviewed alone: %+v", rev)
 	}
 	drawn, err := reviews.ReadPage(alone.Ref)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if drawn.Page.Stack != nil || !strings.HasPrefix(headingOf(drawn.Page), "Branch stack/search on main") {
+	if drawn.Page.Stack != nil || !strings.HasPrefix(headingOf(drawn.Page), "Branch stack/basket on main") {
 		t.Errorf("its page is a branch's: %q, stack %+v", headingOf(drawn.Page), drawn.Page.Stack)
+	}
+	if kept, _ := reviews.Read(stack.Ref); branchesOf(kept) != "stack/search:1 stack/basket:2" {
+		t.Errorf("the stack stays as it was: %+v", kept)
 	}
 }
 

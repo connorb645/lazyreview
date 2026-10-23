@@ -116,9 +116,10 @@ reads only the repository, so it asks GitHub nothing, and like one branch
 it is read only, with Ask Claude and no queue.
 
 The stack lives with its bottom branch's review. Loading the same branches
-again refreshes it in place, as does `R`, and a branch loaded alone grows
-into the stack of it and the branches above it, at the same address. A
-branch keeps its colour from one load to the next.
+again refreshes it in place, as does `R` and loading the bottom branch
+alone, and a branch loaded alone grows into the stack of it and the
+branches above it, at the same address. A branch keeps its colour from one
+load to the next.
 
 - Leave out a branch in the middle, and the stack stays at the same
   address. The branch above it then reads from the branch below, so its
@@ -129,8 +130,10 @@ branch keeps its colour from one load to the next.
 - A branch that is not built on the head of the branch below it still
   loads, with a warning: until it is rebased, its own diff also shows the
   older part of the branch below that it holds.
-- One `--head` loads that branch alone. Loading the bottom branch alone
-  turns its stack back into a review of that branch.
+- One `--head` on the stack's bottom branch loads the whole stack again.
+  A stack shrinks only when two or more of its branches are loaded again.
+  One `--head` on any other branch loads that branch alone, at its own
+  address.
 
 ## Review in the terminal app
 

@@ -20,8 +20,10 @@ import (
 // repository and branch, a stack's by its bottom branch, so loading the
 // same branch again, from any worktree of the repository, updates it in
 // place, and a branch grows into a stack of it and the branches above at
-// the same address. A branch review is read only: it has no queue and
-// posts nothing.
+// the same address. One branch loaded alone where it is a stack's bottom
+// refreshes the whole stack; a stack shrinks only when two or more of its
+// branches are loaded again. A branch review is read only: it has no queue
+// and posts nothing.
 type BranchLoader struct {
 	tr    *i18n.TranslationSet
 	store *store.ReviewStore
@@ -38,7 +40,8 @@ func NewBranchLoader(tr *i18n.TranslationSet, reviews *store.ReviewStore, now fu
 // repository, builds what the app draws, and writes the review. Several
 // heads are a stack: each branch's own diff is read from the branch below
 // it, the bottom's from the base, and each branch keeps its colour from one
-// load to the next.
+// load to the next. One head that is the bottom of the stack its review
+// holds loads that whole stack again.
 func (l *BranchLoader) Load(r BranchRequest) (Loaded, error) {
 	var loaded Loaded
 	path, err := filepath.Abs(r.Repo)
@@ -65,6 +68,12 @@ func (l *BranchLoader) Load(r BranchRequest) (Loaded, error) {
 	previous, err := l.store.Read(ref)
 	if err != nil {
 		return loaded, err
+	}
+	heads := stackHeads(previous, branches, r.Heads)
+	if !slices.Equal(heads, r.Heads) {
+		if branches, err = l.branchesOf(repo, path, heads); err != nil {
+			return loaded, err
+		}
 	}
 	title := r.Title
 	if title == nil && previous != nil {
@@ -94,7 +103,7 @@ func (l *BranchLoader) Load(r BranchRequest) (Loaded, error) {
 	}
 	members := make([]page.Member, len(branches))
 	for i, branch := range branches {
-		members[i] = page.Member{Head: r.Heads[i]}
+		members[i] = page.Member{Head: heads[i]}
 		if stacked {
 			members[i].Pull, members[i].Branch = i+1, branch
 		}
@@ -179,6 +188,13 @@ func (l *BranchLoader) branchesOf(repo *git.Repository, path string, heads []str
 		branches = append(branches, branch)
 	}
 	return branches, nil
+}
+
+func stackHeads(previous *models.Review, branches, heads []string) []string {
+	if len(branches) != 1 || previous == nil || len(previous.Branches) < 2 || previous.Branches[0].Branch != branches[0] {
+		return heads
+	}
+	return previous.BranchNames()
 }
 
 func stackOf(before *models.Review, branches []string, built page.Built) []models.BranchMember {
