@@ -27,4 +27,4 @@
 │ ■ Unchanged code                     ││                                                                              │
 │                                      ││                                                                              │
 ╰───────────────────────────────1 of 2─╯╰──────────────────────────────────────────────────────────────────file header─╯
- Move: j k | Hunks: ]c [c | Select: V | Comment: c | Ask Claude: a | Search: / | Back: - | List: Esc | Keys: Space ?
+ Move: j k | Hunks: ]c [c | Select: V | Ask Claude: a | Search: / | Back: - | List: Esc | Keys: Space ?

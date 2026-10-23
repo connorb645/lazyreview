@@ -320,15 +320,16 @@ func (self *DiffController) Help(labels presentation.KeyLabels) []HelpSection {
 }
 
 // Hints are what the bar shows of the diff's keys: a selection's, a note's
-// by its kind, or the diff's.
+// by its kind, or the diff's, leaving out comment where the review takes
+// none.
 func (self *DiffController) Hints(s context.ContextTree, labels presentation.KeyLabels) [][2]string {
 	return reviewScreenHints(self.c, s, labels, func() [][2]string {
 		tr := self.c.Tr
 		esc := labels.Nth("close", 1)
 		if s.Diff.Selecting {
-			return [][2]string{{labels.Of("comment"), tr.Comment}, {labels.Of("ask"), tr.AskClaude}, {labels.Of("other end"), tr.OtherEnd}, {esc, tr.Stop}}
+			return commentable(s, labels, [][2]string{{labels.Of("comment"), tr.Comment}, {labels.Of("ask"), tr.AskClaude}, {labels.Of("other end"), tr.OtherEnd}, {esc, tr.Stop}})
 		}
-		return append(self.noteHints(s, labels), [2]string{esc, tr.List})
+		return commentable(s, labels, append(self.noteHints(s, labels), [2]string{esc, tr.List}))
 	})
 }
 

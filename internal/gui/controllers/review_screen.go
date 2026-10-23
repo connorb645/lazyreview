@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"slices"
+
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/internal/gui/context"
@@ -82,6 +84,14 @@ func reviewScreenHints(c *helpers.HelperCommon, s context.ContextTree, labels pr
 
 func canPost(s context.ContextTree) bool {
 	return s.Review != nil && s.Review.State.Queue != nil && s.Review.State.Queue.Moved == nil
+}
+
+func commentable(s context.ContextTree, labels presentation.KeyLabels, hints [][2]string) [][2]string {
+	if canPost(s) {
+		return hints
+	}
+	comment := labels.Of("comment")
+	return slices.DeleteFunc(hints, func(h [2]string) bool { return h[0] == comment })
 }
 
 func onGitHub(s context.ContextTree) bool {
