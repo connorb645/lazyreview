@@ -69,7 +69,10 @@ func (self *FilesPanelController) Hints(s context.ContextTree, labels presentati
 			return [][2]string{{labels.Of("down", "up"), tr.GrowShrink}, {labels.Nth("close", 1), tr.Stop}, panels}
 		}
 		hints := [][2]string{{labels.Of("open"), tr.Diff}, {labels.Of("select"), tr.Select}}
-		if s.Review.Page.Stack != nil {
+		switch {
+		case s.Review.Page.Stack != nil && s.Review.State.Kind == "branch":
+			hints = append(hints, [2]string{labels.Of("next pull", "previous pull"), tr.Branch})
+		case s.Review.Page.Stack != nil:
 			hints = append(hints, [2]string{labels.Of("next pull", "previous pull"), tr.PullRequest})
 		}
 		return append(hints, panels, [2]string{labels.Of("toggle fold"), tr.Fold})

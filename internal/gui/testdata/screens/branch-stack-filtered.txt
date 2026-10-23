@@ -1,19 +1,19 @@
 ╭─[1]─Review────────────────────╮╭─[0]─Review──────────────────────────────────────────────────────╮
 │·All                           ││ A stack of 2 branches in widgets, each built on the one before, │
 │▌feature/search                ││ with no pull request yet                                        │
-│·feature/basket                ││ Stack feature/search to feature/basket                          │
-╰────────────────────────2 of 3─╯│  feature/search  on main · head ec6fb42d · 2 files +11 −0       │
-╭─[2]─Files─────────────────────╮│  feature/basket                                                 │
-│ ▾ ■ widgets            +11 −0 ││       on feature/search · head cd3c7027 · 2 files +4 −1         │
-│   M MemoryCatalog.swift     ● ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
-│   A Search.swift            ● ││ Showing feature/search only. Esc in the Review panel shows the  │
-│ ▾ ■ Unchanged code  unchanged ││ whole stack.                                                    │
-│   · Catalog.swift             ││                                                                 │
-│                               ││ This review is read only: nothing can be posted from a branch.  │
+│·feature/cart                  ││ Stack feature/search to feature/cart                            │
+╰────────────────────────2 of 3─╯│  feature/search  head ec6fb42d · 2 files +11 −0                 │
+╭─[2]─Files─────────────────────╮│  feature/cart    head cd3c7027 · 2 files +4 −1                  │
+│ ▾ ■ widgets            +11 −0 ││ Base main · Head cd3c7027 · Combined: 4 files +15 −1            │
+│   M MemoryCatalog.swift     ● ││ Showing feature/search only. Esc in the Review panel shows the  │
+│   A Search.swift            ● ││ whole stack.                                                    │
+│ ▾ ■ Unchanged code  unchanged ││                                                                 │
+│   · Catalog.swift             ││ This review is read only: nothing can be posted from a branch.  │
 │                               ││                                                                 │
 │                               ││ ▾ The change                                                    │
-╰────────────────────────1 of 5─╯│   ■ widgets  2 files +11 −0                                     │
-╭─[3]─Notes─────────────────────╮│   ■ Unchanged code  1 file · unchanged                          │
+│                               ││   ■ widgets  2 files +11 −0                                     │
+╰────────────────────────1 of 5─╯│   ■ Unchanged code  1 file · unchanged                          │
+╭─[3]─Notes─────────────────────╮│                                                                 │
 │ Nothing on feature/search yet ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │

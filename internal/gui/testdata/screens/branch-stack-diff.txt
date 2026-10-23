@@ -1,7 +1,7 @@
 ╭─[1]─Review───────────────────────────╮╭─[0]─Diff · widgets › Sources/Basket/Basket.swift─────────────────────────────╮
-│┃All                                  ││▌ ▾ Sources/Basket/Basket.swift  changed  feature/basket  +3 −1               │
+│┃All                                  ││▌ ▾ Sources/Basket/Basket.swift  changed  feature/cart  +3 −1                 │
 │ feature/search                       ││   @@ -1,11 +1,13 @@                                                          │
-│ feature/basket                       ││     1    1   final class Basket {                                            │
+│ feature/cart                         ││     1    1   final class Basket {                                            │
 ╰───────────────────────────────1 of 3─╯│     2    2       let catalog: Catalog                                        │
 ╭─[2]─Files────────────────────────────╮│ ▎        3 +     let search: Search                                          │
 │ ▾ ■ widgets                   +15 −1 ││     3    4                                                                   │

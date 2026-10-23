@@ -202,6 +202,7 @@ type TranslationSet struct {
 	Stop               string
 	Fold               string
 	PullRequest        string
+	Branch             string
 	Panels             string
 	Open               string
 	Edit               string
@@ -1171,6 +1172,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Stop:               "Stop",
 		Fold:               "Fold",
 		PullRequest:        "Pull request",
+		Branch:             "Branch",
 		Panels:             "Panels",
 		Open:               "Open",
 		Edit:               "Edit",

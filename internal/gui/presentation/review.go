@@ -143,31 +143,33 @@ func reviewHeader(b *builder, d types.ReviewData, filter types.PullFilter) {
 		}
 		b.prose(" ", th.Muted, words)
 		b.prose(" ", th.Bold, title)
+		widest := 0
+		for _, m := range s.Members {
+			widest = max(widest, ansi.StringWidth(m.Branch))
+		}
 		for _, m := range s.Members {
 			own := StackMember(d.Page.Stack, m.Pull)
 			number, name, added, removed := th.PullRequest(m.Color), th.Text, th.Added, th.Removed
 			if !filter.Shows(m.Pull) {
 				number, name, added, removed = th.Faint, th.Faint, th.DimAdded, th.DimRemoved
 			}
-			parts := []string{th.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base})),
-				th.Muted.Render(utils.ResolvePlaceholderString(tr.MemberHead, map[string]string{"sha": utils.Short(m.Head)})),
+			parts := []string{th.Muted.Render(utils.ResolvePlaceholderString(tr.MemberHead, map[string]string{"sha": utils.Short(m.Head)})),
 				th.Muted.Render(utils.Plural(own.Files, tr.FileNoun)+" ") + added.Render(fmt.Sprintf("+%d", own.Adds)) + " " + removed.Render(fmt.Sprintf("−%d", own.Dels))}
+			head, indent := "  "+number.Render(MemberName(d, m.Pull))+strings.Repeat(" ", widest-ansi.StringWidth(m.Branch)), "    "
 			if m.Branch == "" {
-				parts = append([]string{th.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author}))}, parts...)
+				parts = append([]string{th.Muted.Render(utils.ResolvePlaceholderString(tr.ByAuthor, map[string]string{"author": m.Author})),
+					th.Muted.Render(utils.ResolvePlaceholderString(tr.OnBase, map[string]string{"base": m.Base}))}, parts...)
+				head, indent = head+"  "+name.Render(m.Title), "       "
 			}
 			if m.State != "" && m.State != "open" {
 				parts = append(parts, th.Removed.Render(m.State))
-			}
-			head := "  " + number.Render(MemberName(d, m.Pull))
-			if m.Branch == "" {
-				head += "  " + name.Render(m.Title)
 			}
 			if tail := strings.Join(parts, th.Muted.Render(" · ")); ansi.StringWidth(head)+2+ansi.StringWidth(tail) <= b.width {
 				b.text(head + "  " + tail)
 				continue
 			}
 			b.text(head)
-			b.parts("       ", parts...)
+			b.parts(indent, parts...)
 		}
 		top := s.Members[len(s.Members)-1]
 		b.parts(" ", th.Muted.Render(base(s.Base.Ref)), th.Muted.Render(head(top.Head)), th.Muted.Render(tr.Combined+" ")+totals)
