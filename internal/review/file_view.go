@@ -14,11 +14,11 @@ var markdownPath = regexp.MustCompile(`(?i)\.(md|markdown)$`)
 // FileView is one file of a review's page, ready to draw, and false for a
 // path the page does not draw: its diff hunk by hunk, each row on a stack
 // with the member that changed it and the words saying so and, on a stack
-// of pull requests, where a comment on it goes; the runs of unchanged lines between the hunks, for a changed
-// file whose whole text the page kept; its whole text at the head; and for a
-// Markdown file with a diff, its Rendered view, each block with the pull
-// requests that changed its lines. An unchanged file of the context has
-// only its text.
+// of pull requests, where a comment on it goes; the runs of unchanged lines
+// between the hunks, for a changed file whose whole text the page kept; its
+// whole text at the head; and for a Markdown file with a diff, its Rendered
+// view, each block with the pull requests that changed its lines. An
+// unchanged file of the context has only its text.
 func FileView(tr *i18n.TranslationSet, page *models.PageRecord, path string) (models.File, bool) {
 	file, ok := fileOf(page, path)
 	if !ok {

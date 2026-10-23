@@ -38,9 +38,6 @@ func HeadAsked(tr *i18n.TranslationSet, rev models.Review, page models.PageRecor
 	return placeShown(Head{Commit: top.Head, Pull: top.Pull}, c)
 }
 
-// stackOf is a review's members, bottom first: its pull requests, or a
-// stack of branches' branches, each numbered by its place in the stack;
-// none for one branch.
 func stackOf(rev models.Review) []models.ReviewMember {
 	if !rev.IsBranch() {
 		return rev.Members
@@ -52,8 +49,6 @@ func stackOf(rev models.Review) []models.ReviewMember {
 	return members
 }
 
-// memberName is how Claude is told of a member of a review's stack: a pull
-// request by its number, such as #12, or a branch by its name.
 func memberName(rev models.Review, pull int) string {
 	if rev.IsBranch() && pull >= 1 && pull <= len(rev.Branches) {
 		return rev.Branches[pull-1].Branch

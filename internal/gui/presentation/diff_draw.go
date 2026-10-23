@@ -186,10 +186,6 @@ func fileHeader(tr *i18n.TranslationSet, d types.ReviewData, v DiffView, r DiffR
 	return head + th.Bold.Render(path) + tail
 }
 
-// shortBranchNames says whether a diff's file headers name a stack's
-// branches by their last part: when, at the diff's width, their full names
-// leave some changed file's header too little room for the file's own
-// name. One answer holds for every header, so they read alike.
 func shortBranchNames(tr *i18n.TranslationSet, d types.ReviewData, width int) bool {
 	if d.State.Kind != "branch" || d.Page.Stack == nil {
 		return false
