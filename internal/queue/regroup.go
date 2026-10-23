@@ -9,8 +9,6 @@ import (
 	"github.com/connorb645/lazyreview/internal/utils"
 )
 
-const colours = 8
-
 // Regroup takes a review's queue to the pull requests a load names. A
 // member keeps its queued comments, the reviews sent from it and its
 // colour. A comment whose pull request's head moved is marked stale, as is
@@ -49,25 +47,12 @@ func Regroup(tr *i18n.TranslationSet, r Regrouping) (Regrouped, error) {
 		}
 		members[i] = member
 	}
-	taken := map[int]bool{}
-	for _, m := range members {
-		if m.Color != 0 {
-			taken[m.Color] = true
-		}
+	given := make([]int, len(members))
+	for i, m := range members {
+		given[i] = m.Color
 	}
-	for i := range members {
-		if members[i].Color != 0 {
-			continue
-		}
-		colour := len(taken)%colours + 1
-		for c := 1; c <= colours; c++ {
-			if !taken[c] {
-				colour = c
-				break
-			}
-		}
-		members[i].Color = colour
-		taken[colour] = true
+	for i, c := range Coloured(given) {
+		members[i].Color = c
 	}
 
 	earlier := []models.ReviewMember{}
