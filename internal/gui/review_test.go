@@ -81,3 +81,10 @@ func TestAStackWarnsOfAMemberOutOfStepOnce(t *testing.T) {
 		t.Errorf("the Review view warns %d times:\n%s", said, ansi.Strip(a.View()))
 	}
 }
+
+func TestGgInTheReviewViewShowsItFromItsFirstLine(t *testing.T) {
+	a := press(t, onBranchStack(t, 80, 16), "0", "G", "g", "g")
+	if v := a.ReviewView.View; v.Cursor != 0 || v.Top != 0 {
+		t.Fatalf("after G and gg, the Review view's cursor is on item %d and it shows from line %d", v.Cursor, v.Top)
+	}
+}

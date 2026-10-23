@@ -84,7 +84,7 @@ func (s Scroller) Paged(by, height int) Scroller {
 }
 
 // Shown is the view scrolled to show as much of the selected item as fits
-// in a height.
+// in a height, and the lines above the first item with it when they fit.
 func (s Scroller) Shown(height int) Scroller {
 	first, last := -1, -1
 	for i, l := range s.Lines {
@@ -98,6 +98,9 @@ func (s Scroller) Shown(height int) Scroller {
 	if first < 0 || height <= 0 {
 		s.Top = utils.Clamp(s.Top, 0, max(0, len(s.Lines)-height))
 		return s
+	}
+	if s.Cursor == 0 && last < height {
+		first = 0
 	}
 	if last-first+1 > height {
 		last = first + height - 1
