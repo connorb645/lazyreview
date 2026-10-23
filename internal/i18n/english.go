@@ -1086,7 +1086,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpFiles:          "the next or previous file",
 		HelpNotes:          "the next or previous note: a queued comment, a conversation or a colleague's thread",
 		HelpSearch:         "search the text, forward or back",
-		HelpFold:           "toggle, open or close the fold at the cursor: a file, a run of unchanged lines or a note",
+		HelpFold:           "toggle, open or close the fold at the cursor: a file, a run of unchanged lines, or a note such as a conversation with Claude",
 		HelpFoldAll:        "open every fold, close every fold",
 		HelpToggleFile:     "on a file's header, toggles the file",
 		HelpSelect:         "selects lines; {{.otherEnd}} goes to the other end; {{.stop}} stops",

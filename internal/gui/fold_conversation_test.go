@@ -224,3 +224,24 @@ func TestNotesOpensOnlyTheConversationAtItsCursorAndKeepsOneOpenedOnPurpose(t *t
 		t.Fatalf("after k again, %q are open", got)
 	}
 }
+
+func TestTheKeysListOfEachPlaceAConversationShowsSaysHowToFoldAndDeleteIt(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	for _, c := range []struct {
+		place, fold string
+		at          App
+	}{
+		{"the diff", "a note such as a conversation with Claude", toNote(t, onBasketAt(t, 100, 30), "conversation:1")},
+		{"the Notes panel", "folds or unfolds the note", toNotesRow(t, a, "conversation:1")},
+		{"the Review view", "folds or unfolds the conversation at the cursor", toReviewItem(t, press(t, a, "0"), 1)},
+	} {
+		help := map[string]string{}
+		for _, r := range press(t, c.at, "space", "?").Menu.Rows {
+			help[r.Left] = r.Right
+		}
+		fold := help["za"] + help["za zo zc"]
+		if !strings.Contains(fold, c.fold) || !strings.Contains(help["dd"], "deletes the conversation with Claude") {
+			t.Errorf("in %s, Space ? lists za as %q and dd as %q", c.place, fold, help["dd"])
+		}
+	}
+}

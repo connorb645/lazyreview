@@ -347,7 +347,7 @@ each its own number, or how far each is from the cursor, as Vim's
 | `]c` `[c` `]f` `[f` | the next or previous hunk, or file shown; `]f` and `[f` stay at the last and first |
 | `]n` `[n` | the next or previous note: a queued comment, a conversation or a colleague's thread |
 | `/` `?` `n` `N` | search the text |
-| `za` `zo` `zc` `zR` `zM` | fold a file, a run of unchanged lines or a note |
+| `za` `zo` `zc` `zR` `zM` | fold a file, a run of unchanged lines, or a note such as a conversation with Claude |
 | `V` | selects lines; `o` goes to the other end, `Esc` stops |
 | `c` | comments on the line or the selection; on Claude's answer, uses it |
 | `a` | asks Claude about the line or the selection; in a conversation, asks a follow-up |
