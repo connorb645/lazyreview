@@ -196,3 +196,31 @@ func TestEachFoldedConversationOfALineShowsTheStartOfItsQuestion(t *testing.T) {
 		screenIs(t, a, fmt.Sprintf("conversations-folded-%dx%d", size[0], size[1]))
 	}
 }
+
+func TestNotesOpensOnlyTheConversationAtItsCursorAndKeepsOneOpenedOnPurpose(t *testing.T) {
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	a = withThreeOnALine(t, a)
+	opens := func(a App) string {
+		var open []string
+		for _, key := range []string{"conversation:1", "conversation:2", "conversation:3"} {
+			if n, _ := presentation.NoteOf(*a.Review, "Sources/Basket/Basket.swift", key); a.Diff.NoteOpen(n) {
+				open = append(open, key)
+			}
+		}
+		return strings.Join(open, " ")
+	}
+	for _, key := range []string{"conversation:1", "conversation:2", "conversation:3"} {
+		a = toNotesRow(t, a, key)
+		if got := opens(a); got != key {
+			t.Fatalf("with the Notes panel on %s, %q are open", key, got)
+		}
+	}
+	a = press(t, a, "z", "a", "z", "a", "k")
+	if got := opens(a); got != "conversation:2 conversation:3" {
+		t.Fatalf("after za twice on conversation 3, then k, %q are open", got)
+	}
+	a = press(t, a, "k")
+	if got := opens(a); got != "conversation:1 conversation:3" {
+		t.Fatalf("after k again, %q are open", got)
+	}
+}

@@ -176,6 +176,7 @@ func (self *DiffController) folds(open bool) Handler {
 			v.Folded[f.Path] = !open
 			for _, n := range presentation.NotesOf(*s.Review, f.Path) {
 				v.Notes[n.Key] = open
+				v = v.Kept(n.Key)
 			}
 			for _, g := range v.Files[f.Path].Gaps {
 				if open {

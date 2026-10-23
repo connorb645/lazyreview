@@ -14,10 +14,12 @@ import (
 )
 
 // DiffContext is the diff in the main panel of the files the Files panel
-// has chosen, and what was last searched for in it.
+// has chosen, what was last searched for in it, and the note the Notes
+// panel opened only to show it, by its key.
 type DiffContext struct {
 	presentation.DiffView
-	Query string
+	Query  string
+	Peeked string
 }
 
 // NewDiffContext is a diff of the files loaded, its lines numbered as the
@@ -318,6 +320,38 @@ func (v DiffContext) paths() []string {
 		}
 	}
 	return out
+}
+
+// Peeking is the diff with a note open to show it, and the note it last
+// opened that way folded again. A note already open stays as it was, and is
+// not folded when another is shown.
+func (v DiffContext) Peeking(n presentation.Note) DiffContext {
+	if v.Peeked == n.Key {
+		return v
+	}
+	v = v.Unpeeked()
+	if !v.NoteOpen(n) {
+		v.Notes[n.Key], v.Peeked = true, n.Key
+	}
+	return v
+}
+
+// Unpeeked is the diff with the note it opened only to show folded again.
+func (v DiffContext) Unpeeked() DiffContext {
+	v = v.Copied()
+	if v.Peeked != "" {
+		v.Notes[v.Peeked], v.Peeked = false, ""
+	}
+	return v
+}
+
+// Kept is the diff with a note, by its key, left as it is folded now, since
+// it was folded or opened on purpose, when another note is shown.
+func (v DiffContext) Kept(key string) DiffContext {
+	if v.Peeked == key {
+		v.Peeked = ""
+	}
+	return v
 }
 
 // Copied is the diff with its own copies of its folds, so changing them

@@ -393,11 +393,13 @@ sits at the top of its file. Each thread and each conversation starts
 folded to one line that says who wrote, how many comments there are, and
 whether it is resolved, outdated or waiting for Claude; `za` opens it. A
 folded conversation also shows the start of its first question, so several
-on one line tell apart. `R` reads them again. In the Review view, a
-conversation shows its first question and its latest answer, and `za`
-there shows every message. A conversation on a file the page does not
-hold, such as one a later push took out of a pull request, shows only
-there: Notes opens it in the Review view.
+on one line tell apart. Notes opens the note at its cursor to show it, and
+folds it again when the cursor moves on, unless it was folded or opened on
+purpose. `R` reads them again. In the Review view, a conversation shows
+its first question and its latest answer, and `za` there shows every
+message. A conversation on a file the page does not hold, such as one a
+later push took out of a pull request, shows only there: Notes opens it in
+the Review view.
 
 ## Components and packages
 

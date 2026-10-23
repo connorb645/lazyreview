@@ -355,6 +355,7 @@ func (self *EditingHelper) AfterChange(s context.ContextTree, msg types.Changed)
 		s = h.Refresh.WithState(s, withConversation(s.Review.State, c))
 		s.Diff.Notes = utils.CopyBools(s.Diff.Notes)
 		s.Diff.Notes[presentation.ConversationKey(c.ID)] = true
+		s.Diff = s.Diff.Kept(presentation.ConversationKey(c.ID))
 		s = h.Refresh.Relaid(s)
 		last := c.Messages[len(c.Messages)-1]
 		if e.Purpose == "stop" || last.Error != "" && c.ID == s.Stopped {
@@ -597,8 +598,10 @@ func deletedHere(s context.ContextTree, c models.Conversation) bool {
 func forgotten(s context.ContextTree, conversation int) context.ContextTree {
 	s.Diff.Notes = utils.CopyBools(s.Diff.Notes)
 	delete(s.Diff.Notes, presentation.ConversationKey(conversation))
+	s.Diff = s.Diff.Kept(presentation.ConversationKey(conversation))
 	s.ReviewView.Opened = utils.CopyBools(s.ReviewView.Opened)
 	delete(s.ReviewView.Opened, presentation.ConversationKey(conversation))
+	s.ReviewView = s.ReviewView.Kept(presentation.ConversationKey(conversation))
 	s.Drafts = withDraft(s.Drafts, fmt.Sprintf("reply %d", conversation), "")
 	if s.Stopped == conversation {
 		s.Stopped = 0

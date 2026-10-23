@@ -11,11 +11,13 @@ import (
 )
 
 // ReviewViewContext is the Review view in the main panel: its lines, the
-// sections folded and the conversations opened, by their keys.
+// sections folded, the conversations opened, by their keys, and the one the
+// Notes panel opened only to show it.
 type ReviewViewContext struct {
 	View   Scroller
 	Folded map[string]bool
 	Opened map[string]bool
+	Peeked string
 }
 
 // Rebuilt is the view drawn again from the review in a width, its words
@@ -44,6 +46,40 @@ func (v ReviewViewContext) Section(back bool, count, height int) ReviewViewConte
 func (v ReviewViewContext) Opening(key string, open bool) ReviewViewContext {
 	v.Opened = utils.CopyBools(v.Opened)
 	v.Opened[key] = open
+	return v
+}
+
+// Peeking is the view with a conversation, by its key, open to show it, and
+// the one it last opened that way folded again. One already open stays as
+// it was, and is not folded when another is shown.
+func (v ReviewViewContext) Peeking(key string) ReviewViewContext {
+	if v.Peeked == key {
+		return v
+	}
+	v = v.Unpeeked()
+	if !v.Opened[key] {
+		v = v.Opening(key, true)
+		v.Peeked = key
+	}
+	return v
+}
+
+// Unpeeked is the view with the conversation it opened only to show folded
+// again.
+func (v ReviewViewContext) Unpeeked() ReviewViewContext {
+	if v.Peeked != "" {
+		v = v.Opening(v.Peeked, false)
+		v.Peeked = ""
+	}
+	return v
+}
+
+// Kept is the view with a conversation, by its key, left as it is folded
+// now, since it was folded or opened on purpose, when another is shown.
+func (v ReviewViewContext) Kept(key string) ReviewViewContext {
+	if v.Peeked == key {
+		v.Peeked = ""
+	}
 	return v
 }
 

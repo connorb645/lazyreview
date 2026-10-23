@@ -112,7 +112,7 @@ func (self *ReviewViewController) open(s context.ContextTree) (context.ContextTr
 func (self *ReviewViewController) fold(s context.ContextTree) context.ContextTree {
 	if v := s.ReviewView.View; v.Cursor < len(v.Items) && v.Items[v.Cursor].Kind == "conversation" {
 		key := presentation.ConversationKey(v.Items[v.Cursor].Thread)
-		s.ReviewView = s.ReviewView.Opening(key, !s.ReviewView.Opened[key])
+		s.ReviewView = s.ReviewView.Opening(key, !s.ReviewView.Opened[key]).Kept(key)
 		return self.c.Helpers.Refresh.Relaid(s)
 	}
 	id := s.ReviewView.SectionAt()

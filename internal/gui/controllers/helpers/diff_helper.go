@@ -118,6 +118,7 @@ func (self *DiffHelper) Fold(s context.ContextTree, action string) context.Conte
 	if r.Kind == "notehead" || r.Kind == "notetext" {
 		n, _ := presentation.NoteOf(*s.Review, r.Path, r.Key)
 		v.Notes[r.Key] = action == "open fold" || action == "toggle fold" && !v.NoteOpen(n)
+		v = v.Kept(r.Key)
 		s.Diff = self.Rebuilt(s, v)
 		if i := s.Diff.First(func(row presentation.DiffRow) bool { return row.Kind == "notehead" && row.Key == r.Key }); i >= 0 {
 			s.Diff = s.Diff.To(i, h.MainHeight(s))

@@ -1053,7 +1053,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpSelectFiles:    "selects rows, from this one; {{.move}} grow or shrink the selection, {{.select}} or {{.stop}} stops it, and the main panel shows every file it holds",
 		HelpStopSelection:  "stops the selection, so the main panel shows the row the cursor is on",
 		HelpFoldTree:       "folds or unfolds a component or a folder",
-		HelpNotesMove:      "the next, previous, first or last note; the main panel shows it in its diff",
+		HelpNotesMove:      "the next, previous, first or last note; the main panel shows it open, and folds the one before again",
 		HelpOpenNote:       "the note in the main panel: in its diff, or in the Review view when the diff does not hold its file",
 		HelpFoldNote:       "folds or unfolds the note where the main panel shows it",
 		HelpPostComment:    "post: the actions offered for the comment's pull request",

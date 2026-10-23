@@ -81,7 +81,9 @@ func (self *PanelsHelper) NoteFolded(s context.ContextTree, row presentation.Sid
 	case place == nil:
 		return s, nil
 	case row.Item.Kind == "conversation" && h.Diff.ComponentOf(s, place.Path) == "":
-		return self.conversationItem(s, row.Item.Thread, !s.ReviewView.Opened[row.Key]), nil
+		return self.conversationItem(s, row.Item.Thread, func(v context.ReviewViewContext) context.ReviewViewContext {
+			return v.Opening(row.Key, !v.Opened[row.Key]).Kept(row.Key)
+		}), nil
 	case s.Screen() != context.ScreenDiff:
 		return s, nil
 	}
@@ -91,7 +93,7 @@ func (self *PanelsHelper) NoteFolded(s context.ContextTree, row presentation.Sid
 	}
 	v := s.Diff.Copied()
 	v.Notes[row.Key] = !v.NoteOpen(n)
-	s.Diff = h.Diff.Rebuilt(s, v)
+	s.Diff = h.Diff.Rebuilt(s, v.Kept(row.Key))
 	if i := s.Diff.First(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
 		s.Diff = s.Diff.To(i, h.Window.MainHeight(s)).Placed(h.Window.MainHeight(s))
 	}
@@ -112,7 +114,8 @@ func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow
 	place := row.Item.Place
 	switch {
 	case h.Diff.ComponentOf(s, place.Path) == "" && row.Item.Kind == "conversation":
-		return self.conversationItem(s, row.Item.Thread, true), nil
+		s.Diff = s.Diff.Unpeeked()
+		return self.conversationItem(s, row.Item.Thread, func(v context.ReviewViewContext) context.ReviewViewContext { return v.Peeking(row.Key) }), nil
 	case h.Diff.ComponentOf(s, place.Path) == "":
 		return s.Said(utils.ResolvePlaceholderString(self.c.Tr.NotInDiff, map[string]string{"path": place.Path}), true), nil
 	}
@@ -120,8 +123,10 @@ func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow
 	if cmd != nil {
 		return s, cmd
 	}
-	s.Diff = s.Diff.Copied()
-	s.Diff.Notes[row.Key] = true
+	if n, ok := presentation.NoteOf(*s.Review, place.Path, row.Key); ok {
+		s.Diff = s.Diff.Peeking(n)
+	}
+	s.ReviewView = s.ReviewView.Unpeeked()
 	s.Diff = h.Diff.Rebuilt(s, s.Diff)
 	if i := s.Diff.First(func(r presentation.DiffRow) bool { return r.Kind == "notehead" && r.Key == row.Key }); i >= 0 {
 		s.Diff = s.Diff.To(i, h.Window.MainHeight(s)).Placed(h.Window.MainHeight(s))
@@ -129,12 +134,12 @@ func (self *PanelsHelper) toNote(s context.ContextTree, row presentation.SideRow
 	return h.Refresh.Mirrored(s), nil
 }
 
-func (self *PanelsHelper) conversationItem(s context.ContextTree, id int, open bool) context.ContextTree {
+func (self *PanelsHelper) conversationItem(s context.ContextTree, id int, fold func(context.ReviewViewContext) context.ReviewViewContext) context.ContextTree {
 	h := self.c.Helpers
 	s = s.Showing(context.ScreenReview)
 	s.ReviewView.Folded = utils.CopyBools(s.ReviewView.Folded)
 	s.ReviewView.Folded[presentation.ConversationsSection] = false
-	s.ReviewView = s.ReviewView.Opening(presentation.ConversationKey(id), open)
+	s.ReviewView = fold(s.ReviewView)
 	s = h.Refresh.Relaid(s)
 	s.ReviewView = s.ReviewView.OnConversation(id, h.Window.MainHeight(s))
 	return s
