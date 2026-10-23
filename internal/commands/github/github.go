@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/connorb645/lazyreview/internal/i18n"
@@ -56,6 +57,7 @@ type GitHub struct {
 	host    string
 	account string
 	run     Run
+	mu      sync.Mutex
 	token   string
 }
 
@@ -74,6 +76,8 @@ func (g *GitHub) Environment() ([]string, error) {
 	if g.account == "" {
 		return nil, nil
 	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
 	if g.token == "" {
 		done := g.run([]string{"auth", "token", "--hostname", g.host, "--user", g.account}, nil, nil)
 		if done.Code != 0 {
