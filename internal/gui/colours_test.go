@@ -12,6 +12,7 @@ import (
 	"github.com/muesli/termenv"
 
 	"github.com/connorb645/lazyreview/internal/gui/types"
+	"github.com/connorb645/lazyreview/internal/models"
 )
 
 // The screens drawn in true colour, on a dark terminal and a light one, kept
@@ -76,7 +77,11 @@ func TestARowWithNothingOnItsRightIsCutAlikeInColour(t *testing.T) {
 	notesLine := func(profile termenv.Profile) string {
 		lipgloss.SetColorProfile(profile)
 		defer lipgloss.SetColorProfile(termenv.Ascii)
-		for _, line := range strings.Split(ansi.Strip(relaid(showBox(pathsStandInApp(80, 24), types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"})).View()), "\n") {
+		a := pathsStandInApp(80, 24)
+		d := *a.Review
+		d.State.Kind, d.State.Queue, d.State.Members = "", &models.Queue{}, []models.Member{{Pull: 7, Title: "Price the basket"}}
+		a.Review = &d
+		for _, line := range strings.Split(ansi.Strip(relaid(showBox(a, types.DiagramPlace{Level: "packages", Component: "shop", Box: "experiments"})).View()), "\n") {
 			if at := strings.Index(line, "Nothing queued"); at >= 0 {
 				return line[:at+strings.Index(line[at:], "│")]
 			}

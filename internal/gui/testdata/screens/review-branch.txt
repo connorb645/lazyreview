@@ -9,7 +9,7 @@
 │                        ││                                                    │
 ╰─────────────────1 of 3─╯│▌▾ The change                                       │
 ╭─[3]─Notes──────────────╮│   ■ docs  2 files +18 −1                           │
-│ Nothing queued or aske…││                                                    │
+│ Nothing asked yet      ││                                                    │
 │                        ││                                                    │
 │                        ││                                                    │
 ╰─────────────────0 of 0─╯│                                                    │

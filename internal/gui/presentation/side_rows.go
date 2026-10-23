@@ -235,13 +235,22 @@ func NoteListRows(tr *i18n.TranslationSet, th theme.Theme, d types.ReviewData, f
 				Item: Item{Kind: "thread", Pull: t.Pull, URL: url, Place: &at}})
 		}
 	}
-	if len(rows) == 0 && len(filter) > 0 {
-		rows = append(rows, heading(utils.ResolvePlaceholderString(tr.NothingOnYet, map[string]string{"pulls": FilterWords(tr, d, filter)}), "", th))
-	}
 	if len(rows) == 0 {
-		rows = append(rows, heading(tr.NothingQueuedYet, "", th))
+		rows = append(rows, heading(nothingNoted(tr, d, filter), "", th))
 	}
 	return rows
+}
+
+func nothingNoted(tr *i18n.TranslationSet, d types.ReviewData, filter types.PullFilter) string {
+	switch {
+	case d.State.Queue == nil && len(filter) > 0:
+		return tr.NothingAskedHere
+	case d.State.Queue == nil:
+		return tr.NothingAskedYet
+	case len(filter) > 0:
+		return utils.ResolvePlaceholderString(tr.NothingOnYet, map[string]string{"pulls": FilterWords(tr, d, filter)})
+	}
+	return tr.NothingQueuedYet
 }
 
 func lineName(at models.Lines) string {

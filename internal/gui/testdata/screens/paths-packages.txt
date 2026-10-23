@@ -10,7 +10,7 @@
 │                        ││p/local │                │ Pricing rules for every b│
 ╰─────────────────1 of 5─╯│        │                │ 0 files                  │
 ╭─[3]─Notes──────────────╮│────────╯                ╰──────────────────────────│
-│ Nothing queued or aske…││                                                    │
+│ Nothing asked yet      ││                                                    │
 │                        ││                                                    │
 ╰─────────────────0 of 0─╯│                                                    │
 ╭─[4]─Diagram────────────╮│                                                    │

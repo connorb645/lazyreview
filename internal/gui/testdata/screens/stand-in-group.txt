@@ -11,7 +11,7 @@
 │                                  ││                                       │                                │
 ╰───────────────────────────0 of 0─╯│ refu…  ┏━━━━━━━━━━━━━━━━━━━━━━┓       │                                │
 ╭─[3]─Notes────────────────────────╮│───────▶┃ Refunds              ┃       │                                │
-│ Nothing queued or asked yet      ││        ┃ a group of 2 changed ┃       │                                │
+│ Nothing asked yet                ││        ┃ a group of 2 changed ┃       │                                │
 │                                  ││        ┗━━━━━━━━━━━━━━━━━━━━━━┛       │                                │
 │                                  ││                                       │                                │
 │                                  ││                                       │                                │

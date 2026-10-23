@@ -5,7 +5,7 @@
 │                        ││            │ Weeded.ts new │                │ Logge│
 ╰─────────────────0 of 0─╯│            ╰───────────────╯                ╰──────│
 ╭─[3]─Notes──────────────╮│                                                    │
-│ Nothing queued or aske…││                                                    │
+│ Nothing asked yet      ││                                                    │
 ╰─────────────────0 of 0─╯│                                                    │
 ╭─[4]─Diagram────────────╮│                                                    │
 │ Border             new ││                                                    │

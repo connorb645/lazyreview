@@ -49,3 +49,38 @@ func TestALoadWithNotesSaysHowManyInANoticeWholeAtEightyColumns(t *testing.T) {
 		t.Errorf("after a load from home the bar reads %q, its notice %q", lastLine(h), h.Notice)
 	}
 }
+
+func TestTheNotesPanelOfAReviewThatTakesNoCommentsSaysNothingIsAskedInFull(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		open func(t *testing.T) App
+		keys []string
+		want string
+	}{
+		{"a branch", func(t *testing.T) App {
+			a, _ := opened(t, "github.com/octo/widgets/30", 80, 24)
+			state := a.Review.State
+			state.Kind, state.Members, state.Queue, state.GitHub, state.Threads = "branch", nil, nil, nil, nil
+			return relaid(a.with(a.helpers.Refresh.WithState(a.ContextTree, state)))
+		}, nil, "│ Nothing asked yet "},
+		{"a stack of branches", func(t *testing.T) App {
+			a := onBranchStackNamed(t, 80, 24, "catalogue-search/part-01", "catalogue-search/part-02")
+			d := *a.Review
+			d.State.Threads = nil
+			a.Review = &d
+			return relaid(a)
+		}, nil, "│ Nothing asked yet "},
+		{"a stack of branches on one branch", func(t *testing.T) App {
+			a := onBranchStackNamed(t, 80, 24, "catalogue-search/part-01", "catalogue-search/part-02")
+			d := *a.Review
+			d.State.Threads = nil
+			a.Review = &d
+			return relaid(a)
+		}, []string{"j"}, "│ Nothing asked here yet "},
+	} {
+		a := press(t, c.open(t), c.keys...)
+		if shown := ansi.Strip(a.View()); !strings.Contains(shown, c.want) || strings.Contains(shown, "queued") {
+			t.Errorf("the Notes panel of %s does not say %q:\n%s", c.name, c.want, shown)
+		}
+	}
+}

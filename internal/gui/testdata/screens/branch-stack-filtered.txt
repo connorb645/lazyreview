@@ -14,7 +14,7 @@
 │                               ││   ■ widgets  2 files +11 −0                                     │
 ╰────────────────────────1 of 5─╯│   ■ Unchanged code  1 file · unchanged                          │
 ╭─[3]─Notes─────────────────────╮│                                                                 │
-│ Nothing on feature/search yet ││                                                                 │
+│ Nothing asked here yet        ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │
 │                               ││                                                                 │

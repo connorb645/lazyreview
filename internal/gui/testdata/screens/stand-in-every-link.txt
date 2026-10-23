@@ -11,7 +11,7 @@
 │                                  ││              │            │                                            │
 ╰───────────────────────────0 of 0─╯│  ╭───────────▼──────────╮ │              ╭──────────────────────╮      │
 ╭─[3]─Notes────────────────────────╮│  │ Pricer               ├─┼─────────────▶│ Refunds              │      │
-│ Nothing queued or asked yet      ││  │ Pricer.swift changed │ │              │ a group of 2 changed │      │
+│ Nothing asked yet                ││  │ Pricer.swift changed │ │              │ a group of 2 changed │      │
 │                                  ││  ╰──────────────────────╯ │              ╰──────────────────────╯      │
 │                                  ││                           │                                            │
 │                                  ││  conforms to ╭────────────╯                                            │

@@ -299,6 +299,8 @@ type TranslationSet struct {
 	Outdated         string
 	NothingOnYet     string
 	NothingQueuedYet string
+	NothingAskedYet  string
+	NothingAskedHere string
 	Components       string
 	ListAnd          string
 
@@ -1272,6 +1274,8 @@ func EnglishTranslationSet() *TranslationSet {
 		Outdated:         "outdated",
 		NothingOnYet:     "Nothing on {{.pulls}} yet",
 		NothingQueuedYet: "Nothing queued or asked yet",
+		NothingAskedYet:  "Nothing asked yet",
+		NothingAskedHere: "Nothing asked here yet",
 		Components:       "Components",
 		ListAnd:          "{{.list}} and {{.last}}",
 
