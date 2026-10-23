@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"slices"
+
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/internal/gui/context"
@@ -42,19 +44,18 @@ func (self *ReviewPanelController) Bindings() []Binding {
 }
 
 // Help is the Review panel's keys, then those of every panel.
-func (self *ReviewPanelController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *ReviewPanelController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
-	rows := []presentation.HelpRow{
+	rows := slices.Concat([]presentation.HelpRow{
 		{Keys: sideMoveKeys(labels), Words: tr.HelpPullsMove},
 		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
 		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("previous panel", "next panel"), Words: utils.ResolvePlaceholderString(tr.HelpPanelsRound, map[string]string{"previousPanel": labels.Of("previous panel")})},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenReviewView},
-		{Keys: labels.Of("highlight"), Words: utils.ResolvePlaceholderString(tr.HelpHighlight, map[string]string{"move": labels.Of("down", "up")})},
-		{Keys: labels.Nth("close", 1), Words: tr.HelpClearHighlight},
-		{Keys: labels.Of("post"), Words: tr.HelpPostPull},
-	}
-	return reviewScreenHelp(self.c, presentation.PanelNames(tr)[context.ReviewPanel], rows, labels)
+	}, only(filterable(s), presentation.HelpRow{Keys: labels.Of("highlight"), Words: utils.ResolvePlaceholderString(tr.HelpHighlight, map[string]string{"move": labels.Of("down", "up")})},
+		presentation.HelpRow{Keys: labels.Nth("close", 1), Words: tr.HelpClearHighlight}),
+		only(takesComments(s), presentation.HelpRow{Keys: labels.Of("post"), Words: tr.HelpPostPull}))
+	return reviewScreenHelp(self.c, s, presentation.PanelNames(tr)[context.ReviewPanel], rows, labels)
 }
 
 // Hints are what the bar shows of the Review panel's keys: growing the

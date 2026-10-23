@@ -233,6 +233,9 @@ func (self *EditingHelper) DropAtCursor(s context.ContextTree) context.ContextTr
 		s.Confirmation = context.ConfirmationContext{Conversation: &c}
 		return s
 	}
+	if s.Review.State.Queue == nil {
+		return s.Said(self.keyed(s, self.c.Tr.DeletesAtCursor, "drop"), true)
+	}
 	return s.Said(self.keyed(s, self.c.Tr.DropsAtCursor, "drop"), true)
 }
 

@@ -13,7 +13,7 @@ func (self *baseController) Bindings() []Binding {
 	return nil
 }
 
-func (self *baseController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *baseController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	return nil
 }
 

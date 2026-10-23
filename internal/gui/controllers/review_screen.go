@@ -49,10 +49,10 @@ func focusOn(h *helpers.Helpers, n int) Handler {
 	}
 }
 
-func reviewScreenHelp(c *helpers.HelperCommon, heading string, rows []presentation.HelpRow, labels presentation.KeyLabels) []HelpSection {
+func reviewScreenHelp(c *helpers.HelperCommon, s context.ContextTree, heading string, rows []presentation.HelpRow, labels presentation.KeyLabels) []HelpSection {
 	tr := c.Tr
 	command := map[string]string{"command": labels.Of("command")}
-	every := []presentation.HelpRow{
+	every := slices.Concat([]presentation.HelpRow{
 		{Keys: labels.Of("focus review", "focus files", "focus notes", "focus diagram"), Words: tr.HelpFocusPanels},
 		{Keys: labels.Of("focus main"), Words: tr.HelpFocusMain},
 		{Keys: tr.CountKeys, Words: tr.HelpCount},
@@ -65,12 +65,12 @@ func reviewScreenHelp(c *helpers.HelperCommon, heading string, rows []presentati
 		{Keys: labels.Of("home"), Words: tr.HelpHome},
 		{Keys: labels.Of("diagram"), Words: tr.HelpDiagram},
 		{Keys: labels.Of("finder"), Words: tr.HelpFinder},
-		{Keys: labels.Of("github"), Words: tr.HelpGitHub},
-		{Keys: labels.Of("next pull", "previous pull"), Words: tr.HelpPullFilter},
-		{Keys: labels.Of("jump back", "jump forward"), Words: tr.HelpJumps},
-		{Keys: labels.Of("close"), Words: tr.HelpClose},
-		{Keys: labels.Of("quit"), Words: utils.ResolvePlaceholderString(tr.HelpQuit, command)},
-	}
+	}, only(onGitHub(s), presentation.HelpRow{Keys: labels.Of("github"), Words: tr.HelpGitHub}),
+		only(filterable(s), presentation.HelpRow{Keys: labels.Of("next pull", "previous pull"), Words: tr.HelpPullFilter}), []presentation.HelpRow{
+			{Keys: labels.Of("jump back", "jump forward"), Words: tr.HelpJumps},
+			{Keys: labels.Of("close"), Words: tr.HelpClose},
+			{Keys: labels.Of("quit"), Words: utils.ResolvePlaceholderString(tr.HelpQuit, command)},
+		})
 	return []HelpSection{{Heading: heading, Rows: rows}, {Heading: tr.EveryPanel, Rows: every}}
 }
 
@@ -80,6 +80,32 @@ func reviewScreenHints(c *helpers.HelperCommon, s context.ContextTree, labels pr
 		return [][2]string{{labels.Of("refresh"), tr.TryAgain}, {quitKeys(c, labels), tr.Quit}}
 	}
 	return append(hints(), [2]string{labels.Of("keys"), tr.Keys})
+}
+
+func takesComments(s context.ContextTree) bool {
+	return s.Review != nil && s.Review.State.Queue != nil
+}
+
+func filterable(s context.ContextTree) bool {
+	return takesComments(s) || s.Review != nil && s.Review.Page.Stack != nil
+}
+
+func only(act bool, rows ...presentation.HelpRow) []presentation.HelpRow {
+	if !act {
+		return nil
+	}
+	return rows
+}
+
+func forReview(s context.ContextTree, takingComments, readOnly string) string {
+	if takesComments(s) {
+		return takingComments
+	}
+	return readOnly
+}
+
+func dropWords(c *helpers.HelperCommon, s context.ContextTree, labels presentation.KeyLabels) string {
+	return utils.ResolvePlaceholderString(forReview(s, c.Tr.HelpDropAtCursor, c.Tr.HelpDeleteAtCursor), map[string]string{"confirm": labels.Of("confirm")})
 }
 
 func canPost(s context.ContextTree) bool {

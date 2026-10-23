@@ -69,7 +69,7 @@ func (self *DiagramPanelController) onDiagram(f Handler) Handler {
 }
 
 // Help is the Diagram panel's keys, then those of every panel.
-func (self *DiagramPanelController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *DiagramPanelController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: labels.Of("down", "up", "next box", "previous box", "top", "bottom"), Words: tr.HelpBoxesMove},
@@ -87,7 +87,7 @@ func (self *DiagramPanelController) Help(labels presentation.KeyLabels) []HelpSe
 		{Keys: labels.Of("box diff"), Words: tr.HelpBoxDiff},
 		{Keys: labels.Of("all links"), Words: tr.HelpAllLinks},
 	}
-	return reviewScreenHelp(self.c, presentation.PanelNames(tr)[context.DiagramPanel], rows, labels)
+	return reviewScreenHelp(self.c, s, presentation.PanelNames(tr)[context.DiagramPanel], rows, labels)
 }
 
 // Hints are what the bar shows of the Diagram panel's keys.

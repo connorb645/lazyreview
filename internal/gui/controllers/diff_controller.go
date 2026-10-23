@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"slices"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -286,12 +287,11 @@ func noHunkBetween(rows []presentation.DiffRow, from, to int) bool {
 }
 
 // Help is the diff's keys, then those of every panel.
-func (self *DiffController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *DiffController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
 	lineEnds := utils.ResolvePlaceholderString(tr.HelpLineEndsKeys, map[string]string{"top": labels.Of("top"), "bottom": labels.Of("bottom")})
 	selecting := utils.ResolvePlaceholderString(tr.HelpSelect, map[string]string{"otherEnd": labels.Of("other end"), "stop": labels.Nth("close", 1)})
-	dropping := utils.ResolvePlaceholderString(tr.HelpDropAtCursor, map[string]string{"confirm": labels.Of("confirm")})
-	rows := []presentation.HelpRow{
+	rows := slices.Concat([]presentation.HelpRow{
 		{Keys: labels.Of("down", "up"), Words: tr.HelpLinesMove},
 		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
 		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
@@ -299,25 +299,25 @@ func (self *DiffController) Help(labels presentation.KeyLabels) []HelpSection {
 		{Keys: lineEnds, Words: tr.HelpLineEnds},
 		{Keys: labels.Of("next hunk", "previous hunk"), Words: tr.HelpHunks},
 		{Keys: labels.Of("next file", "previous file"), Words: tr.HelpFiles},
-		{Keys: labels.Of("next note", "previous note"), Words: tr.HelpNotes},
+		{Keys: labels.Of("next note", "previous note"), Words: forReview(s, tr.HelpNotes, tr.HelpNotesReadOnly)},
 		{Keys: labels.Of("search", "search back", "next match", "previous match"), Words: tr.HelpSearch},
 		{Keys: labels.Of("toggle fold", "open fold", "close fold"), Words: tr.HelpFold},
 		{Keys: labels.Of("open folds", "close folds"), Words: tr.HelpFoldAll},
 		{Keys: labels.Of("open"), Words: tr.HelpToggleFile},
 		{Keys: labels.Of("select"), Words: selecting},
-		{Keys: labels.Of("comment"), Words: tr.HelpComment},
+	}, only(takesComments(s), presentation.HelpRow{Keys: labels.Of("comment"), Words: tr.HelpComment}), []presentation.HelpRow{
 		{Keys: labels.Of("ask"), Words: tr.HelpAsk},
 		{Keys: labels.Of("stop"), Words: tr.HelpStop},
-		{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor},
-		{Keys: labels.Of("drop"), Words: dropping},
+	}, only(takesComments(s), presentation.HelpRow{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor}), []presentation.HelpRow{
+		{Keys: labels.Of("drop"), Words: dropWords(self.c, s, labels)},
 		{Keys: labels.Of("show type"), Words: tr.HelpShowType},
 		{Keys: labels.Of("back"), Words: tr.HelpBack},
 		{Keys: labels.Of("split"), Words: tr.HelpSplit},
 		{Keys: labels.Of("wrap"), Words: tr.HelpWrap},
 		{Keys: labels.Of("whole"), Words: tr.HelpWhole},
 		{Keys: labels.Of("rendered"), Words: tr.HelpRendered},
-	}
-	return reviewScreenHelp(self.c, tr.DiffTitle, rows, labels)
+	})
+	return reviewScreenHelp(self.c, s, tr.DiffTitle, rows, labels)
 }
 
 // Hints are what the bar shows of the diff's keys: a selection's, a note's

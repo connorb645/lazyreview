@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"slices"
+
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/internal/gui/context"
 	"github.com/connorb645/lazyreview/internal/gui/controllers/helpers"
 	"github.com/connorb645/lazyreview/internal/gui/presentation"
-	"github.com/connorb645/lazyreview/internal/utils"
 )
 
 // NotesPanelController binds the keys of the Notes panel, which lists the
@@ -43,22 +44,21 @@ func (self *NotesPanelController) Bindings() []Binding {
 }
 
 // Help is the Notes panel's keys, then those of every panel.
-func (self *NotesPanelController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *NotesPanelController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
-	dropping := utils.ResolvePlaceholderString(tr.HelpDropAtCursor, map[string]string{"confirm": labels.Of("confirm")})
-	rows := []presentation.HelpRow{
+	rows := slices.Concat([]presentation.HelpRow{
 		{Keys: sideMoveKeys(labels), Words: tr.HelpNotesMove},
 		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
 		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("previous panel", "next panel"), Words: tr.HelpPanels},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenNote},
-		{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor},
-		{Keys: labels.Of("drop"), Words: dropping},
+	}, only(takesComments(s), presentation.HelpRow{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor}), []presentation.HelpRow{
+		{Keys: labels.Of("drop"), Words: dropWords(self.c, s, labels)},
 		{Keys: labels.Of("toggle fold"), Words: tr.HelpFoldNote},
-		{Keys: labels.Of("post"), Words: tr.HelpPostComment},
+	}, only(takesComments(s), presentation.HelpRow{Keys: labels.Of("post"), Words: tr.HelpPostComment}), []presentation.HelpRow{
 		{Keys: labels.Of("stop"), Words: tr.HelpStop},
-	}
-	return reviewScreenHelp(self.c, presentation.PanelNames(tr)[context.NotesPanel], rows, labels)
+	})
+	return reviewScreenHelp(self.c, s, presentation.PanelNames(tr)[context.NotesPanel], rows, labels)
 }
 
 // Hints are what the bar shows of the Notes panel's keys, by the row

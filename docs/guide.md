@@ -93,10 +93,12 @@ The review is kept by repository and branch, so loading the same branch again,
 from any worktree of the repository, refreshes it in place, as does `R` in
 the terminal app. `--head` names a branch, or `HEAD` on one. It gets
 the same diagram and diffs, and Ask Claude, but it is read only: it has no
-queue and no buttons, since there is no pull request to post to. `--title
-<text>` names it, where the branch's name is the default; `--config`,
-`--context` and `--no-context` work as for a pull request. The review keeps
-each of them.
+queue and no buttons, since there is no pull request to post to. Its keys
+lists and bar leave out the keys that act only on a pull request, such as
+`c`, `e`, `P` and `gx`, and `dd` only deletes a conversation with Claude.
+`--title <text>` names it, where the branch's name is the default;
+`--config`, `--context` and `--no-context` work as for a pull request. The
+review keeps each of them.
 
 Each conversation with Claude stays on its code when the branch moves and
 the review loads again: its line moves with what the new commits add and

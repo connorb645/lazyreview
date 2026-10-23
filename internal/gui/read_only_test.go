@@ -84,3 +84,70 @@ func TestTheNotesPanelOfAReviewThatTakesNoCommentsSaysNothingIsAskedInFull(t *te
 		}
 	}
 }
+
+// keysListed are the keys the keys popup lists where the keys are, each
+// with what it says it does.
+func keysListed(t *testing.T, a App) map[string]string {
+	t.Helper()
+	listed := map[string]string{}
+	for _, r := range press(t, a, "space", "?").Menu.Rows {
+		if r.Heading == "" {
+			listed[r.Left] = r.Right
+		}
+	}
+	return listed
+}
+
+func onOneBranch(t *testing.T) App {
+	t.Helper()
+	a, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	state := a.Review.State
+	state.Kind, state.Members, state.Earlier, state.Queue, state.GitHub, state.Written = "branch", nil, nil, nil, nil, nil
+	d := *a.Review
+	d.Page.Stack = nil
+	a.Review = &d
+	return relaid(a.with(a.helpers.Refresh.WithState(a.ContextTree, state)))
+}
+
+func TestAReadOnlyReviewsKeysListsOfferOnlyKeysThatActThere(t *testing.T) {
+	deletes := "deletes the conversation with Claude at the cursor, after y confirms"
+	for _, c := range []struct {
+		name    string
+		at      App
+		stacked bool
+	}{{"one branch", onOneBranch(t), false}, {"a stack of branches", onBranchStack(t, 100, 30), true}} {
+		for place, keys := range map[string][]string{
+			"the Review panel": {"1"}, "Notes": {"3"}, "the Review view": {"space", "v"}, "the diff": {"2", "j", "j", "enter"},
+		} {
+			listed := keysListed(t, press(t, c.at, keys...))
+			for _, key := range []string{"e", "P", "c", "gx", "gX"} {
+				if words, ok := listed[key]; ok {
+					t.Errorf("on %s, %s's keys list offers %s: %q", c.name, place, key, words)
+				}
+			}
+			if words, ok := listed["dd"]; ok && words != deletes {
+				t.Errorf("on %s, %s's keys list says dd %q", c.name, place, words)
+			}
+			for key, words := range listed {
+				if strings.Contains(words, "queued") || strings.Contains(words, "thread") {
+					t.Errorf("on %s, %s's keys list says %s %q", c.name, place, key, words)
+				}
+			}
+			if _, ok := listed["]p [p"]; ok != c.stacked {
+				t.Errorf("on %s, %s's keys list offers ]p [p: %v", c.name, place, ok)
+			}
+			if _, ok := listed["v"]; place == "the Review panel" && ok != c.stacked {
+				t.Errorf("on %s, the Review panel's keys list offers v: %v", c.name, ok)
+			}
+		}
+	}
+	a := onOneBranch(t)
+	if a = press(t, a, "2", "j", "j", "enter", "d", "d"); a.Notice != "dd deletes the conversation with Claude at the cursor" {
+		t.Errorf("off a conversation on a branch, dd says %q", a.Notice)
+	}
+	pull, _ := opened(t, "github.com/octo/widgets/21", 100, 30)
+	listed := keysListed(t, press(t, pull, "3"))
+	if listed["e"] == "" || listed["P"] == "" || listed["gx"] == "" || !strings.HasPrefix(listed["dd"], "drops the queued comment") {
+		t.Errorf("a pull request's Notes keys list is %v", listed)
+	}
+}

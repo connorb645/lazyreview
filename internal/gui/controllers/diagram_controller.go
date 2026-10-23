@@ -117,7 +117,7 @@ func (self *DiagramController) match(back bool) Handler {
 }
 
 // Help is the diagram's keys, then those of every panel.
-func (self *DiagramController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *DiagramController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: labels.Of("left", "right"), Words: tr.HelpBoxesAlong},
@@ -135,7 +135,7 @@ func (self *DiagramController) Help(labels presentation.KeyLabels) []HelpSection
 		{Keys: labels.Of("box diff"), Words: tr.HelpBoxDiff},
 		{Keys: labels.Of("all links"), Words: tr.HelpAllLinks},
 	}
-	return reviewScreenHelp(self.c, tr.DiagramTitle, rows, labels)
+	return reviewScreenHelp(self.c, s, tr.DiagramTitle, rows, labels)
 }
 
 // Hints are what the bar shows of the diagram's keys, by the kind of box

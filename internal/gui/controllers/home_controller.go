@@ -86,7 +86,7 @@ func (self *HomeController) paged(half, up bool) Handler {
 }
 
 // Help is the home screen's keys, then what its marks mean.
-func (self *HomeController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *HomeController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
 	command := map[string]string{"command": labels.Of("command")}
 	rows := []presentation.HelpRow{

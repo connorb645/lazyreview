@@ -121,7 +121,7 @@ func actionKeys(bindings []Binding) map[string][]string {
 func (self *Controllers) KeysMenu(s context.ContextTree) context.MenuContext {
 	place := self.Place(s)
 	pn := context.MenuContext{Menu: presentation.Menu{Title: self.c.Tr.KeysTitle}}
-	for _, section := range place.Help(self.Labels(place.Context())) {
+	for _, section := range place.Help(s, self.Labels(place.Context())) {
 		pn.Rows = append(pn.Rows, presentation.MenuRow{Heading: section.Heading})
 		for _, r := range section.Rows {
 			if r.Keys != "" {

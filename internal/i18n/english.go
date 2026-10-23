@@ -96,6 +96,7 @@ type TranslationSet struct {
 	HelpBoxDiff        string
 	HelpAllLinks       string
 	HelpItemsMove      string
+	HelpItemsReadOnly  string
 	HelpSections       string
 	HelpItemsEnds      string
 	HelpOpenItem       string
@@ -109,6 +110,7 @@ type TranslationSet struct {
 	HelpHunks          string
 	HelpFiles          string
 	HelpNotes          string
+	HelpNotesReadOnly  string
 	HelpSearch         string
 	HelpFold           string
 	HelpFoldAll        string
@@ -118,6 +120,7 @@ type TranslationSet struct {
 	HelpAsk            string
 	HelpEditAtCursor   string
 	HelpDropAtCursor   string
+	HelpDeleteAtCursor string
 	HelpShowType       string
 	HelpBack           string
 	HelpSplit          string
@@ -424,6 +427,7 @@ type TranslationSet struct {
 	QueuedCommentOn         string
 	SavingReplaces          string
 	DropsAtCursor           string
+	DeletesAtCursor         string
 	KeptQueued              string
 	KeptConversation        string
 	Dropping                string
@@ -1072,6 +1076,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpBoxDiff:        "opens its diff",
 		HelpAllLinks:       "draws every link faintly, or stops",
 		HelpItemsMove:      "the next or previous item: a section, a queued comment, a conversation or a link",
+		HelpItemsReadOnly:  "the next or previous item: a section, a conversation or a component",
 		HelpSections:       "the next or previous section",
 		HelpItemsEnds:      "the first or last item, or item n",
 		HelpOpenItem:       "opens the item in its diff; a component opens its diff; a conversation on a file the diff does not hold folds or unfolds",
@@ -1085,6 +1090,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpHunks:          "the next or previous hunk",
 		HelpFiles:          "the next or previous file",
 		HelpNotes:          "the next or previous note: a queued comment, a conversation or a colleague's thread",
+		HelpNotesReadOnly:  "the next or previous conversation with Claude",
 		HelpSearch:         "search the text, forward or back",
 		HelpFold:           "toggle, open or close the fold at the cursor: a file, a run of unchanged lines, or a note such as a conversation with Claude",
 		HelpFoldAll:        "open every fold, close every fold",
@@ -1094,6 +1100,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HelpAsk:            "asks Claude about the line or the selection; in a conversation, asks a follow-up",
 		HelpEditAtCursor:   "edits the queued comment at the cursor",
 		HelpDropAtCursor:   "drops the queued comment, or deletes the conversation with Claude, at the cursor, after {{.confirm}} confirms",
+		HelpDeleteAtCursor: "deletes the conversation with Claude at the cursor, after {{.confirm}} confirms",
 		HelpShowType:       "shows the type at the cursor on the diagram; on a file's header, lists its types",
 		HelpBack:           "goes back to the diagram or the Review view",
 		HelpSplit:          "split or unified",
@@ -1400,6 +1407,7 @@ func EnglishTranslationSet() *TranslationSet {
 		QueuedCommentOn:         "Queued comment {{.comment}} on {{.on}}, for #{{.pull}}.",
 		SavingReplaces:          "Saving replaces it.",
 		DropsAtCursor:           "{{.drop}} drops the queued comment, or deletes the conversation with Claude, at the cursor",
+		DeletesAtCursor:         "{{.drop}} deletes the conversation with Claude at the cursor",
 		KeptQueued:              "Kept queued comment {{.comment}}.",
 		KeptConversation:        "Kept the conversation on {{.on}}.",
 		Dropping:                "Dropping…",

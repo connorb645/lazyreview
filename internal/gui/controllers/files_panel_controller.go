@@ -43,7 +43,7 @@ func (self *FilesPanelController) Bindings() []Binding {
 }
 
 // Help is the Files panel's keys, then those of every panel.
-func (self *FilesPanelController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *FilesPanelController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
 	rows := []presentation.HelpRow{
 		{Keys: sideMoveKeys(labels), Words: tr.HelpFilesMove},
@@ -55,7 +55,7 @@ func (self *FilesPanelController) Help(labels presentation.KeyLabels) []HelpSect
 		{Keys: labels.Nth("close", 1), Words: tr.HelpStopSelection},
 		{Keys: labels.Of("toggle fold"), Words: tr.HelpFoldTree},
 	}
-	return reviewScreenHelp(self.c, presentation.PanelNames(tr)[context.FilesPanel], rows, labels)
+	return reviewScreenHelp(self.c, s, presentation.PanelNames(tr)[context.FilesPanel], rows, labels)
 }
 
 // Hints are what the bar shows of the Files panel's keys: growing the

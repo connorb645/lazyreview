@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"slices"
+
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/connorb645/lazyreview/internal/gui/context"
@@ -139,22 +141,20 @@ func (self *ReviewViewController) post(s context.ContextTree) context.ContextTre
 }
 
 // Help is the Review view's keys, then those of every panel.
-func (self *ReviewViewController) Help(labels presentation.KeyLabels) []HelpSection {
+func (self *ReviewViewController) Help(s context.ContextTree, labels presentation.KeyLabels) []HelpSection {
 	tr := self.c.Tr
-	rows := []presentation.HelpRow{
-		{Keys: labels.Of("down", "up"), Words: tr.HelpItemsMove},
+	rows := slices.Concat([]presentation.HelpRow{
+		{Keys: labels.Of("down", "up"), Words: forReview(s, tr.HelpItemsMove, tr.HelpItemsReadOnly)},
 		{Keys: labels.Of("half down", "half up"), Words: tr.HelpHalfPages},
 		{Keys: labels.Of("page down", "page up"), Words: tr.HelpPages},
 		{Keys: labels.Of("next section", "previous section"), Words: tr.HelpSections},
 		{Keys: utils.ResolvePlaceholderString(tr.HelpLineEndsKeys, map[string]string{"top": labels.Of("top"), "bottom": labels.Of("bottom")}), Words: tr.HelpItemsEnds},
 		{Keys: labels.Of("open"), Words: tr.HelpOpenItem},
 		{Keys: labels.Of("fold"), Words: tr.HelpFoldItem},
-		{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor},
-		{Keys: labels.Of("drop"), Words: utils.ResolvePlaceholderString(tr.HelpDropAtCursor, map[string]string{"confirm": labels.Of("confirm")})},
-		{Keys: labels.Of("post"), Words: tr.HelpPostAtCursor},
-		{Keys: labels.Of("drawings"), Words: tr.HelpDrawings},
-	}
-	return reviewScreenHelp(self.c, tr.ReviewTitle, rows, labels)
+	}, only(takesComments(s), presentation.HelpRow{Keys: labels.Of("edit"), Words: tr.HelpEditAtCursor}),
+		[]presentation.HelpRow{{Keys: labels.Of("drop"), Words: dropWords(self.c, s, labels)}},
+		only(takesComments(s), presentation.HelpRow{Keys: labels.Of("post"), Words: tr.HelpPostAtCursor}, presentation.HelpRow{Keys: labels.Of("drawings"), Words: tr.HelpDrawings}))
+	return reviewScreenHelp(self.c, s, tr.ReviewTitle, rows, labels)
 }
 
 // Hints are what the bar shows of the Review view's keys: posting and the
